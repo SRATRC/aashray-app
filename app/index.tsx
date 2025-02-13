@@ -1,19 +1,34 @@
-import { Stack, Link } from 'expo-router';
+import React, { useEffect } from 'react';
+import { Redirect, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { ActivityIndicator, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useGlobalContext } from '../context/GlobalProvider';
+import { handleUserNavigation } from '../utils/navigationValidations';
 
-import { Button } from '~/components/Button';
-import { Container } from '~/components/Container';
-import { ScreenContent } from '~/components/ScreenContent';
+import 'react-native-reanimated';
 
-export default function Home() {
+const Index = () => {
+  const { loading, user } = useGlobalContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading) {
+      handleUserNavigation(user, router);
+    }
+  }, [loading]);
+
+  if (!loading && user) return <Redirect href="/home" />;
+  if (!loading && !user) return <Redirect href="/sign-in" />;
+
   return (
-    <>
-      <Stack.Screen options={{ title: 'Home' }} />
-      <Container>
-        <ScreenContent path="app/index.tsx" title="Home" />
-        <Link href={{ pathname: '/details', params: { name: 'Dan' } }} asChild>
-          <Button title="Show Details" />
-        </Link>
-      </Container>
-    </>
+    <SafeAreaView>
+      <StatusBar style="dark" />
+      <View className="h-full items-center justify-center">
+        <ActivityIndicator />
+      </View>
+    </SafeAreaView>
   );
-}
+};
+
+export default Index;
