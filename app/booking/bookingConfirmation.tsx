@@ -1,5 +1,5 @@
-import { View, Text, ScrollView, Platform } from 'react-native';
-import { useState } from 'react';
+import { View, Text, ScrollView, Platform, Modal } from 'react-native';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useGlobalContext } from '../../context/GlobalProvider';
@@ -14,6 +14,7 @@ import FoodBookingDetails from '../../components/booking details cards/FoodBooki
 import handleAPICall from '../../utils/HandleApiCall';
 import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
+import CustomModal from '~/components/CustomModal';
 
 const bookingConfirmation = () => {
   const router = useRouter();
@@ -52,7 +53,7 @@ const bookingConfirmation = () => {
       payload.primary_booking = {
         booking_type: 'adhyayan',
         details: {
-          shibir_ids: [data.adhyayan?.id],
+          shibir_ids: data.adhyayan.map((shibir: any) => shibir.id),
         },
       };
     }
@@ -100,7 +101,7 @@ const bookingConfirmation = () => {
       addons.push({
         booking_type: 'adhyayan',
         details: {
-          shibir_ids: [data.adhyayan?.id],
+          shibir_ids: data.adhyayan.map((shibir: any) => shibir.id),
         },
       });
     }
@@ -124,7 +125,10 @@ const bookingConfirmation = () => {
           setData((prev: any) => ({ ...prev, validationData: res.data }));
           resolve(res.data);
         },
-        () => reject(new Error('Failed to fetch validation and transaction data'))
+        () => {},
+        (errorMessage: string) => {
+          reject(new Error(errorMessage));
+        }
       );
     });
   };
@@ -166,7 +170,7 @@ const bookingConfirmation = () => {
                     </Text>
                   </View>
                 )}
-                {validationData.travelDetails?.charge && (
+                {validationData.travelDetails?.charge > 0 && (
                   <View className="flex-row items-center justify-between">
                     <Text className="font-pregular text-base text-gray-500">Travel Charge</Text>
                     <Text className="font-pregular text-base text-black">
@@ -215,17 +219,17 @@ const bookingConfirmation = () => {
                 if (data.data.amount == 0) router.replace('/booking/paymentConfirmation');
                 else {
                   var options = {
-                    key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
+                    key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,
                     name: 'Vitraag Vigyaan Aashray',
                     image: 'https://vitraagvigyaan.org/img/logo.png',
                     description: 'Payment for Vitraag Vigyaan Aashray',
-                    amount: `${data.data.amount}`,
+                    amount: data.data.amount.toString(),
                     currency: 'INR',
-                    order_id: `${data.data.id}`,
+                    order_id: data.data.id.toString(),
                     prefill: {
-                      email: `${user.email}`,
-                      contact: `${user.mobno}`,
-                      name: `${user.issuedto}`,
+                      email: user.email.toString(),
+                      contact: user.mobno.toString(),
+                      name: user.issuedto.toString(),
                     },
                     theme: { color: colors.orange },
                   };
@@ -257,8 +261,18 @@ const bookingConfirmation = () => {
             }}
             containerStyles="mb-8 min-h-[62px]"
             isLoading={isSubmitting}
+            isDisabled={!validationData}
           />
         </View>
+
+        {validationDataError && (
+          <CustomModal
+            visible={true}
+            onClose={() => router.back()}
+            message={validationDataError.message}
+            btnText={'Okay'}
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );

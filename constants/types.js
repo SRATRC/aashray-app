@@ -14,6 +14,9 @@ const ADHYAYAN_DETAILS_TYPE = 'adhyayan';
 const GUEST_ADHYAYAN_DETAILS_TYPE = 'guest_adhyayan';
 const EVENT_DETAILS_TYPE = 'utsav';
 const GUEST_EVENT_DETAILS_TYPE = 'guest_utsav';
+const GUEST_BREAKFAST_DETAILS_TYPE = 'guest_breakfast';
+const GUEST_LUNCH_DETAILS_TYPE = 'guest_lunch';
+const GUEST_DINNER_DETAILS_TYPE = 'guest_dinner';
 
 const transaction_type_all = 'All';
 const transaction_type_pending = 'Pending';
@@ -42,6 +45,9 @@ export default {
   GUEST_ROOM_DETAILS_TYPE,
   GUEST_TRAVEL_DETAILS_TYPE,
   GUEST_EVENT_DETAILS_TYPE,
+  GUEST_BREAKFAST_DETAILS_TYPE,
+  GUEST_LUNCH_DETAILS_TYPE,
+  GUEST_DINNER_DETAILS_TYPE,
   transaction_type_all,
   transaction_type_pending,
   transaction_type_completed,
@@ -50,5 +56,5 @@ export default {
   transaction_type_admin_cancelled,
   MAINTENANCE_TYPE_ALL,
   MAINTENANCE_TYPE_OPEN,
-  MAINTENANCE_TYPE_CLOSED
+  MAINTENANCE_TYPE_CLOSED,
 };

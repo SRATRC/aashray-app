@@ -2,7 +2,7 @@ import { View, KeyboardAvoidingView, ScrollView, Platform, TouchableOpacity } fr
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { icons } from '../../constants';
+import { dropdowns, icons } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { useRouter } from 'expo-router';
 import PageHeader from '../../components/PageHeader';
@@ -13,11 +13,6 @@ import CustomDropdown from '../../components/CustomDropdown';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
 import handleAPICall from '../../utils/HandleApiCall';
-
-const GENDER_LIST = [
-  { key: 'M', value: 'Male' },
-  { key: 'F', value: 'Female' },
-];
 
 const fetchCountries = () => {
   return new Promise((resolve, reject) => {
@@ -81,7 +76,7 @@ const profileDetails = () => {
     state: user.state,
     city: user.city,
     pin: user.pin,
-    centre: user.centre,
+    center: user.center,
   };
 
   const [form, setForm] = useState(initialFormState);
@@ -152,7 +147,7 @@ const profileDetails = () => {
         state: form.state,
         city: form.city,
         pin: form.pin,
-        centre: form.centre,
+        center: form.center,
       },
       onSuccess,
       onFinally
@@ -228,7 +223,7 @@ const profileDetails = () => {
               otherStyles="mt-7"
               text={'Gender'}
               placeholder={'Select Gender'}
-              data={GENDER_LIST}
+              data={dropdowns.GENDER_LIST}
               setSelected={(val: any) => setForm({ ...form, gender: val })}
               defaultOption={
                 form.gender == 'M' ? { key: 'M', value: 'Male' } : { key: 'F', value: 'Female' }
@@ -236,13 +231,13 @@ const profileDetails = () => {
             />
 
             <FormField
-              text="Centre"
-              value={form.centre}
-              handleChangeText={(e: any) => setForm({ ...form, centre: e.trim() })}
+              text="Center"
+              value={form.center}
+              handleChangeText={(e: any) => setForm({ ...form, center: e.trim() })}
               otherStyles="mt-7"
               inputStyles="font-pmedium text-base text-gray-400"
               keyboardType="default"
-              placeholder="Enter Your Centre"
+              placeholder="Enter Your Center"
               maxLength={100}
               containerStyles={'bg-gray-100'}
             />

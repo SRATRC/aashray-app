@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { icons, status, types } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { useRouter } from 'expo-router';
@@ -54,6 +54,7 @@ const AdhyayanBooking = () => {
   const { user, updateBooking, updateGuestBooking, updateMumukshuBooking } = useGlobalContext();
 
   const [selectedItem, setSelectedItem] = useState<any>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const toggleModal = () => {
@@ -314,7 +315,7 @@ const AdhyayanBooking = () => {
                       <CustomButton
                         handlePress={async () => {
                           if (selectedChip == CHIPS[0]) {
-                            await updateBooking('adhyayan', selectedItem);
+                            await updateBooking('adhyayan', [selectedItem]);
                             router.push(`/booking/${types.ADHYAYAN_DETAILS_TYPE}`);
                           }
                           if (selectedChip == CHIPS[1]) {

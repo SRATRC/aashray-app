@@ -8,8 +8,9 @@ import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 
 const AdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const { data } = useGlobalContext();
-  const formattedStartDate = moment(data.adhyayan.start_date).format('Do MMMM');
-  const formattedEndDate = moment(data.adhyayan.end_date).format('Do MMMM, YYYY');
+
+  const formattedStartDate = moment(data.adhyayan[0].start_date).format('Do MMMM');
+  const formattedEndDate = moment(data.adhyayan[0].end_date).format('Do MMMM, YYYY');
 
   return (
     <PrimaryAddonBookingCard title={'Raj Adhyayan Booking'} containerStyles={containerStyles}>
@@ -42,12 +43,12 @@ const AdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ containerS
       <View className="flex flex-row gap-x-2 px-6 pb-4">
         <Image source={icons.description} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Name:</Text>
-        <Text className="font-pmedium text-black">{data.adhyayan.name}</Text>
+        <Text className="font-pmedium text-black">{data.adhyayan[0].name}</Text>
       </View>
       <View className="flex flex-row gap-x-2 px-6 pb-4">
         <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Swadhyay Karta:</Text>
-        <Text className="font-pmedium text-black">{data.adhyayan.speaker}</Text>
+        <Text className="font-pmedium text-black">{data.adhyayan[0].speaker}</Text>
       </View>
     </PrimaryAddonBookingCard>
   );

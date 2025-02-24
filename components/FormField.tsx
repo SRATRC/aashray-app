@@ -32,8 +32,8 @@ const FormField: React.FC<FormFieldProps> = ({
   prefix,
   containerStyles,
   inputStyles,
-  autoCapitalize,
-  autoComplete,
+  autoCapitalize = 'none',
+  autoComplete = 'off',
   autoCorrect = false,
   additionalText,
   multiline = false,
@@ -64,6 +64,7 @@ const FormField: React.FC<FormFieldProps> = ({
           autoCapitalize={autoCapitalize}
           autoComplete={autoComplete}
           autoCorrect={autoCorrect}
+          importantForAutofill="no"
           secureTextEntry={text === 'Password' && !showPassword}
           multiline={multiline}
           numberOfLines={numberOfLines}

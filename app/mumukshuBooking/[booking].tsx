@@ -350,11 +350,6 @@ const MumukshuAddons = () => {
               handlePress={() => {
                 setIsSubmitting(true);
 
-                console.log(JSON.stringify(roomForm));
-                console.log(JSON.stringify(foodForm));
-                console.log(JSON.stringify(travelForm));
-                console.log(JSON.stringify(adhyayanForm));
-
                 const isRoomFormEmpty = () => {
                   return roomForm.mumukshuGroup.some(
                     (group) =>

@@ -206,16 +206,6 @@ const mumukshuBookingConfirmation = () => {
                       </Text>
                     </View>
                   )}
-                {/* {validationData.foodDetails?.charge && (
-                  <View className="flex-row justify-between items-center">
-                    <Text className="text-gray-500 font-pregular text-base">
-                      Food Charge
-                    </Text>
-                    <Text className="text-black font-pregular text-base">
-                      ₹ {validationData.foodDetails.charge}
-                    </Text>
-                  </View>
-                )} */}
                 {validationData.travelDetails?.charge >= 0 && (
                   <View className="flex-row items-center justify-between">
                     <Text className="font-pregular text-base text-gray-500">Travel Charge</Text>
@@ -266,16 +256,16 @@ const mumukshuBookingConfirmation = () => {
             handlePress={async () => {
               setIsSubmitting(true);
               const onSuccess = (data: any) => {
-                if (data.data.amount == 0) router.replace('/booking/paymentConfirmation');
+                if (data.order.amount == 0) router.replace('/booking/paymentConfirmation');
                 else {
                   var options = {
                     key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
                     name: 'Vitraag Vigyaan Aashray',
                     image: 'https://vitraagvigyaan.org/img/logo.png',
                     description: 'Payment for Vitraag Vigyaan Aashray',
-                    amount: `${data.data.amount}`,
+                    amount: `${data.order.amount}`,
                     currency: 'INR',
-                    order_id: `${data.data.id}`,
+                    order_id: `${data.order.id}`,
                     prefill: {
                       email: `${user.email}`,
                       contact: `${user.mobno}`,

@@ -1,13 +1,15 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { icons, dropdowns } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import moment from 'moment';
 import CustomDropdown from '../CustomDropdown';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FormDisplayField from '../FormDisplayField';
 import AddonItem from '../AddonItem';
 import CustomMultiSelectDropdown from '../CustomMultiSelectDropdown';
+import Toast from 'react-native-toast-message';
+import * as Haptics from 'expo-haptics';
 
 interface FoodAddonProps {
   foodForm: any;
@@ -25,6 +27,19 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
   setDatePickerVisibility,
 }) => {
   const { setData } = useGlobalContext();
+
+  // Temporary state to hold the date for the checkin picker
+  const [tempFoodStartDate, setTempFoodStartDate] = useState(new Date());
+
+  // When the checkin picker is opened, initialize the temporary date
+  useEffect(() => {
+    if (isDatePickerVisible.foodStart) {
+      setTempFoodStartDate(
+        foodForm.startDay ? moment(foodForm.startDay).toDate() : moment().add(1, 'days').toDate()
+      );
+    }
+  }, [isDatePickerVisible.foodStart]);
+
   return (
     <AddonItem
       onCollapse={() => {
@@ -48,33 +63,32 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
         </View>
       }
       containerStyles={'mt-3'}>
-      <TouchableOpacity
+      <FormDisplayField
+        text="Start Date"
+        value={foodForm.startDay ? moment(foodForm.startDay).format('Do MMMM YYYY') : 'Start Date'}
+        otherStyles="mt-5"
+        backgroundColor="bg-gray-100"
         onPress={() =>
           setDatePickerVisibility({
             ...isDatePickerVisible,
             foodStart: true,
           })
-        }>
-        <FormDisplayField
-          text="Start Date"
-          value={
-            foodForm.startDay ? moment(foodForm.startDay).format('Do MMMM YYYY') : 'Start Date'
-          }
-          otherStyles="mt-5"
-          backgroundColor="bg-gray-100"
-        />
-      </TouchableOpacity>
+        }
+      />
       <DateTimePickerModal
         isVisible={isDatePickerVisible.foodStart}
         mode="date"
-        onConfirm={(date: any) => {
-          if (isNaN(date)) date = moment().add(1, 'days').toDate();
+        date={tempFoodStartDate}
+        onConfirm={(date: Date) => {
+          // Ensure the selected date isn't before tomorrow
+          const selectedMoment = moment(date);
+          const tomorrow = moment().add(1, 'days');
+          const validDate = selectedMoment.isBefore(tomorrow) ? tomorrow : selectedMoment;
+
           setFoodForm({
             ...foodForm,
-            startDay:
-              moment(date).toDate() < moment().add(1, 'days').toDate()
-                ? moment().add(1, 'days').format('YYYY-MM-DD')
-                : moment(date).format('YYYY-MM-DD'),
+            startDay: validDate.format('YYYY-MM-DD'),
+            endDay: '',
           });
           setDatePickerVisibility({
             ...isDatePickerVisible,
@@ -90,32 +104,34 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
         minimumDate={moment().add(1, 'days').toDate()}
       />
 
-      <TouchableOpacity
-        disabled={foodForm.startDay == ''}
-        onPress={() =>
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            foodEnd: true,
-          })
-        }>
-        <FormDisplayField
-          text="End Date"
-          value={foodForm.endDay ? moment(foodForm.endDay).format('Do MMMM YYYY') : 'End Date'}
-          otherStyles="mt-5"
-          backgroundColor="bg-gray-100"
-        />
-      </TouchableOpacity>
+      <FormDisplayField
+        text="End Date"
+        value={foodForm.endDay ? moment(foodForm.endDay).format('Do MMMM YYYY') : 'End Date'}
+        otherStyles="mt-5"
+        backgroundColor="bg-gray-100"
+        onPress={() => {
+          if (foodForm.startDay) {
+            setDatePickerVisibility({
+              ...isDatePickerVisible,
+              foodEnd: true,
+            });
+          } else {
+            Toast.show({
+              type: 'info',
+              text1: 'Please select start date first',
+            });
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          }
+        }}
+      />
       <DateTimePickerModal
         isVisible={isDatePickerVisible.foodEnd}
         mode="date"
-        onConfirm={(date: any) => {
-          if (isNaN(date)) date = moment(foodForm.startDay).toDate();
+        date={foodForm.endDay ? moment(foodForm.endDay).toDate() : new Date()}
+        onConfirm={(date: Date) => {
           setFoodForm({
             ...foodForm,
-            endDay:
-              moment(date).toDate() < moment().add(1, 'days').toDate()
-                ? moment().add(1, 'days').format('YYYY-MM-DD')
-                : moment(date).format('YYYY-MM-DD'),
+            endDay: moment(date).format('YYYY-MM-DD'),
           });
           setDatePickerVisibility({
             ...isDatePickerVisible,
@@ -128,7 +144,9 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
             foodEnd: false,
           })
         }
-        minimumDate={moment(foodForm.startDay).toDate()}
+        minimumDate={
+          foodForm.startDay ? moment(foodForm.startDay).add(1, 'days').toDate() : undefined
+        }
       />
 
       <CustomMultiSelectDropdown

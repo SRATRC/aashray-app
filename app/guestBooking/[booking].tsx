@@ -221,10 +221,6 @@ const guestAddons = () => {
               handlePress={() => {
                 setIsSubmitting(true);
 
-                console.log(JSON.stringify(roomForm));
-                console.log(JSON.stringify(foodForm));
-                console.log(JSON.stringify(adhyayanForm));
-
                 const isRoomFormEmpty = () => {
                   return roomForm.guestGroup.some(
                     (group) =>

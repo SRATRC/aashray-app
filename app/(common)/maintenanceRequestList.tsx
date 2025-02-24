@@ -281,7 +281,7 @@ const maintenanceRequestList = () => {
 
                   const onSuccess = async (_data: any) => {
                     await queryClient.invalidateQueries({ queryKey: ['maintenance', user.cardno] });
-                    router.back();
+                    setIsModalVisible(false);
                   };
                   const onFinally = () => {
                     setIsSubmitting(false);

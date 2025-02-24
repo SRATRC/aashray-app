@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image } from 'react-native';
 import { icons, dropdowns } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import CustomDropdown from '../CustomDropdown';
@@ -7,6 +7,8 @@ import AddonItem from '../AddonItem';
 import FormDisplayField from '../FormDisplayField';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
+import Toast from 'react-native-toast-message';
+import * as Haptics from 'expo-haptics';
 
 interface RoomAddonProps {
   roomForm: any;
@@ -22,6 +24,19 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
   setDatePickerVisibility,
 }) => {
   const { setData } = useGlobalContext();
+
+  // Temporary state to hold the date for the checkin picker
+  const [tempCheckinDate, setTempCheckinDate] = useState(new Date());
+
+  // When the checkin picker is opened, initialize the temporary date
+  useEffect(() => {
+    if (isDatePickerVisible.checkin) {
+      setTempCheckinDate(
+        roomForm.startDay ? moment(roomForm.startDay).toDate() : moment().add(1, 'days').toDate()
+      );
+    }
+  }, [isDatePickerVisible.checkin]);
+
   return (
     <AddonItem
       onCollapse={() => {
@@ -43,33 +58,36 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
         </View>
       }
       containerStyles={'mt-3'}>
-      <TouchableOpacity
+      <FormDisplayField
+        text="Checkin Date"
+        value={
+          roomForm.startDay ? moment(roomForm.startDay).format('Do MMMM YYYY') : 'Checkin Date'
+        }
+        otherStyles="mt-5"
+        backgroundColor="bg-gray-100"
         onPress={() =>
           setDatePickerVisibility({
             ...isDatePickerVisible,
             checkin: true,
           })
-        }>
-        <FormDisplayField
-          text="Checkin Date"
-          value={
-            roomForm.startDay ? moment(roomForm.startDay).format('Do MMMM YYYY') : 'Checkin Date'
-          }
-          otherStyles="mt-5"
-          backgroundColor="bg-gray-100"
-        />
-      </TouchableOpacity>
+        }
+      />
+
       <DateTimePickerModal
         isVisible={isDatePickerVisible.checkin}
         mode="date"
-        onConfirm={(date: any) => {
-          if (isNaN(date)) date = moment().add(1, 'days').toDate();
+        // Use the temporary state as the date prop
+        date={tempCheckinDate}
+        onConfirm={(date: Date) => {
+          // Ensure the selected date isn't before tomorrow
+          const selectedMoment = moment(date);
+          const tomorrow = moment().add(1, 'days');
+          const validDate = selectedMoment.isBefore(tomorrow) ? tomorrow : selectedMoment;
+
           setRoomForm({
             ...roomForm,
-            startDay:
-              moment(date).toDate() < moment().add(1, 'days').toDate()
-                ? moment().add(1, 'days').format('YYYY-MM-DD')
-                : moment(date).format('YYYY-MM-DD'),
+            startDay: validDate.format('YYYY-MM-DD'),
+            endDay: null,
           });
           setDatePickerVisibility({
             ...isDatePickerVisible,
@@ -85,32 +103,35 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
         minimumDate={moment().add(1, 'days').toDate()}
       />
 
-      <TouchableOpacity
-        disabled={roomForm.startDay === ''}
-        onPress={() =>
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            checkout: true,
-          })
-        }>
-        <FormDisplayField
-          text="Checkout Date"
-          value={roomForm.endDay ? moment(roomForm.endDay).format('Do MMMM YYYY') : 'Checkout Date'}
-          otherStyles="mt-5"
-          backgroundColor="bg-gray-100"
-        />
-      </TouchableOpacity>
+      <FormDisplayField
+        text="Checkout Date"
+        value={roomForm.endDay ? moment(roomForm.endDay).format('Do MMMM YYYY') : 'Checkout Date'}
+        otherStyles="mt-5"
+        backgroundColor="bg-gray-100"
+        onPress={() => {
+          if (roomForm.startDay) {
+            setDatePickerVisibility({
+              ...isDatePickerVisible,
+              checkout: true,
+            });
+          } else {
+            Toast.show({
+              type: 'info',
+              text1: 'Please select check-in date first',
+            });
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          }
+        }}
+      />
+
       <DateTimePickerModal
         isVisible={isDatePickerVisible.checkout}
         mode="date"
-        onConfirm={(date: any) => {
-          if (isNaN(date)) date = moment(roomForm.startDay).toDate();
+        date={roomForm.endDay ? moment(roomForm.endDay).toDate() : new Date()}
+        onConfirm={(date: Date) => {
           setRoomForm({
             ...roomForm,
-            endDay:
-              moment(date).toDate() < moment().add(1, 'days').toDate()
-                ? moment().add(1, 'days').format('YYYY-MM-DD')
-                : moment(date).format('YYYY-MM-DD'),
+            endDay: moment(date).format('YYYY-MM-DD'),
           });
           setDatePickerVisibility({
             ...isDatePickerVisible,
@@ -123,7 +144,9 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
             checkout: false,
           })
         }
-        minimumDate={moment(roomForm.startDay).toDate()}
+        minimumDate={
+          roomForm.startDay ? moment(roomForm.startDay).add(1, 'days').toDate() : undefined
+        }
       />
 
       <CustomDropdown

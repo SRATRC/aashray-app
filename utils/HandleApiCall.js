@@ -9,7 +9,8 @@ const handleAPICall = async (
   params,
   body,
   successCallback,
-  finallyCallback
+  finallyCallback = () => {},
+  errorCallback = (error) => {}
 ) => {
   try {
     const url = `${BASE_URL}${endpoint}`;
@@ -26,7 +27,7 @@ const handleAPICall = async (
       params: params,
       data: body,
       timeout: 10000,
-      validateStatus: () => true
+      validateStatus: () => true,
     });
 
     if (res.status === 200 || res.status === 201) {
@@ -36,8 +37,8 @@ const handleAPICall = async (
       throw new Error(res.data.message || 'An error occurred');
     }
   } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || 'An error occurred';
+    const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
+    if (errorCallback) errorCallback(errorMessage);
 
     console.log('ERROR: ', errorMessage);
 
@@ -46,7 +47,7 @@ const handleAPICall = async (
       text1: 'An error occurred!',
       text2: errorMessage,
       text1Style: { color: 'red' },
-      text2Style: { color: 'black', fontWeight: 'bold', fontSize: 14 }
+      text2Style: { color: 'black', fontWeight: 'bold', fontSize: 14 },
     });
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

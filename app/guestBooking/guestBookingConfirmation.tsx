@@ -108,8 +108,6 @@ const guestBookingConfirmation = () => {
 
     return {
       cardno: user.cardno,
-      transaction_type: 'upi',
-      transaction_ref: '',
       primary_booking: primaryBookingDetails(input.primary),
       addons: transformAddons(input),
     };

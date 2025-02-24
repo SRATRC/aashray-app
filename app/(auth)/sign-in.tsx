@@ -18,7 +18,7 @@ const SignIn = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { user, setUser, setCurrentUser } = useGlobalContext();
+  const { setUser, setCurrentUser } = useGlobalContext();
   const { expoPushToken } = useNotification();
 
   const submit = async () => {
@@ -31,7 +31,7 @@ const SignIn = () => {
     }
 
     const onSuccess = async (data: any) => {
-      setUser((prevUser: any) => {
+      setUser(() => {
         const updatedUser = data.data;
         setCurrentUser(updatedUser);
         handleUserNavigation(updatedUser, router);

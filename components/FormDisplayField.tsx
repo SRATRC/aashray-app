@@ -1,13 +1,13 @@
 import React from 'react';
-import { View, Text, Platform, ViewStyle, TextStyle } from 'react-native';
+import { View, Text, Platform, TouchableOpacity } from 'react-native';
 
 interface FormDisplayFieldProps {
-  text: string;
-  value: string;
-  backgroundColor?: string;
-  otherStyles?: string;
-  displayViewStyles?: string;
-  [key: string]: any;
+  text: any;
+  value: any;
+  backgroundColor?: any;
+  otherStyles?: any;
+  displayViewStyles?: any;
+  onPress?: any;
 }
 
 const FormDisplayField: React.FC<FormDisplayFieldProps> = ({
@@ -16,13 +16,14 @@ const FormDisplayField: React.FC<FormDisplayFieldProps> = ({
   backgroundColor,
   otherStyles,
   displayViewStyles,
-  ...props
+  onPress,
 }) => {
   return (
-    <View className={`gap-y-2 ${otherStyles}`} {...props}>
+    <TouchableOpacity className={`gap-y-2 ${otherStyles}`} onPress={onPress} activeOpacity={0.7}>
       <Text className="font-pmedium text-base text-gray-600">{text}</Text>
       <View
-        className={`h-16 w-full flex-row items-center rounded-2xl px-4 focus:border-2 focus:border-secondary ${displayViewStyles} ${
+        pointerEvents="none" // Allows TouchableOpacity to capture press events
+        className={`h-16 w-full flex-1 flex-row items-center rounded-2xl px-4 focus:border-2 focus:border-secondary ${displayViewStyles} ${
           backgroundColor
             ? backgroundColor
             : Platform.OS === 'ios'
@@ -33,7 +34,7 @@ const FormDisplayField: React.FC<FormDisplayFieldProps> = ({
           {value}
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

@@ -1,4 +1,5 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image } from 'react-native';
 import { icons, colors, dropdowns } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import CustomDropdown from '../CustomDropdown';
@@ -22,6 +23,19 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
   setDatePickerVisibility,
 }) => {
   const { setData } = useGlobalContext();
+
+  // Temporary state to hold the date for the checkin picker
+  const [tempTravelDate, setTempTravelDate] = useState(new Date());
+
+  // When the checkin picker is opened, initialize the temporary date
+  useEffect(() => {
+    if (isDatePickerVisible.travel) {
+      setTempTravelDate(
+        travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()
+      );
+    }
+  }, [isDatePickerVisible.travel]);
+
   return (
     <AddonItem
       onCollapse={() => {
@@ -45,32 +59,31 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         </View>
       }
       containerStyles={'mt-3'}>
-      <TouchableOpacity
+      <FormDisplayField
+        text="Date"
+        value={travelForm.date ? moment(travelForm.date).format('Do MMMM YYYY') : 'Date'}
+        otherStyles="mt-7"
+        backgroundColor="bg-gray-100"
         onPress={() =>
           setDatePickerVisibility({
             ...isDatePickerVisible,
             travel: true,
           })
-        }>
-        <FormDisplayField
-          text="Date"
-          value={travelForm.date ? moment(travelForm.date).format('Do MMMM YYYY') : 'Date'}
-          otherStyles="mt-7"
-          backgroundColor="bg-gray-100"
-        />
-      </TouchableOpacity>
+        }
+      />
       <DateTimePickerModal
         isVisible={isDatePickerVisible.travel}
         mode="date"
-        onConfirm={(date: any) => {
-          if (isNaN(date)) date = moment().add(1, 'days').toDate();
+        date={tempTravelDate}
+        onConfirm={(date: Date) => {
+          // Ensure the selected date isn't before tomorrow
+          const selectedMoment = moment(date);
+          const tomorrow = moment().add(1, 'days');
+          const validDate = selectedMoment.isBefore(tomorrow) ? tomorrow : selectedMoment;
 
           setTravelForm({
             ...travelForm,
-            date:
-              moment(date).toDate() < moment().add(1, 'days').toDate()
-                ? moment().add(1, 'days').format('YYYY-MM-DD')
-                : moment(date).format('YYYY-MM-DD'),
+            date: validDate.format('YYYY-MM-DD'),
           });
           setDatePickerVisibility({
             ...isDatePickerVisible,
