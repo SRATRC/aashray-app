@@ -1,4 +1,4 @@
-import { CameraView, useCameraPermissions, CameraCapturedPicture } from 'expo-camera';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Button, Image, Text, TouchableOpacity, View } from 'react-native';
 import { icons } from '../../constants';
 import { useState, useRef, useEffect } from 'react';

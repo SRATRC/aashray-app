@@ -86,6 +86,7 @@ const SignIn = () => {
               inputStyles="font-pmedium text-base text-gray-400"
               keyboardType="default"
               placeholder="Enter Your Password"
+              isPassword={true}
             />
 
             <CustomButton

@@ -1,4 +1,5 @@
-import { Text, View, Image, Platform, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { Text, View, Image, Platform, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { colors, icons, images } from '../../constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGlobalContext } from '../../context/GlobalProvider';
@@ -6,10 +7,67 @@ import { useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import Toast from 'react-native-toast-message';
 import handleAPICall from '../../utils/HandleApiCall';
+import FormField from '~/components/FormField';
 
 const Profile: React.FC = () => {
   const { user, removeItem } = useGlobalContext();
   const router: any = useRouter();
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleResetPassword = async () => {
+    // Validate inputs
+    if (!currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: 'All fields are required',
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      Toast.show({
+        type: 'error',
+        text1: 'Passwords do not match',
+        text2: 'New password and confirmation must match',
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    const onSuccess = () => {
+      setIsLoading(false);
+      setPasswordModalVisible(false);
+      // Clear inputs
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+
+      Toast.show({
+        type: 'success',
+        text1: 'Password updated successfully',
+      });
+    };
+
+    await handleAPICall(
+      'POST',
+      '/client/updatePassword',
+      null,
+      {
+        cardno: user?.cardno,
+        current_password: currentPassword.trim(),
+        new_password: newPassword.trim(),
+      },
+      onSuccess,
+      () => {
+        setIsLoading(false);
+      }
+    );
+  };
 
   const profileList: any = [
     {
@@ -24,6 +82,13 @@ const Profile: React.FC = () => {
       icon: icons.transactions,
       onPress: () => {
         router.push('/profile/transactions');
+      },
+    },
+    {
+      name: 'Reset Password',
+      icon: icons.resetPassword,
+      onPress: () => {
+        setPasswordModalVisible(true);
       },
     },
     {
@@ -101,6 +166,70 @@ const Profile: React.FC = () => {
           estimatedItemSize={6}
           bounces={false}
         />
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={passwordModalVisible}
+          onRequestClose={() => setPasswordModalVisible(false)}>
+          <View className="flex-1 items-center justify-center bg-black/50">
+            <View className="w-[90%] rounded-xl bg-white p-6">
+              <Text className="mb-5 text-center font-psemibold text-xl">Reset Password</Text>
+
+              <FormField
+                text="Password"
+                value={currentPassword}
+                placeholder="Current Password"
+                handleChangeText={setCurrentPassword}
+                otherStyles="mb-4"
+                containerStyles="bg-white border border-gray-300"
+                isPassword={true}
+              />
+
+              <FormField
+                text="New Password"
+                value={newPassword}
+                placeholder="Enter New Password"
+                handleChangeText={setNewPassword}
+                otherStyles="mb-4"
+                containerStyles="bg-white border border-gray-300"
+                isPassword={true}
+              />
+
+              <FormField
+                text="Confirm Password"
+                value={confirmPassword}
+                placeholder="Confirm New Password"
+                handleChangeText={setConfirmPassword}
+                otherStyles="mb-6"
+                containerStyles="bg-white border border-gray-300"
+                isPassword={true}
+              />
+
+              <View className="flex-row justify-between">
+                <TouchableOpacity
+                  className="mr-2 h-12 flex-1 items-center justify-center rounded-lg border border-gray-300"
+                  onPress={() => {
+                    setPasswordModalVisible(false);
+                    setCurrentPassword('');
+                    setNewPassword('');
+                    setConfirmPassword('');
+                  }}>
+                  <Text className="font-pregular text-gray-700">Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  className={`ml-2 h-12 flex-1 items-center justify-center rounded-lg ${isLoading ? 'bg-gray-400' : 'bg-[#FF9500]'}`}
+                  onPress={handleResetPassword}
+                  disabled={isLoading}>
+                  <Text className="font-psemibold text-white">
+                    {isLoading ? 'Updating...' : 'Update Password'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     </SafeAreaView>
   );

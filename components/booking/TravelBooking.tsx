@@ -17,6 +17,7 @@ const INITIAL_MUMUKSHU_FORM = {
   date: '',
   mumukshus: [
     {
+      cardno: '',
       mobno: '',
       pickup: '',
       drop: '',
@@ -63,6 +64,7 @@ const TravelBooking = () => {
       mumukshus: [
         ...prev.mumukshus,
         {
+          cardno: '',
           mobno: '',
           pickup: '',
           drop: '',
@@ -91,27 +93,22 @@ const TravelBooking = () => {
   };
 
   const isMumukshuFormValid = () => {
-    if (!mumukshuForm.date) {
-      return false;
-    }
-
-    return mumukshuForm.mumukshus.every((mumukshu) => {
-      if (
-        (mumukshu.pickup === 'rc' && mumukshu.drop === 'rc') ||
-        (mumukshu.pickup !== 'rc' && mumukshu.drop !== 'rc')
-      ) {
-        return false;
-      }
-
-      return (
-        mumukshu.mobno &&
-        mumukshu.mobno.length === 10 &&
-        mumukshu.pickup &&
-        mumukshu.drop &&
-        mumukshu.luggage &&
-        mumukshu.type
-      );
-    });
+    return (
+      mumukshuForm.date &&
+      mumukshuForm.mumukshus.every(
+        (mumukshu) =>
+          mumukshu.mobno?.length === 10 &&
+          mumukshu.cardno &&
+          mumukshu.pickup &&
+          mumukshu.drop &&
+          mumukshu.luggage &&
+          mumukshu.type &&
+          !(
+            (mumukshu.pickup === 'rc' && mumukshu.drop === 'rc') ||
+            (mumukshu.pickup !== 'rc' && mumukshu.drop !== 'rc')
+          )
+      )
+    );
   };
 
   return (
@@ -175,7 +172,7 @@ const TravelBooking = () => {
           <FormField
             text="Any Special Request?"
             value={travelForm.special_request}
-            handleChangeText={(e) => setTravelForm({ ...travelForm, special_request: e })}
+            handleChangeText={(e: any) => setTravelForm({ ...travelForm, special_request: e })}
             otherStyles="mt-7"
             containerStyles="bg-gray-100"
             keyboardType="default"
@@ -220,14 +217,16 @@ const TravelBooking = () => {
                   text={'Booking Type'}
                   placeholder={'Select booking type'}
                   data={dropdowns.BOOKING_TYPE_LIST}
-                  // defaultOption={{ key: 'regular', value: 'Regular' }}
+                  defaultOption={{ key: 'regular', value: 'Regular' }}
                   setSelected={(val: any) => handleMumukshuFormChange(index, 'type', val)}
                 />
 
                 <FormField
                   text="Any Special Request?"
                   value={travelForm.special_request}
-                  handleChangeText={(e) => handleMumukshuFormChange(index, 'special_request', e)}
+                  handleChangeText={(e: any) =>
+                    handleMumukshuFormChange(index, 'special_request', e)
+                  }
                   otherStyles="mt-7"
                   containerStyles="bg-gray-100"
                   keyboardType="default"
@@ -278,6 +277,7 @@ const TravelBooking = () => {
         }}
         containerStyles="mt-7 w-full px-1 min-h-[62px]"
         isLoading={isSubmitting}
+        isDisabled={!isMumukshuFormValid()}
       />
       <CustomModal
         visible={modalVisible}

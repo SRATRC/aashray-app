@@ -64,6 +64,7 @@ const INITIAL_GUEST_FORM = {
 const INITIAL_MUMUKSHU_FORM = {
   mumukshus: [
     {
+      cardno: '',
       mobno: '',
       package: null,
       arrival: null,
@@ -147,6 +148,7 @@ const EventBooking = () => {
       mumukshus: [
         ...prev.mumukshus,
         {
+          cardno: '',
           mobno: '',
           package: null,
           arrival: null,
@@ -174,18 +176,14 @@ const EventBooking = () => {
   };
 
   const isMumukshuFormValid = () => {
-    return mumukshuForm.mumukshus.every((mumukshu: any) => {
-      if (mumukshu.arrival == ARRIVAL[0].key && !mumukshu.carno) {
-        return false;
-      }
-      return (
-        mumukshu.mobno &&
-        mumukshu.mobno?.length == 10 &&
+    return mumukshuForm.mumukshus.every(
+      (mumukshu: any) =>
+        mumukshu.mobno?.length === 10 &&
         mumukshu.cardno &&
         mumukshu.package &&
-        mumukshu.arrival
-      );
-    });
+        mumukshu.arrival &&
+        !(mumukshu.arrival === ARRIVAL[0].key && !mumukshu.carno)
+    );
   };
 
   const fetchUtsavs = async ({ pageParam = 1 }) => {

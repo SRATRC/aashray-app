@@ -44,6 +44,7 @@ const INITIAL_MUMUKSHU_FORM = {
   adhyayan: null,
   mumukshus: [
     {
+      cardno: '',
       mobno: '',
     },
   ],
@@ -113,6 +114,7 @@ const AdhyayanBooking = () => {
       mumukshus: [
         ...prev.mumukshus,
         {
+          cardno: '',
           mobno: '',
         },
       ],
@@ -137,7 +139,7 @@ const AdhyayanBooking = () => {
 
   const isMumukshuFormValid = () => {
     return mumukshuForm.mumukshus.every((mumukshu) => {
-      return mumukshu.mobno && mumukshu.mobno?.length == 10;
+      return mumukshu.mobno && mumukshu.mobno?.length == 10 && mumukshu.cardno;
     });
   };
 
@@ -363,6 +365,13 @@ const AdhyayanBooking = () => {
                         bgcolor="bg-secondary"
                         containerStyles="mt-4 p-2"
                         textStyles={'text-sm text-white'}
+                        isDisabled={
+                          selectedChip === CHIPS[1]
+                            ? !isGuestFormValid()
+                            : selectedChip === CHIPS[2]
+                              ? !isMumukshuFormValid()
+                              : false
+                        }
                       />
                     );
                   }

@@ -134,37 +134,39 @@ const TravelBookingCancellation = () => {
                       : 'bg-green-100'
                 }
               />
-              <CustomTag
-                text={
-                  item.transaction_status == status.STATUS_CANCELLED ||
-                  item.transaction_status == status.STATUS_ADMIN_CANCELLED
-                    ? 'Payment Cancelled'
-                    : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
-                        item.transaction_status == status.STATUS_CASH_PENDING
-                      ? 'Payment Due'
-                      : item.transaction_status == status.STATUS_CREDITED
-                        ? 'Credited'
-                        : 'Paid'
-                }
-                textStyles={
-                  item.transaction_status == status.STATUS_CANCELLED ||
-                  item.transaction_status == status.STATUS_ADMIN_CANCELLED
-                    ? 'text-red-200'
-                    : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
-                        item.transaction_status == status.STATUS_CASH_PENDING
-                      ? 'text-secondary-200'
-                      : 'text-green-200'
-                }
-                containerStyles={`${
-                  item.transaction_status == status.STATUS_CANCELLED ||
-                  item.transaction_status == status.STATUS_ADMIN_CANCELLED
-                    ? 'bg-red-100'
-                    : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
-                        item.transaction_status == status.STATUS_CASH_PENDING
-                      ? 'bg-secondary-50'
-                      : 'bg-green-100'
-                } mx-1`}
-              />
+              {item.transaction_status && (
+                <CustomTag
+                  text={
+                    item.transaction_status == status.STATUS_CANCELLED ||
+                    item.transaction_status == status.STATUS_ADMIN_CANCELLED
+                      ? 'Payment Cancelled'
+                      : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
+                          item.transaction_status == status.STATUS_CASH_PENDING
+                        ? 'Payment Due'
+                        : item.transaction_status == status.STATUS_CREDITED
+                          ? 'Credited'
+                          : 'Paid'
+                  }
+                  textStyles={
+                    item.transaction_status == status.STATUS_CANCELLED ||
+                    item.transaction_status == status.STATUS_ADMIN_CANCELLED
+                      ? 'text-red-200'
+                      : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
+                          item.transaction_status == status.STATUS_CASH_PENDING
+                        ? 'text-secondary-200'
+                        : 'text-green-200'
+                  }
+                  containerStyles={`${
+                    item.transaction_status == status.STATUS_CANCELLED ||
+                    item.transaction_status == status.STATUS_ADMIN_CANCELLED
+                      ? 'bg-red-100'
+                      : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
+                          item.transaction_status == status.STATUS_CASH_PENDING
+                        ? 'bg-secondary-50'
+                        : 'bg-green-100'
+                  } mx-1`}
+                />
+              )}
             </View>
             <Text className="font-pmedium">{moment(item.date).format('Do MMMM, YYYY')}</Text>
             <Text className="font-pmedium text-secondary">
@@ -203,11 +205,13 @@ const TravelBookingCancellation = () => {
             <Text className="font-pmedium text-black">{item.comments}</Text>
           </View>
         )}
-        <View className="mt-2 flex flex-row gap-x-2 px-2">
-          <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Charge: </Text>
-          <Text className="font-pmedium text-black">₹ {item.amount}</Text>
-        </View>
+        {item.amount && (
+          <View className="mt-2 flex flex-row gap-x-2 px-2">
+            <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
+            <Text className="font-pregular text-gray-400">Charge: </Text>
+            <Text className="font-pmedium text-black">₹ {item.amount}</Text>
+          </View>
+        )}
         <View>
           {moment(item.date).diff(moment().format('YYYY-MM-DD')) > 0 &&
             item.status !== status.STATUS_CANCELLED &&

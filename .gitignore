@@ -1,5 +1,6 @@
 node_modules/
 .expo/
+.cursor/
 dist/
 npm-debug.*
 *.jks
@@ -13,7 +14,7 @@ web-build/
 expo-env.d.ts
 
 .env.local
-
+*.aab
 
 ios
 android

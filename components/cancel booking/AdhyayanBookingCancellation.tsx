@@ -79,7 +79,7 @@ const AdhyayanBookingCancellation = () => {
             page.map((booking: any) => {
               const isMatchingBooking =
                 booking.shibir_id === shibir_id &&
-                (booking.bookedFor !== null ? booking.bookedFor == bookedFor : true);
+                (booking.bookedFor !== 'NA' ? booking.bookedFor == bookedFor : true);
 
               if (!isMatchingBooking) {
                 return booking;
@@ -218,7 +218,7 @@ const AdhyayanBookingCancellation = () => {
                 handlePress={() => {
                   cancelBookingMutation.mutate({
                     shibir_id: item.shibir_id,
-                    bookedFor: item.bookedFor,
+                    bookedFor: item.bookedFor == 'NA' ? undefined : item.bookedFor,
                   });
                 }}
               />

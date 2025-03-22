@@ -31,6 +31,7 @@ const INITIAL_SIGNLE_DAY_GUEST_FORM = {
 const INITIAL_SINGLE_DAY_MUMUKSHU_FORM = {
   mumukshus: [
     {
+      cardno: '',
       mobno: '',
     },
   ],
@@ -56,6 +57,7 @@ const INITIAL_MUMUKSHU_FORM = {
   endDay: '',
   mumukshus: [
     {
+      cardno: '',
       mobno: '',
       roomType: '',
       floorType: '',
@@ -83,7 +85,7 @@ const RoomBooking = () => {
     }, [])
   );
 
-  const [selectedChip, setSelectedChip] = useState('Self');
+  const [selectedChip, setSelectedChip] = useState(CHIPS[0]);
   const handleChipClick = (chip: any) => {
     setSelectedChip(chip);
   };
@@ -129,15 +131,16 @@ const RoomBooking = () => {
   };
 
   const isSingleDayGuestFormValid = () => {
-    if (!selectedDay) {
-      return false;
-    }
-
-    return singleDayGuestForm.guests.every((guest: any) => {
-      if (guest.id) return guest.mobno && guest.mobno?.length == 10;
-      else
-        return guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length == 10;
-    });
+    return (
+      selectedDay &&
+      singleDayGuestForm.guests.every((guest: any) => {
+        if (guest.id) return guest.mobno && guest.mobno?.length == 10;
+        else
+          return (
+            guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length == 10
+          );
+      })
+    );
   };
 
   const [singleDayMumukshuForm, setSingleDayMumukshuForm] = useState(
@@ -150,6 +153,7 @@ const RoomBooking = () => {
       mumukshus: [
         ...prev.mumukshus,
         {
+          cardno: '',
           mobno: '',
         },
       ],
@@ -170,6 +174,15 @@ const RoomBooking = () => {
         i === index ? { ...mumukshu, [key]: value } : mumukshu
       ),
     }));
+  };
+
+  const isSingleDayMumukshuFormValid = () => {
+    return (
+      selectedDay &&
+      singleDayMumukshuForm.mumukshus.every((mumukshu) => {
+        return mumukshu.mobno && mumukshu.mobno?.length == 10 && mumukshu.cardno;
+      })
+    );
   };
 
   const [multiDayForm, setMultiDayForm] = useState({
@@ -213,24 +226,24 @@ const RoomBooking = () => {
   };
 
   const isGuestFormValid = () => {
-    if (!multiDayForm.startDay) {
-      return false;
-    }
-
-    return guestForm.guests.every((guest: any) => {
-      if (guest.id)
-        return guest.mobno && guest.mobno?.length == 10 && guest.roomType && guest.floorType;
-      else
-        return (
-          guest.name &&
-          guest.gender &&
-          guest.type &&
-          guest.roomType &&
-          guest.floorType &&
-          guest.mobno &&
-          guest.mobno?.length == 10
-        );
-    });
+    return (
+      guestForm.startDay &&
+      guestForm.endDay &&
+      guestForm.guests.every((guest: any) => {
+        if (guest.id)
+          return guest.mobno && guest.mobno?.length == 10 && guest.roomType && guest.floorType;
+        else
+          return (
+            guest.name &&
+            guest.gender &&
+            guest.type &&
+            guest.roomType &&
+            guest.floorType &&
+            guest.mobno &&
+            guest.mobno?.length == 10
+          );
+      })
+    );
   };
 
   const [mumukshuForm, setMumukshuForm] = useState(INITIAL_MUMUKSHU_FORM);
@@ -241,6 +254,7 @@ const RoomBooking = () => {
       mumukshus: [
         ...prev.mumukshus,
         {
+          cardno: '',
           mobno: '',
           roomType: '',
           floorType: '',
@@ -266,15 +280,19 @@ const RoomBooking = () => {
   };
 
   const isMumukshuFormValid = () => {
-    if (!mumukshuForm.startDay) {
-      return false;
-    }
-
-    return mumukshuForm.mumukshus.every((mumukshu) => {
-      return (
-        mumukshu.mobno && mumukshu.roomType && mumukshu.floorType && mumukshu.mobno?.length == 10
-      );
-    });
+    return (
+      mumukshuForm.startDay &&
+      mumukshuForm.endDay &&
+      mumukshuForm.mumukshus.every((mumukshu) => {
+        return (
+          mumukshu.cardno &&
+          mumukshu.mobno &&
+          mumukshu.mobno?.length == 10 &&
+          mumukshu.roomType &&
+          mumukshu.floorType
+        );
+      })
+    );
   };
 
   return (
@@ -328,7 +346,7 @@ const RoomBooking = () => {
                 text={'Room Type'}
                 placeholder={'Select Room Type'}
                 data={dropdowns.ROOM_TYPE_LIST}
-                setSelected={(val) => setMultiDayForm({ ...multiDayForm, roomType: val })}
+                setSelected={(val: any) => setMultiDayForm({ ...multiDayForm, roomType: val })}
               />
 
               <CustomDropdown
@@ -336,7 +354,7 @@ const RoomBooking = () => {
                 text={'Book Only if Ground Floor is Available'}
                 placeholder={'Select Floor Type'}
                 data={dropdowns.FLOOR_TYPE_LIST}
-                setSelected={(val) => setMultiDayForm({ ...multiDayForm, floorType: val })}
+                setSelected={(val: any) => setMultiDayForm({ ...multiDayForm, floorType: val })}
               />
 
               <CustomButton
@@ -379,7 +397,7 @@ const RoomBooking = () => {
                       placeholder={'Select Room Type'}
                       data={dropdowns.ROOM_TYPE_LIST}
                       value={guestForm.guests[index].roomType}
-                      setSelected={(val) => handleGuestFormChange(index, 'roomType', val)}
+                      setSelected={(val: any) => handleGuestFormChange(index, 'roomType', val)}
                     />
 
                     <CustomDropdown
@@ -388,7 +406,7 @@ const RoomBooking = () => {
                       placeholder={'Select Floor Type'}
                       data={dropdowns.FLOOR_TYPE_LIST}
                       value={guestForm.guests[index].floorType}
-                      setSelected={(val) => handleGuestFormChange(index, 'floorType', val)}
+                      setSelected={(val: any) => handleGuestFormChange(index, 'floorType', val)}
                     />
                   </>
                 )}
@@ -448,6 +466,7 @@ const RoomBooking = () => {
                 }}
                 containerStyles="mt-7 min-h-[62px]"
                 isLoading={isSubmitting}
+                isDisabled={!isGuestFormValid()}
               />
             </View>
           )}
@@ -467,7 +486,7 @@ const RoomBooking = () => {
                       text={'Room Type'}
                       placeholder={'Select Room Type'}
                       data={dropdowns.ROOM_TYPE_LIST}
-                      setSelected={(val) => handleMumukshuFormChange(index, 'roomType', val)}
+                      setSelected={(val: any) => handleMumukshuFormChange(index, 'roomType', val)}
                     />
 
                     <CustomDropdown
@@ -475,7 +494,7 @@ const RoomBooking = () => {
                       text={'Book Only if Ground Floor is Available'}
                       placeholder={'Select Floor Type'}
                       data={dropdowns.FLOOR_TYPE_LIST}
-                      setSelected={(val) => handleMumukshuFormChange(index, 'floorType', val)}
+                      setSelected={(val: any) => handleMumukshuFormChange(index, 'floorType', val)}
                     />
                   </View>
                 )}
@@ -497,6 +516,7 @@ const RoomBooking = () => {
                   router.push(`/mumukshuBooking/${types.ROOM_DETAILS_TYPE}`);
                 }}
                 containerStyles="mt-7 min-h-[62px]"
+                isDisabled={!isMumukshuFormValid()}
               />
             </View>
           )}
@@ -675,6 +695,13 @@ const RoomBooking = () => {
             }}
             containerStyles="mt-10 min-h-[62px]"
             isLoading={isSubmitting}
+            isDisabled={
+              selectedChip === CHIPS[1]
+                ? !isSingleDayGuestFormValid()
+                : selectedChip === CHIPS[2]
+                  ? !isSingleDayMumukshuFormValid()
+                  : false
+            }
           />
         </View>
       )}

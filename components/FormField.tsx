@@ -19,6 +19,7 @@ interface FormFieldProps {
   additionalText?: any;
   multiline?: boolean;
   numberOfLines?: number;
+  isPassword?: boolean;
 }
 
 const FormField: React.FC<FormFieldProps> = ({
@@ -38,6 +39,7 @@ const FormField: React.FC<FormFieldProps> = ({
   additionalText,
   multiline = false,
   numberOfLines = 1,
+  isPassword = false,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -65,13 +67,13 @@ const FormField: React.FC<FormFieldProps> = ({
           autoComplete={autoComplete}
           autoCorrect={autoCorrect}
           importantForAutofill="no"
-          secureTextEntry={text === 'Password' && !showPassword}
+          secureTextEntry={isPassword && !showPassword}
           multiline={multiline}
           numberOfLines={numberOfLines}
           textAlignVertical={multiline ? 'top' : 'center'}
         />
 
-        {text === 'Password' && (
+        {isPassword && (
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
             <Image
               source={!showPassword ? icons.eye : icons.eyeHide}

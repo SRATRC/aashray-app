@@ -95,28 +95,20 @@ const FoodBooking = () => {
   };
 
   const isGuestFormValid = () => {
-    if (!guestForm.endDay) {
-      guestForm.endDay = guestForm.startDay;
-    }
+    if (!guestForm.endDay) guestForm.endDay = guestForm.startDay;
 
-    if (!guestForm.startDay) {
-      return false;
-    }
+    return (
+      guestForm.startDay &&
+      guestForm.guests.every((guest: any) => {
+        const baseValidation = guest.meals.length > 0 && guest.spicy !== null && guest.hightea;
 
-    return guestForm.guests.every((guest: any) => {
-      if (guest.id) return guest.mobno && guest.mobno?.length == 10;
-      else
-        return (
-          guest.mobno &&
-          guest.mobno?.length == 10 &&
-          guest.name &&
-          guest.gender &&
-          guest.type &&
-          guest.meals &&
-          guest.spicy !== null &&
-          guest.hightea
-        );
-    });
+        const identityValidation = guest.id
+          ? guest.mobno && guest.mobno?.length == 10
+          : guest.mobno && guest.mobno?.length == 10 && guest.name && guest.gender && guest.type;
+
+        return baseValidation && identityValidation;
+      })
+    );
   };
 
   const [mumukshuForm, setMumukshuForm] = useState({
@@ -124,6 +116,7 @@ const FoodBooking = () => {
     endDay: '',
     mumukshus: [
       {
+        cardno: '',
         mobno: '',
         meals: [],
         spicy: null,
@@ -138,6 +131,7 @@ const FoodBooking = () => {
       mumukshus: [
         ...prev.mumukshus,
         {
+          cardno: '',
           mobno: '',
           meals: [],
           spicy: null,
@@ -172,6 +166,7 @@ const FoodBooking = () => {
       return (
         mumukshu.mobno &&
         mumukshu.mobno?.length == 10 &&
+        mumukshu.cardno &&
         mumukshu.meals &&
         mumukshu.spicy !== null &&
         mumukshu.hightea
@@ -264,8 +259,6 @@ const FoodBooking = () => {
                 null,
                 {
                   cardno: user.cardno,
-                  transaction_type: 'upi',
-                  transaction_ref: '7XAB46098628492',
                   primary_booking: {
                     booking_type: 'food',
                     details: {
@@ -436,6 +429,7 @@ const FoodBooking = () => {
             }}
             containerStyles="mt-7 w-full px-1 min-h-[62px]"
             isLoading={isSubmitting}
+            isDisabled={!isGuestFormValid()}
           />
         </View>
       )}
@@ -502,8 +496,6 @@ const FoodBooking = () => {
                 null,
                 {
                   cardno: user.cardno,
-                  // transaction_type: 'upi',
-                  // transaction_ref: '7XAB46098628492',
                   primary_booking: {
                     booking_type: 'food',
                     details: transformedData,
@@ -519,6 +511,7 @@ const FoodBooking = () => {
             }}
             containerStyles="mt-7 w-full px-1 min-h-[62px]"
             isLoading={isSubmitting}
+            isDisabled={!isMumukshuFormValid()}
           />
         </View>
       )}

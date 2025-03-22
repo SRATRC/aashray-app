@@ -14,6 +14,7 @@ const INITIAL_MUMUKSHU_FORM = {
   endDay: '',
   mumukshus: [
     {
+      cardno: '',
       mobno: '',
     },
   ],
@@ -48,6 +49,7 @@ const FlatBooking = () => {
       mumukshus: [
         ...prev.mumukshus,
         {
+          cardno: '',
           mobno: '',
         },
       ],
@@ -76,7 +78,7 @@ const FlatBooking = () => {
     }
 
     return mumukshuForm.mumukshus.every((mumukshu) => {
-      return mumukshu.mobno && mumukshu.mobno?.length == 10;
+      return mumukshu.mobno && mumukshu.mobno?.length == 10 && mumukshu.cardno;
     });
   };
 
@@ -176,7 +178,6 @@ const FlatBooking = () => {
 
       <CustomButton
         text="Book Now"
-        isLoading={isSubmitting}
         handlePress={async () => {
           setIsSubmitting(true);
           if (selectedChip == CHIPS[0]) {
@@ -255,6 +256,14 @@ const FlatBooking = () => {
           }
         }}
         containerStyles="mt-7 min-h-[62px]"
+        isLoading={isSubmitting}
+        isDisabled={
+          selectedChip === CHIPS[1]
+            ? !isGuestFormValid()
+            : selectedChip === CHIPS[2]
+              ? !isMumukshuFormValid()
+              : false
+        }
       />
     </View>
   );
