@@ -49,6 +49,28 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
     }
   }, [isDatePickerVisible.checkin]);
 
+  // Function to get available guests for a specific group index
+  const getAvailableGuests = (currentGroupIndex: number) => {
+    // Get all selected guest indices from other groups
+    const selectedIndices = roomForm.guestGroup.reduce((acc: number[], group: any, idx: number) => {
+      if (idx !== currentGroupIndex) {
+        return [...acc, ...group.guestIndices];
+      }
+      return acc;
+    }, []);
+
+    // Filter out guests that are already selected in other groups
+    return guest_dropdown.filter((guest: any) => !selectedIndices.includes(guest.value));
+  };
+
+  // Add this function near the getAvailableGuests function
+  const hasAvailableGuests = () => {
+    // Get all selected guest indices from all groups
+    const selectedIndices = roomForm.guestGroup.flatMap((group: any) => group.guestIndices);
+    // Check if there are any unselected guests
+    return guest_dropdown.some((guest: any) => !selectedIndices.includes(guest.value));
+  };
+
   return (
     <AddonItem
       onCollapse={() => {
@@ -181,7 +203,7 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
             otherStyles="mt-5"
             text={`Guests for Room ${index + 1}`}
             placeholder="Select Guests"
-            data={guest_dropdown}
+            data={getAvailableGuests(index)}
             value={assignment.guestIndices}
             setSelected={(val: any) => updateRoomForm(index, 'guests', val)}
             guest={true}
@@ -206,8 +228,11 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
       ))}
 
       <TouchableOpacity
-        className="mt-4 w-full flex-row items-center justify-start gap-x-1"
-        onPress={addRoomForm}>
+        className={`mt-4 w-full flex-row items-center justify-start gap-x-1 ${
+          !hasAvailableGuests() ? 'opacity-50' : ''
+        }`}
+        onPress={hasAvailableGuests() ? addRoomForm : undefined}
+        disabled={!hasAvailableGuests()}>
         <Image
           source={icons.addon}
           tintColor={colors.black}

@@ -28,8 +28,11 @@ const CameraScreen: React.FC = () => {
   if (!permission.granted) {
     return (
       <View className="flex-1 justify-center">
-        <Text className="pb-2 text-center">We need your permission to show the camera</Text>
-        <Button onPress={requestPermission} title="Grant Permission" />
+        <Text className="pb-2 text-center">
+          We need your permission to open camera to capture a selfie so that guruji can view it
+          before meetings.
+        </Text>
+        <Button onPress={requestPermission} title="Continue" />
       </View>
     );
   }

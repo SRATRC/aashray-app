@@ -134,7 +134,7 @@ const RoomBooking = () => {
     return (
       selectedDay &&
       singleDayGuestForm.guests.every((guest: any) => {
-        if (guest.id) return guest.mobno && guest.mobno?.length == 10;
+        if (guest.cardno) return guest.mobno && guest.mobno?.length == 10;
         else
           return (
             guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length == 10
@@ -230,7 +230,7 @@ const RoomBooking = () => {
       guestForm.startDay &&
       guestForm.endDay &&
       guestForm.guests.every((guest: any) => {
-        if (guest.id)
+        if (guest.cardno)
           return guest.mobno && guest.mobno?.length == 10 && guest.roomType && guest.floorType;
         else
           return (
@@ -436,7 +436,7 @@ const RoomBooking = () => {
                             (apiGuest: any) => apiGuest.name === formGuest.name
                           );
                           return matchingApiGuest
-                            ? { ...formGuest, id: matchingApiGuest.id }
+                            ? { ...formGuest, cardno: matchingApiGuest.cardno }
                             : formGuest;
                         });
 
@@ -609,7 +609,7 @@ const RoomBooking = () => {
                 }
 
                 const guests = singleDayGuestForm.guests.map((guest: any) => ({
-                  id: guest.id ? guest.id : null,
+                  cardno: guest.cardno ? guest.cardno : null,
                   name: guest.name,
                   gender: guest.gender,
                   type: guest.type,
@@ -626,7 +626,7 @@ const RoomBooking = () => {
                   },
                   async (res: any) => {
                     const updatedGuests = res.guests.map((guest: any) => ({
-                      id: guest.id,
+                      cardno: guest.cardno,
                     }));
 
                     await handleAPICall(
@@ -721,7 +721,7 @@ function transformGuestApiResponse(apiResponse: any) {
 
   // Group guests by roomType and floorType
   const groupedGuests = guests.reduce((acc: any, guest: any, index: any) => {
-    const { roomType, floorType, id, name } = guest;
+    const { roomType, floorType, cardno, name } = guest;
 
     // Find existing group with the same roomType and floorType
     const groupKey = `${roomType}_${floorType}`;
@@ -734,7 +734,7 @@ function transformGuestApiResponse(apiResponse: any) {
     }
 
     // Add the guest to the appropriate group
-    acc[groupKey].guests.push({ id, name });
+    acc[groupKey].guests.push({ cardno, name });
 
     return acc;
   }, {});

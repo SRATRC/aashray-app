@@ -110,7 +110,7 @@ const ImageCaptureOnboarding: React.FC = () => {
               }}>
               <View className="flex flex-row items-center">
                 <Image source={icons.logout} className="h-4 w-4" resizeMode="contain" />
-                <Text className="font-pregular ml-2 text-sm text-black">Logout</Text>
+                <Text className="ml-2 font-pregular text-sm text-black">Logout</Text>
               </View>
             </TouchableWithoutFeedback>
           </View>

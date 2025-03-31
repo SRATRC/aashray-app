@@ -19,7 +19,7 @@ const TravelBookingCancellation = () => {
     return new Promise((resolve, reject) => {
       handleAPICall(
         'GET',
-        '/travel/history',
+        '/travel/booking',
         {
           cardno: user.cardno,
           page: pageParam,
@@ -174,6 +174,11 @@ const TravelBookingCancellation = () => {
                 ? 'Research Centre to Mumbai'
                 : 'Mumbai to Research Centre'}
             </Text>
+            {item.bookedBy && (
+              <Text className="font-pmedium">
+                Booked For: <Text className="text-secondary">{item.user_name}</Text>
+              </Text>
+            )}
           </View>
         </View>
       }

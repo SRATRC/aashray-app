@@ -231,14 +231,6 @@ const mumukshuBookingConfirmation = () => {
                       </Text>
                     </View>
                   )}
-                {validationData.taxes && (
-                  <View className="flex-row items-center justify-between">
-                    <Text className="font-pregular text-base text-gray-500">Tax</Text>
-                    <Text className="font-pregular text-base text-black">
-                      ₹ {validationData.taxes}
-                    </Text>
-                  </View>
-                )}
                 <View className="mt-2 flex-row items-center justify-between border-t border-gray-200 pt-4">
                   <Text className="font-psemibold text-xl text-gray-800">Total Charge</Text>
                   <Text className="font-psemibold text-xl text-secondary">

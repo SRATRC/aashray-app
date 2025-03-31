@@ -1,5 +1,5 @@
-import { View, Text, ScrollView, Platform, Modal } from 'react-native';
-import { useEffect, useState } from 'react';
+import { View, Text, ScrollView, Platform } from 'react-native';
+import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useGlobalContext } from '../../context/GlobalProvider';
@@ -154,7 +154,7 @@ const bookingConfirmation = () => {
         {data.adhyayan && <AdhyayanBookingDetails containerStyles={'mt-6'} />}
         {data.food && <FoodBookingDetails containerStyles={'mt-6'} />}
 
-        {validationData && (
+        {validationData && validationData.totalCharge > 0 && (
           <View className="mt-4 w-full px-4">
             <Text className="mb-4 font-psemibold text-xl text-secondary">Charges</Text>
             <View
@@ -190,14 +190,6 @@ const bookingConfirmation = () => {
                     </Text>
                   </View>
                 )}
-                {validationData.taxes && (
-                  <View className="flex-row items-center justify-between">
-                    <Text className="font-pregular text-base text-gray-500">Tax</Text>
-                    <Text className="font-pregular text-base text-black">
-                      ₹ {validationData.taxes}
-                    </Text>
-                  </View>
-                )}
                 <View className="mt-2 flex-row items-center justify-between border-t border-gray-200 pt-4">
                   <Text className="font-psemibold text-xl text-gray-800">Total Charge</Text>
                   <Text className="font-psemibold text-xl text-secondary">
@@ -211,12 +203,15 @@ const bookingConfirmation = () => {
 
         <View className="mt-6 w-full px-4">
           <CustomButton
-            text="Proceed to Payment"
+            text={
+              validationData && validationData.totalCharge > 0 ? 'Proceed to Payment' : 'Continue'
+            }
             handlePress={async () => {
               setIsSubmitting(true);
 
               const onSuccess = (data: any) => {
-                if (data.data.amount == 0) router.replace('/booking/paymentConfirmation');
+                if (!data.data || data.data?.amount == 0)
+                  router.replace('/booking/paymentConfirmation');
                 else {
                   var options = {
                     key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,

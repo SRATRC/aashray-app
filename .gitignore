@@ -1,6 +1,7 @@
 node_modules/
 .expo/
 .cursor/
+.vscode/
 dist/
 npm-debug.*
 *.jks
@@ -27,3 +28,4 @@ android
 
 google-services.json
 GoogleService-Info.plist
+*.p8

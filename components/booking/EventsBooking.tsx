@@ -42,7 +42,7 @@ var PACKAGES: any = [];
 const INITIAL_SELF_FORM = {
   package: null,
   arrival: null,
-  carno: null,
+  carno: '',
   other: null,
 };
 
@@ -55,7 +55,7 @@ const INITIAL_GUEST_FORM = {
       guestType: '',
       package: null,
       arrival: null,
-      carno: null,
+      carno: '',
       other: null,
     },
   ],
@@ -68,7 +68,7 @@ const INITIAL_MUMUKSHU_FORM = {
       mobno: '',
       package: null,
       arrival: null,
-      carno: null,
+      carno: '',
       other: null,
     },
   ],
@@ -87,6 +87,7 @@ const EventBooking = () => {
     setIsModalVisible(!isModalVisible);
     setSelfForm(INITIAL_SELF_FORM);
     setGuestForm(INITIAL_GUEST_FORM);
+    setMumukshuForm(INITIAL_MUMUKSHU_FORM);
   };
 
   const [selectedChip, setSelectedChip] = useState('Self');
@@ -95,6 +96,15 @@ const EventBooking = () => {
   };
 
   const [selfForm, setSelfForm] = useState(INITIAL_SELF_FORM);
+
+  const isSelfFormValid = () => {
+    return (
+      selfForm.package &&
+      selfForm.arrival &&
+      !(selfForm.arrival === ARRIVAL[0].key && (!selfForm.carno || selfForm.carno.length !== 10))
+    );
+  };
+
   const [guestForm, setGuestForm] = useState(INITIAL_GUEST_FORM);
 
   const addGuestForm = () => {
@@ -109,7 +119,7 @@ const EventBooking = () => {
           guestType: '',
           package: null,
           arrival: null,
-          carno: null,
+          carno: '',
           other: null,
         },
       ],
@@ -132,10 +142,24 @@ const EventBooking = () => {
 
   const isGuestFormValid = () => {
     return guestForm.guests.every((guest: any) => {
-      if (guest.id) return guest.mobno && guest.mobno?.length == 10;
+      if (guest.cardno)
+        return (
+          guest.mobno &&
+          guest.mobno?.length == 10 &&
+          guest.package &&
+          guest.arrival &&
+          !(guest.arrival === ARRIVAL[0].key && (!guest.carno || guest.carno.length !== 10))
+        );
       else
         return (
-          guest.name && guest.gender && guest.guestType && guest.mobno && guest.mobno?.length == 10
+          guest.name &&
+          guest.gender &&
+          guest.guestType &&
+          guest.mobno &&
+          guest.mobno?.length == 10 &&
+          guest.package &&
+          guest.arrival &&
+          !(guest.arrival === ARRIVAL[0].key && (!guest.carno || guest.carno.length !== 10))
         );
     });
   };
@@ -152,7 +176,7 @@ const EventBooking = () => {
           mobno: '',
           package: null,
           arrival: null,
-          carno: null,
+          carno: '',
           other: null,
         },
       ],
@@ -182,7 +206,7 @@ const EventBooking = () => {
         mumukshu.cardno &&
         mumukshu.package &&
         mumukshu.arrival &&
-        !(mumukshu.arrival === ARRIVAL[0].key && !mumukshu.carno)
+        !(mumukshu.arrival === ARRIVAL[0].key && (!mumukshu.carno || mumukshu.carno.length !== 10))
     );
   };
 
@@ -229,29 +253,29 @@ const EventBooking = () => {
       visibleContent={
         <View className="flex basis-11/12">
           <Text className="font-psemibold text-secondary">
-            {moment(item.start_date).format('Do MMMM')} -{' '}
-            {moment(item.end_date).format('Do MMMM, YYYY')}
+            {moment(item.utsav_start).format('Do MMMM')} -{' '}
+            {moment(item.utsav_end).format('Do MMMM, YYYY')}
           </Text>
-          <Text className="font-pmedium text-gray-700">{item.name}</Text>
+          <Text className="font-pmedium text-gray-700">{item.utsav_name}</Text>
         </View>
       }>
       <HorizontalSeparator />
       <View className="mt-3">
         <Text className="font-psemibold text-gray-400">Available Packages:</Text>
-        {item.UtsavPackagesDbs.map((packageitem: any) => (
+        {item.packages.map((packageitem: any) => (
           <View
             className="flex-row items-center justify-between font-pregular"
-            key={packageitem.id}>
-            <Text className="text-black">{packageitem.name}</Text>
-            <Text className="text-black">₹ {packageitem.amount}</Text>
+            key={packageitem.package_id}>
+            <Text className="text-black">{packageitem.package_name}</Text>
+            <Text className="text-black">₹ {packageitem.package_amount}</Text>
           </View>
         ))}
         <CustomButton
           text={item.status == status.STATUS_CLOSED ? 'Add to waitlist' : 'Register'}
           handlePress={() => {
-            PACKAGES = item.UtsavPackagesDbs.map((item: any) => ({
-              key: item.id,
-              value: item.name,
+            PACKAGES = item.packages.map((item: any) => ({
+              key: item.package_id,
+              value: item.package_name,
             }));
 
             setSelectedItem(item);
@@ -300,7 +324,9 @@ const EventBooking = () => {
             <View className="max-h-[80%] w-[80%] max-w-[300px] rounded-lg bg-white p-5">
               <View className="mb-2 flex-row justify-between">
                 <View className="flex-col gap-y-1">
-                  <Text className="font-pmedium text-sm text-black">{selectedItem?.name}</Text>
+                  <Text className="font-pmedium text-sm text-black">
+                    {selectedItem?.utsav_name}
+                  </Text>
                   <View className="flex-row gap-x-1">
                     <Text className="font-pregular text-xs text-gray-500">Date:</Text>
                     <Text className="font-pregular text-xs text-secondary">
@@ -432,7 +458,7 @@ const EventBooking = () => {
                                     containerStyles="bg-gray-100"
                                     placeholder="XX-XXX-XXXX"
                                     maxLength={10}
-                                    autoComplete={false}
+                                    autoComplete={'off'}
                                   />
                                 )}
 
@@ -482,24 +508,23 @@ const EventBooking = () => {
                                 data={ARRIVAL}
                                 value={guestForm.guests[index].arrival}
                                 setSelected={(val: any) => {
-                                  setSelfForm({ ...selfForm, arrival: val });
+                                  handleGuestFormChange(index, 'arrival', val);
                                 }}
                               />
 
-                              {selfForm.arrival == 'car' && (
+                              {guestForm.guests[index].arrival == 'car' && (
                                 <View>
                                   <FormField
                                     text="Enter Car Number"
                                     value={guestForm.guests[index].carno}
                                     handleChangeText={(e: any) =>
-                                      setSelfForm({ ...selfForm, carno: e })
+                                      handleGuestFormChange(index, 'carno', e)
                                     }
                                     otherStyles="mt-7"
                                     inputStyles="font-pmedium text-base text-gray-400"
                                     containerStyles="bg-gray-100"
                                     placeholder="XX-XXX-XXXX"
                                     maxLength={10}
-                                    autoComplete={false}
                                   />
                                 </View>
                               )}
@@ -508,7 +533,7 @@ const EventBooking = () => {
                                 text="Any other details?"
                                 value={guestForm.guests[index].other}
                                 handleChangeText={(e: any) =>
-                                  setSelfForm({ ...selfForm, other: e })
+                                  handleGuestFormChange(index, 'other', e)
                                 }
                                 otherStyles="mt-7"
                                 inputStyles="font-pmedium text-base text-gray-400"
@@ -572,7 +597,7 @@ const EventBooking = () => {
                               null,
                               {
                                 cardno: user.cardno,
-                                utsavid: selectedItem.id,
+                                utsavid: selectedItem.utsav_id,
                                 packageid: selfForm.package,
                               },
                               onSuccess,
@@ -626,10 +651,10 @@ const EventBooking = () => {
                               null,
                               {
                                 cardno: user.cardno,
-                                utsavid: selectedItem.id,
+                                utsavid: selectedItem.utsav_id,
                                 guests: guestForm.guests.map((guest: any) => ({
-                                  id: guest.id,
-                                  name: guest.name,
+                                  cardno: guest.cardno,
+                                  name: guest.issuedto,
                                   gender: guest.gender,
                                   mobno: guest.mobno,
                                   type: guest.guestType,
@@ -695,7 +720,7 @@ const EventBooking = () => {
                               null,
                               {
                                 cardno: user.cardno,
-                                utsavid: selectedItem.id,
+                                utsavid: selectedItem.utsav_id,
                                 mumukshus: mumukshuForm.mumukshus.map((mumukshu: any) => ({
                                   cardno: mumukshu.cardno,
                                   packageid: mumukshu.package,
@@ -718,7 +743,16 @@ const EventBooking = () => {
                         text={'Confirm'}
                         bgcolor="bg-secondary"
                         containerStyles="mt-4 p-2"
-                        textStyles={'text-sm'}
+                        textStyles={'text-sm text-white'}
+                        isDisabled={
+                          selectedChip === CHIPS[0]
+                            ? !isSelfFormValid()
+                            : selectedChip === CHIPS[1]
+                              ? !isGuestFormValid()
+                              : selectedChip === CHIPS[2]
+                                ? !isMumukshuFormValid()
+                                : false
+                        }
                         isLoading={isSubmitting}
                       />
                     );
@@ -739,7 +773,7 @@ const EventBooking = () => {
         stickySectionHeadersEnabled={false}
         nestedScrollEnabled={true}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.utsav_id.toString()}
         renderSectionHeader={renderSectionHeader}
         ListFooterComponent={renderFooter}
         onEndReachedThreshold={0.1}

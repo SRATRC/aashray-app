@@ -11,9 +11,9 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useInfiniteQuery } from '@tanstack/react-query';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { icons, status, types } from '../../constants';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { useRouter } from 'expo-router';
 import CustomButton from '../CustomButton';
@@ -53,6 +53,12 @@ const INITIAL_MUMUKSHU_FORM = {
 const AdhyayanBooking = () => {
   const router = useRouter();
   const { user, updateBooking, updateGuestBooking, updateMumukshuBooking } = useGlobalContext();
+
+  useEffect(
+    useCallback(() => {
+      setIsSubmitting(false);
+    }, [])
+  );
 
   const [selectedItem, setSelectedItem] = useState<any>(null);
 
@@ -100,7 +106,7 @@ const AdhyayanBooking = () => {
 
   const isGuestFormValid = () => {
     return guestForm.guests.every((guest: any) => {
-      if (guest.id) return guest.mobno && guest.mobno?.length == 10;
+      if (guest.cardno) return guest.mobno && guest.mobno?.length == 10;
       else
         return guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length == 10;
     });
@@ -161,13 +167,13 @@ const AdhyayanBooking = () => {
     });
   };
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError }: any =
     useInfiniteQuery({
       queryKey: ['adhyayans', user.cardno],
       queryFn: fetchAdhyayans,
       staleTime: 1000 * 60 * 30,
       initialPageParam: 1,
-      getNextPageParam: (lastPage, pages) => {
+      getNextPageParam: (lastPage: any, pages: any) => {
         if (!lastPage || lastPage.length === 0) return undefined;
         return pages.length + 1;
       },
@@ -271,7 +277,7 @@ const AdhyayanBooking = () => {
 
               <FlatList
                 data={[{ key: 'bookFor' }, { key: 'guestForm' }, { key: 'confirmButton' }]}
-                renderItem={({ item }) => {
+                renderItem={({ item }): any => {
                   if (item.key === 'bookFor') {
                     return (
                       <View className="mt-2 flex-col">
@@ -316,6 +322,7 @@ const AdhyayanBooking = () => {
                     return (
                       <CustomButton
                         handlePress={async () => {
+                          setIsSubmitting(true);
                           if (selectedChip == CHIPS[0]) {
                             await updateBooking('adhyayan', [selectedItem]);
                             router.push(`/booking/${types.ADHYAYAN_DETAILS_TYPE}`);
@@ -325,26 +332,36 @@ const AdhyayanBooking = () => {
                               Alert.alert('Fill all Fields');
                               return;
                             }
-                            await handleAPICall(
-                              'POST',
-                              '/guest',
-                              null,
-                              {
-                                cardno: user.cardno,
-                                guests: guestForm.guests,
-                              },
-                              async (res: any) => {
-                                guestForm.guests = res.guests;
-                                const transformedData = transformData(guestForm);
 
-                                await updateGuestBooking('adhyayan', transformedData);
-                                setGuestForm(INITIAL_GUEST_FORM);
-                                router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
-                              },
-                              () => {
-                                setIsSubmitting(false);
-                              }
-                            );
+                            if (guestForm.guests.filter((guest: any) => !guest.cardno).length > 0) {
+                              await handleAPICall(
+                                'POST',
+                                '/guest',
+                                null,
+                                {
+                                  cardno: user.cardno,
+                                  guests: guestForm.guests,
+                                },
+                                async (res: any) => {
+                                  guestForm.guests = res.guests;
+                                  const transformedData = transformData(guestForm);
+
+                                  await updateGuestBooking('adhyayan', transformedData);
+                                  setGuestForm(INITIAL_GUEST_FORM);
+                                  router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
+                                },
+                                () => {
+                                  setIsSubmitting(false);
+                                }
+                              );
+                            } else {
+                              const transformedData = transformData(guestForm);
+
+                              await updateGuestBooking('adhyayan', transformedData);
+                              setGuestForm(INITIAL_GUEST_FORM);
+                              router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
+                              setIsSubmitting(false);
+                            }
                           }
                           if (selectedChip == CHIPS[2]) {
                             if (!isMumukshuFormValid()) {
@@ -372,6 +389,7 @@ const AdhyayanBooking = () => {
                               ? !isMumukshuFormValid()
                               : false
                         }
+                        isLoading={isSubmitting}
                       />
                     );
                   }
@@ -414,8 +432,8 @@ function transformData(inputData: any) {
   return {
     adhyayan: adhyayan,
     guestGroup: guests.map((guest: any) => ({
-      id: guest.id,
-      name: guest.name,
+      id: guest.cardno,
+      name: guest.issuedto || guest.name,
     })),
   };
 }

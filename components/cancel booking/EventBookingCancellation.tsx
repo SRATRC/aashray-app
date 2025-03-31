@@ -33,43 +33,35 @@ const EventBookingCancellation = () => {
     });
   };
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    status: queryStatus,
-    isLoading,
-    isError,
-  }: any = useInfiniteQuery({
-    queryKey: ['utsavBooking', user.cardno],
-    queryFn: fetchUtsavs,
-    initialPageParam: 1,
-    staleTime: 1000 * 60 * 5,
-    getNextPageParam: (lastPage: any, pages: any) => {
-      if (!lastPage || lastPage.length === 0) return undefined;
-      return pages.length + 1;
-    },
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError }: any =
+    useInfiniteQuery({
+      queryKey: ['utsavBooking', user.cardno],
+      queryFn: fetchUtsavs,
+      initialPageParam: 1,
+      staleTime: 1000 * 60 * 5,
+      getNextPageParam: (lastPage: any, pages: any) => {
+        if (!lastPage || lastPage.length === 0) return undefined;
+        return pages.length + 1;
+      },
+    });
 
   const cancelBookingMutation = useMutation<any, any, any>({
-    mutationFn: ({ bookingid, bookedFor }) => {
+    mutationFn: ({ cardno, bookingid }) => {
       return new Promise((resolve, reject) => {
         handleAPICall(
           'DELETE',
           '/utsav/booking',
           null,
           {
-            cardno: user.cardno,
+            cardno,
             bookingid,
-            bookedFor,
           },
           (res: any) => resolve(res),
           () => reject(new Error('Failed to cancel booking'))
         );
       });
     },
-    onSuccess: (_, { bookingid, bookedFor }) => {
+    onSuccess: (_, { bookingid }) => {
       queryClient.setQueryData(['utsavBooking', user.cardno], (oldData: any) => {
         if (!oldData || !oldData.pages) return oldData;
 
@@ -168,9 +160,9 @@ const EventBookingCancellation = () => {
               />
             </View>
             <Text className="font-pmedium">{item.utsav_name}</Text>
-            {item.guest_name && (
+            {item.bookedBy && (
               <Text className="font-pmedium">
-                Booked For: <Text className="font-pmedium text-secondary">{item.guest_name}</Text>
+                Booked For: <Text className="font-pmedium text-secondary">{item.user_name}</Text>
               </Text>
             )}
           </View>
@@ -210,8 +202,8 @@ const EventBookingCancellation = () => {
                   textStyles={'text-sm text-white'}
                   handlePress={() => {
                     cancelBookingMutation.mutate({
+                      cardno: item.cardno,
                       bookingid: item.bookingid,
-                      bookedFor: item.bookedFor,
                     });
                   }}
                 />

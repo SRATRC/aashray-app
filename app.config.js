@@ -14,18 +14,25 @@ export default {
     },
     assetBundlePatterns: ['**/*'],
     ios: {
+      icon: {
+        dark: './assets/images/ios-dark.png',
+        light: './assets/images/ios-light.png',
+      },
       supportsTablet: true,
       package: 'org.vitraagvigyaan.aashray',
       bundleIdentifier: 'org.vitraagvigyaan.aashray',
       googleServicesFile: process.env.GOOGLE_SERVICES_PLIST,
       infoPlist: {
         LSApplicationQueriesSchemes: ['tez', 'phonepe', 'paytmmp'],
-        NSCameraUsageDescription: 'This app requires camera access to allow you to take photos.',
+        NSCameraUsageDescription:
+          'We need your images so that our guruji can view it before meetings.',
+        ITSAppUsesNonExemptEncryption: false,
       },
     },
     android: {
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
+        monochromeImage: './assets/images/adaptive-icon.png',
         backgroundColor: '#ffffff',
       },
       package: 'org.vitraagvigyaan.aashray',
@@ -85,7 +92,8 @@ export default {
       [
         'expo-camera',
         {
-          cameraPermission: 'Allow $(PRODUCT_NAME) to access your camera',
+          cameraPermission:
+            'Allow $(PRODUCT_NAME) to access your camera to capture a selfie so guruji can view it before meetings.',
         },
       ],
       [

@@ -53,16 +53,16 @@ const AdhyayanBookingCancellation = () => {
   });
 
   const cancelBookingMutation = useMutation<any, any, any>({
-    mutationFn: ({ shibir_id, bookedFor }) => {
+    mutationFn: ({ cardno, shibir_id, bookedFor }) => {
       return new Promise((resolve, reject) => {
         handleAPICall(
           'DELETE',
           '/adhyayan/cancel',
           null,
           {
-            cardno: user.cardno,
-            shibir_id: shibir_id,
-            bookedFor: bookedFor,
+            cardno,
+            shibir_id,
+            bookedFor,
           },
           (res: any) => resolve(res),
           () => reject(new Error('Failed to cancel booking'))
@@ -137,37 +137,39 @@ const AdhyayanBookingCancellation = () => {
                       : 'bg-green-100'
                 }
               />
-              <CustomTag
-                text={
-                  item.transaction_status == status.STATUS_CANCELLED ||
-                  item.transaction_status == status.STATUS_ADMIN_CANCELLED
-                    ? 'Payment Cancelled'
-                    : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
-                        item.transaction_status == status.STATUS_CASH_PENDING
-                      ? 'Payment Due'
-                      : item.transaction_status == status.STATUS_CREDITED
-                        ? 'Credited'
-                        : 'Paid'
-                }
-                textStyles={
-                  item.transaction_status == status.STATUS_CANCELLED ||
-                  item.transaction_status == status.STATUS_ADMIN_CANCELLED
-                    ? 'text-red-200'
-                    : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
-                        item.transaction_status == status.STATUS_CASH_PENDING
-                      ? 'text-secondary-200'
-                      : 'text-green-200'
-                }
-                containerStyles={`${
-                  item.transaction_status == status.STATUS_CANCELLED ||
-                  item.transaction_status == status.STATUS_ADMIN_CANCELLED
-                    ? 'bg-red-100'
-                    : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
-                        item.transaction_status == status.STATUS_CASH_PENDING
-                      ? 'bg-secondary-50'
-                      : 'bg-green-100'
-                } mx-1`}
-              />
+              {item.transaction_status && (
+                <CustomTag
+                  text={
+                    item.transaction_status == status.STATUS_CANCELLED ||
+                    item.transaction_status == status.STATUS_ADMIN_CANCELLED
+                      ? 'Payment Cancelled'
+                      : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
+                          item.transaction_status == status.STATUS_CASH_PENDING
+                        ? 'Payment Due'
+                        : item.transaction_status == status.STATUS_CREDITED
+                          ? 'Credited'
+                          : 'Paid'
+                  }
+                  textStyles={
+                    item.transaction_status == status.STATUS_CANCELLED ||
+                    item.transaction_status == status.STATUS_ADMIN_CANCELLED
+                      ? 'text-red-200'
+                      : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
+                          item.transaction_status == status.STATUS_CASH_PENDING
+                        ? 'text-secondary-200'
+                        : 'text-green-200'
+                  }
+                  containerStyles={`${
+                    item.transaction_status == status.STATUS_CANCELLED ||
+                    item.transaction_status == status.STATUS_ADMIN_CANCELLED
+                      ? 'bg-red-100'
+                      : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
+                          item.transaction_status == status.STATUS_CASH_PENDING
+                        ? 'bg-secondary-50'
+                        : 'bg-green-100'
+                  } mx-1`}
+                />
+              )}
             </View>
             <View className="flex-col">
               <Text className="font-pmedium text-gray-700">{item.shibir_name}</Text>
@@ -175,6 +177,11 @@ const AdhyayanBookingCancellation = () => {
                 {moment(item.start_date).format('Do MMMM')} -{' '}
                 {moment(item.end_date).format('Do MMMM, YYYY')}
               </Text>
+              {item.bookedFor && (
+                <Text className="font-pmedium">
+                  Booked For: <Text className="text-secondary">{item.user_name}</Text>
+                </Text>
+              )}
             </View>
           </View>
         </View>
@@ -191,11 +198,6 @@ const AdhyayanBookingCancellation = () => {
           <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
           <Text className="font-pregular text-gray-400">Charge: </Text>
           <Text className="font-pmedium text-black">₹ {item.amount}</Text>
-        </View>
-        <View className="mt-2 flex flex-row gap-x-2 px-2">
-          <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Booked For: </Text>
-          <Text className="font-pmedium text-black">{item.name ? item.name : 'Self'}</Text>
         </View>
         {moment(item.start_date).diff(moment().format('YYYY-MM-DD')) > 6 &&
           item.status !== status.STATUS_CANCELLED &&
@@ -218,6 +220,7 @@ const AdhyayanBookingCancellation = () => {
                 handlePress={() => {
                   cancelBookingMutation.mutate({
                     shibir_id: item.shibir_id,
+                    cardno: item.cardno,
                     bookedFor: item.bookedFor == 'NA' ? undefined : item.bookedFor,
                   });
                 }}

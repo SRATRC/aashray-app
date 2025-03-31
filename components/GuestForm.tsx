@@ -42,8 +42,9 @@ const GuestForm: React.FC<GuestFormProps> = ({
               const guestIndex = updatedGuests.findIndex((guest) => guest.mobno === mobno);
               if (guestIndex !== -1) {
                 updatedGuests[guestIndex] = {
-                  ...updatedGuests[guestIndex],
                   ...res.data,
+                  ...updatedGuests[guestIndex],
+                  mobno: updatedGuests[guestIndex].mobno,
                 };
               }
               return { ...prevForm, guests: updatedGuests };
@@ -99,7 +100,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
               placeholder="Enter Guest Phone Number"
               maxLength={10}
               containerStyles="bg-gray-100"
-              additionalText={data?.name}
+              additionalText={data?.issuedto}
             />
 
             {!data && !isVerifyGuestsLoading && guest.mobno?.length === 10 && (

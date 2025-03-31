@@ -46,6 +46,29 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
     }
   }, [isDatePickerVisible.checkin]);
 
+  const getAvailableMumukshus = (currentGroupIndex: number) => {
+    // Get all selected mumukshu indices from other groups
+    const selectedIndices = roomForm.mumukshuGroup.reduce(
+      (acc: string[], group: any, idx: number) => {
+        if (idx !== currentGroupIndex) {
+          return [...acc, ...group.mumukshuIndices];
+        }
+        return acc;
+      },
+      []
+    );
+
+    // Filter out mumukshus that are already selected in other groups
+    return mumukshu_dropdown.filter((mumukshu: any) => !selectedIndices.includes(mumukshu.value));
+  };
+
+  const hasAvailableMumukshus = () => {
+    // Get all selected mumukshu indices from all groups
+    const selectedIndices = roomForm.mumukshuGroup.flatMap((group: any) => group.mumukshuIndices);
+    // Check if there are any unselected mumukshus
+    return mumukshu_dropdown.some((mumukshu: any) => !selectedIndices.includes(mumukshu.value));
+  };
+
   return (
     <AddonItem
       onCollapse={resetRoomForm}
@@ -166,7 +189,7 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
             otherStyles="mt-5"
             text={`Mumukshus for Room ${index + 1}`}
             placeholder="Select Mumukshus"
-            data={mumukshu_dropdown}
+            data={getAvailableMumukshus(index)}
             value={assignment.mumukshuIndices}
             setSelected={(val: any) => updateRoomForm(index, 'mumukshus', val)}
             guest={true}
@@ -191,8 +214,11 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
       ))}
 
       <TouchableOpacity
-        className="mt-4 w-full flex-row items-center justify-start gap-x-1"
-        onPress={addRoomForm}>
+        className={`mt-4 w-full flex-row items-center justify-start gap-x-1 ${
+          !hasAvailableMumukshus() ? 'opacity-50' : ''
+        }`}
+        onPress={hasAvailableMumukshus() ? addRoomForm : undefined}
+        disabled={!hasAvailableMumukshus()}>
         <Image
           source={icons.addon}
           tintColor={colors.black}
