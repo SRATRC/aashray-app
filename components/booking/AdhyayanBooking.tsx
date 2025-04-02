@@ -403,7 +403,7 @@ const AdhyayanBooking = () => {
       </Modal>
       <SectionList
         className="flex-grow-1 px-2 py-2"
-        sections={data?.pages?.flatMap((page) => page) || []}
+        sections={data?.pages?.flatMap((page: any) => page) || []}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}
         nestedScrollEnabled={true}

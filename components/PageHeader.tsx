@@ -13,11 +13,11 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, icon, onPress }) => {
   const router = useRouter();
 
   return (
-    <View className="mt-6 w-full flex-row items-center px-4">
+    <View className="mb-4 mt-6 w-full flex-row items-center px-4">
       <Pressable onPress={onPress ? onPress : () => router.back()}>
         <Image
           source={icon ? icon : icons.backArrow}
-          className={`mx-2 p-1 ${Platform.OS === 'android' ? 'h-4 w-4' : 'h-6 w-6'}`}
+          className="android:h-4 android:w-4 ios:h-7 ios:w-7 mx-2 p-1"
           resizeMode="contain"
           tintColor={'#000000'}
         />

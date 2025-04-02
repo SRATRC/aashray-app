@@ -1,15 +1,17 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Button, Image, Text, TouchableOpacity, View } from 'react-native';
-import { icons } from '../../constants';
 import { useState, useRef, useEffect } from 'react';
+import { icons } from '../../constants';
 import { useRouter } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { handleUserNavigation } from '../../utils/navigationValidations';
 import CustomButton from '../../components/CustomButton';
+import handleAPICall from '~/utils/HandleApiCall';
 
 const CameraScreen: React.FC = () => {
   const { setUser, setCurrentUser, user } = useGlobalContext();
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const cameraRef = useRef<CameraView>(null);
@@ -47,7 +49,6 @@ const CameraScreen: React.FC = () => {
         });
 
         setCapturedImage(photo.uri);
-        setUser((prev: any) => ({ ...prev, pfp: photo.uri }));
       } catch (error) {
         console.error('Failed to take picture:', error);
       }
@@ -71,20 +72,45 @@ const CameraScreen: React.FC = () => {
               />
               <CustomButton
                 text={'Save'}
-                handlePress={() => {
-                  if (router.canGoBack()) {
-                    router.back();
-                  } else {
+                handlePress={async () => {
+                  setIsSubmitting(true);
+
+                  const onSuccess = async (data: any) => {
+                    setUser((prev: any) => {
+                      const updatedUser = { ...prev, pfp: data.data };
+                      setCurrentUser(updatedUser);
+                      return updatedUser;
+                    });
+
                     handleUserNavigation(user, router);
-                  }
+                  };
+
+                  const onFinally = () => {
+                    setIsSubmitting(false);
+                  };
+
+                  await handleAPICall(
+                    'POST',
+                    '/profile/upload',
+                    { cardno: user.cardno },
+                    { image: capturedImage },
+                    onSuccess,
+                    onFinally
+                  );
                 }}
                 containerStyles={'flex-1 p-2 mx-1 mb-3'}
+                isLoading={isSubmitting}
               />
             </View>
           </View>
         </View>
       ) : (
-        <CameraView ref={cameraRef} style={{ flex: 1 }} facing="front" enableTorch={false}>
+        <CameraView
+          ref={cameraRef}
+          style={{ flex: 1 }}
+          facing="front"
+          enableTorch={false}
+          mirror={true}>
           <TouchableOpacity className="absolute bottom-16 self-center" onPress={captureImage}>
             <Image source={icons.shutter} className="h-20 w-20" tintColor={'#fff'} />
           </TouchableOpacity>

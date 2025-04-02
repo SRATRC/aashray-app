@@ -15,6 +15,21 @@ const handleAPICall = async (
   try {
     const url = `${BASE_URL}${endpoint}`;
 
+    let data = body;
+    let headers = {};
+
+    if (body?.image) {
+      const formData = new FormData();
+      formData.append('image', {
+        uri: body.image,
+        name: 'pfp.jpg',
+        type: 'image/jpeg',
+      });
+
+      data = formData;
+      headers['Content-Type'] = 'multipart/form-data';
+    }
+
     console.log('------------');
     console.log('URL: ', url);
     console.log('PARAMS: ', JSON.stringify(params));
@@ -25,7 +40,8 @@ const handleAPICall = async (
       method: method,
       url: url,
       params: params,
-      data: body,
+      data: data,
+      headers: headers,
       timeout: 10000,
       validateStatus: () => true,
     });

@@ -24,7 +24,7 @@ const ImageCaptureOnboarding: React.FC = () => {
     {
       title: 'Help Us Verify Your Identity',
       description:
-        'To ensure safety for all, please upload your picture. This step helps us secure your profile.',
+        "Want Guruji to recognize you at a glance? Upload your picture and make sure he never has to say, 'Remind me who you are again!'",
       btnText: 'Upload My Picture',
       action: () => {
         router.replace('/camera');
@@ -38,7 +38,7 @@ const ImageCaptureOnboarding: React.FC = () => {
         <View className="flex-1 justify-between px-6 py-10">
           {/* Header */}
           <View className="mt-4 items-center">
-            <Image source={images.logo} className="h-[57px] w-[108px]" resizeMode="contain" />
+            <Image source={images.logo} className="h-[80px] w-[80px]" resizeMode="contain" />
           </View>
 
           {/* Step Content */}

@@ -7,16 +7,16 @@ export default {
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     userInterfaceStyle: 'automatic',
-    splash: {
-      image: './assets/images/splash.png',
-      resizeMode: 'contain',
-      backgroundColor: '#ffffff',
-    },
+    // splash: {
+    //   image: './assets/images/splash.png',
+    //   resizeMode: 'contain',
+    //   backgroundColor: '#ffffff',
+    // },
     assetBundlePatterns: ['**/*'],
     ios: {
       icon: {
         dark: './assets/images/ios-dark.png',
-        light: './assets/images/ios-light.png',
+        light: './assets/images/icon.png',
       },
       supportsTablet: true,
       package: 'org.vitraagvigyaan.aashray',
@@ -49,9 +49,9 @@ export default {
         },
       ],
     },
-    web: {
-      favicon: './assets/favicon.png',
-    },
+    // web: {
+    //   favicon: './assets/favicon.png',
+    // },
     // updates: {
     //   enabled: true,
     //   checkAutomatically: 'ON_LOAD',
@@ -103,6 +103,18 @@ export default {
           // "color": "#ffffff",
           // "defaultChannel": "default",
           enableBackgroundRemoteNotifications: true,
+        },
+      ],
+      [
+        'expo-splash-screen',
+        {
+          backgroundColor: '#ffffff',
+          image: './assets/images/logo.png',
+          dark: {
+            image: './assets/images/logo.png',
+            backgroundColor: '#000000',
+          },
+          imageWidth: 200,
         },
       ],
     ],

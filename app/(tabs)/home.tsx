@@ -28,13 +28,13 @@ const Home: React.FC = () => {
       <View className="justify-start px-4">
         <Image
           source={images.logo as ImageSourcePropType}
-          className="h-[30px] w-[70px]"
+          className="h-[60px] w-[60px]"
           resizeMode="contain"
         />
       </View>
 
       {/* Banner */}
-      <View className="mt-7 w-full px-4">
+      <View className="w-full px-4">
         <ImageBackground
           className="h-[220px] w-full px-2"
           source={images.banner as ImageSourcePropType}

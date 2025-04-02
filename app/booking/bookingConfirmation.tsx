@@ -228,23 +228,23 @@ const bookingConfirmation = () => {
                     },
                     theme: { color: colors.orange },
                   };
-                  RazorpayCheckout.open(options)
-                    .then((rzrpayData: any) => {
-                      // handle success
-                      setIsSubmitting(false);
-                      console.log(JSON.stringify(rzrpayData));
-                      router.replace('/booking/paymentConfirmation');
-                    })
-                    .catch((error: any) => {
-                      // handle failure
-                      setIsSubmitting(false);
-                      Toast.show({
-                        type: 'error',
-                        text1: 'An error occurred!',
-                        text2: error.reason,
-                      });
-                      console.log(JSON.stringify(error));
-                    });
+                  // RazorpayCheckout.open(options)
+                  //   .then((rzrpayData: any) => {
+                  //     // handle success
+                  //     setIsSubmitting(false);
+                  //     console.log(JSON.stringify(rzrpayData));
+                  //     router.replace('/booking/paymentConfirmation');
+                  //   })
+                  //   .catch((error: any) => {
+                  //     // handle failure
+                  //     setIsSubmitting(false);
+                  //     Toast.show({
+                  //       type: 'error',
+                  //       text1: 'An error occurred!',
+                  //       text2: error.reason,
+                  //     });
+                  //     console.log(JSON.stringify(error));
+                  //   });
                 }
               };
 
