@@ -56,6 +56,20 @@ const TravelBooking = () => {
     special_request: '',
   });
 
+  const isSelfFormValid = () => {
+    return (
+      travelForm.date &&
+      travelForm.pickup &&
+      travelForm.drop &&
+      travelForm.luggage &&
+      travelForm.type &&
+      !(
+        (travelForm.pickup == 'RC' && travelForm.drop == 'RC') ||
+        (travelForm.pickup != 'RC' && travelForm.drop != 'RC')
+      )
+    );
+  };
+
   const [mumukshuForm, setMumukshuForm] = useState(INITIAL_MUMUKSHU_FORM);
 
   const addMumukshuForm = () => {
@@ -104,8 +118,8 @@ const TravelBooking = () => {
           mumukshu.luggage &&
           mumukshu.type &&
           !(
-            (mumukshu.pickup === 'rc' && mumukshu.drop === 'rc') ||
-            (mumukshu.pickup !== 'rc' && mumukshu.drop !== 'rc')
+            (mumukshu.pickup === 'RC' && mumukshu.drop === 'RC') ||
+            (mumukshu.pickup !== 'RC' && mumukshu.drop !== 'RC')
           )
       )
     );
@@ -242,19 +256,9 @@ const TravelBooking = () => {
         handlePress={async () => {
           setIsSubmitting(true);
           if (selectedChip == CHIPS[0]) {
-            if (
-              (travelForm.pickup == 'RC' && travelForm.drop == 'RC') ||
-              (travelForm.pickup != 'RC' && travelForm.drop != 'RC')
-            ) {
+            if (!isSelfFormValid()) {
               setModalVisible(true);
-              setModalMessage('Invalid Pickup/Drop Locations');
-              setIsSubmitting(false);
-              return;
-            }
-
-            if (!travelForm.date || !travelForm.pickup || !travelForm.drop || !travelForm.luggage) {
-              setModalVisible(true);
-              setModalMessage('Please enter all details');
+              setModalMessage('Please fill all fields');
               setIsSubmitting(false);
               return;
             }
@@ -277,7 +281,7 @@ const TravelBooking = () => {
         }}
         containerStyles="mt-7 w-full px-1 min-h-[62px]"
         isLoading={isSubmitting}
-        isDisabled={!isMumukshuFormValid()}
+        isDisabled={!isSelfFormValid()}
       />
       <CustomModal
         visible={modalVisible}

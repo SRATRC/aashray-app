@@ -1,4 +1,4 @@
-import { View, KeyboardAvoidingView, ScrollView, Platform, TouchableOpacity } from 'react-native';
+import { View, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,8 +11,8 @@ import FormDisplayField from '../../components/FormDisplayField';
 import CustomButton from '../../components/CustomButton';
 import CustomDropdown from '../../components/CustomDropdown';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import moment from 'moment';
 import handleAPICall from '../../utils/HandleApiCall';
+import moment from 'moment';
 
 const fetchCountries = () => {
   return new Promise((resolve, reject) => {
@@ -157,9 +157,9 @@ const profileDetails = () => {
   return (
     <SafeAreaView className="h-full bg-white">
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView alwaysBounceVertical={false}>
-          <PageHeader title={'Profile Details'} icon={icons.backArrow} />
-          <View className="mt-4 min-h-[83vh] w-full px-4">
+        <PageHeader title={'Profile Details'} icon={icons.backArrow} />
+        <ScrollView>
+          <View className="w-full px-4">
             <FormField
               text="Name"
               value={form.issuedto}
@@ -173,7 +173,6 @@ const profileDetails = () => {
 
             <FormField
               text="Phone Number"
-              prefix="+91"
               value={form.mobno.toString()}
               handleChangeText={(e: any) => setForm({ ...form, mobno: Number(e) })}
               otherStyles="mt-7"
@@ -196,14 +195,14 @@ const profileDetails = () => {
               containerStyles={'bg-gray-100'}
             />
 
-            <TouchableOpacity onPress={() => setDatePickerVisibility(true)}>
-              <FormDisplayField
-                text="Date of Birth"
-                value={form.dob ? form.dob : 'Date of Birth'}
-                otherStyles="mt-7"
-                backgroundColor={'bg-gray-100'}
-              />
-            </TouchableOpacity>
+            <FormDisplayField
+              text="Date of Birth"
+              value={form.dob ? moment(form.dob).format('Do MMMM YYYY') : 'Date of Birth'}
+              otherStyles="mt-7"
+              backgroundColor={'bg-gray-100'}
+              onPress={() => setDatePickerVisibility(true)}
+            />
+
             <DateTimePickerModal
               isVisible={isDatePickerVisible}
               mode="date"
@@ -310,7 +309,7 @@ const profileDetails = () => {
             <CustomButton
               text="Update Profile"
               handlePress={submit}
-              containerStyles={`mt-7 min-h-[62px] ${Platform.OS == 'android' && 'mb-3'}`}
+              containerStyles={`mt-7 mb-10 min-h-[62px] ${Platform.OS == 'android' && 'mb-3'}`}
               isLoading={isSubmitting}
               isDisabled={!isFormModified()}
             />

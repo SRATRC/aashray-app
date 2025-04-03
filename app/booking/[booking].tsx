@@ -70,12 +70,12 @@ const details = () => {
           nestedScrollEnabled={true}>
           <PageHeader title="Booking Details" icon={icons.backArrow} />
 
-          {booking === types.ROOM_DETAILS_TYPE && <RoomBookingDetails containerStyles={'mt-6'} />}
+          {booking === types.ROOM_DETAILS_TYPE && <RoomBookingDetails containerStyles={'mt-2'} />}
           {booking === types.ADHYAYAN_DETAILS_TYPE && (
-            <AdhyayanBookingDetails containerStyles={'mt-6'} />
+            <AdhyayanBookingDetails containerStyles={'mt-2'} />
           )}
           {booking === types.TRAVEL_DETAILS_TYPE && (
-            <TravelBookingDetails containerStyles={'mt-6'} />
+            <TravelBookingDetails containerStyles={'mt-2'} />
           )}
 
           <View className="w-full px-4">

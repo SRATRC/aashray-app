@@ -176,10 +176,10 @@ const mumukshuBookingConfirmation = () => {
       <ScrollView alwaysBounceVertical={false} showsVerticalScrollIndicator={false}>
         <PageHeader title="Payment Summary" icon={icons.backArrow} />
 
-        {mumukshuData.room && <MumukshuRoomBookingDetails containerStyles={'mt-6'} />}
-        {mumukshuData.adhyayan && <MumukshuAdhyayanBookingDetails containerStyles={'mt-6'} />}
-        {mumukshuData.food && <MumukshuFoodBookingDetails containerStyles={'mt-6'} />}
-        {mumukshuData.travel && <MumukshuTravelBookingDetails containerStyles={'mt-6'} />}
+        {mumukshuData.room && <MumukshuRoomBookingDetails containerStyles={'mt-2'} />}
+        {mumukshuData.adhyayan && <MumukshuAdhyayanBookingDetails containerStyles={'mt-2'} />}
+        {mumukshuData.food && <MumukshuFoodBookingDetails containerStyles={'mt-2'} />}
+        {mumukshuData.travel && <MumukshuTravelBookingDetails containerStyles={'mt-2'} />}
 
         {validationData && (
           <View className="mt-4 w-full px-4">

@@ -4,5 +4,6 @@ import logo from '../assets/images/logo.png';
 import pfp from '../assets/images/pfp.png';
 import ticketbg from '../assets/images/ticketbg.png';
 import banner from '../assets/images/banner.png';
+import sadFace from '../assets/images/sad-face.png';
 
-export default { icon, adaptiveLogo, logo, pfp, ticketbg, banner };
+export default { icon, adaptiveLogo, logo, pfp, ticketbg, banner, sadFace };

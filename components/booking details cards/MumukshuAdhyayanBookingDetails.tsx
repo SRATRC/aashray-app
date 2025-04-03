@@ -55,7 +55,9 @@ const MumukshuAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({
 
       <View className="flex flex-row gap-x-2 px-6 pb-4">
         <Image source={icons.description} className="h-4 w-4" resizeMode="contain" />
-        <Text className="font-pregular text-gray-400">Name:</Text>
+        <Text className="flex-1 font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
+          Name:
+        </Text>
         <Text className="font-pmedium text-black">{mumukshuData.adhyayan.adhyayan.name}</Text>
       </View>
       <View className="flex flex-row gap-x-2 px-6 pb-4">

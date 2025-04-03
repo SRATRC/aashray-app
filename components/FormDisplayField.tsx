@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, Platform, TouchableOpacity, StyleSheet } from 'react-native';
 
 interface FormDisplayFieldProps {
   text: any;
@@ -18,24 +18,42 @@ const FormDisplayField: React.FC<FormDisplayFieldProps> = ({
   displayViewStyles,
   onPress,
 }) => {
+  const shadowStyle = !backgroundColor
+    ? Platform.OS === 'ios'
+      ? styles.iosShadow
+      : styles.androidShadow
+    : {};
+
+  const bgStyle = backgroundColor || 'bg-white';
+
   return (
-    <TouchableOpacity className={`gap-y-2 ${otherStyles}`} onPress={onPress} activeOpacity={0.7}>
+    <View className={`gap-y-2 ${otherStyles}`}>
       <Text className="font-pmedium text-base text-gray-600">{text}</Text>
-      <View
-        pointerEvents="none" // Allows TouchableOpacity to capture press events
-        className={`h-16 w-full flex-1 flex-row items-center rounded-2xl px-4 focus:border-2 focus:border-secondary ${displayViewStyles} ${
-          backgroundColor
-            ? backgroundColor
-            : Platform.OS === 'ios'
-              ? 'bg-white shadow-lg shadow-gray-200'
-              : 'bg-white shadow-2xl shadow-gray-400'
-        }`}>
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.7}
+        style={shadowStyle}
+        className={`h-16 w-full flex-row items-center rounded-2xl px-4 ${bgStyle} ${displayViewStyles}`}>
         <Text className="font-pmedium text-base text-gray-400" numberOfLines={1}>
           {value}
         </Text>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  iosShadow: {
+    shadowColor: '#d1d5db',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 0,
+  },
+  androidShadow: {
+    elevation: 8,
+    shadowColor: 'transparent',
+  },
+});
 
 export default FormDisplayField;

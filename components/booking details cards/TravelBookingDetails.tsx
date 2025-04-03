@@ -6,7 +6,7 @@ import moment from 'moment';
 import CustomTag from '../CustomTag';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 
-const TravelBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
+const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerStyles }) => {
   const { data } = useGlobalContext();
 
   return (
@@ -37,7 +37,7 @@ const TravelBookingDetails: React.FC<{ containerStyles: any }> = ({ containerSty
 
       <HorizontalSeparator otherStyles={'mb-4'} />
 
-      <View className="flex flex-row gap-x-2 px-6 pb-4">
+      <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
         <Image source={icons.marker} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">
           {data.travel.pickup == 'RC' ? 'Drop Point' : 'Pickup Point'}
@@ -46,17 +46,17 @@ const TravelBookingDetails: React.FC<{ containerStyles: any }> = ({ containerSty
           {data.travel.pickup == 'RC' ? `${data.travel.drop}` : `${data.travel.pickup}`}
         </Text>
       </View>
-      <View className="flex flex-row gap-x-2 px-6 pb-4">
+      <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
         <Image source={icons.luggage} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Luggage</Text>
         <Text className="font-pmedium text-black">{data.travel.luggage}</Text>
       </View>
-      <View className="flex flex-row gap-x-2 px-6 pb-4">
+      <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
         <Image source={icons.car} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Booking Type</Text>
         <Text className="font-pmedium text-black">{data.travel.type}</Text>
       </View>
-      <View className="flex flex-row gap-x-2 px-6 pb-4">
+      <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
         <Image source={icons.request} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Special Request:</Text>
         <Text className="flex-1 font-pmedium text-black" numberOfLines={1}>
@@ -64,7 +64,7 @@ const TravelBookingDetails: React.FC<{ containerStyles: any }> = ({ containerSty
         </Text>
       </View>
       {data.travel.charge && (
-        <View className="flex flex-row gap-x-2 px-6 pb-4">
+        <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
           <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
           <Text className="font-pregular text-gray-400">Charges:</Text>
           <Text className="font-pmedium text-black">₹ {data.travel.charge}</Text>

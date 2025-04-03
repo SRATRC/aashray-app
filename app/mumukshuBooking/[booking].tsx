@@ -279,13 +279,13 @@ const MumukshuAddons = () => {
           <PageHeader title="Booking Details" icon={icons.backArrow} />
 
           {booking === types.ROOM_DETAILS_TYPE && (
-            <MumukshuRoomBookingDetails containerStyles={'mt-6'} />
+            <MumukshuRoomBookingDetails containerStyles={'mt-2'} />
           )}
           {booking === types.ADHYAYAN_DETAILS_TYPE && (
-            <MumukshuAdhyayanBookingDetails containerStyles={'mt-6'} />
+            <MumukshuAdhyayanBookingDetails containerStyles={'mt-2'} />
           )}
           {booking === types.TRAVEL_DETAILS_TYPE && (
-            <MumukshuTravelBookingDetails containerStyles={'mt-6'} />
+            <MumukshuTravelBookingDetails containerStyles={'mt-2'} />
           )}
 
           <View className="w-full px-4">

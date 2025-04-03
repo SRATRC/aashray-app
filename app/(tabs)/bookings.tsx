@@ -70,7 +70,7 @@ const BookingCategories: React.FC<BookingCategoriesProps> = ({ onRefresh }) => {
 
   return (
     <View className="w-full">
-      <View className="w-full gap-y-6 px-4">
+      <View className="w-full gap-y-4 px-4">
         <Text className="mt-6 font-psemibold text-2xl">{`${selectedChip} Booking`}</Text>
 
         <CustomChipGroup

@@ -145,9 +145,9 @@ const guestBookingConfirmation = () => {
       <ScrollView alwaysBounceVertical={false} showsVerticalScrollIndicator={false}>
         <PageHeader title="Payment Summary" icon={icons.backArrow} />
 
-        {guestData.room && <GuestRoomBookingDetails containerStyles={'mt-6'} />}
-        {guestData.adhyayan && <GuestAdhyayanBookingDetails containerStyles={'mt-6'} />}
-        {guestData.food && <GuestFoodBookingDetails containerStyles={'mt-6'} />}
+        {guestData.room && <GuestRoomBookingDetails containerStyles={'mt-2'} />}
+        {guestData.adhyayan && <GuestAdhyayanBookingDetails containerStyles={'mt-2'} />}
+        {guestData.food && <GuestFoodBookingDetails containerStyles={'mt-2'} />}
 
         {validationData && (
           <View className="mt-4 w-full px-4">

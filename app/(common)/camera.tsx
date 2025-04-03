@@ -69,6 +69,7 @@ const CameraScreen: React.FC = () => {
                 containerStyles={'flex-1 p-2 mx-1 mb-3 border border-secondary'}
                 textStyles={'text-secondary'}
                 bgcolor={'bg-white'}
+                isDisabled={isSubmitting}
               />
               <CustomButton
                 text={'Save'}

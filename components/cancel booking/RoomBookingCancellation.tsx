@@ -257,7 +257,7 @@ const RoomBookingCancellation: React.FC = () => {
       {!isFetchingNextPage && data?.pages?.[0]?.length === 0 && (
         <CustomEmptyMessage
           lottiePath={require('../../assets/lottie/empty.json')}
-          message="No room bookings to show!"
+          message="Your room bookings are currently in a state of nirvana...empty"
         />
       )}
     </View>

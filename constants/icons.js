@@ -62,6 +62,7 @@ import sparshInsta from '../assets/icons/sparsh-insta.png';
 import vvYt from '../assets/icons/vv-yt.png';
 import satshrut from '../assets/icons/satshrut.png';
 import resetPassword from '../assets/icons/reset-pass.png';
+import smilestones from '../assets/icons/smilestones.png';
 
 export default {
   play,
@@ -128,4 +129,5 @@ export default {
   vvYt,
   satshrut,
   resetPassword,
+  smilestones,
 };

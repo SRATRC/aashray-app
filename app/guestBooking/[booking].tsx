@@ -168,10 +168,10 @@ const guestAddons = () => {
           <PageHeader title="Guest Booking Details" icon={icons.backArrow} />
 
           {booking === types.ROOM_DETAILS_TYPE && (
-            <GuestRoomBookingDetails containerStyles={'mt-6'} />
+            <GuestRoomBookingDetails containerStyles={'mt-2'} />
           )}
           {booking === types.ADHYAYAN_DETAILS_TYPE && (
-            <GuestAdhyayanBookingDetails containerStyles={'mt-6'} />
+            <GuestAdhyayanBookingDetails containerStyles={'mt-2'} />
           )}
 
           <View className="w-full px-4">

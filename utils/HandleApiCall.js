@@ -42,7 +42,7 @@ const handleAPICall = async (
       params: params,
       data: data,
       headers: headers,
-      timeout: 10000,
+      // timeout: 10000,
       validateStatus: () => true,
     });
 

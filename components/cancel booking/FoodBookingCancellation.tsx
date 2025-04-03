@@ -488,7 +488,7 @@ const FoodBookingCancellation = () => {
       {!isFetchingNextPage && data?.pages?.[0]?.length == 0 && (
         <CustomEmptyMessage
           lottiePath={require('../../assets/lottie/empty.json')}
-          message={'No food bookings to show!'}
+          message={"No food bookings? Your stomach's inner peace is disturbed."}
         />
       )}
       <BottomSheetFilter

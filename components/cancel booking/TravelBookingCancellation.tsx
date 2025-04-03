@@ -279,7 +279,7 @@ const TravelBookingCancellation = () => {
       {!isFetchingNextPage && data?.pages?.[0]?.length == 0 && (
         <CustomEmptyMessage
           lottiePath={require('../../assets/lottie/empty.json')}
-          message={'No travel bookings to show!'}
+          message={'Empty itinerary? Your Research Centre calls.'}
         />
       )}
     </View>

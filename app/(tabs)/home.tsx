@@ -86,6 +86,13 @@ const Home: React.FC = () => {
               onPress={() => Linking.openURL('https://satshrut.vitraagvigyaan.org/')}
             />
             <CustomHomeIcon
+              image={icons.smilestones as ImageSourcePropType}
+              title={'Smilestones'}
+              onPress={() =>
+                Linking.openURL('https://datachef.in/smilestones/create_request_user.php')
+              }
+            />
+            <CustomHomeIcon
               image={icons.vvYt as ImageSourcePropType}
               title={'Youtube'}
               onPress={() => Linking.openURL('https://youtube.com/@vitraagvigyaan')}

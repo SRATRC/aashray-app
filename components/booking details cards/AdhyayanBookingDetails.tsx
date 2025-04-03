@@ -43,7 +43,9 @@ const AdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ containerS
       <View className="flex flex-row gap-x-2 px-6 pb-4">
         <Image source={icons.description} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Name:</Text>
-        <Text className="font-pmedium text-black">{data.adhyayan[0].name}</Text>
+        <Text className="flex-1 font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
+          {data.adhyayan[0].name}
+        </Text>
       </View>
       <View className="flex flex-row gap-x-2 px-6 pb-4">
         <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />

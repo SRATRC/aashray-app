@@ -168,12 +168,6 @@ const maintenanceRequestList = () => {
     <View className="items-center">
       {(isFetchingNextPage || isLoading) && <ActivityIndicator />}
       {!hasNextPage && data?.pages?.[0]?.length > 0 && <Text>No more bookings at the moment</Text>}
-      {!isFetchingNextPage && data?.pages?.[0]?.length == 0 && (
-        <CustomEmptyMessage
-          lottiePath={require('../../assets/lottie/empty.json')}
-          message={'You dont have any maintenance requests yet'}
-        />
-      )}
     </View>
   );
 
@@ -201,6 +195,14 @@ const maintenanceRequestList = () => {
         }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       />
+
+      {!isFetchingNextPage && data?.pages?.[0]?.length == 0 && (
+        <CustomEmptyMessage
+          lottiePath={require('../../assets/lottie/empty.json')}
+          message={'You dont have any maintenance requests yet'}
+        />
+      )}
+
       <TouchableOpacity
         className="absolute bottom-8 right-6 rounded-2xl bg-secondary p-4"
         onPress={() => {
