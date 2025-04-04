@@ -63,6 +63,7 @@ import vvYt from '../assets/icons/vv-yt.png';
 import satshrut from '../assets/icons/satshrut.png';
 import resetPassword from '../assets/icons/reset-pass.png';
 import smilestones from '../assets/icons/smilestones.png';
+import coin from '../assets/icons/coin.png';
 
 export default {
   play,
@@ -130,4 +131,5 @@ export default {
   satshrut,
   resetPassword,
   smilestones,
+  coin,
 };

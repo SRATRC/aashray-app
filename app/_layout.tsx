@@ -13,6 +13,7 @@ import Toast from 'react-native-toast-message';
 import * as Sentry from '@sentry/react-native';
 import * as Notifications from 'expo-notifications';
 import * as NavigationBar from 'expo-navigation-bar';
+import { Platform } from 'react-native';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -53,8 +54,10 @@ const RootLayout = () => {
   }, [fontsLoaded, error]);
 
   useEffect(() => {
-    NavigationBar.setBackgroundColorAsync('#FFFCF5');
-    NavigationBar.setButtonStyleAsync('dark');
+    if (Platform.OS === 'android') {
+      NavigationBar.setBackgroundColorAsync('#FFFCF5');
+      NavigationBar.setButtonStyleAsync('dark');
+    }
   }, []);
 
   if (!fontsLoaded && !error) {

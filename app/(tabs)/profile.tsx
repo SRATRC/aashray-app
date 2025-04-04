@@ -151,6 +151,17 @@ const Profile: React.FC = () => {
         />
       </TouchableOpacity>
       <Text className="mt-2 font-psemibold text-base">{user.issuedto}</Text>
+
+      <View className="mt-4 flex-row items-center rounded-full bg-secondary-50 px-6 py-3">
+        <Image
+          source={icons.coin || require('../../assets/icons/coin.png')}
+          className="mr-2 h-6 w-6"
+          resizeMode="contain"
+        />
+        <Text className="font-psemibold text-base text-orange-500">
+          {user.credits || 0} Credits
+        </Text>
+      </View>
     </View>
   );
 
@@ -164,7 +175,6 @@ const Profile: React.FC = () => {
           renderItem={renderItem}
           ListHeaderComponent={renderHeader}
           estimatedItemSize={6}
-          bounces={false}
         />
 
         <Modal

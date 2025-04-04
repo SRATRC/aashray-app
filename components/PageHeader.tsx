@@ -17,7 +17,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, icon, onPress }) => {
       <Pressable onPress={onPress ? onPress : () => router.back()}>
         <Image
           source={icon ? icon : icons.backArrow}
-          className="android:h-4 android:w-4 ios:h-7 ios:w-7 mx-2 p-1"
+          className="android:h-4 android:w-4 ios:h-6 ios:w-6 mx-2 p-1"
           resizeMode="contain"
           tintColor={'#000000'}
         />
