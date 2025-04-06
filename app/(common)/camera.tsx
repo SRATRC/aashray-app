@@ -29,7 +29,7 @@ const CameraScreen: React.FC = () => {
 
   if (!permission.granted) {
     return (
-      <View className="flex-1 justify-center">
+      <View className="flex-1 justify-center px-4">
         <Text className="pb-2 text-center">
           We need your permission to open camera to capture a selfie so that guruji can view it
           before meetings.
@@ -79,11 +79,10 @@ const CameraScreen: React.FC = () => {
                   const onSuccess = async (data: any) => {
                     setUser((prev: any) => {
                       const updatedUser = { ...prev, pfp: data.data };
-                      setCurrentUser(updatedUser);
+                      setCurrentUser(updatedUser); // optional
+                      handleUserNavigation(updatedUser, router);
                       return updatedUser;
                     });
-
-                    handleUserNavigation(user, router);
                   };
 
                   const onFinally = () => {

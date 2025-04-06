@@ -351,7 +351,7 @@ const RoomBooking = () => {
 
               <CustomDropdown
                 otherStyles="mt-7"
-                text={'Book Only if Ground Floor is Available'}
+                text={'Select Floor Type'}
                 placeholder={'Select Floor Type'}
                 data={dropdowns.FLOOR_TYPE_LIST}
                 setSelected={(val: any) => setMultiDayForm({ ...multiDayForm, floorType: val })}
@@ -402,7 +402,7 @@ const RoomBooking = () => {
 
                     <CustomDropdown
                       otherStyles="mt-7"
-                      text={'Book Only if Ground Floor is Available'}
+                      text={'Select Floor Type'}
                       placeholder={'Select Floor Type'}
                       data={dropdowns.FLOOR_TYPE_LIST}
                       value={guestForm.guests[index].floorType}
@@ -491,7 +491,7 @@ const RoomBooking = () => {
 
                     <CustomDropdown
                       otherStyles="mt-7"
-                      text={'Book Only if Ground Floor is Available'}
+                      text={'Select Floor Type'}
                       placeholder={'Select Floor Type'}
                       data={dropdowns.FLOOR_TYPE_LIST}
                       setSelected={(val: any) => handleMumukshuFormChange(index, 'floorType', val)}

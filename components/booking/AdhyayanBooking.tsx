@@ -417,10 +417,7 @@ const AdhyayanBooking = () => {
         }}
       />
       {!isFetchingNextPage && data?.pages?.[0]?.length == 0 && (
-        <CustomEmptyMessage
-          lottiePath={require('../../assets/lottie/empty.json')}
-          message={'No upcoming Adhyayans at this moment!'}
-        />
+        <CustomEmptyMessage message={'No upcoming Adhyayans at this moment!'} />
       )}
     </View>
   );

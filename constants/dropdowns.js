@@ -41,8 +41,6 @@ const LOCATION_LIST = [
   { key: 'cstm', value: 'Chatrapati Shivaji Terminus Station (CSTM)' },
   { key: 'vile parle', value: 'Vile Parle East' },
   { key: 'borivali', value: 'Borivali East' },
-  { key: 'full', value: 'Full Car Booking' },
-  { key: 'other', value: 'Other' },
 ];
 
 const LUGGAGE_LIST = [

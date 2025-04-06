@@ -12,9 +12,11 @@ import CustomChipGroup from '../CustomChipGroup';
 import CustomModal from '../CustomModal';
 import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
+// @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
+import moment from 'moment';
 
 const CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
@@ -190,6 +192,11 @@ const FoodBooking = () => {
           setGuestForm((prev) => ({ ...prev, endDay: day }));
           setMumukshuForm((prev) => ({ ...prev, endDay: day }));
         }}
+        minDate={
+          moment().hour() < 11
+            ? moment(new Date()).add(1, 'days').format('YYYY-MM-DD')
+            : moment(new Date()).add(2, 'days').format('YYYY-MM-DD')
+        }
       />
 
       <View className="mt-7 flex w-full flex-col">

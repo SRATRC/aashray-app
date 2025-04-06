@@ -261,10 +261,7 @@ const AdhyayanBookingCancellation = () => {
         }}
       />
       {!isFetchingNextPage && data?.pages?.[0]?.length == 0 && (
-        <CustomEmptyMessage
-          lottiePath={require('../../assets/lottie/empty.json')}
-          message={'Zero adhyayans. Impressive...ly empty.'}
-        />
+        <CustomEmptyMessage message={'Zero adhyayans. Impressive...ly empty.'} />
       )}
     </View>
   );

@@ -244,10 +244,7 @@ const EventBookingCancellation = () => {
         }}
       />
       {!isFetchingNextPage && data?.pages?.[0]?.length == 0 && (
-        <CustomEmptyMessage
-          lottiePath={require('../../assets/lottie/empty.json')}
-          message={"No spiritual gatherings? Your soul's RSVP is missing."}
-        />
+        <CustomEmptyMessage message={"No spiritual gatherings? Your soul's RSVP is missing."} />
       )}
     </View>
   );

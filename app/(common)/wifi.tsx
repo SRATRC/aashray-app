@@ -163,10 +163,7 @@ const wifi = () => {
 
       {wifiList?.length == 0 && (
         <View className="h-full w-full flex-1 flex-col items-center justify-center gap-y-6 px-4">
-          <CustomEmptyMessage
-            lottiePath={require('../../assets/lottie/empty.json')}
-            message={'No WiFi code generated Yet!'}
-          />
+          <CustomEmptyMessage message={'No WiFi code generated Yet!'} />
           <CustomButton
             text={'Generate new Code'}
             handlePress={handleGenerateCode}

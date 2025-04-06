@@ -45,9 +45,9 @@ const MumukshuRoomBookingDetails: React.FC<{ containerStyles: any }> = ({ contai
 
       <HorizontalSeparator otherStyles={'mb-4'} />
 
-      <View className="flex flex-row gap-x-2 px-6 pb-4">
+      <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
         <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
-        <Text className="font-pregular text-gray-400">Booked For: </Text>
+        <Text className="font-pregular text-gray-400">Booked For:</Text>
         <Text className="font-pmedium text-black">
           {mumukshuData?.room?.mumukshuGroup?.reduce(
             (acc: any, group: any) => acc + group.mumukshus.length,
@@ -57,7 +57,7 @@ const MumukshuRoomBookingDetails: React.FC<{ containerStyles: any }> = ({ contai
         </Text>
       </View>
       {mumukshuData.room.charge && (
-        <View className="flex flex-row gap-x-2 px-6 pb-4">
+        <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
           <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
           <Text className="font-pregular text-gray-400">Charges:</Text>
           <Text className="font-pmedium text-black">₹ {mumukshuData.room.charge}</Text>

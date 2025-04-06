@@ -2,10 +2,9 @@ import { View, Text, Image } from 'react-native';
 import { images } from '~/constants';
 
 interface CustomEmptyMessageProps {
-  lottiePath: any;
   message: any;
 }
-const CustomEmptyMessage: React.FC<CustomEmptyMessageProps> = ({ lottiePath, message }) => {
+const CustomEmptyMessage: React.FC<CustomEmptyMessageProps> = ({ message }) => {
   return (
     <View className="h-[80%] items-center justify-center">
       <Image source={images.sadFace} className="h-[160] w-[160]" resizeMode="contain" />

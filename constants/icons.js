@@ -64,6 +64,8 @@ import satshrut from '../assets/icons/satshrut.png';
 import resetPassword from '../assets/icons/reset-pass.png';
 import smilestones from '../assets/icons/smilestones.png';
 import coin from '../assets/icons/coin.png';
+import pendingPayment from '../assets/icons/pending-payment.png';
+import tick from '../assets/icons/tick.png';
 
 export default {
   play,
@@ -132,4 +134,6 @@ export default {
   resetPassword,
   smilestones,
   coin,
+  pendingPayment,
+  tick,
 };

@@ -136,10 +136,7 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
       }
       containerStyles={'mt-3'}>
       {!isLoading && !isError && adhyayanList.length == 0 && (
-        <CustomEmptyMessage
-          lottiePath={require('../../assets/lottie/empty.json')}
-          message={'No Adhyayans available on selected dates!'}
-        />
+        <CustomEmptyMessage message={'No Adhyayans available on selected dates!'} />
       )}
       <FlatList
         className="mt-2 w-full py-2"

@@ -203,7 +203,6 @@ const FoodBookingCancellation = () => {
             if (section.title === 'upcoming') {
               const prevSelectedItems = [...selectedItems];
               const itemKey = `${item.date}-${item.mealType}-${item.bookedFor}`;
-              console.log(itemKey);
 
               const itemExists = prevSelectedItems.some(
                 (selected: any) =>
@@ -487,7 +486,6 @@ const FoodBookingCancellation = () => {
       />
       {!isFetchingNextPage && data?.pages?.[0]?.length == 0 && (
         <CustomEmptyMessage
-          lottiePath={require('../../assets/lottie/empty.json')}
           message={"No food bookings? Your stomach's inner peace is disturbed."}
         />
       )}

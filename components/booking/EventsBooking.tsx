@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { colors, icons, status } from '../../constants';
+import { colors, icons, status, types } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { useRouter } from 'expo-router';
 import CustomButton from '../CustomButton';
@@ -78,7 +78,7 @@ const EventBooking = () => {
   const router: any = useRouter();
   const queryClient = useQueryClient();
 
-  const { user } = useGlobalContext();
+  const { user, updateBooking, updateMumukshuBooking } = useGlobalContext();
 
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -551,122 +551,26 @@ const EventBooking = () => {
                         handlePress={async () => {
                           setIsSubmitting(true);
                           if (selectedChip == CHIPS[0]) {
-                            const onSuccess = (data: any) => {
-                              var options = {
-                                key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
-                                name: 'Vitraag Vigyaan',
-                                image: 'https://vitraagvigyaan.org/img/logo.png',
-                                description: 'Payment for Vitraag Vigyaan',
-                                amount: `${data.data.amount}`,
-                                currency: 'INR',
-                                order_id: `${data.data.id}`,
-                                prefill: {
-                                  email: `${user.email}`,
-                                  contact: `${user.mobno}`,
-                                  name: `${user.issuedto}`,
-                                },
-                                theme: { color: colors.orange },
-                              };
-                              RazorpayCheckout.open(options)
-                                .then((rzrpayData: any) => {
-                                  // handle success
-                                  setIsSubmitting(false);
-                                  console.log(JSON.stringify(rzrpayData));
-                                  router.replace('/booking/paymentConfirmation');
-                                })
-                                .catch((error: any) => {
-                                  // handle failure
-                                  setIsSubmitting(false);
-                                  Toast.show({
-                                    type: 'error',
-                                    text1: 'An error occurred!',
-                                    text2: error.reason,
-                                  });
-                                  console.log(JSON.stringify(error));
-                                });
-                            };
-
-                            const onFinally = () => {
+                            if (!isSelfFormValid()) {
+                              Alert.alert('Validation Error', 'Please fill all required fields');
                               setIsSubmitting(false);
-                              setIsModalVisible(false);
-                            };
+                              return;
+                            }
 
-                            handleAPICall(
-                              'POST',
-                              '/utsav/booking',
-                              null,
-                              {
-                                cardno: user.cardno,
-                                utsavid: selectedItem.utsav_id,
-                                packageid: selfForm.package,
-                              },
-                              onSuccess,
-                              onFinally
-                            );
+                            await updateBooking('utsav', mumukshuForm);
+                            router.push(`/booking/${types.EVENT_DETAILS_TYPE}`);
                           }
                           if (selectedChip == CHIPS[1]) {
-                            const onSuccess = (data: any) => {
-                              var options = {
-                                key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
-                                name: 'Vitraag Vigyaan',
-                                image: 'https://vitraagvigyaan.org/img/logo.png',
-                                description: 'Payment for Vitraag Vigyaan',
-                                amount: `${data.data.amount}`,
-                                currency: 'INR',
-                                order_id: `${data.data.id}`,
-                                prefill: {
-                                  email: `${user.email}`,
-                                  contact: `${user.mobno}`,
-                                  name: `${user.issuedto}`,
-                                },
-                                theme: { color: colors.orange },
-                              };
-                              RazorpayCheckout.open(options)
-                                .then((rzrpayData: any) => {
-                                  // handle success
-                                  setIsSubmitting(false);
-                                  console.log(JSON.stringify(rzrpayData));
-                                  router.replace('/booking/paymentConfirmation');
-                                })
-                                .catch((error: any) => {
-                                  // handle failure
-                                  setIsSubmitting(false);
-                                  Toast.show({
-                                    type: 'error',
-                                    text1: 'An error occurred!',
-                                    text2: error.reason,
-                                  });
-                                  console.log(JSON.stringify(error));
-                                });
-                            };
-
-                            const onFinally = () => {
+                            if (!isGuestFormValid()) {
+                              Alert.alert('Validation Error', 'Please fill all required fields');
                               setIsSubmitting(false);
-                              setIsModalVisible(false);
-                            };
+                              return;
+                            }
 
-                            handleAPICall(
-                              'POST',
-                              '/utsav/guest',
-                              null,
-                              {
-                                cardno: user.cardno,
-                                utsavid: selectedItem.utsav_id,
-                                guests: guestForm.guests.map((guest: any) => ({
-                                  cardno: guest.cardno,
-                                  name: guest.issuedto,
-                                  gender: guest.gender,
-                                  mobno: guest.mobno,
-                                  type: guest.guestType,
-                                  packageid: guest.package,
-                                  arrival: guest.arrival,
-                                  carno: guest.carno,
-                                  other: guest.other,
-                                })),
-                              },
-                              onSuccess,
-                              onFinally
-                            );
+                            const temp = transformMumukshuData(mumukshuForm);
+
+                            await updateMumukshuBooking('utsav', temp);
+                            router.push(`/mumukshuBooking/${types.EVENT_DETAILS_TYPE}`);
                           }
                           if (selectedChip == CHIPS[2]) {
                             if (!isMumukshuFormValid()) {
@@ -674,68 +578,10 @@ const EventBooking = () => {
                               setIsSubmitting(false);
                               return;
                             }
-
-                            const onSuccess = (data: any) => {
-                              var options = {
-                                key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
-                                name: 'Vitraag Vigyaan',
-                                image: 'https://vitraagvigyaan.org/img/logo.png',
-                                description: 'Payment for Vitraag Vigyaan',
-                                amount: `${data.data.amount}`,
-                                currency: 'INR',
-                                order_id: `${data.data.id}`,
-                                prefill: {
-                                  email: `${user.email}`,
-                                  contact: `${user.mobno}`,
-                                  name: `${user.issuedto}`,
-                                },
-                                theme: { color: colors.orange },
-                              };
-                              RazorpayCheckout.open(options)
-                                .then((rzrpayData: any) => {
-                                  // handle success
-                                  setIsSubmitting(false);
-                                  console.log(JSON.stringify(rzrpayData));
-                                  router.replace('/booking/paymentConfirmation');
-                                })
-                                .catch((error: any) => {
-                                  // handle failure
-                                  setIsSubmitting(false);
-                                  Toast.show({
-                                    type: 'error',
-                                    text1: 'An error occurred!',
-                                    text2: error.reason,
-                                  });
-                                  console.log(JSON.stringify(error));
-                                });
-                            };
-
-                            const onFinally = () => {
-                              setIsSubmitting(false);
-                              setIsModalVisible(false);
-                            };
-                            handleAPICall(
-                              'POST',
-                              '/utsav/mumukshu',
-                              null,
-                              {
-                                cardno: user.cardno,
-                                utsavid: selectedItem.utsav_id,
-                                mumukshus: mumukshuForm.mumukshus.map((mumukshu: any) => ({
-                                  cardno: mumukshu.cardno,
-                                  packageid: mumukshu.package,
-                                  arrival: mumukshu.arrival,
-                                  carno: mumukshu.carno,
-                                  other: mumukshu.other,
-                                })),
-                              },
-                              onSuccess,
-                              onFinally
-                            );
                           }
-                          queryClient.invalidateQueries({
-                            queryKey: ['utsavBooking', user.cardno],
-                          });
+                          // queryClient.invalidateQueries({
+                          //   queryKey: ['utsavBooking', user.cardno],
+                          // });
                           setSelectedItem(null);
                           setSelectedChip('Self');
                           toggleModal();
@@ -782,13 +628,19 @@ const EventBooking = () => {
         }}
       />
       {!isFetchingNextPage && data?.pages?.[0]?.length == 0 && (
-        <CustomEmptyMessage
-          lottiePath={require('../../assets/lottie/empty.json')}
-          message={'No upcoming events at this moment!'}
-        />
+        <CustomEmptyMessage message={'No upcoming events at this moment!'} />
       )}
     </View>
   );
 };
+
+function transformMumukshuData(inputData: any) {
+  const { utsav, mumukshus } = inputData;
+
+  return {
+    utsav: utsav,
+    mumukshuGroup: mumukshus.map((mumukshu: any) => mumukshu),
+  };
+}
 
 export default EventBooking;

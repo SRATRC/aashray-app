@@ -32,19 +32,19 @@ const FoodBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyle
 
         <HorizontalSeparator otherStyles={'mb-4'} />
 
-        <View className="flex flex-row gap-x-2 px-6 pb-4">
+        <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
           <Image source={icons.meal} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Meals: </Text>
+          <Text className="font-pregular text-gray-400">Meals:</Text>
           <Text className="font-pmedium text-black">{meals}</Text>
         </View>
-        <View className="flex flex-row gap-x-2 px-6 pb-4">
+        <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
           <Image source={icons.spice} className="h-4 w-4" resizeMode="contain" />
           <Text className="font-pregular text-gray-400">Spice Level:</Text>
           <Text className="font-pmedium text-black">
             {data.food.spicy ? 'Regular' : 'Non Spicy'}
           </Text>
         </View>
-        <View className="flex flex-row gap-x-2 px-6 pb-4">
+        <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
           <Image source={icons.hightea} className="h-4 w-4" resizeMode="contain" />
           <Text className="font-pregular text-gray-400">High Tea:</Text>
           <Text className="font-pmedium text-black">{data.food.hightea}</Text>

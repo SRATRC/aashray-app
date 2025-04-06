@@ -53,26 +53,26 @@ const MumukshuAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({
 
       <HorizontalSeparator otherStyles={'mb-4'} />
 
-      <View className="flex flex-row gap-x-2 px-6 pb-4">
+      <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
         <Image source={icons.description} className="h-4 w-4" resizeMode="contain" />
-        <Text className="flex-1 font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
+        <Text className="font-pmedium text-gray-400" numberOfLines={1} ellipsizeMode="tail">
           Name:
         </Text>
         <Text className="font-pmedium text-black">{mumukshuData.adhyayan.adhyayan.name}</Text>
       </View>
-      <View className="flex flex-row gap-x-2 px-6 pb-4">
+      <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
         <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Swadhyay Karta:</Text>
         <Text className="font-pmedium text-black">{mumukshuData.adhyayan.adhyayan.speaker}</Text>
       </View>
-      <View className="flex flex-row gap-x-2 px-6 pb-4">
+      <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
         <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Charges:</Text>
         <Text className="font-pmedium text-black">
           ₹ {mumukshuData.adhyayan.adhyayan.amount}/person
         </Text>
       </View>
-      <View className="flex flex-row gap-x-2 px-6 pb-4">
+      <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
         <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Booked For: </Text>
         <Text className="font-pmedium text-black">

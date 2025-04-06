@@ -95,10 +95,7 @@ const Transactions = () => {
               <Text>No more transactions at the moment</Text>
             )}
             {!isFetchingNextPage && data?.pages?.[0]?.length === 0 && (
-              <CustomEmptyMessage
-                lottiePath={require('../../assets/lottie/empty.json')}
-                message="You don’t have any transactions yet"
-              />
+              <CustomEmptyMessage message="You don’t have any transactions yet" />
             )}
           </View>
         }

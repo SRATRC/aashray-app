@@ -14,6 +14,7 @@ interface CustomCalenderProps {
   setEndDay?: any;
   selectedDay?: any;
   setSelectedDay?: any;
+  minDate?: any;
 }
 
 const CustomCalender: React.FC<CustomCalenderProps> = ({
@@ -24,6 +25,7 @@ const CustomCalender: React.FC<CustomCalenderProps> = ({
   setEndDay,
   selectedDay,
   setSelectedDay,
+  minDate,
 }) => {
   const { width } = useWindowDimensions();
   const [markedDates, setMarkedDates] = useState({});
@@ -61,7 +63,7 @@ const CustomCalender: React.FC<CustomCalenderProps> = ({
 
   const handleMonthChange = (month: any) => {
     const currentMonth = moment(month.dateString).startOf('month');
-    const minMonth = moment(MIN_DATE).startOf('month');
+    const minMonth = moment(minDate ? minDate : MIN_DATE).startOf('month');
 
     setDisableLeftArrow(currentMonth.isSameOrBefore(minMonth));
   };
@@ -72,8 +74,8 @@ const CustomCalender: React.FC<CustomCalenderProps> = ({
       style={{
         width: width * 0.9,
       }}
-      minDate={MIN_DATE}
-      initialDate={MIN_DATE}
+      minDate={minDate ? minDate : MIN_DATE}
+      initialDate={minDate ? minDate : MIN_DATE}
       disableArrowLeft={disableLeftArrow}
       onMonthChange={handleMonthChange}
       onDayPress={(day: any) => {

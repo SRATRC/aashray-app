@@ -197,10 +197,7 @@ const maintenanceRequestList = () => {
       />
 
       {!isFetchingNextPage && data?.pages?.[0]?.length == 0 && (
-        <CustomEmptyMessage
-          lottiePath={require('../../assets/lottie/empty.json')}
-          message={'You dont have any maintenance requests yet'}
-        />
+        <CustomEmptyMessage message={'You dont have any maintenance requests yet'} />
       )}
 
       <TouchableOpacity

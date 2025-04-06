@@ -38,7 +38,7 @@ const Home: React.FC = () => {
         <ImageBackground
           className="h-[220px] w-full px-2"
           source={images.banner as ImageSourcePropType}
-          resizeMode="contain">
+          resizeMode="cover">
           <Text className="px-4 pt-6 font-pbold text-lg text-secondary">
             JSDV, {user.issuedto.split(' ')[0]}!
           </Text>
@@ -53,7 +53,7 @@ const Home: React.FC = () => {
       {/* Services */}
       <View className="mt-7 w-full px-4">
         <Text className="font-pmedium text-lg text-black">Our Services</Text>
-        <View className="mt-3 flex w-full flex-row items-center">
+        <View className="mt-3 flex w-full flex-row items-start">
           {user.res_status !== status.STATUS_RESIDENT && (
             <CustomHomeIcon
               image={icons.wifiHome as ImageSourcePropType}
@@ -71,6 +71,11 @@ const Home: React.FC = () => {
             title={'Maintenance'}
             onPress={() => router.push('/maintenanceRequestList')}
           />
+          <CustomHomeIcon
+            image={icons.pendingPayment as ImageSourcePropType}
+            title={'Pending Payments'}
+            onPress={() => router.push('/pendingPayments')}
+          />
         </View>
       </View>
 
@@ -79,7 +84,7 @@ const Home: React.FC = () => {
         <Text className="px-4 font-pmedium text-lg text-black">Checkout Our Social Media!</Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View className="mb-6 mt-3 flex-row px-4">
+          <View className="mb-6 mt-3 flex-row items-baseline px-4">
             <CustomHomeIcon
               image={icons.satshrut as ImageSourcePropType}
               title={'Satshrut'}

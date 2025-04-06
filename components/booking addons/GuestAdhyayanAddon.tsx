@@ -142,10 +142,7 @@ const GuestAdhyayanAddon: React.FC<GuestAdhyayanAddonProps> = ({
       }
       containerStyles={'mt-3'}>
       {!isLoading && !isError && adhyayanList?.length == 0 && (
-        <CustomEmptyMessage
-          lottiePath={require('../../assets/lottie/empty.json')}
-          message={'No Adhyayans available on selected dates!'}
-        />
+        <CustomEmptyMessage message={'No Adhyayans available on selected dates!'} />
       )}
       {(adhyayanList?.length > 0 || isError) && (
         <View className="w-full flex-col items-center justify-center">

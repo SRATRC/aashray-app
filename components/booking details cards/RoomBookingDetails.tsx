@@ -40,14 +40,14 @@ const RoomBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyle
 
       <HorizontalSeparator otherStyles={'mb-4'} />
 
-      <View className="flex flex-row gap-x-2 px-6 pb-4">
+      <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
         <Image source={icons.ac} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Room Type: </Text>
         <Text className="font-pmedium text-black">
           {data.room.roomType === 'ac' ? 'AC ROOM' : 'Non AC ROOM'}
         </Text>
       </View>
-      <View className="flex flex-row gap-x-2 px-6 pb-4">
+      <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
         <Image source={icons.elder} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Ground Floor Booking:</Text>
         <Text className="font-pmedium text-black">
