@@ -186,32 +186,32 @@ const TravelBookingCancellation = () => {
       <HorizontalSeparator />
       <View className="mt-3">
         {item.drop_point == 'RC' ? (
-          <View className="mt-2 flex flex-row gap-x-2 px-2">
+          <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
             <Image source={icons.marker} className="h-4 w-4" resizeMode="contain" />
             <Text className="font-pregular text-gray-400">Pickup Point: </Text>
             <Text className="font-pmedium text-black">{item.pickup_point}</Text>
           </View>
         ) : (
-          <View className="mt-2 flex flex-row gap-x-2 px-2">
+          <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
             <Image source={icons.marker} className="h-4 w-4" resizeMode="contain" />
             <Text className="font-pregular text-gray-400">Drop Point: </Text>
             <Text className="font-pmedium text-black">{item.drop_point}</Text>
           </View>
         )}
-        <View className="mt-2 flex flex-row gap-x-2 px-2">
+        <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
           <Image source={icons.luggage} className="h-4 w-4" resizeMode="contain" />
           <Text className="font-pregular text-gray-400">Luggage: </Text>
           <Text className="font-pmedium text-black">{item.luggage}</Text>
         </View>
         {item.comments && (
-          <View className="mt-2 flex flex-row gap-x-2 px-2">
+          <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
             <Image source={icons.request} className="h-4 w-4" resizeMode="contain" />
             <Text className="font-pregular text-gray-400">Special Request: </Text>
             <Text className="font-pmedium text-black">{item.comments}</Text>
           </View>
         )}
         {item.amount && (
-          <View className="mt-2 flex flex-row gap-x-2 px-2">
+          <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
             <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
             <Text className="font-pregular text-gray-400">Charge: </Text>
             <Text className="font-pmedium text-black">₹ {item.amount}</Text>

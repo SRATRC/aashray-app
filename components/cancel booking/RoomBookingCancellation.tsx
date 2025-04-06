@@ -123,37 +123,39 @@ const RoomBookingCancellation: React.FC = () => {
                       : 'bg-green-100'
                 }
               />
-              <CustomTag
-                text={
-                  item.transaction_status === status.STATUS_CANCELLED ||
-                  item.transaction_status === status.STATUS_ADMIN_CANCELLED
-                    ? 'Payment Cancelled'
-                    : item.transaction_status === status.STATUS_PAYMENT_PENDING ||
-                        item.transaction_status === status.STATUS_CASH_PENDING
-                      ? 'Payment Due'
-                      : item.transaction_status === status.STATUS_CREDITED
-                        ? 'Credited'
-                        : 'Paid'
-                }
-                textStyles={
-                  item.transaction_status === status.STATUS_CANCELLED ||
-                  item.transaction_status === status.STATUS_ADMIN_CANCELLED
-                    ? 'text-red-200'
-                    : item.transaction_status === status.STATUS_PAYMENT_PENDING ||
-                        item.transaction_status === status.STATUS_CASH_PENDING
-                      ? 'text-secondary-200'
-                      : 'text-green-200'
-                }
-                containerStyles={`${
-                  item.transaction_status === status.STATUS_CANCELLED ||
-                  item.transaction_status === status.STATUS_ADMIN_CANCELLED
-                    ? 'bg-red-100'
-                    : item.transaction_status === status.STATUS_PAYMENT_PENDING ||
-                        item.transaction_status === status.STATUS_CASH_PENDING
-                      ? 'bg-secondary-50'
-                      : 'bg-green-100'
-                } mx-1`}
-              />
+              {item.transaction_status && (
+                <CustomTag
+                  text={
+                    item.transaction_status === status.STATUS_CANCELLED ||
+                    item.transaction_status === status.STATUS_ADMIN_CANCELLED
+                      ? 'Payment Cancelled'
+                      : item.transaction_status === status.STATUS_PAYMENT_PENDING ||
+                          item.transaction_status === status.STATUS_CASH_PENDING
+                        ? 'Payment Due'
+                        : item.transaction_status === status.STATUS_CREDITED
+                          ? 'Credited'
+                          : 'Paid'
+                  }
+                  textStyles={
+                    item.transaction_status === status.STATUS_CANCELLED ||
+                    item.transaction_status === status.STATUS_ADMIN_CANCELLED
+                      ? 'text-red-200'
+                      : item.transaction_status === status.STATUS_PAYMENT_PENDING ||
+                          item.transaction_status === status.STATUS_CASH_PENDING
+                        ? 'text-secondary-200'
+                        : 'text-green-200'
+                  }
+                  containerStyles={`${
+                    item.transaction_status === status.STATUS_CANCELLED ||
+                    item.transaction_status === status.STATUS_ADMIN_CANCELLED
+                      ? 'bg-red-100'
+                      : item.transaction_status === status.STATUS_PAYMENT_PENDING ||
+                          item.transaction_status === status.STATUS_CASH_PENDING
+                        ? 'bg-secondary-50'
+                        : 'bg-green-100'
+                  } mx-1`}
+                />
+              )}
             </View>
             <Text className="font-pmedium">
               {moment(item.checkin).format('Do MMMM')} -{' '}
@@ -169,58 +171,59 @@ const RoomBookingCancellation: React.FC = () => {
       }
       containerStyles="mt-3">
       <HorizontalSeparator />
-      <View className="mt-2 flex flex-row gap-x-2 px-2">
+      <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
         <Image source={icons.ac} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Room Type:</Text>
         <Text className="font-pmedium text-black">
-          {item.roomtype === 'ac' ? 'AC Room' : 'Non AC Room'}
+          {item.roomtype === 'ac'
+            ? 'AC Room'
+            : item.roomtype === 'nac'
+              ? 'Non AC Room'
+              : item.roomtype === 'NA'
+                ? 'Single Day'
+                : 'Flat'}
         </Text>
       </View>
-      <View className="mt-2 flex flex-row gap-x-2 px-2">
-        <Image source={icons.elder} className="h-4 w-4" resizeMode="contain" />
-        <Text className="font-pregular text-gray-400">Ground Floor Booking:</Text>
-        <Text className="font-pmedium text-black">{item.gender.includes('SC') ? 'Yes' : 'No'}</Text>
-      </View>
+      {item.gender && (
+        <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
+          <Image source={icons.elder} className="h-4 w-4" resizeMode="contain" />
+          <Text className="font-pregular text-gray-400">Ground Floor Booking:</Text>
+          <Text className="font-pmedium text-black">
+            {item.gender.includes('SC') ? 'Yes' : 'No'}
+          </Text>
+        </View>
+      )}
       {(item.transaction_status === status.STATUS_CASH_COMPLETED ||
-        item.transaction_status === status.STATUS_PAYMENT_COMPLETED) && (
-        <View className="mt-2 flex flex-row gap-x-2 px-2">
+        item.transaction_status === status.STATUS_PAYMENT_COMPLETED ||
+        (['ac', 'nac'].includes(item.roomtype) &&
+          moment(item.checkin).diff(moment(), 'hours') <= 20 &&
+          moment(item.checkin).isAfter(moment()))) && (
+        <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
           <Image source={icons.roomNumber} className="h-4 w-4" resizeMode="contain" />
           <Text className="font-pregular text-gray-400">Room Number:</Text>
           <Text className="font-pmedium text-black">{item.roomno}</Text>
         </View>
       )}
-      <View className="mt-2 flex flex-row gap-x-2 px-2">
+
+      <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
         <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Charge:</Text>
         <Text className="font-pmedium text-black">₹ {item.amount}</Text>
       </View>
 
-      {moment(item.checkin).diff(moment().format('YYYY-MM-DD')) > 0 &&
-        item.status !== status.STATUS_CANCELLED &&
-        item.status !== status.STATUS_ADMIN_CANCELLED && (
-          <View className="flex-row gap-x-2">
-            {(item.transaction_status === status.STATUS_PAYMENT_PENDING ||
-              item.transaction_status === status.STATUS_CASH_PENDING) && (
-              <CustomButton
-                text="Pay Now"
-                containerStyles="mt-5 py-3 mx-1 flex-1"
-                textStyles="text-sm text-white"
-                handlePress={async () => {}}
-              />
-            )}
-            <CustomButton
-              text="Cancel Booking"
-              containerStyles="mt-5 py-3 mx-1 flex-1"
-              textStyles="text-sm text-white"
-              handlePress={() =>
-                cancelBookingMutation.mutate({
-                  bookingid: item.bookingid,
-                  bookedFor: item.bookedFor,
-                })
-              }
-            />
-          </View>
-        )}
+      {moment(item.checkin).diff(moment().format('YYYY-MM-DD')) > 0 && (
+        <CustomButton
+          text="Cancel Booking"
+          containerStyles="mt-5 py-3 mx-1 flex-1"
+          textStyles="text-sm text-white"
+          handlePress={() =>
+            cancelBookingMutation.mutate({
+              bookingid: item.bookingid,
+              bookedFor: item.bookedFor,
+            })
+          }
+        />
+      )}
     </ExpandableItem>
   );
 

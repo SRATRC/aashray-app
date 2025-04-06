@@ -171,44 +171,30 @@ const EventBookingCancellation = () => {
       containerStyles={'mt-3'}>
       <HorizontalSeparator />
       <View className="mt-3">
-        <View className="mt-2 flex flex-row gap-x-2 px-2">
+        <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
           <Image source={icons.luggage} className="h-4 w-4" resizeMode="contain" />
           <Text className="font-pregular text-gray-400">Package: </Text>
           <Text className="font-pmedium text-black">{item.package_name}</Text>
         </View>
-        <View className="mt-2 flex flex-row gap-x-2 px-2">
+        <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
           <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
           <Text className="font-pregular text-gray-400">Charge: </Text>
           <Text className="font-pmedium text-black">₹ {item.amount}</Text>
         </View>
         <View>
-          {moment(item.date).diff(moment().format('YYYY-MM-DD')) > 0 &&
-            item.status !== status.STATUS_CANCELLED &&
-            item.status !== status.STATUS_ADMIN_CANCELLED && (
-              <View className="flex-row gap-x-2">
-                {(item.transaction_status == status.STATUS_PAYMENT_PENDING ||
-                  item.transaction_status == status.STATUS_CASH_PENDING) && (
-                  <CustomButton
-                    text="Pay Now"
-                    containerStyles={'mt-5 py-3 mx-1 flex-1'}
-                    textStyles={'text-sm text-white'}
-                    handlePress={async () => {}}
-                  />
-                )}
-
-                <CustomButton
-                  text="Cancel Booking"
-                  containerStyles={'mt-5 py-3 mx-1 flex-1'}
-                  textStyles={'text-sm text-white'}
-                  handlePress={() => {
-                    cancelBookingMutation.mutate({
-                      cardno: item.cardno,
-                      bookingid: item.bookingid,
-                    });
-                  }}
-                />
-              </View>
-            )}
+          {moment(item.date).diff(moment().format('YYYY-MM-DD')) > 0 && (
+            <CustomButton
+              text="Cancel Booking"
+              containerStyles={'mt-5 py-3 mx-1 flex-1'}
+              textStyles={'text-sm text-white'}
+              handlePress={() => {
+                cancelBookingMutation.mutate({
+                  cardno: item.cardno,
+                  bookingid: item.bookingid,
+                });
+              }}
+            />
+          )}
         </View>
       </View>
     </ExpandableItem>
