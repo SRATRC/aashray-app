@@ -211,19 +211,20 @@ const RoomBookingCancellation: React.FC = () => {
         <Text className="font-pmedium text-black">₹ {item.amount}</Text>
       </View>
 
-      {moment(item.checkin).diff(moment().format('YYYY-MM-DD')) > 0 && (
-        <CustomButton
-          text="Cancel Booking"
-          containerStyles="mt-5 py-3 mx-1 flex-1"
-          textStyles="text-sm text-white"
-          handlePress={() =>
-            cancelBookingMutation.mutate({
-              bookingid: item.bookingid,
-              bookedFor: item.bookedFor,
-            })
-          }
-        />
-      )}
+      {moment(item.checkin).diff(moment().format('YYYY-MM-DD')) > 0 &&
+        ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
+          <CustomButton
+            text="Cancel Booking"
+            containerStyles="mt-5 py-3 mx-1 flex-1"
+            textStyles="text-sm text-white"
+            handlePress={() =>
+              cancelBookingMutation.mutate({
+                bookingid: item.bookingid,
+                bookedFor: item.bookedFor,
+              })
+            }
+          />
+        )}
     </ExpandableItem>
   );
 

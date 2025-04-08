@@ -60,7 +60,7 @@ const SignIn = () => {
   return (
     <SafeAreaView className="h-full bg-white">
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView alwaysBounceVertical={false}>
+        <ScrollView keyboardShouldPersistTaps="handled">
           <View className="my-6 min-h-[83vh] w-full justify-center px-4">
             <Image source={images.logo} className="h-[80px] w-[80px]" resizeMode="contain" />
             <Text className="text-semibold mt-5 font-psemibold text-2xl text-black">

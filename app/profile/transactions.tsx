@@ -149,8 +149,8 @@ const TransactionItem = ({ item }: { item: any }) => {
       },
       [status.STATUS_CREDITED]: {
         text: 'Credited',
-        textColor: 'text-green-200',
-        bgColor: 'bg-green-100',
+        textColor: 'text-secondary-200',
+        bgColor: 'bg-secondary-50',
       },
       [status.STATUS_ADMIN_CANCELLED]: {
         text: 'Cancelled',
@@ -199,6 +199,9 @@ const TransactionItem = ({ item }: { item: any }) => {
             <Text className="font-pmedium text-secondary">
               {moment(item.createdAt).format('Do MMMM, YYYY')}
             </Text>
+            {item.description && (
+              <Text className="font-pregular text-gray-500">{item.description}</Text>
+            )}
           </View>
         </View>
         <View className="absolute bottom-3 right-3">

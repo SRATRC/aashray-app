@@ -147,6 +147,7 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
             Toast.show({
               type: 'info',
               text1: 'Please select check-in date first',
+              swipeable: false,
             });
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
           }

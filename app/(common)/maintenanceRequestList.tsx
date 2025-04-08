@@ -218,11 +218,8 @@ const maintenanceRequestList = () => {
         visible={isModalVisible}
         presentationStyle="pageSheet"
         onRequestClose={() => setIsModalVisible(false)}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1 }}
-          className="h-full flex-1 bg-white">
-          <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
             <PageHeader
               title="Maintenance Request"
               icon={icons.cross}

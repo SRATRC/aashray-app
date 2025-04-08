@@ -2,7 +2,7 @@ import { View, Alert, Text } from 'react-native';
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
-import { colors, dropdowns } from '../../constants';
+import { colors, dropdowns, status } from '../../constants';
 import CustomDropdown from '../CustomDropdown';
 import CustomButton from '../CustomButton';
 import CustomCalender from '../CustomCalender';
@@ -18,11 +18,15 @@ import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
 import moment from 'moment';
 
-const CHIPS = ['Self', 'Guest', 'Mumukshus'];
+let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
 const FoodBooking = () => {
   const { user } = useGlobalContext();
   const router: any = useRouter();
+
+  if (user.res_status == status.STATUS_GUEST) {
+    CHIPS = ['Self'];
+  }
 
   const [foodForm, setFoodForm] = useState({
     startDay: '',
@@ -383,7 +387,13 @@ const FoodBooking = () => {
                       },
                     },
                     (data: any) => {
-                      if (data.data?.amount > 0) {
+                      if (data.data.amount == 0 || user.country != 'India') {
+                        Toast.show({
+                          type: 'success',
+                          text1: 'Food Booking Successful 🎉',
+                        });
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                      } else {
                         var options = {
                           key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
                           name: 'Vitraag Vigyaan',
@@ -404,7 +414,7 @@ const FoodBooking = () => {
                         //     // handle success
                         //     setIsSubmitting(false);
                         //     console.log(JSON.stringify(rzrpayData));
-                        //     router.replace('/booking/paymentConfirmation');
+                        //     router.replace('/paymentConfirmation');
                         //   })
                         //   .catch((error: any) => {
                         //     // handle failure
@@ -413,15 +423,10 @@ const FoodBooking = () => {
                         //       type: 'error',
                         //       text1: 'An error occurred!',
                         //       text2: error.reason,
+                        //       swipeable: false,
                         //     });
                         //     console.log(JSON.stringify(error));
                         //   });
-                      } else {
-                        Toast.show({
-                          type: 'success',
-                          text1: 'Food Booking Successful 🎉',
-                        });
-                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                       }
                     },
                     () => {

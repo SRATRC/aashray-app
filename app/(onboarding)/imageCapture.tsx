@@ -105,6 +105,7 @@ const ImageCaptureOnboarding: React.FC = () => {
                     type: 'error',
                     text1: 'An error occurred!',
                     text2: error.message,
+                    swipeable: false,
                   });
                 }
               }}>

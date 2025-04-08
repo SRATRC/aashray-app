@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native';
 import React, { useState, useCallback, useEffect } from 'react';
-import { types, dropdowns } from '../../constants';
+import { types, dropdowns, status } from '../../constants';
 import { useRouter } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import CustomDropdown from '../CustomDropdown';
@@ -11,7 +11,7 @@ import CustomModal from '../CustomModal';
 import CustomChipGroup from '../CustomChipGroup';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 
-const CHIPS = ['Self', 'Mumukshus'];
+let CHIPS = ['Self', 'Mumukshus'];
 
 const INITIAL_MUMUKSHU_FORM = {
   date: '',
@@ -30,7 +30,11 @@ const INITIAL_MUMUKSHU_FORM = {
 
 const TravelBooking = () => {
   const router = useRouter();
-  const { updateBooking, updateMumukshuBooking } = useGlobalContext();
+  const { user, updateBooking, updateMumukshuBooking } = useGlobalContext();
+
+  if (user.res_status == status.STATUS_GUEST) {
+    CHIPS = ['Self'];
+  }
 
   useEffect(
     useCallback(() => {

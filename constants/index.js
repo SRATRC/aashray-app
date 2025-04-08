@@ -1,4 +1,4 @@
-const BASE_URL = 'https://sratrc-portal-backend-dev.onrender.com/api/v1';
+const BASE_URL = 'https://aashray.vitraagvigyaan.org/api/v1';
 
 import icons from './icons';
 import images from './images';

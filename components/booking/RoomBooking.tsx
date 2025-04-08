@@ -1,7 +1,7 @@
 import { View, Alert, Text } from 'react-native';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { types, dropdowns } from '../../constants';
+import { types, dropdowns, status } from '../../constants';
 import { useRouter } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import SegmentedControl from '../../components/SegmentedControl';
@@ -15,7 +15,7 @@ import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 
 const SWITCH_OPTIONS = ['Select Dates', 'One Day Visit'];
-const CHIPS = ['Self', 'Guest', 'Mumukshus'];
+let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
 const INITIAL_SIGNLE_DAY_GUEST_FORM = {
   guests: [
@@ -68,6 +68,10 @@ const INITIAL_MUMUKSHU_FORM = {
 const RoomBooking = () => {
   const router = useRouter();
   const { user, updateBooking, updateGuestBooking, updateMumukshuBooking } = useGlobalContext();
+
+  if (user.res_status == status.STATUS_GUEST) {
+    CHIPS = ['Self'];
+  }
 
   useEffect(
     useCallback(() => {

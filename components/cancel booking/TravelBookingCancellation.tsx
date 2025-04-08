@@ -121,7 +121,7 @@ const TravelBookingCancellation = () => {
                   item.status == status.STATUS_CANCELLED ||
                   item.status == status.STATUS_ADMIN_CANCELLED
                     ? 'text-red-200'
-                    : item.status == status.STATUS_WAITING
+                    : item.status == status.STATUS_WAITING || item.status == status.STATUS_PENDING
                       ? 'text-secondary-200'
                       : 'text-green-200'
                 }
@@ -129,7 +129,7 @@ const TravelBookingCancellation = () => {
                   item.status == status.STATUS_CANCELLED ||
                   item.status == status.STATUS_ADMIN_CANCELLED
                     ? 'bg-red-100'
-                    : item.status == status.STATUS_WAITING
+                    : item.status == status.STATUS_WAITING || item.status == status.STATUS_PENDING
                       ? 'bg-secondary-50'
                       : 'bg-green-100'
                 }
@@ -219,28 +219,15 @@ const TravelBookingCancellation = () => {
         )}
         <View>
           {moment(item.date).diff(moment().format('YYYY-MM-DD')) > 0 &&
-            item.status !== status.STATUS_CANCELLED &&
-            item.status !== status.STATUS_ADMIN_CANCELLED && (
-              <View className="flex-row gap-x-2">
-                {(item.transaction_status == status.STATUS_PAYMENT_PENDING ||
-                  item.transaction_status == status.STATUS_CASH_PENDING) && (
-                  <CustomButton
-                    text="Pay Now"
-                    containerStyles={'mt-5 py-3 mx-1 flex-1'}
-                    textStyles={'text-sm text-white'}
-                    handlePress={async () => {}}
-                  />
-                )}
-
-                <CustomButton
-                  text="Cancel Booking"
-                  containerStyles={'mt-5 py-3 mx-1 flex-1'}
-                  textStyles={'text-sm text-white'}
-                  handlePress={() => {
-                    cancelBookingMutation.mutate(item.bookingid);
-                  }}
-                />
-              </View>
+            ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
+              <CustomButton
+                text="Cancel Booking"
+                containerStyles={'mt-5 py-3 mx-1 flex-1'}
+                textStyles={'text-sm text-white'}
+                handlePress={() => {
+                  cancelBookingMutation.mutate(item.bookingid);
+                }}
+              />
             )}
         </View>
       </View>

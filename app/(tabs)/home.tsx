@@ -93,9 +93,7 @@ const Home: React.FC = () => {
             <CustomHomeIcon
               image={icons.smilestones as ImageSourcePropType}
               title={'Smilestones'}
-              onPress={() =>
-                Linking.openURL('https://datachef.in/smilestones/create_request_user.php')
-              }
+              onPress={() => Linking.openURL('https://smilestones.vitraagvigyaan.org/')}
             />
             <CustomHomeIcon
               image={icons.vvYt as ImageSourcePropType}

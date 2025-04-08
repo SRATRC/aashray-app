@@ -12,6 +12,7 @@ import AdhyayanBookingDetails from '../../components/booking details cards/Adhya
 import CustomButton from '../../components/CustomButton';
 import FoodBookingDetails from '../../components/booking details cards/FoodBookingDetails';
 import handleAPICall from '../../utils/HandleApiCall';
+// @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
 import CustomModal from '~/components/CustomModal';
@@ -210,8 +211,8 @@ const bookingConfirmation = () => {
               setIsSubmitting(true);
 
               const onSuccess = (data: any) => {
-                if (!data.data || data.data?.amount == 0)
-                  router.replace('/booking/paymentConfirmation');
+                if (data.data?.amount == 0 || user.country != 'India')
+                  router.replace('/bookingConfirmation');
                 else {
                   var options = {
                     key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,
@@ -233,7 +234,7 @@ const bookingConfirmation = () => {
                   //     // handle success
                   //     setIsSubmitting(false);
                   //     console.log(JSON.stringify(rzrpayData));
-                  //     router.replace('/booking/paymentConfirmation');
+                  //     router.replace('/paymentConfirmation');
                   //   })
                   //   .catch((error: any) => {
                   //     // handle failure
@@ -242,6 +243,7 @@ const bookingConfirmation = () => {
                   //       type: 'error',
                   //       text1: 'An error occurred!',
                   //       text2: error.reason,
+                  //       swipeable: false,
                   //     });
                   //     console.log(JSON.stringify(error));
                   //   });

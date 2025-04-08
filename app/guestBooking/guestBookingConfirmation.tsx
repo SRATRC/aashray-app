@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, icons } from '../../constants';
+import { colors, icons, status } from '../../constants';
 import { useQuery } from '@tanstack/react-query';
 import GuestRoomBookingDetails from '../../components/booking details cards/GuestRoomBookingDetails';
 import GuestAdhyayanBookingDetails from '../../components/booking details cards/GuestAdhyayanBookingDetails';
@@ -11,6 +11,7 @@ import GuestFoodBookingDetails from '../../components/booking details cards/Gues
 import PageHeader from '../../components/PageHeader';
 import CustomButton from '../../components/CustomButton';
 import handleAPICall from '../../utils/HandleApiCall';
+// @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
 
@@ -216,7 +217,8 @@ const guestBookingConfirmation = () => {
             handlePress={async () => {
               setIsSubmitting(true);
               const onSuccess = (data: any) => {
-                if (data.data.amount == 0) router.replace('/booking/paymentConfirmation');
+                if (data.data?.amount == 0 || user.country != 'India')
+                  router.replace('/bookingConfirmation');
                 else {
                   var options = {
                     key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
@@ -247,6 +249,7 @@ const guestBookingConfirmation = () => {
                   //       type: 'error',
                   //       text1: 'An error occurred!',
                   //       text2: error.reason,
+                  //       swipeable: false,
                   //     });
                   //     console.log(JSON.stringify(error));
                   //   });

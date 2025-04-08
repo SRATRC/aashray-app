@@ -7,6 +7,7 @@ import { useGlobalContext } from '../../context/GlobalProvider';
 import handleAPICall from '../../utils/HandleApiCall';
 import PageHeader from '../../components/PageHeader';
 import moment from 'moment';
+import CustomEmptyMessage from '~/components/CustomEmptyMessage';
 
 const getFirstAndLastDate = (menuData: any) => {
   if (!menuData || Object.keys(menuData).length === 0) {
@@ -34,7 +35,7 @@ const Menu = () => {
         (res: any) => {
           resolve(res.data);
         },
-        () => reject(new Error('Failed to fetch menu items'))
+        () => {}
       );
     });
   };
@@ -48,6 +49,7 @@ const Menu = () => {
     queryKey: ['menu', user.cardno],
     queryFn: fetchMenu,
     staleTime: 1000 * 60 * 60 * 24 * 3,
+    retry: false,
   });
 
   const renderItem = (reservation: any) => (
@@ -73,6 +75,10 @@ const Menu = () => {
           <Text>{error.message || 'Error loading menu data'}</Text>
         </View>
       );
+    }
+
+    if (!menuData || Object.keys(menuData).length === 0) {
+      return <CustomEmptyMessage message={'No menu data available'} />;
     }
 
     const { firstDate, lastDate } = getFirstAndLastDate(menuData);

@@ -24,6 +24,7 @@ const Profile: React.FC = () => {
       Toast.show({
         type: 'error',
         text1: 'All fields are required',
+        swipeable: false,
       });
       return;
     }
@@ -33,6 +34,7 @@ const Profile: React.FC = () => {
         type: 'error',
         text1: 'Passwords do not match',
         text2: 'New password and confirmation must match',
+        swipeable: false,
       });
       return;
     }
@@ -50,6 +52,7 @@ const Profile: React.FC = () => {
       Toast.show({
         type: 'success',
         text1: 'Password updated successfully',
+        swipeable: false,
       });
     };
 
@@ -114,6 +117,7 @@ const Profile: React.FC = () => {
             type: 'error',
             text1: 'An error occurred!',
             text2: error.message,
+            swipeable: false,
           });
         }
       },

@@ -77,6 +77,7 @@ const RootLayout = () => {
                 <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 <Stack.Screen name="(common)" options={{ headerShown: false }} />
+                <Stack.Screen name="(payment)" options={{ headerShown: false }} />
                 <Stack.Screen name="profile" options={{ headerShown: false }} />
                 <Stack.Screen name="booking" options={{ headerShown: false }} />
                 <Stack.Screen name="guestBooking" options={{ headerShown: false }} />

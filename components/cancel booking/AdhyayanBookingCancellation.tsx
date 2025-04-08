@@ -124,17 +124,17 @@ const AdhyayanBookingCancellation = () => {
                   item.status == status.STATUS_CANCELLED ||
                   item.status == status.STATUS_ADMIN_CANCELLED
                     ? 'text-red-200'
-                    : item.status == status.STATUS_WAITING
-                      ? 'text-secondary-200'
-                      : 'text-green-200'
+                    : item.status == status.STATUS_CONFIRMED
+                      ? 'text-green-200'
+                      : 'text-secondary-200'
                 }
                 containerStyles={
                   item.status == status.STATUS_CANCELLED ||
                   item.status == status.STATUS_ADMIN_CANCELLED
                     ? 'bg-red-100'
-                    : item.status == status.STATUS_WAITING
-                      ? 'bg-secondary-50'
-                      : 'bg-green-100'
+                    : item.status == status.STATUS_CONFIRMED
+                      ? 'bg-green-100'
+                      : 'bg-secondary-50'
                 }
               />
               {item.transaction_status && (
@@ -199,20 +199,21 @@ const AdhyayanBookingCancellation = () => {
           <Text className="font-pregular text-gray-400">Charge: </Text>
           <Text className="font-pmedium text-black">₹ {item.amount}</Text>
         </View>
-        {moment(item.start_date).diff(moment().format('YYYY-MM-DD')) > 0 && (
-          <CustomButton
-            text="Cancel Booking"
-            containerStyles={'mt-5 py-3 mx-1 flex-1'}
-            textStyles={'text-sm text-white'}
-            handlePress={() => {
-              cancelBookingMutation.mutate({
-                shibir_id: item.shibir_id,
-                cardno: item.cardno,
-                bookedFor: item.bookedFor == 'NA' ? undefined : item.bookedFor,
-              });
-            }}
-          />
-        )}
+        {moment(item.start_date).diff(moment().format('YYYY-MM-DD')) > 0 &&
+          ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
+            <CustomButton
+              text="Cancel Booking"
+              containerStyles={'mt-5 py-3 mx-1 flex-1'}
+              textStyles={'text-sm text-white'}
+              handlePress={() => {
+                cancelBookingMutation.mutate({
+                  shibir_id: item.shibir_id,
+                  cardno: item.cardno,
+                  bookedFor: item.bookedFor == 'NA' ? undefined : item.bookedFor,
+                });
+              }}
+            />
+          )}
       </View>
     </ExpandableItem>
   );

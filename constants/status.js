@@ -25,7 +25,7 @@ const STATUS_OFFPREM = 'offprem';
 const STATUS_RESIDENT = 'PR';
 const STATUS_MUMUKSHU = 'MUMUKSHU';
 const STATUS_SEVA_KUTIR = 'SEVA KUTIR';
-const STATUS_GUEST = 'guest';
+const STATUS_GUEST = 'GUEST';
 
 // ROOM
 const ROOM_DETAIL = 'Room Booking';
@@ -69,5 +69,5 @@ export default {
   ROOM_STATUS_CHECKEDIN,
   ROOM_STATUS_CHECKEDOUT,
   ROOM_STATUS_AVAILABLE,
-  ROOM_BLOCKED
+  ROOM_BLOCKED,
 };

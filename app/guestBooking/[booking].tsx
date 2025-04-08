@@ -252,6 +252,7 @@ const guestAddons = () => {
                       type: 'error',
                       text1: 'Please fill all the room booking fields',
                       text2: '',
+                      swipeable: false,
                     });
                     setIsSubmitting(false);
                     return;
@@ -272,6 +273,7 @@ const guestAddons = () => {
                       type: 'error',
                       text1: 'Please fill all the food booking fields',
                       text2: '',
+                      swipeable: false,
                     });
                     setIsSubmitting(false);
                     return;
@@ -289,6 +291,7 @@ const guestAddons = () => {
                       type: 'error',
                       text1: 'Please fill all the adhyayan booking fields',
                       text2: '',
+                      swipeable: false,
                     });
                     setIsSubmitting(false);
                     return;

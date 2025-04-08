@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { images } from '../../constants';
 import CustomButton from '../../components/CustomButton';
+import moment from 'moment';
 
 const paymentConfirmation = () => {
   const router = useRouter();
@@ -32,18 +33,22 @@ const paymentConfirmation = () => {
 
               <View className="flex flex-row justify-between">
                 <Text className="font-pregular text-sm text-gray-400">Date</Text>
-                <Text className="font-pregular text-sm text-black">Mar 22, 2023</Text>
+                <Text className="font-pregular text-sm text-black">
+                  {moment().format('Do MMMM YYYY')}
+                </Text>
               </View>
 
               <View className="flex flex-row justify-between">
                 <Text className="font-pregular text-sm text-gray-400">Time</Text>
-                <Text className="font-pregular text-sm text-black">07:80 AM</Text>
+                <Text className="font-pregular text-sm text-black">
+                  {moment().format('h:mm A')}
+                </Text>
               </View>
 
-              <View className="flex flex-row justify-between">
+              {/* <View className="flex flex-row justify-between">
                 <Text className="font-pregular text-sm text-gray-400">Payment Method</Text>
                 <Text className="font-pregular text-sm text-black">Credit Card</Text>
-              </View>
+              </View> */}
             </View>
 
             <DottedLine />

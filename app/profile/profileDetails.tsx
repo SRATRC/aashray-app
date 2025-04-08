@@ -59,7 +59,6 @@ const fetchCities = (country: any, state: any) => {
   });
 };
 
-// TODO: cities and states should clear out when country changes
 const profileDetails = () => {
   const { user, setUser, setCurrentUser } = useGlobalContext();
   const router = useRouter();
@@ -120,6 +119,22 @@ const profileDetails = () => {
     return JSON.stringify(form) !== JSON.stringify(initialFormState);
   };
 
+  const isFormValid = () => {
+    return (
+      form.issuedto &&
+      form.gender &&
+      form.dob &&
+      form.address &&
+      form.mobno &&
+      form.email &&
+      form.country &&
+      form.state &&
+      form.city &&
+      form.pin &&
+      form.center
+    );
+  };
+
   const submit = async () => {
     setIsSubmitting(true);
     const onSuccess = (data: any) => {
@@ -159,7 +174,7 @@ const profileDetails = () => {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <PageHeader title={'Profile Details'} icon={icons.backArrow} />
         <ScrollView>
-          <View className="w-full px-4">
+          <View className="mb-8 w-full px-4">
             <FormField
               text="Name"
               value={form.issuedto}
@@ -262,37 +277,41 @@ const profileDetails = () => {
               data={countries}
               save={'value'}
               setSelected={(val: any) => {
-                setForm({ ...form, country: val });
+                setForm({ ...form, country: val, state: '', city: '' });
                 setSelectedCountry(val);
               }}
               defaultOption={{ key: form.country, value: form.country }}
               enableSearch={true}
             />
 
-            <CustomDropdown
-              otherStyles="mt-7"
-              text={'State'}
-              placeholder={'Select Stte'}
-              data={states}
-              save={'value'}
-              setSelected={(val: any) => {
-                setForm({ ...form, state: val });
-                setSelectedState(val);
-              }}
-              defaultOption={{ key: form.state, value: form.state }}
-              enableSearch={true}
-            />
+            {selectedCountry && (
+              <CustomDropdown
+                otherStyles="mt-7"
+                text={'State'}
+                placeholder={'Select State'}
+                data={states}
+                save={'value'}
+                setSelected={(val: any) => {
+                  setForm({ ...form, state: val, city: '' });
+                  setSelectedState(val);
+                }}
+                defaultOption={{ key: form.state, value: form.state }}
+                enableSearch={true}
+              />
+            )}
 
-            <CustomDropdown
-              otherStyles="mt-7"
-              text={'City'}
-              placeholder={'Select City'}
-              data={cities}
-              save={'value'}
-              setSelected={(val: any) => setForm({ ...form, city: val })}
-              defaultOption={{ key: form.city, value: form.city }}
-              enableSearch={true}
-            />
+            {selectedState && (
+              <CustomDropdown
+                otherStyles="mt-7"
+                text={'City'}
+                placeholder={'Select City'}
+                data={cities}
+                save={'value'}
+                setSelected={(val: any) => setForm({ ...form, city: val })}
+                defaultOption={{ key: form.city, value: form.city }}
+                enableSearch={true}
+              />
+            )}
 
             <FormField
               text="Pin Code"
@@ -311,7 +330,7 @@ const profileDetails = () => {
               handlePress={submit}
               containerStyles={`mt-7 mb-10 min-h-[62px] ${Platform.OS == 'android' && 'mb-3'}`}
               isLoading={isSubmitting}
-              isDisabled={!isFormModified()}
+              isDisabled={!isFormModified() || !isFormValid()}
             />
           </View>
         </ScrollView>

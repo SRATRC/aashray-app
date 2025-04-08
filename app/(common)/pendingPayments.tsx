@@ -83,6 +83,7 @@ const PendingPayments = () => {
       Toast.show({
         type: 'success',
         text1: 'Payment initiated successfully',
+        swipeable: false,
       });
     },
   });
@@ -134,6 +135,7 @@ const PendingPayments = () => {
         type: 'error',
         text1: 'No payments selected',
         text2: 'Please select at least one payment to proceed',
+        swipeable: false,
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
@@ -148,6 +150,7 @@ const PendingPayments = () => {
         Toast.show({
           type: 'success',
           text1: 'Payment processed successfully',
+          swipeable: false,
         });
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       } else {
@@ -175,6 +178,7 @@ const PendingPayments = () => {
         //     Toast.show({
         //       type: 'success',
         //       text1: 'Payment successful',
+        //       swipeable: false,
         //     });
         //   })
         //   .catch((error: any) => {
@@ -183,6 +187,7 @@ const PendingPayments = () => {
         //       type: 'error',
         //       text1: 'Payment failed',
         //       text2: error.reason || 'Please try again',
+        //       swipeable: false,
         //     });
         //   });
       }
@@ -192,6 +197,7 @@ const PendingPayments = () => {
         type: 'error',
         text1: 'Failed to process payment',
         text2: error.message || 'Please try again',
+        swipeable: false,
       });
     } finally {
       setIsSubmitting(false);

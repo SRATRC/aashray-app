@@ -119,6 +119,7 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
             Toast.show({
               type: 'info',
               text1: 'Please select start date first',
+              swipeable: false,
             });
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
           }

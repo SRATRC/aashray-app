@@ -16,7 +16,7 @@ const CHIPS = [
   types.booking_type_room,
   types.booking_type_food,
   types.booking_type_travel,
-  types.booking_type_event,
+  // types.booking_type_event,
 ];
 
 interface BookingCategoriesProps {

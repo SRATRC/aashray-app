@@ -62,6 +62,7 @@ const handleAPICall = async (
       type: 'error',
       text1: 'An error occurred!',
       text2: errorMessage,
+      swipeable: false,
       text1Style: { color: 'red' },
       text2Style: { color: 'black', fontWeight: 'bold', fontSize: 14 },
     });

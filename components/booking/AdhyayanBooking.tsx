@@ -26,7 +26,7 @@ import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 
-const CHIPS = ['Self', 'Guest', 'Mumukshus'];
+let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
 const INITIAL_GUEST_FORM = {
   adhyayan: null,
@@ -53,6 +53,10 @@ const INITIAL_MUMUKSHU_FORM = {
 const AdhyayanBooking = () => {
   const router = useRouter();
   const { user, updateBooking, updateGuestBooking, updateMumukshuBooking } = useGlobalContext();
+
+  if (user.res_status == status.STATUS_GUEST) {
+    CHIPS = ['Self'];
+  }
 
   useEffect(
     useCallback(() => {
