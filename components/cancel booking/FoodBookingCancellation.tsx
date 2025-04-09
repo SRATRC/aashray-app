@@ -473,7 +473,19 @@ const FoodBookingCancellation = () => {
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}
         nestedScrollEnabled={true}
-        sections={data?.pages?.flatMap((page: any) => page) || []}
+        sections={
+          data?.pages?.reduce((acc: any[], page: any[]) => {
+            page.forEach((section) => {
+              const existingSection = acc.find((s) => s.title === section.title);
+              if (existingSection) {
+                existingSection.data = [...existingSection.data, ...section.data];
+              } else {
+                acc.push({ ...section });
+              }
+            });
+            return acc;
+          }, []) || []
+        }
         renderItem={({ item, section }) => renderItem({ item, section })}
         keyExtractor={(item) => `${item.date}-${item.mealType}-${item.bookedFor}`}
         renderSectionHeader={renderSectionHeader}

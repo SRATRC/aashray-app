@@ -278,7 +278,7 @@ const FoodBooking = () => {
                       breakfast: type.includes('breakfast') ? 1 : 0,
                       lunch: type.includes('lunch') ? 1 : 0,
                       dinner: type.includes('dinner') ? 1 : 0,
-                      spicy: foodForm.spicy == 'Regular' ? 1 : 0,
+                      spicy: foodForm.spicy,
                       high_tea: foodForm.hightea,
                     },
                   },
