@@ -195,6 +195,11 @@ const AdhyayanBookingCancellation = () => {
           <Text className="font-pmedium text-black">{item.speaker}</Text>
         </View>
         <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
+          <Image source={icons.marker} className="h-4 w-4" resizeMode="contain" />
+          <Text className="font-pregular text-gray-400">Location: </Text>
+          <Text className="font-pmedium text-black">{item.location}</Text>
+        </View>
+        <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
           <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
           <Text className="font-pregular text-gray-400">Charge: </Text>
           <Text className="font-pmedium text-black">₹ {item.amount}</Text>

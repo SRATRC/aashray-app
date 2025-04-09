@@ -66,6 +66,11 @@ const MumukshuAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({
         <Text className="font-pmedium text-black">{mumukshuData.adhyayan.adhyayan.speaker}</Text>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
+        <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
+        <Text className="font-pregular text-gray-400">Location:</Text>
+        <Text className="font-pmedium text-black">{mumukshuData.adhyayan.adhyayan.location}</Text>
+      </View>
+      <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
         <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Charges:</Text>
         <Text className="font-pmedium text-black">

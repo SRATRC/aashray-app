@@ -336,9 +336,7 @@ const AdhyayanBooking = () => {
                           setIsSubmitting(true);
                           if (selectedChip == CHIPS[0]) {
                             await updateBooking('adhyayan', [selectedItem]);
-                            if (selectedItem.location != 'Research Centre')
-                              router.replace('/bookingConfirmation');
-                            else router.push(`/booking/${types.ADHYAYAN_DETAILS_TYPE}`);
+                            router.push(`/booking/${types.ADHYAYAN_DETAILS_TYPE}`);
                           }
                           if (selectedChip == CHIPS[1]) {
                             if (!isGuestFormValid()) {
@@ -362,9 +360,7 @@ const AdhyayanBooking = () => {
                                   await updateGuestBooking('adhyayan', transformedData);
                                   setGuestForm(INITIAL_GUEST_FORM);
 
-                                  if (selectedItem.location != 'Research Centre')
-                                    router.replace('/bookingConfirmation');
-                                  else router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
+                                  router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
                                 },
                                 () => {
                                   setIsSubmitting(false);
@@ -375,9 +371,7 @@ const AdhyayanBooking = () => {
 
                               await updateGuestBooking('adhyayan', transformedData);
                               setGuestForm(INITIAL_GUEST_FORM);
-                              if (selectedItem.location != 'Research Centre')
-                                router.replace('/bookingConfirmation');
-                              else router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
+                              router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
                               setIsSubmitting(false);
                             }
                           }
@@ -390,10 +384,7 @@ const AdhyayanBooking = () => {
                             const temp = transformMumukshuData(mumukshuForm);
 
                             await updateMumukshuBooking('adhyayan', temp);
-
-                            if (selectedItem.location != 'Research Centre')
-                              router.replace('/bookingConfirmation');
-                            else router.push(`/mumukshuBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
+                            router.push(`/mumukshuBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
                           }
                           setSelectedItem(null);
                           setSelectedChip('Self');

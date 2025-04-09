@@ -52,6 +52,13 @@ const AdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ containerS
         <Text className="font-pregular text-gray-400">Swadhyay Karta:</Text>
         <Text className="font-pmedium text-black">{data.adhyayan[0].speaker}</Text>
       </View>
+      <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
+        <Image source={icons.description} className="h-4 w-4" resizeMode="contain" />
+        <Text className="font-pregular text-gray-400">Location:</Text>
+        <Text className="flex-1 font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
+          {data.adhyayan[0].location}
+        </Text>
+      </View>
     </PrimaryAddonBookingCard>
   );
 };

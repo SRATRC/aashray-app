@@ -101,7 +101,8 @@ const details = () => {
         <ScrollView
           alwaysBounceVertical={false}
           showsVerticalScrollIndicator={false}
-          nestedScrollEnabled={true}>
+          nestedScrollEnabled={true}
+          className="h-full">
           <PageHeader title="Booking Details" icon={icons.backArrow} />
 
           {booking === types.ROOM_DETAILS_TYPE && <RoomBookingDetails containerStyles={'mt-2'} />}
@@ -113,46 +114,52 @@ const details = () => {
           )}
 
           <View className="w-full px-4">
-            <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
+            {!(
+              booking === types.ADHYAYAN_DETAILS_TYPE &&
+              data.adhyayan[0].location != 'Research Centre'
+            ) && (
+              <View>
+                <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
 
-            {/* ROOM BOOKING COMPONENT */}
-            {booking !== types.ROOM_DETAILS_TYPE && (
-              <RoomAddon
-                roomForm={roomForm}
-                setRoomForm={setRoomForm}
-                isDatePickerVisible={isDatePickerVisible}
-                setDatePickerVisibility={setDatePickerVisibility}
-              />
+                {/* ROOM BOOKING COMPONENT */}
+                {booking !== types.ROOM_DETAILS_TYPE && (
+                  <RoomAddon
+                    roomForm={roomForm}
+                    setRoomForm={setRoomForm}
+                    isDatePickerVisible={isDatePickerVisible}
+                    setDatePickerVisibility={setDatePickerVisibility}
+                  />
+                )}
+
+                {/* FOOD BOOKING COMPONENT */}
+                <FoodAddon
+                  foodForm={foodForm}
+                  setFoodForm={setFoodForm}
+                  setMeals={setMeals}
+                  isDatePickerVisible={isDatePickerVisible}
+                  setDatePickerVisibility={setDatePickerVisibility}
+                />
+
+                {/* ADHYAYAN BOOKING COMPONENT */}
+                {booking !== types.ADHYAYAN_DETAILS_TYPE && (
+                  <AdhyayanAddon
+                    adhyayanBookingList={adhyayanBookingList}
+                    setAdhyayanBookingList={setAdhyayanBookingList}
+                    booking={booking}
+                  />
+                )}
+
+                {/* TRAVEL BOOKING COMPONENT */}
+                {booking !== types.TRAVEL_DETAILS_TYPE && (
+                  <TravelAddon
+                    travelForm={travelForm}
+                    setTravelForm={setTravelForm}
+                    isDatePickerVisible={isDatePickerVisible}
+                    setDatePickerVisibility={setDatePickerVisibility}
+                  />
+                )}
+              </View>
             )}
-
-            {/* FOOD BOOKING COMPONENT */}
-            <FoodAddon
-              foodForm={foodForm}
-              setFoodForm={setFoodForm}
-              setMeals={setMeals}
-              isDatePickerVisible={isDatePickerVisible}
-              setDatePickerVisibility={setDatePickerVisibility}
-            />
-
-            {/* ADHYAYAN BOOKING COMPONENT */}
-            {booking !== types.ADHYAYAN_DETAILS_TYPE && (
-              <AdhyayanAddon
-                adhyayanBookingList={adhyayanBookingList}
-                setAdhyayanBookingList={setAdhyayanBookingList}
-                booking={booking}
-              />
-            )}
-
-            {/* TRAVEL BOOKING COMPONENT */}
-            {booking !== types.TRAVEL_DETAILS_TYPE && (
-              <TravelAddon
-                travelForm={travelForm}
-                setTravelForm={setTravelForm}
-                isDatePickerVisible={isDatePickerVisible}
-                setDatePickerVisibility={setDatePickerVisibility}
-              />
-            )}
-
             <CustomButton
               text="Confirm"
               handlePress={() => {
@@ -231,7 +238,7 @@ const details = () => {
                 setIsSubmitting(false);
                 router.push('/booking/bookingConfirmation');
               }}
-              containerStyles="mb-8 min-h-[62px]"
+              containerStyles="mb-8 min-h-[62px] mt-6"
               isLoading={isSubmitting}
             />
           </View>

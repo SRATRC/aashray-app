@@ -209,45 +209,52 @@ const guestAddons = () => {
           )}
 
           <View className="w-full px-4">
-            <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
+            {!(
+              booking === types.ADHYAYAN_DETAILS_TYPE &&
+              guestData.adhyayan.adhyayan.location != 'Research Centre'
+            ) && (
+              <View>
+                <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
 
-            {/* GUEST ROOM BOOKING COMPONENT */}
-            {booking !== types.ROOM_DETAILS_TYPE && (
-              <GuestRoomAddon
-                roomForm={roomForm}
-                setRoomForm={setRoomForm}
-                addRoomForm={addRoomForm}
-                reomveRoomForm={reomveRoomForm}
-                updateRoomForm={updateRoomForm}
-                INITIAL_ROOM_FORM={INITIAL_ROOM_FORM}
-                guest_dropdown={guest_dropdown}
-                isDatePickerVisible={isDatePickerVisible}
-                setDatePickerVisibility={setDatePickerVisibility}
-              />
-            )}
+                {/* GUEST ROOM BOOKING COMPONENT */}
+                {booking !== types.ROOM_DETAILS_TYPE && (
+                  <GuestRoomAddon
+                    roomForm={roomForm}
+                    setRoomForm={setRoomForm}
+                    addRoomForm={addRoomForm}
+                    reomveRoomForm={reomveRoomForm}
+                    updateRoomForm={updateRoomForm}
+                    INITIAL_ROOM_FORM={INITIAL_ROOM_FORM}
+                    guest_dropdown={guest_dropdown}
+                    isDatePickerVisible={isDatePickerVisible}
+                    setDatePickerVisibility={setDatePickerVisibility}
+                  />
+                )}
 
-            {/* GUEST FOOD BOOKING COMPONENT */}
-            <GuestFoodAddon
-              foodForm={foodForm}
-              setFoodForm={setFoodForm}
-              addFoodForm={addFoodForm}
-              resetFoodForm={resetFoodForm}
-              reomveFoodForm={reomveFoodForm}
-              updateFoodForm={updateFoodForm}
-              guest_dropdown={guest_dropdown}
-              isDatePickerVisible={isDatePickerVisible}
-              setDatePickerVisibility={setDatePickerVisibility}
-            />
+                {/* GUEST FOOD BOOKING COMPONENT */}
+                <GuestFoodAddon
+                  foodForm={foodForm}
+                  setFoodForm={setFoodForm}
+                  addFoodForm={addFoodForm}
+                  resetFoodForm={resetFoodForm}
+                  reomveFoodForm={reomveFoodForm}
+                  updateFoodForm={updateFoodForm}
+                  guest_dropdown={guest_dropdown}
+                  isDatePickerVisible={isDatePickerVisible}
+                  setDatePickerVisibility={setDatePickerVisibility}
+                />
 
-            {/* GUEST ADHYAYAN BOOKING COMPONENT */}
-            {booking !== types.ADHYAYAN_DETAILS_TYPE && (
-              <GuestAdhyayanAddon
-                adhyayanForm={adhyayanForm}
-                setAdhyayanForm={setAdhyayanForm}
-                updateAdhyayanForm={updateAdhyayanForm}
-                INITIAL_ADHYAYAN_FORM={INITIAL_ADHYAYAN_FORM}
-                guest_dropdown={guest_dropdown}
-              />
+                {/* GUEST ADHYAYAN BOOKING COMPONENT */}
+                {booking !== types.ADHYAYAN_DETAILS_TYPE && (
+                  <GuestAdhyayanAddon
+                    adhyayanForm={adhyayanForm}
+                    setAdhyayanForm={setAdhyayanForm}
+                    updateAdhyayanForm={updateAdhyayanForm}
+                    INITIAL_ADHYAYAN_FORM={INITIAL_ADHYAYAN_FORM}
+                    guest_dropdown={guest_dropdown}
+                  />
+                )}
+              </View>
             )}
 
             <CustomButton

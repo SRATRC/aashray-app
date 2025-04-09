@@ -324,62 +324,68 @@ const MumukshuAddons = () => {
           {booking === types.TRAVEL_DETAILS_TYPE && (
             <MumukshuTravelBookingDetails containerStyles={'mt-2'} />
           )}
-
           <View className="w-full px-4">
-            <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
+            {!(
+              booking === types.ADHYAYAN_DETAILS_TYPE &&
+              mumukshuData.adhyayan.adhyayan.location != 'Research Centre'
+            ) && (
+              <View>
+                <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
 
-            {/* MUMUKSHU ROOM BOOKING COMPONENT */}
-            {booking !== types.ROOM_DETAILS_TYPE && (
-              <MumukshuRoomAddon
-                roomForm={roomForm}
-                setRoomForm={setRoomForm}
-                addRoomForm={addRoomForm}
-                reomveRoomForm={reomveRoomForm}
-                updateRoomForm={updateRoomForm}
-                resetRoomForm={resetRoomForm}
-                mumukshu_dropdown={mumukshu_dropdown}
-                isDatePickerVisible={isDatePickerVisible}
-                setDatePickerVisibility={setDatePickerVisibility}
-              />
-            )}
+                {/* MUMUKSHU ROOM BOOKING COMPONENT */}
+                {booking !== types.ROOM_DETAILS_TYPE && (
+                  <MumukshuRoomAddon
+                    roomForm={roomForm}
+                    setRoomForm={setRoomForm}
+                    addRoomForm={addRoomForm}
+                    reomveRoomForm={reomveRoomForm}
+                    updateRoomForm={updateRoomForm}
+                    resetRoomForm={resetRoomForm}
+                    mumukshu_dropdown={mumukshu_dropdown}
+                    isDatePickerVisible={isDatePickerVisible}
+                    setDatePickerVisibility={setDatePickerVisibility}
+                  />
+                )}
 
-            {/* MUMUKSHU FOOD BOOKING COMPONENT */}
-            <MumukshuFoodAddon
-              foodForm={foodForm}
-              setFoodForm={setFoodForm}
-              addFoodForm={addFoodForm}
-              resetFoodForm={resetFoodForm}
-              reomveFoodForm={reomveFoodForm}
-              updateFoodForm={updateFoodForm}
-              mumukshu_dropdown={mumukshu_dropdown}
-              isDatePickerVisible={isDatePickerVisible}
-              setDatePickerVisibility={setDatePickerVisibility}
-            />
+                {/* MUMUKSHU FOOD BOOKING COMPONENT */}
+                <MumukshuFoodAddon
+                  foodForm={foodForm}
+                  setFoodForm={setFoodForm}
+                  addFoodForm={addFoodForm}
+                  resetFoodForm={resetFoodForm}
+                  reomveFoodForm={reomveFoodForm}
+                  updateFoodForm={updateFoodForm}
+                  mumukshu_dropdown={mumukshu_dropdown}
+                  isDatePickerVisible={isDatePickerVisible}
+                  setDatePickerVisibility={setDatePickerVisibility}
+                />
 
-            {/* MUMUKSHU ADHYAYAN BOOKING COMPONENT */}
-            {booking !== types.ADHYAYAN_DETAILS_TYPE && (
-              <MumukshuAdhyayanAddon
-                adhyayanForm={adhyayanForm}
-                setAdhyayanForm={setAdhyayanForm}
-                updateAdhyayanForm={updateAdhyayanForm}
-                INITIAL_ADHYAYAN_FORM={INITIAL_ADHYAYAN_FORM}
-                mumukshu_dropdown={mumukshu_dropdown}
-              />
-            )}
+                {/* MUMUKSHU ADHYAYAN BOOKING COMPONENT */}
+                {booking !== types.ADHYAYAN_DETAILS_TYPE && (
+                  <MumukshuAdhyayanAddon
+                    adhyayanForm={adhyayanForm}
+                    setAdhyayanForm={setAdhyayanForm}
+                    updateAdhyayanForm={updateAdhyayanForm}
+                    INITIAL_ADHYAYAN_FORM={INITIAL_ADHYAYAN_FORM}
+                    mumukshu_dropdown={mumukshu_dropdown}
+                  />
+                )}
 
-            {/* MUMUKSHU TRAVEL BOOKING COMPONENT */}
-            {booking !== types.TRAVEL_DETAILS_TYPE && (
-              <MumukshuTravelAddon
-                travelForm={travelForm}
-                setTravelForm={setTravelForm}
-                addTravelForm={addTravelForm}
-                updateTravelForm={updateTravelForm}
-                resetTravelForm={resetTravelForm}
-                removeTravelForm={reomveTravelForm}
-                mumukshu_dropdown={mumukshu_dropdown}
-                isDatePickerVisible={isDatePickerVisible}
-                setDatePickerVisibility={setDatePickerVisibility}
-              />
+                {/* MUMUKSHU TRAVEL BOOKING COMPONENT */}
+                {booking !== types.TRAVEL_DETAILS_TYPE && (
+                  <MumukshuTravelAddon
+                    travelForm={travelForm}
+                    setTravelForm={setTravelForm}
+                    addTravelForm={addTravelForm}
+                    updateTravelForm={updateTravelForm}
+                    resetTravelForm={resetTravelForm}
+                    removeTravelForm={reomveTravelForm}
+                    mumukshu_dropdown={mumukshu_dropdown}
+                    isDatePickerVisible={isDatePickerVisible}
+                    setDatePickerVisibility={setDatePickerVisibility}
+                  />
+                )}
+              </View>
             )}
 
             <CustomButton
