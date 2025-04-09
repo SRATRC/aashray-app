@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Platform, Alert } from 'react-native';
+import { View, Text, ScrollView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useGlobalContext } from '../../context/GlobalProvider';
@@ -132,14 +132,7 @@ const mumukshuBookingConfirmation = () => {
                 if (data.data?.amount == 0 || user.country != 'India')
                   router.replace('/bookingConfirmation');
                 else {
-                  Alert.alert('Booking Successful', 'Please proceed to home page', [
-                    {
-                      text: 'OK',
-                      onPress: () => {
-                        router.replace('/home');
-                      },
-                    },
-                  ]);
+                  router.replace('/bookingConfirmation');
                   // var options = {
                   //   key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
                   //   name: 'Vitraag Vigyaan Aashray',

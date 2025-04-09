@@ -394,14 +394,7 @@ const FoodBooking = () => {
                         });
                         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                       } else {
-                        Alert.alert('Booking Successful', 'Please proceed to home page', [
-                          {
-                            text: 'OK',
-                            onPress: () => {
-                              router.replace('/home');
-                            },
-                          },
-                        ]);
+                        router.replace('/bookingConfirmation');
                         // var options = {
                         //   key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
                         //   name: 'Vitraag Vigyaan',

@@ -5,7 +5,6 @@ import {
   RefreshControl,
   Platform,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -153,14 +152,7 @@ const PendingPayments = () => {
         });
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       } else {
-        Alert.alert('Booking Successful', 'Please proceed to home page', [
-          {
-            text: 'OK',
-            onPress: () => {
-              router.replace('/home');
-            },
-          },
-        ]);
+        router.replace('/bookingConfirmation');
         // // Configure Razorpay
         // const options = {
         //   key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,
