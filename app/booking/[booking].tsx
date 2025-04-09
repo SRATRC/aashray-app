@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icons, types } from '../../constants';
+import { useQuery } from '@tanstack/react-query';
+import { prepareSelfRequestBody } from '~/utils/preparingRequestBody';
 import CustomButton from '../../components/CustomButton';
 import PageHeader from '../../components/PageHeader';
 import RoomBookingDetails from '../../components/booking details cards/RoomBookingDetails';
@@ -13,12 +15,44 @@ import RoomAddon from '../../components/booking addons/RoomAddon';
 import FoodAddon from '../../components/booking addons/FoodAddon';
 import AdhyayanAddon from '../../components/booking addons/AdhyayanAddon';
 import TravelAddon from '../../components/booking addons/TravelAddon';
+import handleAPICall from '~/utils/HandleApiCall';
+import CustomModal from '~/components/CustomModal';
 
 const details = () => {
   const { booking } = useLocalSearchParams();
-  const { setData } = useGlobalContext();
+  const { user, data, setData } = useGlobalContext();
 
   const router = useRouter();
+
+  const payload = prepareSelfRequestBody(user, data);
+
+  const fetchValidation = async () => {
+    return new Promise((resolve, reject) => {
+      handleAPICall(
+        'POST',
+        '/unified/validate',
+        null,
+        payload,
+        (res: any) => {
+          setData((prev: any) => ({ ...prev, validationData: res.data }));
+          resolve(res.data);
+        },
+        () => {},
+        (errorDetails: any) => reject(new Error(errorDetails.message))
+      );
+    });
+  };
+
+  const {
+    isLoading: isValidationDataLoading,
+    isError: isValidationDataError,
+    error: validationDataError,
+    data: validationData,
+  }: any = useQuery({
+    queryKey: ['validations', user.cardno],
+    queryFn: fetchValidation,
+    retry: false,
+  });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -201,6 +235,15 @@ const details = () => {
               isLoading={isSubmitting}
             />
           </View>
+
+          {validationDataError && (
+            <CustomModal
+              visible={true}
+              onClose={() => router.back()}
+              message={validationDataError.message}
+              btnText={'Okay'}
+            />
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

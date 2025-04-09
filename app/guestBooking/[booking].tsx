@@ -1,10 +1,12 @@
+import React, { useState } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import React, { useState } from 'react';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icons, types } from '../../constants';
 import { useRouter } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
+import { prepareGuestRequestBody } from '~/utils/preparingRequestBody';
 import CustomButton from '../../components/CustomButton';
 import PageHeader from '../../components/PageHeader';
 import GuestRoomBookingDetails from '../../components/booking details cards/GuestRoomBookingDetails';
@@ -13,6 +15,8 @@ import GuestRoomAddon from '../../components/booking addons/GuestRoomAddon';
 import GuestFoodAddon from '../../components/booking addons/GuestFoodAddon';
 import GuestAdhyayanAddon from '../../components/booking addons/GuestAdhyayanAddon';
 import Toast from 'react-native-toast-message';
+import handleAPICall from '~/utils/HandleApiCall';
+import CustomModal from '~/components/CustomModal';
 
 const INITIAL_ROOM_FORM = {
   startDay: '',
@@ -34,7 +38,37 @@ const INITIAL_ADHYAYAN_FORM = {
 
 const guestAddons = () => {
   const { booking } = useLocalSearchParams();
-  const { guestData, setGuestData } = useGlobalContext();
+  const { user, guestData, setGuestData } = useGlobalContext();
+
+  const transformedData = prepareGuestRequestBody(user, guestData);
+
+  const fetchValidation = async () => {
+    return new Promise((resolve, reject) => {
+      handleAPICall(
+        'POST',
+        '/guest/validate',
+        null,
+        transformedData,
+        (res: any) => {
+          setGuestData((prev: any) => ({ ...prev, validationData: res.data }));
+          resolve(res.data);
+        },
+        () => {},
+        (errorDetails: any) => reject(new Error(errorDetails.message))
+      );
+    });
+  };
+
+  const {
+    isLoading: isValidationDataLoading,
+    isError: isValidationDataError,
+    error: validationDataError,
+    data: validationData,
+  }: any = useQuery({
+    queryKey: ['guestValidations', user.cardno],
+    queryFn: fetchValidation,
+    retry: false,
+  });
 
   const guests =
     guestData.room?.guestGroup?.flatMap((group: any) => group.guests) ||
@@ -47,9 +81,9 @@ const guestAddons = () => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [roomForm, setRoomForm] = useState(INITIAL_ROOM_FORM);
+  const [roomForm, setRoomForm] = useState(JSON.parse(JSON.stringify(INITIAL_ROOM_FORM)));
   const addRoomForm = () => {
-    setRoomForm((prevRoomForm) => ({
+    setRoomForm((prevRoomForm: any) => ({
       ...prevRoomForm,
       guestGroup: [
         ...prevRoomForm.guestGroup,
@@ -60,7 +94,7 @@ const guestAddons = () => {
 
   const reomveRoomForm = (indexToRemove: any) => {
     return () => {
-      setRoomForm((prevRoomForm) => {
+      setRoomForm((prevRoomForm: any) => {
         const updatedGuestGroup = [...prevRoomForm.guestGroup];
         updatedGuestGroup.splice(indexToRemove, 1);
         return {
@@ -72,7 +106,7 @@ const guestAddons = () => {
   };
 
   const updateRoomForm = (groupIndex: any, key: any, value: any) => {
-    setRoomForm((prevRoomForm) => {
+    setRoomForm((prevRoomForm: any) => {
       const updatedGuestGroup: any = [...prevRoomForm.guestGroup];
 
       if (key === 'guests') {
@@ -89,9 +123,9 @@ const guestAddons = () => {
     });
   };
 
-  const [foodForm, setFoodForm] = useState(INITIAL_FOOD_FORM);
+  const [foodForm, setFoodForm] = useState(JSON.parse(JSON.stringify(INITIAL_FOOD_FORM)));
   const resetFoodForm = () => {
-    setFoodForm(INITIAL_FOOD_FORM);
+    setFoodForm(JSON.parse(JSON.stringify(INITIAL_FOOD_FORM)));
     setGuestData((prev: any) => {
       const { food, ...rest } = prev;
       return rest;
@@ -99,7 +133,7 @@ const guestAddons = () => {
   };
 
   const addFoodForm = () => {
-    setFoodForm((prevFoodForm) => ({
+    setFoodForm((prevFoodForm: any) => ({
       ...prevFoodForm,
       guestGroup: [
         ...prevFoodForm.guestGroup,
@@ -110,7 +144,7 @@ const guestAddons = () => {
 
   const reomveFoodForm = (indexToRemove: any) => {
     return () => {
-      setFoodForm((prevFoodForm) => {
+      setFoodForm((prevFoodForm: any) => {
         const updatedGuestGroup = [...prevFoodForm.guestGroup];
         updatedGuestGroup.splice(indexToRemove, 1);
         return {
@@ -122,7 +156,7 @@ const guestAddons = () => {
   };
 
   const updateFoodForm = (groupIndex: any, key: any, value: any) => {
-    setFoodForm((prevFoodForm) => {
+    setFoodForm((prevFoodForm: any) => {
       const updatedGuestGroup: any = [...prevFoodForm.guestGroup];
 
       if (key === 'guests') {
@@ -223,14 +257,14 @@ const guestAddons = () => {
 
                 const isRoomFormEmpty = () => {
                   return roomForm.guestGroup.some(
-                    (group) =>
+                    (group: any) =>
                       group.roomType !== '' || group.floorType !== '' || group.guests.length > 0
                   );
                 };
 
                 const isFoodFormEmpty = () => {
                   return foodForm.guestGroup.some(
-                    (group) =>
+                    (group: any) =>
                       group.meals.length > 0 || group.spicy !== '' || group.guests.length > 0
                   );
                 };
@@ -244,10 +278,12 @@ const guestAddons = () => {
                 // Validate and set Room Form data
                 if (booking !== types.ROOM_DETAILS_TYPE && isRoomFormEmpty()) {
                   const hasEmptyFields = roomForm.guestGroup.some(
-                    (group) => !group.roomType || !group.floorType || group.guests.length === 0
+                    (group: any) => !group.roomType || !group.floorType || group.guests.length === 0
                   );
 
                   if (hasEmptyFields || !roomForm.startDay || !roomForm.endDay) {
+                    console.log(JSON.stringify(roomForm));
+
                     Toast.show({
                       type: 'error',
                       text1: 'Please fill all the room booking fields',
@@ -262,7 +298,7 @@ const guestAddons = () => {
 
                 // Validate and set Food Form data
                 if (isFoodFormEmpty()) {
-                  const hasEmptyFields = foodForm.guestGroup.some((group) => {
+                  const hasEmptyFields = foodForm.guestGroup.some((group: any) => {
                     return (
                       group.meals.length === 0 || group.guests.length === 0 || group.spicy === ''
                     );
@@ -306,6 +342,15 @@ const guestAddons = () => {
               isLoading={isSubmitting}
             />
           </View>
+
+          {validationDataError && (
+            <CustomModal
+              visible={true}
+              onClose={() => router.back()}
+              message={validationDataError.message}
+              btnText={'Okay'}
+            />
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

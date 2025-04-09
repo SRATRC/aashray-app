@@ -3,7 +3,6 @@ import { Modal, View, Text, TouchableOpacity, Image, GestureResponderEvent } fro
 import { icons } from '../constants';
 import CustomButton from './CustomButton';
 
-// Define prop types for the component
 interface CustomModalProps {
   visible: boolean;
   onClose: () => void;
@@ -20,24 +19,26 @@ const CustomModal: React.FC<CustomModalProps> = ({
   btnOnPress,
 }) => {
   return (
-    <Modal transparent={true} animationType="fade" visible={visible} onRequestClose={onClose}>
+    <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
       <View
-        className="flex-1 flex-col items-center justify-center rounded"
+        className="flex-1 items-center justify-center"
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-        <View className="w-[300] flex-col rounded-lg bg-white p-[20]">
-          <View className="flex-row items-start justify-between">
-            <Text className="flex-1 font-pmedium text-base text-black">{message}</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Image source={icons.cross} className="ms-2 h-4 w-4 ps-2" resizeMode="contain" />
+        <View className="w-[320] rounded-xl bg-white p-5 shadow-lg" style={{ elevation: 10 }}>
+          {/* Header with close button */}
+          <View className="mb-4 flex-row items-start justify-between">
+            <Text className="flex-1 pr-4 font-pmedium text-base text-black">{message}</Text>
+            <TouchableOpacity onPress={onClose} className="rounded-full bg-gray-100 p-1">
+              <Image source={icons.cross} className="h-4 w-4" resizeMode="contain" />
             </TouchableOpacity>
           </View>
 
+          {/* Button row */}
           <View className="flex-row justify-end">
             <CustomButton
               handlePress={btnOnPress ? btnOnPress : onClose}
               text={btnText ?? 'Confirm'}
               bgcolor="bg-secondary"
-              containerStyles="mt-5 rounded-md px-2 py-1 justify-end"
+              containerStyles="mt-3 rounded-md px-4 py-2"
             />
           </View>
         </View>

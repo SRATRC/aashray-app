@@ -1,10 +1,11 @@
-import { View, Text, ScrollView, Platform } from 'react-native';
+import { View, Text, ScrollView, Platform, Alert } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, icons } from '../../constants';
+import { prepareSelfRequestBody } from '~/utils/preparingRequestBody';
 import RoomBookingDetails from '../../components/booking details cards/RoomBookingDetails';
 import PageHeader from '../../components/PageHeader';
 import TravelBookingDetails from '../../components/booking details cards/TravelBookingDetails';
@@ -23,97 +24,7 @@ const bookingConfirmation = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const prepareRequestBody = () => {
-    const payload: any = {
-      cardno: user.cardno,
-    };
-
-    if (data.primary === 'room') {
-      payload.primary_booking = {
-        booking_type: 'room',
-        details: {
-          checkin_date: data.room?.startDay,
-          checkout_date: data.room?.endDay,
-          room_type: data.room?.roomType,
-          floor_type: data.room?.floorType,
-        },
-      };
-    } else if (data.primary === 'travel') {
-      payload.primary_booking = {
-        booking_type: 'travel',
-        details: {
-          date: data.travel?.date,
-          pickup_point: data.travel?.pickup,
-          drop_point: data.travel?.drop,
-          luggage: data.travel?.luggage,
-          type: data.travel?.type,
-          special_request: data.travel?.special_request,
-        },
-      };
-    } else if (data.primary === 'adhyayan') {
-      payload.primary_booking = {
-        booking_type: 'adhyayan',
-        details: {
-          shibir_ids: data.adhyayan.map((shibir: any) => shibir.id),
-        },
-      };
-    }
-
-    const addons = [];
-    if (data.primary !== 'room' && data.room) {
-      addons.push({
-        booking_type: 'room',
-        details: {
-          checkin_date: data.room?.startDay,
-          checkout_date: data.room?.endDay,
-          room_type: data.room?.roomType,
-          floor_type: data.room?.floorType,
-        },
-      });
-    }
-    if (data.primary !== 'food' && data.food) {
-      addons.push({
-        booking_type: 'food',
-        details: {
-          start_date: data.food?.startDay,
-          end_date: data.food?.endDay,
-          breakfast: data.food?.meals.includes('breakfast'),
-          lunch: data.food?.meals.includes('lunch'),
-          dinner: data.food?.meals.includes('dinner'),
-          spicy: data.food?.spicy,
-          hightea: data.food?.hightea,
-        },
-      });
-    }
-    if (data.primary !== 'travel' && data.travel) {
-      addons.push({
-        booking_type: 'travel',
-        details: {
-          date: data.travel?.date,
-          pickup_point: data.travel?.pickup,
-          drop_point: data.travel?.drop,
-          luggage: data.travel?.luggage,
-          type: data.travel?.type,
-          comments: data.travel?.special_request,
-        },
-      });
-    }
-    if (data.primary !== 'adhyayan' && data.adhyayan) {
-      addons.push({
-        booking_type: 'adhyayan',
-        details: {
-          shibir_ids: data.adhyayan.map((shibir: any) => shibir.id),
-        },
-      });
-    }
-
-    if (addons.length > 0) {
-      payload.addons = addons;
-    }
-
-    return payload;
-  };
-  const payload = prepareRequestBody();
+  const payload = prepareSelfRequestBody(user, data);
 
   const fetchValidation = async () => {
     return new Promise((resolve, reject) => {
@@ -127,9 +38,7 @@ const bookingConfirmation = () => {
           resolve(res.data);
         },
         () => {},
-        (errorMessage: string) => {
-          reject(new Error(errorMessage));
-        }
+        (errorDetails: any) => reject(new Error(errorDetails.message))
       );
     });
   };
@@ -214,21 +123,30 @@ const bookingConfirmation = () => {
                 if (data.data?.amount == 0 || user.country != 'India')
                   router.replace('/bookingConfirmation');
                 else {
-                  var options = {
-                    key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,
-                    name: 'Vitraag Vigyaan Aashray',
-                    image: 'https://vitraagvigyaan.org/img/logo.png',
-                    description: 'Payment for Vitraag Vigyaan Aashray',
-                    amount: data.data.amount.toString(),
-                    currency: 'INR',
-                    order_id: data.data.id.toString(),
-                    prefill: {
-                      email: user.email.toString(),
-                      contact: user.mobno.toString(),
-                      name: user.issuedto.toString(),
+                  Alert.alert('Booking Successful', 'Please proceed to home page', [
+                    {
+                      text: 'OK',
+                      onPress: () => {
+                        router.replace('/home');
+                      },
                     },
-                    theme: { color: colors.orange },
-                  };
+                  ]);
+
+                  // var options = {
+                  //   key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,
+                  //   name: 'Vitraag Vigyaan Aashray',
+                  //   image: 'https://vitraagvigyaan.org/img/logo.png',
+                  //   description: 'Payment for Vitraag Vigyaan Aashray',
+                  //   amount: data.data.amount.toString(),
+                  //   currency: 'INR',
+                  //   order_id: data.data.id.toString(),
+                  //   prefill: {
+                  //     email: user.email.toString(),
+                  //     contact: user.mobno.toString(),
+                  //     name: user.issuedto.toString(),
+                  //   },
+                  //   theme: { color: colors.orange },
+                  // };
                   // RazorpayCheckout.open(options)
                   //   .then((rzrpayData: any) => {
                   //     // handle success

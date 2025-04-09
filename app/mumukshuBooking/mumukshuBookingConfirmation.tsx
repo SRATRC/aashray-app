@@ -1,10 +1,11 @@
-import { View, Text, ScrollView, Platform } from 'react-native';
+import { View, Text, ScrollView, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, icons, status } from '../../constants';
 import { useQuery } from '@tanstack/react-query';
+import { prepareMumukshuRequestBody } from '~/utils/preparingRequestBody';
 import PageHeader from '../../components/PageHeader';
 import CustomButton from '../../components/CustomButton';
 import handleAPICall from '../../utils/HandleApiCall';
@@ -22,125 +23,7 @@ const mumukshuBookingConfirmation = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const transformData = (input: any) => {
-    const transformMumukshuGroup = (mumukshuGroup: any) =>
-      mumukshuGroup.map((group: any) => {
-        const transformed: any = {};
-        if (group.cardno) return group.cardno;
-        if (group.roomType) transformed.roomType = group.roomType;
-        if (group.floorType && group.floorType !== 'n') transformed.floorType = group.floorType;
-        if (group.mumukshus)
-          transformed.mumukshus = group.mumukshus.map((mumukshu: any) => mumukshu.cardno);
-        if (group.pickup) transformed.pickup_point = group.pickup;
-        if (group.drop) transformed.drop_point = group.drop;
-        if (group.luggage) transformed.luggage = group.luggage;
-        if (group.type) transformed.type = group.type;
-        if (group.special_request) transformed.comments = group.special_request;
-        if (group.meals) transformed.meals = group.meals;
-        if (group.spicy !== undefined) transformed.spicy = group.spicy;
-        if (group.hightea) transformed.high_tea = group.hightea;
-        return transformed;
-      });
-
-    const primaryBookingDetails = (primaryKey: any) => {
-      const primaryData = input[primaryKey];
-
-      switch (primaryKey) {
-        case 'room':
-          return {
-            booking_type: 'room',
-            details: {
-              checkin_date: primaryData.startDay,
-              checkout_date: primaryData.endDay,
-              mumukshuGroup: transformMumukshuGroup(primaryData.mumukshuGroup),
-            },
-          };
-        case 'food':
-          return {
-            booking_type: 'food',
-            details: {
-              start_date: primaryData.startDay,
-              end_date: primaryData.endDay,
-              mumukshuGroup: transformMumukshuGroup(primaryData.mumukshuGroup),
-            },
-          };
-        case 'adhyayan':
-          return {
-            booking_type: 'adhyayan',
-            details: {
-              shibir_ids: [primaryData.adhyayan.id],
-              mumukshus: transformMumukshuGroup(primaryData.mumukshuGroup),
-            },
-          };
-        case 'travel':
-          return {
-            booking_type: 'travel',
-            details: {
-              date: primaryData.date,
-              mumukshuGroup: transformMumukshuGroup(primaryData.mumukshuGroup),
-            },
-          };
-        default:
-          throw new Error(`Unsupported primary booking type: ${primaryKey}`);
-      }
-    };
-
-    const transformAddons = (input: any) =>
-      Object.keys(input)
-        .filter((key) => key !== input.primary && key !== 'primary')
-        .map((key) => {
-          switch (key) {
-            case 'room':
-              return {
-                booking_type: key,
-                details: {
-                  checkin_date: input[key].startDay,
-                  checkout_date: input[key].endDay,
-                  mumukshuGroup: transformMumukshuGroup(input[key].mumukshuGroup),
-                },
-              };
-            case 'food':
-              return {
-                booking_type: key,
-                details: {
-                  start_date: input[key].startDay,
-                  end_date: input[key].endDay,
-                  mumukshuGroup: transformMumukshuGroup(input[key].mumukshuGroup),
-                },
-              };
-            case 'adhyayan':
-              return {
-                booking_type: key,
-                details: {
-                  shibir_ids: [input[key].adhyayan.id],
-                  mumukshus: input[key].mumukshus.map((mumukshu: any) => mumukshu.cardno),
-                },
-              };
-            case 'travel':
-              return {
-                booking_type: key,
-                details: {
-                  date: input[key].date,
-                  mumukshuGroup: transformMumukshuGroup(input[key].mumukshuGroup),
-                },
-              };
-            case 'validationData':
-              return null;
-            default:
-              throw new Error(`Unsupported addon type: ${key}`);
-          }
-        })
-        .filter(Boolean);
-    return {
-      cardno: user.cardno,
-      transaction_type: 'upi',
-      transaction_ref: '',
-      primary_booking: primaryBookingDetails(input.primary),
-      addons: transformAddons(input),
-    };
-  };
-
-  const transformedData = transformData(JSON.parse(JSON.stringify(mumukshuData)));
+  const transformedData = prepareMumukshuRequestBody(user, mumukshuData);
   const fetchValidation = async () => {
     return new Promise((resolve, reject) => {
       handleAPICall(
@@ -152,7 +35,8 @@ const mumukshuBookingConfirmation = () => {
           setMumukshuData((prev: any) => ({ ...prev, validationData: res.data }));
           resolve(res.data);
         },
-        () => reject(new Error('Failed to fetch validation and transaction data'))
+        () => {},
+        (errorDetails: any) => reject(new Error(errorDetails.message))
       );
     });
   };
@@ -167,10 +51,6 @@ const mumukshuBookingConfirmation = () => {
     queryFn: fetchValidation,
     retry: false,
   });
-
-  useEffect(() => {
-    console.log('VALIDATION DATA: ', validationData);
-  }, [validationData]);
 
   return (
     <SafeAreaView className="h-full bg-white">
@@ -252,21 +132,29 @@ const mumukshuBookingConfirmation = () => {
                 if (data.data?.amount == 0 || user.country != 'India')
                   router.replace('/bookingConfirmation');
                 else {
-                  var options = {
-                    key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
-                    name: 'Vitraag Vigyaan Aashray',
-                    image: 'https://vitraagvigyaan.org/img/logo.png',
-                    description: 'Payment for Vitraag Vigyaan Aashray',
-                    amount: `${data.order.amount}`,
-                    currency: 'INR',
-                    order_id: `${data.order.id}`,
-                    prefill: {
-                      email: `${user.email}`,
-                      contact: `${user.mobno}`,
-                      name: `${user.issuedto}`,
+                  Alert.alert('Booking Successful', 'Please proceed to home page', [
+                    {
+                      text: 'OK',
+                      onPress: () => {
+                        router.replace('/home');
+                      },
                     },
-                    theme: { color: colors.orange },
-                  };
+                  ]);
+                  // var options = {
+                  //   key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
+                  //   name: 'Vitraag Vigyaan Aashray',
+                  //   image: 'https://vitraagvigyaan.org/img/logo.png',
+                  //   description: 'Payment for Vitraag Vigyaan Aashray',
+                  //   amount: `${data.order.amount}`,
+                  //   currency: 'INR',
+                  //   order_id: `${data.order.id}`,
+                  //   prefill: {
+                  //     email: `${user.email}`,
+                  //     contact: `${user.mobno}`,
+                  //     name: `${user.issuedto}`,
+                  //   },
+                  //   theme: { color: colors.orange },
+                  // };
                   // RazorpayCheckout.open(options)
                   //   .then((rzrpayData: any) => {
                   //     // handle success

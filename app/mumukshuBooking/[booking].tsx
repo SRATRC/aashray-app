@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { View, Text, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icons, types } from '../../constants';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { ScrollView } from 'react-native-gesture-handler';
-import { View, Text, KeyboardAvoidingView, Platform } from 'react-native';
+import { prepareMumukshuRequestBody } from '~/utils/preparingRequestBody';
+import { useQuery } from '@tanstack/react-query';
 import PageHeader from '../../components/PageHeader';
 import CustomButton from '../../components/CustomButton';
 import MumukshuRoomBookingDetails from '../../components/booking details cards/MumukshuRoomBookingDetails';
@@ -15,6 +17,8 @@ import MumukshuFoodAddon from '../../components/booking addons/MumukshuFoodAddon
 import MumukshuAdhyayanAddon from '../../components/booking addons/MumukshuAdhyayanAddon';
 import MumukshuTravelAddon from '../../components/booking addons/MumukshuTravelAddon';
 import Toast from 'react-native-toast-message';
+import handleAPICall from '~/utils/HandleApiCall';
+import CustomModal from '~/components/CustomModal';
 
 const INITIAL_ROOM_FORM = {
   startDay: '',
@@ -61,7 +65,38 @@ const MumukshuAddons = () => {
   const router = useRouter();
 
   const { booking } = useLocalSearchParams();
-  const { mumukshuData, setMumukshuData } = useGlobalContext();
+  const { user, mumukshuData, setMumukshuData } = useGlobalContext();
+
+  const transformedData = prepareMumukshuRequestBody(user, mumukshuData);
+  const fetchValidation = async () => {
+    return new Promise((resolve, reject) => {
+      handleAPICall(
+        'POST',
+        '/mumukshu/validate',
+        null,
+        transformedData,
+        (res: any) => {
+          setMumukshuData((prev: any) => ({ ...prev, validationData: res.data }));
+          resolve(res.data);
+        },
+        () => {},
+        (errorDetails: any) => {
+          reject(new Error(errorDetails.message));
+        }
+      );
+    });
+  };
+
+  const {
+    isLoading: isValidationDataLoading,
+    isError: isValidationDataError,
+    error: validationDataError,
+    data: validationData,
+  }: any = useQuery({
+    queryKey: ['mumukshuValidations', user.cardno],
+    queryFn: fetchValidation,
+    retry: false,
+  });
 
   const mumukshus = (
     mumukshuData.room?.mumukshuGroup ||
@@ -84,16 +119,16 @@ const MumukshuAddons = () => {
   });
 
   // Room Addon Form Data
-  const [roomForm, setRoomForm] = useState(INITIAL_ROOM_FORM);
+  const [roomForm, setRoomForm] = useState(JSON.parse(JSON.stringify(INITIAL_ROOM_FORM)));
   const resetRoomForm = () => {
-    setRoomForm(INITIAL_ROOM_FORM);
+    setRoomForm(JSON.parse(JSON.stringify(INITIAL_ROOM_FORM)));
     setMumukshuData((prev: any) => {
       const { room, ...rest } = prev;
       return rest;
     });
   };
   const addRoomForm = () => {
-    setRoomForm((prevRoomForm) => ({
+    setRoomForm((prevRoomForm: any) => ({
       ...prevRoomForm,
       mumukshuGroup: [
         ...prevRoomForm.mumukshuGroup,
@@ -104,7 +139,7 @@ const MumukshuAddons = () => {
 
   const reomveRoomForm = (indexToRemove: any) => {
     return () => {
-      setRoomForm((prevRoomForm) => {
+      setRoomForm((prevRoomForm: any) => {
         const updatedMumukshuGroup = [...prevRoomForm.mumukshuGroup];
         updatedMumukshuGroup.splice(indexToRemove, 1);
         return {
@@ -116,7 +151,7 @@ const MumukshuAddons = () => {
   };
 
   const updateRoomForm = (groupIndex: any, key: any, value: any) => {
-    setRoomForm((prevRoomForm) => {
+    setRoomForm((prevRoomForm: any) => {
       const updatedMumukshuGroup: any = [...prevRoomForm.mumukshuGroup];
 
       if (key === 'mumukshus') {
@@ -136,9 +171,9 @@ const MumukshuAddons = () => {
   };
 
   // Food Addon Form Data
-  const [foodForm, setFoodForm] = useState(INITIAL_FOOD_FORM);
+  const [foodForm, setFoodForm] = useState(JSON.parse(JSON.stringify(INITIAL_FOOD_FORM)));
   const resetFoodForm = () => {
-    setFoodForm(INITIAL_FOOD_FORM);
+    setFoodForm(JSON.parse(JSON.stringify(INITIAL_FOOD_FORM)));
     setMumukshuData((prev: any) => {
       const { food, ...rest } = prev;
       return rest;
@@ -146,7 +181,7 @@ const MumukshuAddons = () => {
   };
 
   const addFoodForm = () => {
-    setFoodForm((prevFoodForm) => ({
+    setFoodForm((prevFoodForm: any) => ({
       ...prevFoodForm,
       mumukshuGroup: [
         ...prevFoodForm.mumukshuGroup,
@@ -163,7 +198,7 @@ const MumukshuAddons = () => {
 
   const reomveFoodForm = (indexToRemove: any) => {
     return () => {
-      setFoodForm((prevFoodForm) => {
+      setFoodForm((prevFoodForm: any) => {
         const updatedMumukshuGroup = [...prevFoodForm.mumukshuGroup];
         updatedMumukshuGroup.splice(indexToRemove, 1);
         return {
@@ -175,7 +210,7 @@ const MumukshuAddons = () => {
   };
 
   const updateFoodForm = (groupIndex: any, key: any, value: any) => {
-    setFoodForm((prevFoodForm) => {
+    setFoodForm((prevFoodForm: any) => {
       const updatedMumukshuGroup: any = [...prevFoodForm.mumukshuGroup];
 
       if (key === 'mumukshus') {
@@ -195,9 +230,9 @@ const MumukshuAddons = () => {
   };
 
   // Travel Booking Form Data
-  const [travelForm, setTravelForm] = useState(INITIAL_TRAVEL_FORM);
+  const [travelForm, setTravelForm] = useState(JSON.parse(JSON.stringify(INITIAL_TRAVEL_FORM)));
   const resetTravelForm = () => {
-    setTravelForm(INITIAL_TRAVEL_FORM);
+    setTravelForm(JSON.parse(JSON.stringify(INITIAL_TRAVEL_FORM)));
     setMumukshuData((prev: any) => {
       const { travel, ...rest } = prev;
       return rest;
@@ -205,7 +240,7 @@ const MumukshuAddons = () => {
   };
 
   const addTravelForm = () => {
-    setTravelForm((prevTravelForm) => ({
+    setTravelForm((prevTravelForm: any) => ({
       ...prevTravelForm,
       mumukshuGroup: [
         ...prevTravelForm.mumukshuGroup,
@@ -224,7 +259,7 @@ const MumukshuAddons = () => {
 
   const reomveTravelForm = (indexToRemove: any) => {
     return () => {
-      setTravelForm((prevTravelForm) => {
+      setTravelForm((prevTravelForm: any) => {
         const updatedMumukshuGroup = [...prevTravelForm.mumukshuGroup];
         updatedMumukshuGroup.splice(indexToRemove, 1);
         return {
@@ -236,7 +271,7 @@ const MumukshuAddons = () => {
   };
 
   const updateTravelForm = (groupIndex: any, key: any, value: any) => {
-    setTravelForm((prevTravelForm) => {
+    setTravelForm((prevTravelForm: any) => {
       const updatedMumukshuGroup: any = [...prevTravelForm.mumukshuGroup];
 
       if (key === 'mumukshus') {
@@ -256,9 +291,11 @@ const MumukshuAddons = () => {
   };
 
   // Adhyayan Booking Form Data
-  const [adhyayanForm, setAdhyayanForm] = useState(INITIAL_ADHYAYAN_FORM);
+  const [adhyayanForm, setAdhyayanForm] = useState(
+    JSON.parse(JSON.stringify(INITIAL_ADHYAYAN_FORM))
+  );
   const updateAdhyayanForm = (field: any, value: any) => {
-    setAdhyayanForm((prevAdhyayanForm) => ({
+    setAdhyayanForm((prevAdhyayanForm: any) => ({
       ...prevAdhyayanForm,
       [field]: value,
       ...(field === 'mumukshuIndices' && {
@@ -352,14 +389,14 @@ const MumukshuAddons = () => {
 
                 const isRoomFormEmpty = () => {
                   return roomForm.mumukshuGroup.some(
-                    (group) =>
+                    (group: any) =>
                       group.roomType !== '' || group.floorType !== '' || group.mumukshus.length > 0
                   );
                 };
 
                 const isFoodFormEmpty = () => {
                   return foodForm.mumukshuGroup.some(
-                    (group) =>
+                    (group: any) =>
                       group.meals.length > 0 || group.spicy !== '' || group.mumukshus.length > 0
                   );
                 };
@@ -373,7 +410,7 @@ const MumukshuAddons = () => {
 
                 const isTravelFormEmpty = () => {
                   return travelForm.mumukshuGroup.some(
-                    (group) =>
+                    (group: any) =>
                       group.pickup !== '' ||
                       group.drop !== '' ||
                       group.luggage !== '' ||
@@ -384,7 +421,8 @@ const MumukshuAddons = () => {
                 // Validate and set Room Form data
                 if (booking !== types.ROOM_DETAILS_TYPE && isRoomFormEmpty()) {
                   const hasEmptyFields = roomForm.mumukshuGroup.some(
-                    (group) => !group.roomType || !group.floorType || group.mumukshus.length === 0
+                    (group: any) =>
+                      !group.roomType || !group.floorType || group.mumukshus.length === 0
                   );
 
                   if (hasEmptyFields || !roomForm.startDay || !roomForm.endDay) {
@@ -405,7 +443,7 @@ const MumukshuAddons = () => {
                   isFoodFormEmpty() &&
                   JSON.stringify(foodForm) !== JSON.stringify(INITIAL_FOOD_FORM)
                 ) {
-                  const hasEmptyFields = foodForm.mumukshuGroup.some((group) => {
+                  const hasEmptyFields = foodForm.mumukshuGroup.some((group: any) => {
                     return (
                       group.meals.length === 0 || group.mumukshus.length === 0 || group.spicy === ''
                     );
@@ -452,7 +490,7 @@ const MumukshuAddons = () => {
                   JSON.stringify(travelForm) !== JSON.stringify(INITIAL_TRAVEL_FORM)
                 ) {
                   const hasEmptyFields = travelForm.mumukshuGroup.some(
-                    (group) =>
+                    (group: any) =>
                       group.pickup == '' ||
                       group.drop == '' ||
                       group.luggage == '' ||
@@ -478,6 +516,15 @@ const MumukshuAddons = () => {
               isLoading={isSubmitting}
             />
           </View>
+
+          {validationDataError && (
+            <CustomModal
+              visible={true}
+              onClose={() => router.back()}
+              message={validationDataError.message}
+              btnText={'Okay'}
+            />
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

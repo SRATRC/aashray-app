@@ -394,21 +394,29 @@ const FoodBooking = () => {
                         });
                         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                       } else {
-                        var options = {
-                          key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
-                          name: 'Vitraag Vigyaan',
-                          image: 'https://vitraagvigyaan.org/img/logo.png',
-                          description: 'Payment for Vitraag Vigyaan',
-                          amount: `${data.data.amount}`,
-                          currency: 'INR',
-                          order_id: `${data.data.id}`,
-                          prefill: {
-                            email: `${user.email}`,
-                            contact: `${user.mobno}`,
-                            name: `${user.issuedto}`,
+                        Alert.alert('Booking Successful', 'Please proceed to home page', [
+                          {
+                            text: 'OK',
+                            onPress: () => {
+                              router.replace('/home');
+                            },
                           },
-                          theme: { color: colors.orange },
-                        };
+                        ]);
+                        // var options = {
+                        //   key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
+                        //   name: 'Vitraag Vigyaan',
+                        //   image: 'https://vitraagvigyaan.org/img/logo.png',
+                        //   description: 'Payment for Vitraag Vigyaan',
+                        //   amount: `${data.data.amount}`,
+                        //   currency: 'INR',
+                        //   order_id: `${data.data.id}`,
+                        //   prefill: {
+                        //     email: `${user.email}`,
+                        //     contact: `${user.mobno}`,
+                        //     name: `${user.issuedto}`,
+                        //   },
+                        //   theme: { color: colors.orange },
+                        // };
                         // RazorpayCheckout.open(options)
                         //   .then((rzrpayData: any) => {
                         //     // handle success

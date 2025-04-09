@@ -1,10 +1,11 @@
-import { View, Text, ScrollView, Platform } from 'react-native';
+import { View, Text, ScrollView, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, icons, status } from '../../constants';
 import { useQuery } from '@tanstack/react-query';
+import { prepareGuestRequestBody } from '~/utils/preparingRequestBody';
 import GuestRoomBookingDetails from '../../components/booking details cards/GuestRoomBookingDetails';
 import GuestAdhyayanBookingDetails from '../../components/booking details cards/GuestAdhyayanBookingDetails';
 import GuestFoodBookingDetails from '../../components/booking details cards/GuestFoodBookingDetails';
@@ -14,6 +15,7 @@ import handleAPICall from '../../utils/HandleApiCall';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
+import CustomModal from '~/components/CustomModal';
 
 const guestBookingConfirmation = () => {
   const router = useRouter();
@@ -21,99 +23,7 @@ const guestBookingConfirmation = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const transformData = (input: any) => {
-    const transformGuestGroup = (guestGroup: any) =>
-      guestGroup.map((group: any) => {
-        const transformed: any = {};
-        if (group.roomType) transformed.roomType = group.roomType;
-        if (group.floorType && group.floorType !== 'n') transformed.floorType = group.floorType;
-        if (group.guests) transformed.guests = group.guests.map((guest: any) => guest.id);
-        if (group.meals) transformed.meals = group.meals;
-        if (group.spicy !== undefined) transformed.spicy = group.spicy;
-        if (group.hightea) transformed.high_tea = group.hightea;
-        return transformed;
-      });
-
-    const primaryBookingDetails = (primaryKey: any) => {
-      const primaryData = input[primaryKey];
-      switch (primaryKey) {
-        case 'room':
-          return {
-            booking_type: 'room',
-            details: {
-              checkin_date: primaryData.startDay,
-              checkout_date: primaryData.endDay,
-              guestGroup: transformGuestGroup(primaryData.guestGroup),
-            },
-          };
-        case 'food':
-          return {
-            booking_type: 'food',
-            details: {
-              start_date: primaryData.startDay,
-              end_date: primaryData.endDay,
-              guestGroup: transformGuestGroup(primaryData.guestGroup),
-            },
-          };
-        case 'adhyayan':
-          return {
-            booking_type: 'adhyayan',
-            details: {
-              shibir_ids: [primaryData.adhyayan.id],
-              guests: primaryData.guestGroup.map((guest: any) => guest.id),
-            },
-          };
-        default:
-          throw new Error(`Unsupported primary booking type: ${primaryKey}`);
-      }
-    };
-
-    const transformAddons = (input: any) =>
-      Object.keys(input)
-        .filter((key) => key !== input.primary && key !== 'primary')
-        .map((key) => {
-          switch (key) {
-            case 'room':
-              return {
-                booking_type: key,
-                details: {
-                  checkin_date: input[key].startDay,
-                  checkout_date: input[key].endDay,
-                  guestGroup: transformGuestGroup(input[key].guestGroup),
-                },
-              };
-            case 'food':
-              return {
-                booking_type: key,
-                details: {
-                  start_date: input[key].startDay,
-                  end_date: input[key].endDay,
-                  guestGroup: transformGuestGroup(input[key].guestGroup),
-                },
-              };
-            case 'adhyayan':
-              return {
-                booking_type: 'adhyayan',
-                details: {
-                  shibir_ids: [input[key].adhyayan.id],
-                  guests: input[key].guests.map((guest: any) => guest.id),
-                },
-              };
-            case 'validationData':
-              return null;
-            default:
-              throw new Error(`Unsupported addon type: ${key}`);
-          }
-        })
-        .filter(Boolean);
-
-    return {
-      cardno: user.cardno,
-      primary_booking: primaryBookingDetails(input.primary),
-      addons: transformAddons(input),
-    };
-  };
-  const transformedData = transformData(JSON.parse(JSON.stringify(guestData)));
+  const transformedData = prepareGuestRequestBody(user, guestData);
 
   const fetchValidation = async () => {
     return new Promise((resolve, reject) => {
@@ -126,7 +36,8 @@ const guestBookingConfirmation = () => {
           setGuestData((prev: any) => ({ ...prev, validationData: res.data }));
           resolve(res.data);
         },
-        () => reject(new Error('Failed to fetch validation and transaction data'))
+        () => {},
+        (errorDetails: any) => reject(new Error(errorDetails.message))
       );
     });
   };
@@ -139,6 +50,7 @@ const guestBookingConfirmation = () => {
   }: any = useQuery({
     queryKey: ['guestValidations', user.cardno],
     queryFn: fetchValidation,
+    retry: false,
   });
 
   return (
@@ -183,23 +95,19 @@ const guestBookingConfirmation = () => {
                     </Text>
                   </View>
                 )}
-                {validationData.adhyayanDetails &&
-                  validationData.adhyayanDetails.length > 0 &&
-                  validationData.adhyayanDetails.reduce(
-                    (total: any, shibir: any) => total + shibir.charge,
-                    0
-                  ) && (
-                    <View className="flex-row items-center justify-between">
-                      <Text className="font-pregular text-base text-gray-500">Adhyayan Charge</Text>
-                      <Text className="font-pregular text-base text-black">
-                        ₹{' '}
-                        {validationData.adhyayanDetails.reduce(
-                          (total: any, shibir: any) => total + shibir.charge,
-                          0
-                        )}
-                      </Text>
-                    </View>
-                  )}
+                {validationData.adhyayanDetails && validationData.adhyayanDetails.length > 0 && (
+                  <View className="flex-row items-center justify-between">
+                    <Text className="font-pregular text-base text-gray-500">Adhyayan Charge</Text>
+                    <Text className="font-pregular text-base text-black">
+                      ₹{' '}
+                      {validationData.adhyayanDetails.reduce(
+                        (total: any, shibir: any) => total + shibir.charge,
+                        0
+                      )}
+                    </Text>
+                  </View>
+                )}
+
                 <View className="mt-2 flex-row items-center justify-between border-t border-gray-200 pt-4">
                   <Text className="font-psemibold text-xl text-gray-800">Total Charge</Text>
                   <Text className="font-psemibold text-xl text-secondary">
@@ -220,21 +128,29 @@ const guestBookingConfirmation = () => {
                 if (data.data?.amount == 0 || user.country != 'India')
                   router.replace('/bookingConfirmation');
                 else {
-                  var options = {
-                    key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
-                    name: 'Vitraag Vigyaan Aashray',
-                    image: 'https://vitraagvigyaan.org/img/logo.png',
-                    description: 'Payment for Vitraag Vigyaan Aashray',
-                    amount: `${data.data.amount}`,
-                    currency: 'INR',
-                    order_id: `${data.data.id}`,
-                    prefill: {
-                      email: `${user.email}`,
-                      contact: `${user.mobno}`,
-                      name: `${user.issuedto}`,
+                  Alert.alert('Booking Successful', 'Please proceed to home page', [
+                    {
+                      text: 'OK',
+                      onPress: () => {
+                        router.replace('/home');
+                      },
                     },
-                    theme: { color: colors.orange },
-                  };
+                  ]);
+                  // var options = {
+                  //   key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
+                  //   name: 'Vitraag Vigyaan Aashray',
+                  //   image: 'https://vitraagvigyaan.org/img/logo.png',
+                  //   description: 'Payment for Vitraag Vigyaan Aashray',
+                  //   amount: `${data.data.amount}`,
+                  //   currency: 'INR',
+                  //   order_id: `${data.data.id}`,
+                  //   prefill: {
+                  //     email: `${user.email}`,
+                  //     contact: `${user.mobno}`,
+                  //     name: `${user.issuedto}`,
+                  //   },
+                  //   theme: { color: colors.orange },
+                  // };
                   // RazorpayCheckout.open(options)
                   //   .then((rzrpayData: any) => {
                   //     // handle success
@@ -273,6 +189,15 @@ const guestBookingConfirmation = () => {
             isLoading={isSubmitting}
           />
         </View>
+
+        {validationDataError && (
+          <CustomModal
+            visible={true}
+            onClose={() => router.back()}
+            message={validationDataError.message}
+            btnText={'Okay'}
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );

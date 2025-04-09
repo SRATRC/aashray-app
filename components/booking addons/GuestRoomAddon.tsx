@@ -74,7 +74,7 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
   return (
     <AddonItem
       onCollapse={() => {
-        setRoomForm(INITIAL_ROOM_FORM);
+        setRoomForm(JSON.parse(JSON.stringify(INITIAL_ROOM_FORM)));
         setGuestData((prev: any) => {
           const { room, ...rest } = prev;
           return rest;
@@ -159,12 +159,13 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
         mode="date"
         date={roomForm.endDay ? moment(roomForm.endDay).toDate() : new Date()}
         onConfirm={(date: any) => {
+          const selectedMoment = moment(date);
+          const tomorrow = moment(roomForm.startDay).add(1, 'days');
+          const validDate = selectedMoment.isBefore(tomorrow) ? tomorrow : selectedMoment;
+
           setRoomForm({
             ...roomForm,
-            endDay:
-              moment(date).toDate() < moment().add(1, 'days').toDate()
-                ? moment().add(1, 'days').format('YYYY-MM-DD')
-                : moment(date).format('YYYY-MM-DD'),
+            endDay: moment(validDate).format('YYYY-MM-DD'),
           });
           setDatePickerVisibility({
             ...isDatePickerVisible,

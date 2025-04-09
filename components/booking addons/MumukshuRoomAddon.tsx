@@ -148,9 +148,13 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
         mode="date"
         date={roomForm.endDay ? moment(roomForm.endDay).toDate() : new Date()}
         onConfirm={(date: Date) => {
+          const selectedMoment = moment(date);
+          const tomorrow = moment(roomForm.startDay).add(1, 'days');
+          const validDate = selectedMoment.isBefore(tomorrow) ? tomorrow : selectedMoment;
+
           setRoomForm({
             ...roomForm,
-            endDay: moment(date).format('YYYY-MM-DD'),
+            endDay: moment(validDate).format('YYYY-MM-DD'),
           });
           setDatePickerVisibility({
             ...isDatePickerVisible,

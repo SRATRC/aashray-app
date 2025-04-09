@@ -5,6 +5,7 @@ import {
   RefreshControl,
   Platform,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,13 +13,14 @@ import { FlashList } from '@shopify/flash-list';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { icons, colors, status } from '../../constants';
+import { Image } from 'react-native';
+import { useRouter } from 'expo-router';
 import PageHeader from '../../components/PageHeader';
 import CustomEmptyMessage from '../../components/CustomEmptyMessage';
 import CustomErrorMessage from '../../components/CustomErrorMessage';
 import CustomButton from '../../components/CustomButton';
 import handleAPICall from '../../utils/HandleApiCall';
 import moment from 'moment';
-import { Image } from 'react-native';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
 // @ts-ignore
@@ -26,6 +28,8 @@ import * as Haptics from 'expo-haptics';
 
 const PendingPayments = () => {
   const { user } = useGlobalContext();
+  const router = useRouter();
+
   const queryClient = useQueryClient();
   const [selectedPayments, setSelectedPayments] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -79,11 +83,6 @@ const PendingPayments = () => {
       setSelectedPayments([]);
       queryClient.invalidateQueries({
         queryKey: ['pendingPayments', user.cardno],
-      });
-      Toast.show({
-        type: 'success',
-        text1: 'Payment initiated successfully',
-        swipeable: false,
       });
     },
   });
@@ -154,24 +153,32 @@ const PendingPayments = () => {
         });
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       } else {
-        // Configure Razorpay
-        const options = {
-          key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,
-          name: 'Vitraag Vigyaan Aashray',
-          image: 'https://vitraagvigyaan.org/img/logo.png',
-          description: `Payment for ${selectedPayments.length} item${selectedPayments.length > 1 ? 's' : ''}`,
-          amount: result.data.amount,
-          currency: 'INR',
-          order_id: result.data.id,
-          prefill: {
-            email: user.email,
-            contact: user.mobno,
-            name: user.issuedto,
+        Alert.alert('Booking Successful', 'Please proceed to home page', [
+          {
+            text: 'OK',
+            onPress: () => {
+              router.replace('/home');
+            },
           },
-          theme: { color: colors.orange },
-        };
+        ]);
+        // // Configure Razorpay
+        // const options = {
+        //   key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,
+        //   name: 'Vitraag Vigyaan Aashray',
+        //   image: 'https://vitraagvigyaan.org/img/logo.png',
+        //   description: `Payment for ${selectedPayments.length} item${selectedPayments.length > 1 ? 's' : ''}`,
+        //   amount: result.data.amount,
+        //   currency: 'INR',
+        //   order_id: result.data.id,
+        //   prefill: {
+        //     email: user.email,
+        //     contact: user.mobno,
+        //     name: user.issuedto,
+        //   },
+        //   theme: { color: colors.orange },
+        // };
 
-        // Open Razorpay
+        // // Open Razorpay
         // RazorpayCheckout.open(options)
         //   .then((_rzrpayData: any) => {
         //     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

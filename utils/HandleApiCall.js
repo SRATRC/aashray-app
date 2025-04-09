@@ -54,7 +54,14 @@ const handleAPICall = async (
     }
   } catch (error) {
     const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
-    if (errorCallback) errorCallback(errorMessage);
+    const errorDetails = {
+      message: errorMessage,
+      status: error.response?.status,
+      data: error.response?.data,
+      originalError: error,
+    };
+
+    if (errorCallback) errorCallback(errorDetails);
 
     console.log('ERROR: ', errorMessage);
 

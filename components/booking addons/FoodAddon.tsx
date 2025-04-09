@@ -82,7 +82,10 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
         onConfirm={(date: Date) => {
           // Ensure the selected date isn't before tomorrow
           const selectedMoment = moment(date);
-          const tomorrow = moment().add(1, 'days');
+          const tomorrow =
+            moment().hour() < 11
+              ? moment(new Date()).add(1, 'days')
+              : moment(new Date()).add(2, 'days');
           const validDate = selectedMoment.isBefore(tomorrow) ? tomorrow : selectedMoment;
 
           setFoodForm({
@@ -101,7 +104,11 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
             foodStart: false,
           })
         }
-        minimumDate={moment().add(1, 'days').toDate()}
+        minimumDate={
+          moment().hour() < 11
+            ? moment(new Date()).add(1, 'days').toDate()
+            : moment(new Date()).add(2, 'days').toDate()
+        }
       />
 
       <FormDisplayField
@@ -130,9 +137,13 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
         mode="date"
         date={foodForm.endDay ? moment(foodForm.endDay).toDate() : new Date()}
         onConfirm={(date: Date) => {
+          const selectedMoment = moment(date);
+          const tomorrow = moment(foodForm.startDay);
+          const validDate = selectedMoment.isBefore(tomorrow) ? tomorrow : selectedMoment;
+
           setFoodForm({
             ...foodForm,
-            endDay: moment(date).format('YYYY-MM-DD'),
+            endDay: moment(validDate).format('YYYY-MM-DD'),
           });
           setDatePickerVisibility({
             ...isDatePickerVisible,
@@ -145,9 +156,7 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
             foodEnd: false,
           })
         }
-        minimumDate={
-          foodForm.startDay ? moment(foodForm.startDay).add(1, 'days').toDate() : undefined
-        }
+        minimumDate={foodForm.startDay ? moment(foodForm.startDay).toDate() : undefined}
       />
 
       <CustomMultiSelectDropdown

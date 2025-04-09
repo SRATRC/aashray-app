@@ -280,6 +280,7 @@ const AdhyayanBooking = () => {
               <HorizontalSeparator otherStyles={'w-full'} />
 
               <FlatList
+                keyboardShouldPersistTaps="handled"
                 data={[{ key: 'bookFor' }, { key: 'guestForm' }, { key: 'confirmButton' }]}
                 renderItem={({ item }): any => {
                   if (item.key === 'bookFor') {

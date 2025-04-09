@@ -28,6 +28,7 @@ import CustomDropdown from '../CustomDropdown';
 import Toast from 'react-native-toast-message';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomEmptyMessage from '../CustomEmptyMessage';
+// @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 
 const CHIPS = ['Self', 'Guest', 'Mumukshus'];
