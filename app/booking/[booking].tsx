@@ -181,11 +181,24 @@ const details = () => {
                   );
                 };
 
-                const isTravelFormEmpty = () => {
-                  const excludedKey = 'type';
-                  return Object.entries(travelForm)
-                    .filter(([key]) => key !== excludedKey)
-                    .some(([_, value]) => value !== '');
+                const isTravelFormStarted = () => {
+                  // Check if user has started filling any of the main travel fields
+                  return (
+                    travelForm.date !== '' ||
+                    travelForm.pickup !== '' ||
+                    travelForm.drop !== '' ||
+                    travelForm.luggage !== ''
+                  );
+                };
+
+                const isTravelFormComplete = () => {
+                  // Check if all required travel fields are filled
+                  return (
+                    travelForm.date !== '' &&
+                    travelForm.pickup !== '' &&
+                    travelForm.drop !== '' &&
+                    travelForm.luggage !== ''
+                  );
                 };
 
                 const isAdhyayanFormEmpty = () => {
@@ -194,7 +207,7 @@ const details = () => {
 
                 if (booking !== types.ROOM_DETAILS_TYPE && isRoomFormEmpty()) {
                   if (Object.values(roomForm).some((value) => value == '')) {
-                    Alert.alert('Please fill all the fields');
+                    Alert.alert('Please fill all the room fields');
                     setIsSubmitting(false);
                     return;
                   }
@@ -208,7 +221,7 @@ const details = () => {
                 }
                 if (isFoodFormEmpty()) {
                   if (Object.values(foodForm).some((value) => value == '')) {
-                    Alert.alert('Please fill all the fields');
+                    Alert.alert('Please fill all the food fields');
                     setIsSubmitting(false);
                     return;
                   }
@@ -217,14 +230,10 @@ const details = () => {
                     food: { ...foodForm, meals: meals },
                   }));
                 }
-                if (booking !== types.TRAVEL_DETAILS_TYPE && isTravelFormEmpty()) {
-                  if (
-                    travelForm.date == '' ||
-                    travelForm.pickup == '' ||
-                    travelForm.drop == '' ||
-                    travelForm.luggage == ''
-                  ) {
-                    Alert.alert('Please fill all the fields');
+                if (booking !== types.TRAVEL_DETAILS_TYPE && isTravelFormStarted()) {
+                  // Only validate if user has started filling the travel form
+                  if (!isTravelFormComplete()) {
+                    Alert.alert('Please fill all the travel fields');
                     setIsSubmitting(false);
                     return;
                   }
