@@ -43,7 +43,9 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           date: '',
           pickup: '',
           drop: '',
+          arrival_time: '',
           luggage: '',
+          adhyayan: 0,
           type: 'regular',
           special_request: '',
         });
@@ -111,6 +113,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           })
         }
         boxbg={colors.gray_100}
+        save={'value'}
       />
 
       <CustomDropdown
@@ -125,7 +128,67 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           })
         }
         boxbg={colors.gray_100}
+        save={'value'}
       />
+
+      {(travelForm.pickup &&
+        dropdowns.LOCATION_LIST.find(
+          (loc) =>
+            loc.value === travelForm.pickup &&
+            (loc.value.toLowerCase().includes('railway') ||
+              loc.value.toLowerCase().includes('airport'))
+        )) ||
+      (travelForm.drop &&
+        dropdowns.LOCATION_LIST.find(
+          (loc) =>
+            loc.value === travelForm.drop &&
+            (loc.value.toLowerCase().includes('railway') ||
+              loc.value.toLowerCase().includes('airport'))
+        )) ? (
+        <>
+          <FormDisplayField
+            text="Flight/Train Time"
+            value={
+              travelForm.arrival_time
+                ? moment(travelForm.time).format('Do MMMM YYYY, h:mm a')
+                : 'Flight/Train Time'
+            }
+            otherStyles="mt-5"
+            inputStyles={'font-pmedium text-gray-400 text-lg'}
+            backgroundColor="bg-gray-100"
+            onPress={() =>
+              setDatePickerVisibility({
+                ...isDatePickerVisible,
+                travel_time: true,
+              })
+            }
+          />
+          <DateTimePickerModal
+            isVisible={isDatePickerVisible.travel_time}
+            mode="datetime"
+            date={travelForm.arrival_time ? moment(travelForm.arrival_time).toDate() : new Date()}
+            onConfirm={(date: Date) => {
+              setTravelForm((prev: any) => ({
+                ...prev,
+                arrival_time: date.toISOString(),
+              }));
+              setDatePickerVisibility({
+                ...isDatePickerVisible,
+                travel_time: false,
+              });
+            }}
+            onCancel={() =>
+              setDatePickerVisibility({
+                ...isDatePickerVisible,
+                travel_time: false,
+              })
+            }
+            minimumDate={
+              travelForm.arrival_time ? moment(travelForm.arrival_time).toDate() : moment().toDate()
+            }
+          />
+        </>
+      ) : null}
 
       <CustomDropdown
         otherStyles="mt-7"
@@ -134,6 +197,15 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         data={dropdowns.LUGGAGE_LIST}
         save={'value'}
         setSelected={(val: any) => setTravelForm({ ...travelForm, luggage: val })}
+      />
+
+      <CustomDropdown
+        otherStyles="mt-7"
+        text={'Leaving post adhyayan?'}
+        placeholder={'Leaving post adhyayan?'}
+        data={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
+        setSelected={(val: any) => setTravelForm({ ...travelForm, adhyayan: val })}
+        defaultOption={{ key: 0, value: 'No' }}
       />
 
       <CustomDropdown

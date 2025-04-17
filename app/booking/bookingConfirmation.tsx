@@ -114,7 +114,7 @@ const bookingConfirmation = () => {
         <View className="mt-6 w-full px-4">
           <CustomButton
             text={
-              validationData && validationData.totalCharge > 0 ? 'Proceed to Payment' : 'Continue'
+              validationData && validationData.totalCharge > 0 ? 'Proceed to Payment' : 'Confirm'
             }
             handlePress={async () => {
               setIsSubmitting(true);

@@ -23,7 +23,8 @@ let CHIPS = [
 const BookingCategories = () => {
   const { user } = useGlobalContext();
 
-  if (user.res_status == status.STATUS_RESIDENT) CHIPS.push(types.booking_type_flat);
+  if (user.res_status == status.STATUS_RESIDENT && !CHIPS.includes(types.booking_type_flat))
+    CHIPS.push(types.booking_type_flat);
 
   const [selectedChip, setSelectedChip] = useState(types.booking_type_adhyayan);
   const handleChipClick = (chip: any) => {

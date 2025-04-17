@@ -10,6 +10,9 @@ import FormField from '../FormField';
 import CustomModal from '../CustomModal';
 import CustomChipGroup from '../CustomChipGroup';
 import OtherMumukshuForm from '../OtherMumukshuForm';
+import FormDisplayField from '../FormDisplayField';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import moment from 'moment';
 
 let CHIPS = ['Self', 'Mumukshus'];
 
@@ -22,8 +25,10 @@ const INITIAL_MUMUKSHU_FORM = {
       pickup: '',
       drop: '',
       luggage: '',
+      adhyayan: 0,
       type: 'regular',
       special_request: '',
+      arrival_time: '',
     },
   ],
 };
@@ -50,26 +55,49 @@ const TravelBooking = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [activeMumukshuIndex, setActiveMumukshuIndex] = useState(null);
 
   const [travelForm, setTravelForm] = useState({
     date: '',
     pickup: '',
     drop: '',
+    arrival_time: '',
     luggage: '',
+    adhyayan: 0,
     type: 'regular',
     special_request: '',
   });
 
   const isSelfFormValid = () => {
+    const requiresTime =
+      (travelForm.pickup &&
+        dropdowns.LOCATION_LIST.find(
+          (loc: { value: string }) =>
+            loc.value === travelForm.pickup &&
+            (loc.value.toLowerCase().includes('railway') ||
+              loc.value.toLowerCase().includes('airport'))
+        )) ||
+      (travelForm.drop &&
+        dropdowns.LOCATION_LIST.find(
+          (loc: { value: string }) =>
+            loc.value === travelForm.drop &&
+            (loc.value.toLowerCase().includes('railway') ||
+              loc.value.toLowerCase().includes('airport'))
+        ));
+
     return (
       travelForm.date &&
       travelForm.pickup &&
       travelForm.drop &&
       travelForm.luggage &&
       travelForm.type &&
+      (!requiresTime || (requiresTime && travelForm.arrival_time)) &&
       !(
-        (travelForm.pickup == 'RC' && travelForm.drop == 'RC') ||
-        (travelForm.pickup != 'RC' && travelForm.drop != 'RC')
+        (travelForm.pickup == dropdowns.LOCATION_LIST[0].value &&
+          travelForm.drop == dropdowns.LOCATION_LIST[0].value) ||
+        (travelForm.pickup != dropdowns.LOCATION_LIST[0].value &&
+          travelForm.drop != dropdowns.LOCATION_LIST[0].value)
       )
     );
   };
@@ -87,8 +115,10 @@ const TravelBooking = () => {
           pickup: '',
           drop: '',
           luggage: '',
+          adhyayan: 0,
           type: 'regular',
           special_request: '',
+          arrival_time: '',
         },
       ],
     }));
@@ -113,19 +143,38 @@ const TravelBooking = () => {
   const isMumukshuFormValid = () => {
     return (
       mumukshuForm.date &&
-      mumukshuForm.mumukshus.every(
-        (mumukshu) =>
+      mumukshuForm.mumukshus.every((mumukshu) => {
+        const requiresTime =
+          (mumukshu.pickup &&
+            dropdowns.LOCATION_LIST.find(
+              (loc) =>
+                loc.value === mumukshu.pickup &&
+                (loc.key.toLowerCase().includes('railway') ||
+                  loc.key.toLowerCase().includes('airport'))
+            )) ||
+          (mumukshu.drop &&
+            dropdowns.LOCATION_LIST.find(
+              (loc) =>
+                loc.value === mumukshu.drop &&
+                (loc.key.toLowerCase().includes('railway') ||
+                  loc.key.toLowerCase().includes('airport'))
+            ));
+        return (
           mumukshu.mobno?.length === 10 &&
           mumukshu.cardno &&
           mumukshu.pickup &&
           mumukshu.drop &&
           mumukshu.luggage &&
           mumukshu.type &&
+          (!requiresTime || (requiresTime && mumukshu.arrival_time)) &&
           !(
-            (mumukshu.pickup === 'RC' && mumukshu.drop === 'RC') ||
-            (mumukshu.pickup !== 'RC' && mumukshu.drop !== 'RC')
+            (mumukshu.pickup === dropdowns.LOCATION_LIST[0].value &&
+              mumukshu.drop === dropdowns.LOCATION_LIST[0].value) ||
+            (mumukshu.pickup !== dropdowns.LOCATION_LIST[0].value &&
+              mumukshu.drop !== dropdowns.LOCATION_LIST[0].value)
           )
-      )
+        );
+      })
     );
   };
 
@@ -169,6 +218,55 @@ const TravelBooking = () => {
             save={'value'}
             setSelected={(val: any) => setTravelForm({ ...travelForm, drop: val })}
           />
+          {(travelForm.pickup &&
+            dropdowns.LOCATION_LIST.find(
+              (loc: { value: string }) =>
+                loc.value === travelForm.pickup &&
+                (loc.value.toLowerCase().includes('railway') ||
+                  loc.value.toLowerCase().includes('airport'))
+            )) ||
+          (travelForm.drop &&
+            dropdowns.LOCATION_LIST.find(
+              (loc: { value: string }) =>
+                loc.value === travelForm.drop &&
+                (loc.value.toLowerCase().includes('railway') ||
+                  loc.value.toLowerCase().includes('airport'))
+            )) ? (
+            <>
+              <FormDisplayField
+                text="Flight/Train Time"
+                value={
+                  travelForm.arrival_time
+                    ? moment(travelForm.arrival_time).format('Do MMMM YYYY, h:mm a')
+                    : 'Flight/Train Time'
+                }
+                otherStyles="mt-5"
+                inputStyles={'font-pmedium text-gray-400 text-lg'}
+                backgroundColor="bg-gray-100"
+                onPress={() => setDatePickerVisibility(true)}
+              />
+              <DateTimePickerModal
+                isVisible={isDatePickerVisible}
+                mode="datetime"
+                date={
+                  travelForm.arrival_time ? moment(travelForm.arrival_time).toDate() : new Date()
+                }
+                onConfirm={(date: Date) => {
+                  setTravelForm((prev) => ({
+                    ...prev,
+                    arrival_time: date.toISOString(),
+                  }));
+                  setDatePickerVisibility(false);
+                }}
+                onCancel={() => setDatePickerVisibility(false)}
+                minimumDate={
+                  travelForm.arrival_time
+                    ? moment(travelForm.arrival_time).toDate()
+                    : moment().toDate()
+                }
+              />
+            </>
+          ) : null}
           <CustomDropdown
             otherStyles="mt-7"
             text={'Luggage'}
@@ -179,6 +277,14 @@ const TravelBooking = () => {
           />
           <CustomDropdown
             otherStyles="mt-7"
+            text={'Leaving post adhyayan?'}
+            placeholder={'Leaving post adhyayan?'}
+            data={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
+            setSelected={(val: any) => setTravelForm({ ...travelForm, adhyayan: val })}
+            defaultOption={{ key: 0, value: 'No' }}
+          />
+          <CustomDropdown
+            otherStyles="mt-7"
             text={'Booking Type'}
             placeholder={'Select booking type'}
             data={dropdowns.BOOKING_TYPE_LIST}
@@ -186,7 +292,6 @@ const TravelBooking = () => {
             defaultOption={{ key: 'regular', value: 'Regular' }}
             setSelected={(val: any) => setTravelForm({ ...travelForm, type: val })}
           />
-
           <FormField
             text="Any Special Request?"
             value={travelForm.special_request}
@@ -195,6 +300,7 @@ const TravelBooking = () => {
             containerStyles="bg-gray-100"
             keyboardType="default"
             placeholder="please specify your request here..."
+            inputStyles={'font-pmedium text-gray-400 text-lg'}
           />
         </View>
       )}
@@ -215,6 +321,7 @@ const TravelBooking = () => {
                   placeholder={'Select Location'}
                   data={dropdowns.LOCATION_LIST}
                   setSelected={(val: any) => handleMumukshuFormChange(index, 'pickup', val)}
+                  save={'value'}
                 />
                 <CustomDropdown
                   otherStyles="mt-7"
@@ -222,13 +329,76 @@ const TravelBooking = () => {
                   placeholder={'Select Location'}
                   data={dropdowns.LOCATION_LIST}
                   setSelected={(val: any) => handleMumukshuFormChange(index, 'drop', val)}
+                  save={'value'}
                 />
+                {(mumukshuForm.mumukshus[index].pickup &&
+                  dropdowns.LOCATION_LIST.find(
+                    (loc) =>
+                      loc.value === mumukshuForm.mumukshus[index].pickup &&
+                      (loc.key.toLowerCase().includes('railway') ||
+                        loc.key.toLowerCase().includes('airport'))
+                  )) ||
+                (mumukshuForm.mumukshus[index].drop &&
+                  dropdowns.LOCATION_LIST.find(
+                    (loc) =>
+                      loc.value === mumukshuForm.mumukshus[index].drop &&
+                      (loc.key.toLowerCase().includes('railway') ||
+                        loc.key.toLowerCase().includes('airport'))
+                  )) ? (
+                  <>
+                    <FormDisplayField
+                      text="Flight/Train Time"
+                      value={
+                        mumukshuForm.mumukshus[index].arrival_time
+                          ? moment(mumukshuForm.mumukshus[index].arrival_time).format(
+                              'Do MMMM YYYY, h:mm a'
+                            )
+                          : 'Flight/Train Time'
+                      }
+                      otherStyles="mt-5"
+                      inputStyles={'font-pmedium text-gray-400 text-lg'}
+                      backgroundColor="bg-gray-100"
+                      onPress={() => {
+                        setDatePickerVisibility(true);
+                        setActiveMumukshuIndex(index);
+                      }}
+                    />
+                    <DateTimePickerModal
+                      isVisible={isDatePickerVisible && activeMumukshuIndex === index}
+                      mode="datetime"
+                      date={
+                        mumukshuForm.mumukshus[index].arrival_time
+                          ? moment(mumukshuForm.mumukshus[index].arrival_time).toDate()
+                          : new Date()
+                      }
+                      onConfirm={(date: Date) => {
+                        handleMumukshuFormChange(index, 'arrival_time', date.toISOString());
+                        setDatePickerVisibility(false);
+                      }}
+                      onCancel={() => setDatePickerVisibility(false)}
+                      minimumDate={
+                        mumukshuForm.mumukshus[index].arrival_time
+                          ? moment(mumukshuForm.mumukshus[index].arrival_time).toDate()
+                          : moment().toDate()
+                      }
+                    />
+                  </>
+                ) : null}
                 <CustomDropdown
                   otherStyles="mt-7"
                   text={'Luggage'}
                   placeholder={'Select any luggage'}
                   data={dropdowns.LUGGAGE_LIST}
+                  save={'value'}
                   setSelected={(val: any) => handleMumukshuFormChange(index, 'luggage', val)}
+                />
+                <CustomDropdown
+                  otherStyles="mt-7"
+                  text={'Leaving post adhyayan?'}
+                  placeholder={'Leaving post adhyayan?'}
+                  data={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
+                  setSelected={(val: any) => handleMumukshuFormChange(index, 'adhyayan', val)}
+                  defaultOption={{ key: 0, value: 'No' }}
                 />
                 <CustomDropdown
                   otherStyles="mt-7"
@@ -236,12 +406,13 @@ const TravelBooking = () => {
                   placeholder={'Select booking type'}
                   data={dropdowns.BOOKING_TYPE_LIST}
                   defaultOption={{ key: 'regular', value: 'Regular' }}
+                  save={'value'}
                   setSelected={(val: any) => handleMumukshuFormChange(index, 'type', val)}
                 />
 
                 <FormField
                   text="Any Special Request?"
-                  value={travelForm.special_request}
+                  value={mumukshuForm.mumukshus[index].special_request}
                   handleChangeText={(e: any) =>
                     handleMumukshuFormChange(index, 'special_request', e)
                   }
@@ -249,6 +420,7 @@ const TravelBooking = () => {
                   containerStyles="bg-gray-100"
                   keyboardType="default"
                   placeholder="please specify your request here..."
+                  inputStyles={'font-pmedium text-gray-400 text-lg'}
                 />
               </>
             )}
@@ -278,14 +450,13 @@ const TravelBooking = () => {
               return;
             }
             const temp = transformMumukshuData(mumukshuForm);
-
             await updateMumukshuBooking('travel', temp);
             router.push(`/mumukshuBooking/${types.TRAVEL_DETAILS_TYPE}`);
           }
         }}
         containerStyles="mt-7 w-full px-1 min-h-[62px]"
         isLoading={isSubmitting}
-        isDisabled={!isSelfFormValid()}
+        isDisabled={selectedChip == CHIPS[0] ? !isSelfFormValid() : !isMumukshuFormValid()}
       />
       <CustomModal
         visible={modalVisible}

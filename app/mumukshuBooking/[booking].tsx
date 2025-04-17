@@ -54,6 +54,8 @@ const INITIAL_TRAVEL_FORM = {
       drop: '',
       luggage: '',
       type: 'regular',
+      adhyayan: 0,
+      arrival_time: '',
       special_request: '',
       mumukshus: [],
       mumukshuIndices: [],
@@ -247,7 +249,9 @@ const MumukshuAddons = () => {
         {
           pickup: '',
           drop: '',
+          arrival_time: '',
           luggage: '',
+          adhyayan: 0,
           type: 'regular',
           special_request: '',
           mumukshus: [],

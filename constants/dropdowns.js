@@ -31,16 +31,17 @@ const HIGHTEA_LIST = [
 ];
 
 const LOCATION_LIST = [
-  { key: 'rc', value: 'RC' },
-  { key: 'dadar', value: 'Dadar - Swaminarayan Temple' },
-  { key: 'amar mahar', value: 'Amar Mahal - Chembur/Ghatkopar' },
-  { key: 'mullund', value: 'Mullund Airoli Junction' },
+  { key: 'rc', value: 'Research Centre' },
+  { key: 'dadar', value: 'Dadar (Swaminarayan Temple)' },
+  { key: 'amar mahar', value: 'Amar Mahal' },
+  { key: 'airoli', value: 'Airoli' },
+  { key: 'vile parle', value: 'Vile Parle (Sahara Star)' },
   { key: 'airport t1', value: 'Airport Terminal 1' },
   { key: 'airport t2', value: 'Airport Terminal 2' },
-  { key: 'ltt', value: 'Lokmanya Tilak Terminus Station (LTT)' },
-  { key: 'cstm', value: 'Chatrapati Shivaji Terminus Station (CSTM)' },
-  { key: 'vile parle', value: 'Vile Parle East' },
-  { key: 'borivali', value: 'Borivali East' },
+  { key: 'bandra railway station', value: 'Railway Station (Bandra Terminus)' },
+  { key: 'kurla railway station', value: 'Railway Station (Kurla Terminus)' },
+  { key: 'csmt railway station', value: 'Railway Station (CSMT)' },
+  { key: 'mumbai central rrailway station', value: 'Railway Station (Mumbai Central)' },
 ];
 
 const LUGGAGE_LIST = [
@@ -54,6 +55,11 @@ const LUGGAGE_LIST = [
 const BOOKING_TYPE_LIST = [
   { key: 'regular', value: 'Regular' },
   { key: 'full', value: 'Full Car' },
+];
+
+const TRAVEL_ADHYAYAN_ASK_LIST = [
+  { key: 1, value: 'Yes' },
+  { key: 0, value: 'No' },
 ];
 
 const GUEST_TYPE_LIST = [
@@ -90,6 +96,7 @@ export default {
   LOCATION_LIST,
   LUGGAGE_LIST,
   BOOKING_TYPE_LIST,
+  TRAVEL_ADHYAYAN_ASK_LIST,
   GUEST_TYPE_LIST,
   GUEST_FOOD_TYPE_LIST,
   GUEST_SPICE_LIST,

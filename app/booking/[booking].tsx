@@ -80,6 +80,7 @@ const details = () => {
     foodStart: false,
     foodEnd: false,
     travel: false,
+    travel_time: false,
   });
 
   // TRAVEL BOOKING VARIABLES
@@ -87,6 +88,8 @@ const details = () => {
     date: '',
     pickup: '',
     drop: '',
+    adhyayan: 0,
+    arrival_time: '',
     luggage: '',
     type: 'regular',
     special_request: '',

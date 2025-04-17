@@ -20,7 +20,9 @@ export const prepareSelfRequestBody = (user, data) => {
         date: data.travel?.date,
         pickup_point: data.travel?.pickup,
         drop_point: data.travel?.drop,
+        arrival_time: data.travel?.arrival_time,
         luggage: data.travel?.luggage,
+        leaving_post_adhyayan: data.travel?.adhyayan,
         type: data.travel?.type,
         special_request: data.travel?.special_request,
       },
@@ -67,7 +69,9 @@ export const prepareSelfRequestBody = (user, data) => {
         date: data.travel?.date,
         pickup_point: data.travel?.pickup,
         drop_point: data.travel?.drop,
+        arrival_time: data.travel?.arrival_time,
         luggage: data.travel?.luggage,
+        leaving_post_adhyayan: data.travel?.adhyayan,
         type: data.travel?.type,
         comments: data.travel?.special_request,
       },
@@ -189,10 +193,37 @@ export const prepareMumukshuRequestBody = (user, input) => {
       if (group.cardno) return group.cardno;
       if (group.roomType) transformed.roomType = group.roomType;
       if (group.floorType && group.floorType !== 'n') transformed.floorType = group.floorType;
-      if (group.mumukshus)
+      if (group.mumukshus) {
         transformed.mumukshus = group.mumukshus.map((mumukshu) => mumukshu.cardno);
+
+        if (!group.arrival_time) {
+          const mumukshuWithArrivalTime = group.mumukshus.find((m) => m.arrival_time);
+          if (mumukshuWithArrivalTime)
+            transformed.arrival_time = mumukshuWithArrivalTime.arrival_time;
+        }
+        if (!group.adhyayan) {
+          const mumukshuWithAdhyayan = group.mumukshus.find((m) => m.adhyayan);
+          if (mumukshuWithAdhyayan)
+            transformed.leaving_post_adhyayan = mumukshuWithAdhyayan.adhyayan;
+        }
+        if (!group.luggage) {
+          const mumukshuWithLuggage = group.mumukshus.find((m) => m.luggage);
+          if (mumukshuWithLuggage) transformed.luggage = mumukshuWithLuggage.luggage;
+        }
+        if (!group.type) {
+          const mumukshuWithType = group.mumukshus.find((m) => m.type);
+          if (mumukshuWithType) transformed.type = mumukshuWithType.type;
+        }
+        if (!group.special_request) {
+          const mumukshuWithSpecialRequest = group.mumukshus.find((m) => m.special_request);
+          if (mumukshuWithSpecialRequest)
+            transformed.comments = mumukshuWithSpecialRequest.special_request;
+        }
+      }
       if (group.pickup) transformed.pickup_point = group.pickup;
       if (group.drop) transformed.drop_point = group.drop;
+      if (group.arrival_time) transformed.arrival_time = group.arrival_time;
+      if (group.adhyayan) transformed.leaving_post_adhyayan = group.adhyayan;
       if (group.luggage) transformed.luggage = group.luggage;
       if (group.type) transformed.type = group.type;
       if (group.special_request) transformed.comments = group.special_request;
@@ -293,8 +324,6 @@ export const prepareMumukshuRequestBody = (user, input) => {
       .filter(Boolean);
   return {
     cardno: user.cardno,
-    transaction_type: 'upi',
-    transaction_ref: '',
     primary_booking: primaryBookingDetails(input.primary),
     addons: transformAddons(input),
   };

@@ -98,7 +98,7 @@ const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
             <FormField
               text="Phone Number"
               value={mumukshu.mobno}
-              handleChangeText={(e) => handleMumukshuFormChange(index, 'mobno', e)}
+              handleChangeText={(e: any) => handleMumukshuFormChange(index, 'mobno', e)}
               otherStyles="mt-7"
               inputStyles="font-pmedium text-base text-gray-400"
               keyboardType="number-pad"

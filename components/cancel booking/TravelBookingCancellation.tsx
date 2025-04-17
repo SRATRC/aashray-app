@@ -170,7 +170,7 @@ const TravelBookingCancellation = () => {
             </View>
             <Text className="font-pmedium">{moment(item.date).format('Do MMMM, YYYY')}</Text>
             <Text className="font-pmedium text-secondary">
-              {item.pickup_point == 'RC'
+              {item.pickup_point == 'Research Centre'
                 ? 'Research Centre to Mumbai'
                 : 'Mumbai to Research Centre'}
             </Text>
@@ -188,32 +188,36 @@ const TravelBookingCancellation = () => {
         {item.drop_point == 'RC' ? (
           <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
             <Image source={icons.marker} className="h-4 w-4" resizeMode="contain" />
-            <Text className="font-pregular text-gray-400">Pickup Point: </Text>
-            <Text className="font-pmedium text-black">{item.pickup_point}</Text>
+            <Text className="font-pregular text-gray-400">Pickup Point:</Text>
+            <Text className="flex-1 font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
+              {item.pickup_point}
+            </Text>
           </View>
         ) : (
           <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
             <Image source={icons.marker} className="h-4 w-4" resizeMode="contain" />
-            <Text className="font-pregular text-gray-400">Drop Point: </Text>
-            <Text className="font-pmedium text-black">{item.drop_point}</Text>
+            <Text className="font-pregular text-gray-400">Drop Point:</Text>
+            <Text className="flex-1 font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
+              {item.drop_point}
+            </Text>
           </View>
         )}
         <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
           <Image source={icons.luggage} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Luggage: </Text>
+          <Text className="font-pregular text-gray-400">Luggage:</Text>
           <Text className="font-pmedium text-black">{item.luggage}</Text>
         </View>
         {item.comments && (
           <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
             <Image source={icons.request} className="h-4 w-4" resizeMode="contain" />
-            <Text className="font-pregular text-gray-400">Special Request: </Text>
+            <Text className="font-pregular text-gray-400">Special Request:</Text>
             <Text className="font-pmedium text-black">{item.comments}</Text>
           </View>
         )}
         {item.amount && (
           <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
             <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
-            <Text className="font-pregular text-gray-400">Charge: </Text>
+            <Text className="font-pregular text-gray-400">Charge:</Text>
             <Text className="font-pmedium text-black">₹ {item.amount}</Text>
           </View>
         )}

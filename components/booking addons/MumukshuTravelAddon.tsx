@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { icons, colors, dropdowns } from '../../constants';
 import CustomDropdown from '../CustomDropdown';
@@ -5,10 +6,9 @@ import CustomMultiSelectDropdowm from '../CustomMultiSelectDropdown';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
-import moment from 'moment';
 import HorizontalSeparator from '../HorizontalSeparator';
 import FormDisplayField from '../FormDisplayField';
-import { useEffect, useState } from 'react';
+import moment from 'moment';
 
 interface MumukshuTravelAddonProps {
   travelForm: any;
@@ -33,6 +33,8 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
   isDatePickerVisible,
   setDatePickerVisibility,
 }) => {
+  const [activeMumukshuIndex, setActiveMumukshuIndex] = useState(null);
+
   // Temporary state to hold the date for the checkin picker
   const [tempTravelDate, setTempTravelDate] = useState(new Date());
 
@@ -157,6 +159,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             placeholder={'Select Location'}
             data={dropdowns.LOCATION_LIST}
             setSelected={(val: any) => updateTravelForm(index, 'pickup', val)}
+            save={'value'}
           />
 
           <CustomDropdown
@@ -165,7 +168,62 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             placeholder={'Select Location'}
             data={dropdowns.LOCATION_LIST}
             setSelected={(val: any) => updateTravelForm(index, 'drop', val)}
+            save={'value'}
           />
+
+          {(travelForm.mumukshuGroup[index].pickup &&
+            dropdowns.LOCATION_LIST.find(
+              (loc) =>
+                loc.value === travelForm.mumukshuGroup[index].pickup &&
+                (loc.key.toLowerCase().includes('railway') ||
+                  loc.key.toLowerCase().includes('airport'))
+            )) ||
+          (travelForm.mumukshuGroup[index].drop &&
+            dropdowns.LOCATION_LIST.find(
+              (loc) =>
+                loc.value === travelForm.mumukshuGroup[index].drop &&
+                (loc.key.toLowerCase().includes('railway') ||
+                  loc.key.toLowerCase().includes('airport'))
+            )) ? (
+            <>
+              <FormDisplayField
+                text="Flight/Train Time"
+                value={
+                  travelForm.mumukshuGroup[index].arrival_time
+                    ? moment(travelForm.mumukshuGroup[index].arrival_time).format(
+                        'Do MMMM YYYY, h:mm a'
+                      )
+                    : 'Flight/Train Time'
+                }
+                otherStyles="mt-5"
+                inputStyles={'font-pmedium text-gray-400 text-lg'}
+                backgroundColor="bg-gray-100"
+                onPress={() => {
+                  setDatePickerVisibility(true);
+                  setActiveMumukshuIndex(index);
+                }}
+              />
+              <DateTimePickerModal
+                isVisible={isDatePickerVisible && activeMumukshuIndex === index}
+                mode="datetime"
+                date={
+                  travelForm.mumukshuGroup[index].time
+                    ? moment(travelForm.mumukshuGroup[index].time).toDate()
+                    : new Date()
+                }
+                onConfirm={(date: Date) => {
+                  updateTravelForm(index, 'arrival_time', date.toISOString());
+                  setDatePickerVisibility(false);
+                }}
+                onCancel={() => setDatePickerVisibility(false)}
+                minimumDate={
+                  travelForm.mumukshuGroup[index].arrival_time
+                    ? moment(travelForm.mumukshuGroup[index].arrival_time).toDate()
+                    : moment().toDate()
+                }
+              />
+            </>
+          ) : null}
 
           <CustomDropdown
             otherStyles="mt-5"
@@ -176,10 +234,20 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
           />
 
           <CustomDropdown
+            otherStyles="mt-7"
+            text={'Leaving post adhyayan?'}
+            placeholder={'Leaving post adhyayan?'}
+            data={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
+            setSelected={(val: any) => updateTravelForm(index, 'adhyayan', val)}
+            defaultOption={{ key: 0, value: 'No' }}
+          />
+
+          <CustomDropdown
             otherStyles="mt-5"
             text={'Booking Type'}
             placeholder={'Select booking type'}
             data={dropdowns.BOOKING_TYPE_LIST}
+            defaultOption={{ key: 'regular', value: 'Regular' }}
             setSelected={(val: any) => updateTravelForm(index, 'type', val)}
           />
 
