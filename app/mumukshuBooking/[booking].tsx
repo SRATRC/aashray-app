@@ -118,6 +118,7 @@ const MumukshuAddons = () => {
     foodStart: false,
     foodEnd: false,
     travel: false,
+    travel_time: false,
   });
 
   // Room Addon Form Data

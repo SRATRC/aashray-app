@@ -53,7 +53,7 @@ const AdhyayanBookingCancellation = () => {
   });
 
   const cancelBookingMutation = useMutation<any, any, any>({
-    mutationFn: ({ cardno, shibir_id, bookedFor }) => {
+    mutationFn: ({ cardno, shibir_id, bookedBy }) => {
       return new Promise((resolve, reject) => {
         handleAPICall(
           'DELETE',
@@ -62,14 +62,14 @@ const AdhyayanBookingCancellation = () => {
           {
             cardno,
             shibir_id,
-            bookedFor,
+            bookedBy,
           },
           (res: any) => resolve(res),
           () => reject(new Error('Failed to cancel booking'))
         );
       });
     },
-    onSuccess: (_, { shibir_id, bookedFor }) => {
+    onSuccess: (_, { shibir_id, bookedBy }) => {
       queryClient.setQueryData(['adhyayanBooking', user.cardno], (oldData: any) => {
         if (!oldData || !oldData.pages) return oldData;
 
@@ -79,7 +79,7 @@ const AdhyayanBookingCancellation = () => {
             page.map((booking: any) => {
               const isMatchingBooking =
                 booking.shibir_id === shibir_id &&
-                (booking.bookedFor !== 'NA' ? booking.bookedFor == bookedFor : true);
+                (booking.bookedBy !== 'NA' ? booking.bookedBy == bookedBy : true);
 
               if (!isMatchingBooking) {
                 return booking;
@@ -177,9 +177,9 @@ const AdhyayanBookingCancellation = () => {
                 {moment(item.start_date).format('Do MMMM')} -{' '}
                 {moment(item.end_date).format('Do MMMM, YYYY')}
               </Text>
-              {item.bookedFor && (
+              {item.bookedBy && (
                 <Text className="font-pmedium">
-                  Booked For: <Text className="text-secondary">{item.user_name}</Text>
+                  Booked For:<Text className="text-secondary">{item.user_name}</Text>
                 </Text>
               )}
             </View>
@@ -191,17 +191,17 @@ const AdhyayanBookingCancellation = () => {
       <View className="mt-3">
         <View className="flex flex-row items-center gap-x-2 px-2">
           <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Swadhyay Karta: </Text>
+          <Text className="font-pregular text-gray-400">Swadhyay Karta:</Text>
           <Text className="font-pmedium text-black">{item.speaker}</Text>
         </View>
         <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
           <Image source={icons.marker} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Location: </Text>
+          <Text className="font-pregular text-gray-400">Location:</Text>
           <Text className="font-pmedium text-black">{item.location}</Text>
         </View>
         <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
           <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Charge: </Text>
+          <Text className="font-pregular text-gray-400">Charge:</Text>
           <Text className="font-pmedium text-black">₹ {item.amount}</Text>
         </View>
         {moment(item.start_date).diff(moment().format('YYYY-MM-DD')) > 0 &&
@@ -214,7 +214,7 @@ const AdhyayanBookingCancellation = () => {
                 cancelBookingMutation.mutate({
                   shibir_id: item.shibir_id,
                   cardno: item.cardno,
-                  bookedFor: item.bookedFor == 'NA' ? undefined : item.bookedFor,
+                  bookedBy: item.bookedFor == 'NA' ? undefined : item.bookedBy,
                 });
               }}
             />

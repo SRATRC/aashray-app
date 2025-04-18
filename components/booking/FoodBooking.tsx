@@ -1,5 +1,5 @@
 import { View, Alert, Text } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { colors, dropdowns, status } from '../../constants';
@@ -31,7 +31,7 @@ const FoodBooking = () => {
   const [foodForm, setFoodForm] = useState({
     startDay: '',
     endDay: '',
-    spicy: null,
+    spicy: 1,
     hightea: 'NONE',
   });
 
@@ -45,7 +45,7 @@ const FoodBooking = () => {
         mobno: '',
         type: '',
         meals: [],
-        spicy: null,
+        spicy: 1,
         hightea: 'NONE',
       },
     ],
@@ -73,7 +73,7 @@ const FoodBooking = () => {
           mobno: '',
           type: '',
           meals: [],
-          spicy: null,
+          spicy: 1,
           hightea: 'NONE',
         },
       ],
@@ -86,7 +86,7 @@ const FoodBooking = () => {
         ? {
             ...guest,
             [field]: value,
-            ...(field === 'name' && { id: undefined }),
+            ...(field === 'name' && { cardno: undefined }),
           }
         : guest
     );
@@ -108,7 +108,7 @@ const FoodBooking = () => {
       guestForm.guests.every((guest: any) => {
         const baseValidation = guest.meals.length > 0 && guest.spicy !== null && guest.hightea;
 
-        const identityValidation = guest.id
+        const identityValidation = guest.cardno
           ? guest.mobno && guest.mobno?.length == 10
           : guest.mobno && guest.mobno?.length == 10 && guest.name && guest.gender && guest.type;
 
@@ -125,7 +125,7 @@ const FoodBooking = () => {
         cardno: '',
         mobno: '',
         meals: [],
-        spicy: null,
+        spicy: 1,
         hightea: 'NONE',
       },
     ],
@@ -140,7 +140,7 @@ const FoodBooking = () => {
           cardno: '',
           mobno: '',
           meals: [],
-          spicy: null,
+          spicy: 1,
           hightea: 'NONE',
         },
       ],
@@ -320,6 +320,7 @@ const FoodBooking = () => {
                   data={dropdowns.SPICE_LIST}
                   setSelected={(val: any) => handleGuestFormChange(index, 'spicy', val)}
                   value={guestForm.guests[index].spicy}
+                  defaultOption={dropdowns.SPICE_LIST[0]}
                 />
 
                 <CustomDropdown
@@ -347,7 +348,7 @@ const FoodBooking = () => {
               }
 
               const guests = guestForm.guests.map((guest: any) => ({
-                id: guest.id ? guest.id : null,
+                cardno: guest.cardno ? guest.cardno : null,
                 name: guest.name,
                 gender: guest.gender,
                 type: guest.type,
@@ -367,7 +368,9 @@ const FoodBooking = () => {
                     const matchingApiGuest = res.guests.find(
                       (apiGuest: any) => apiGuest.name === formGuest.name
                     );
-                    return matchingApiGuest ? { ...formGuest, id: matchingApiGuest.id } : formGuest;
+                    return matchingApiGuest
+                      ? { ...formGuest, cardno: matchingApiGuest.cardno }
+                      : formGuest;
                   });
 
                   const transformedData = transformGuestData({
@@ -558,7 +561,7 @@ function transformGuestData(inputData: any) {
       };
     }
 
-    acc[key].guests.push(guest.id);
+    acc[key].guests.push(guest.cardno);
 
     return acc;
   }, {});

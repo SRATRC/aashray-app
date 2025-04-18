@@ -204,7 +204,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
                 }}
               />
               <DateTimePickerModal
-                isVisible={isDatePickerVisible && activeMumukshuIndex === index}
+                isVisible={isDatePickerVisible.travel_time && activeMumukshuIndex === index}
                 mode="datetime"
                 date={
                   travelForm.mumukshuGroup[index].time
@@ -213,9 +213,11 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
                 }
                 onConfirm={(date: Date) => {
                   updateTravelForm(index, 'arrival_time', date.toISOString());
-                  setDatePickerVisibility(false);
+                  setDatePickerVisibility({ ...isDatePickerVisible, travel_time: false });
                 }}
-                onCancel={() => setDatePickerVisibility(false)}
+                onCancel={() =>
+                  setDatePickerVisibility({ ...isDatePickerVisible, travel_time: false })
+                }
                 minimumDate={
                   travelForm.mumukshuGroup[index].arrival_time
                     ? moment(travelForm.mumukshuGroup[index].arrival_time).toDate()

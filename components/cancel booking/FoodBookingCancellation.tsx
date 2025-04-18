@@ -289,13 +289,13 @@ const FoodBookingCancellation = () => {
               />
               <View className="flex-row items-center">
                 <Image source={icons.meal} resizeMode="contain" className="h-4 w-4" />
-                <Text className="ml-1 text-gray-400">{'Meal Type'}</Text>
+                <Text className="ml-1 text-gray-400">Meal Type</Text>
                 <Text className="ml-1 font-pmedium text-black">{item.mealType}</Text>
               </View>
-              {item.bookedFor && (
+              {item.bookedBy && (
                 <View className="flex-row items-center">
                   <Image source={icons.person} resizeMode="contain" className="h-4 w-4" />
-                  <Text className="ml-1 text-gray-400">{'Booked For'}</Text>
+                  <Text className="ml-1 text-gray-400">Booked For</Text>
                   <Text className="ml-1 font-pmedium text-black">{item.name}</Text>
                 </View>
               )}

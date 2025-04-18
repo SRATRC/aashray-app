@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { icons, types } from '../../constants';
+import { dropdowns, icons, types } from '../../constants';
 import { useQuery } from '@tanstack/react-query';
 import { prepareSelfRequestBody } from '~/utils/preparingRequestBody';
 import CustomButton from '../../components/CustomButton';
@@ -60,8 +60,8 @@ const details = () => {
   const [foodForm, setFoodForm] = useState({
     startDay: '',
     endDay: '',
-    spicy: '',
-    hightea: 'NONE',
+    spicy: dropdowns.SPICE_LIST[0].key,
+    hightea: dropdowns.HIGHTEA_LIST[0].key,
   });
 
   const [meals, setMeals] = useState([]);
@@ -70,8 +70,8 @@ const details = () => {
   const [roomForm, setRoomForm] = useState({
     startDay: '',
     endDay: '',
-    roomType: '',
-    floorType: '',
+    roomType: dropdowns.ROOM_TYPE_LIST[0].key,
+    floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
   });
 
   const [isDatePickerVisible, setDatePickerVisibility] = useState({
@@ -91,7 +91,7 @@ const details = () => {
     adhyayan: 0,
     arrival_time: '',
     luggage: '',
-    type: 'regular',
+    type: dropdowns.BOOKING_TYPE_LIST[0].value,
     special_request: '',
   });
 
@@ -168,15 +168,16 @@ const details = () => {
               handlePress={() => {
                 setIsSubmitting(true);
 
-                const isRoomFormEmpty = () => {
-                  return Object.values(roomForm).some((value) => value != '');
+                const hasRoomFormData = () => {
+                  return roomForm.startDay && roomForm.endDay;
                 };
 
-                const isFoodFormEmpty = () => {
-                  const excludedKey = 'hightea';
+                const hasFoodFormData = () => {
+                  // Check if any fields other than 'hightea' and 'spicy' are filled
+                  // or if meals array is not empty
                   return (
                     Object.entries(foodForm)
-                      .filter(([key]) => key !== excludedKey)
+                      .filter(([key]) => key !== 'hightea' && key !== 'spicy')
                       .some(([_, value]) => value !== '') || meals.length !== 0
                   );
                 };
@@ -205,7 +206,7 @@ const details = () => {
                   return adhyayanBookingList.length != 0;
                 };
 
-                if (booking !== types.ROOM_DETAILS_TYPE && isRoomFormEmpty()) {
+                if (booking !== types.ROOM_DETAILS_TYPE && hasRoomFormData()) {
                   if (Object.values(roomForm).some((value) => value == '')) {
                     Alert.alert('Please fill all the room fields');
                     setIsSubmitting(false);
@@ -219,9 +220,14 @@ const details = () => {
                     adhyayan: adhyayanBookingList,
                   }));
                 }
-                if (isFoodFormEmpty()) {
-                  if (Object.values(foodForm).some((value) => value == '')) {
-                    Alert.alert('Please fill all the food fields');
+                if (hasFoodFormData()) {
+                  // Check if any required fields are empty (excluding 'spicy')
+                  const requiredFields = Object.entries(foodForm)
+                    .filter(([key]) => key !== 'spicy' && key !== 'hightea')
+                    .some(([_, value]) => value === '');
+
+                  if (requiredFields) {
+                    Alert.alert('Please fill all the required food fields');
                     setIsSubmitting(false);
                     return;
                   }

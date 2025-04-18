@@ -46,8 +46,8 @@ const INITIAL_GUEST_FORM = {
       gender: '',
       mobno: '',
       type: '',
-      roomType: '',
-      floorType: '',
+      roomType: dropdowns.ROOM_TYPE_LIST[0].key,
+      floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
     },
   ],
 };
@@ -59,8 +59,8 @@ const INITIAL_MUMUKSHU_FORM = {
     {
       cardno: '',
       mobno: '',
-      roomType: '',
-      floorType: '',
+      roomType: dropdowns.ROOM_TYPE_LIST[0].key,
+      floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
     },
   ],
 };
@@ -192,9 +192,18 @@ const RoomBooking = () => {
   const [multiDayForm, setMultiDayForm] = useState({
     startDay: '',
     endDay: '',
-    roomType: '',
-    floorType: '',
+    roomType: dropdowns.ROOM_TYPE_LIST[0].key,
+    floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
   });
+
+  const isMultiDayFormValid = () => {
+    return (
+      multiDayForm.startDay &&
+      multiDayForm.endDay &&
+      multiDayForm.roomType &&
+      multiDayForm.floorType
+    );
+  };
 
   const [guestForm, setGuestForm] = useState(INITIAL_GUEST_FORM);
 
@@ -208,8 +217,8 @@ const RoomBooking = () => {
           gender: '',
           mobno: '',
           type: '',
-          roomType: '',
-          floorType: '',
+          roomType: dropdowns.ROOM_TYPE_LIST[0].key,
+          floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
         },
       ],
     }));
@@ -260,8 +269,8 @@ const RoomBooking = () => {
         {
           cardno: '',
           mobno: '',
-          roomType: '',
-          floorType: '',
+          roomType: dropdowns.ROOM_TYPE_LIST[0].key,
+          floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
         },
       ],
     }));
@@ -351,6 +360,7 @@ const RoomBooking = () => {
                 placeholder={'Select Room Type'}
                 data={dropdowns.ROOM_TYPE_LIST}
                 setSelected={(val: any) => setMultiDayForm({ ...multiDayForm, roomType: val })}
+                defaultOption={dropdowns.ROOM_TYPE_LIST[0]}
               />
 
               <CustomDropdown
@@ -359,18 +369,14 @@ const RoomBooking = () => {
                 placeholder={'Select Floor Type'}
                 data={dropdowns.FLOOR_TYPE_LIST}
                 setSelected={(val: any) => setMultiDayForm({ ...multiDayForm, floorType: val })}
+                defaultOption={dropdowns.FLOOR_TYPE_LIST[0]}
               />
 
               <CustomButton
                 text="Book Now"
                 handlePress={async () => {
                   setIsSubmitting(true);
-                  if (
-                    !multiDayForm.startDay ||
-                    !multiDayForm.endDay ||
-                    !multiDayForm.roomType ||
-                    !multiDayForm.floorType
-                  ) {
+                  if (!isMultiDayFormValid()) {
                     setModalVisible(true);
                     setModalMessage('Please enter all details');
                     setIsSubmitting(false);
@@ -382,6 +388,7 @@ const RoomBooking = () => {
                 }}
                 containerStyles="mt-7 min-h-[62px]"
                 isLoading={isSubmitting}
+                isDisabled={!isMultiDayFormValid()}
               />
             </View>
           )}
@@ -402,6 +409,7 @@ const RoomBooking = () => {
                       data={dropdowns.ROOM_TYPE_LIST}
                       value={guestForm.guests[index].roomType}
                       setSelected={(val: any) => handleGuestFormChange(index, 'roomType', val)}
+                      defaultOption={dropdowns.ROOM_TYPE_LIST[0]}
                     />
 
                     <CustomDropdown
@@ -411,6 +419,7 @@ const RoomBooking = () => {
                       data={dropdowns.FLOOR_TYPE_LIST}
                       value={guestForm.guests[index].floorType}
                       setSelected={(val: any) => handleGuestFormChange(index, 'floorType', val)}
+                      defaultOption={dropdowns.FLOOR_TYPE_LIST[0]}
                     />
                   </>
                 )}
@@ -491,6 +500,7 @@ const RoomBooking = () => {
                       placeholder={'Select Room Type'}
                       data={dropdowns.ROOM_TYPE_LIST}
                       setSelected={(val: any) => handleMumukshuFormChange(index, 'roomType', val)}
+                      defaultOption={dropdowns.ROOM_TYPE_LIST[0]}
                     />
 
                     <CustomDropdown
@@ -499,6 +509,7 @@ const RoomBooking = () => {
                       placeholder={'Select Floor Type'}
                       data={dropdowns.FLOOR_TYPE_LIST}
                       setSelected={(val: any) => handleMumukshuFormChange(index, 'floorType', val)}
+                      defaultOption={dropdowns.FLOOR_TYPE_LIST[0]}
                     />
                   </View>
                 )}
@@ -629,9 +640,7 @@ const RoomBooking = () => {
                     guests: guests,
                   },
                   async (res: any) => {
-                    const updatedGuests = res.guests.map((guest: any) => ({
-                      cardno: guest.cardno,
-                    }));
+                    const updatedGuests = res.guests.map((guest: any) => guest.cardno);
 
                     await handleAPICall(
                       'POST',
@@ -644,9 +653,11 @@ const RoomBooking = () => {
                           details: {
                             checkin_date: selectedDay,
                             checkout_date: selectedDay,
-                            guestGroup: {
-                              guests: updatedGuests,
-                            },
+                            guestGroup: [
+                              {
+                                guests: updatedGuests,
+                              },
+                            ],
                           },
                         },
                       },
@@ -725,7 +736,7 @@ function transformGuestApiResponse(apiResponse: any) {
 
   // Group guests by roomType and floorType
   const groupedGuests = guests.reduce((acc: any, guest: any, index: any) => {
-    const { roomType, floorType, cardno, name } = guest;
+    const { roomType, floorType, cardno, issuedto } = guest;
 
     // Find existing group with the same roomType and floorType
     const groupKey = `${roomType}_${floorType}`;
@@ -738,7 +749,7 @@ function transformGuestApiResponse(apiResponse: any) {
     }
 
     // Add the guest to the appropriate group
-    acc[groupKey].guests.push({ cardno, name });
+    acc[groupKey].guests.push({ cardno, issuedto });
 
     return acc;
   }, {});

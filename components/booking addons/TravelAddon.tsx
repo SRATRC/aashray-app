@@ -46,7 +46,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           arrival_time: '',
           luggage: '',
           adhyayan: 0,
-          type: 'regular',
+          type: dropdowns.BOOKING_TYPE_LIST[0].value,
           special_request: '',
         });
         setData((prev: any) => {
@@ -214,7 +214,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         placeholder={'Select booking type'}
         data={dropdowns.BOOKING_TYPE_LIST}
         save={'value'}
-        defaultOption={{ key: 'regular', value: 'Regular' }}
+        defaultOption={dropdowns.BOOKING_TYPE_LIST[0]}
         setSelected={(val: any) => setTravelForm({ ...travelForm, type: val })}
       />
 

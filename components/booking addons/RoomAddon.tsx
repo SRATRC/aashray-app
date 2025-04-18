@@ -41,8 +41,8 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
     <AddonItem
       onCollapse={() => {
         setRoomForm({
-          roomType: '',
-          floorType: '',
+          roomType: dropdowns.ROOM_TYPE_LIST[0].key,
+          floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
           startDay: '',
           endDay: '',
         });
@@ -160,6 +160,7 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
         placeholder={'Select Room Type'}
         data={dropdowns.ROOM_TYPE_LIST}
         setSelected={(val: any) => setRoomForm({ ...roomForm, roomType: val })}
+        defaultOption={dropdowns.ROOM_TYPE_LIST[0]}
       />
 
       <CustomDropdown
@@ -168,6 +169,7 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
         placeholder={'Select Floor Type'}
         data={dropdowns.FLOOR_TYPE_LIST}
         setSelected={(val: any) => setRoomForm({ ...roomForm, floorType: val })}
+        defaultOption={dropdowns.FLOOR_TYPE_LIST[0]}
       />
     </AddonItem>
   );

@@ -75,7 +75,7 @@ const guestAddons = () => {
     guestData.adhyayan?.guestGroup;
   const guest_dropdown = guests.map((guest: any, index: any) => ({
     value: index,
-    label: guest.name,
+    label: guest.issuedto,
   }));
 
   const router = useRouter();

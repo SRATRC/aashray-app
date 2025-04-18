@@ -99,7 +99,7 @@ export const prepareGuestRequestBody = (user, input) => {
       const transformed = {};
       if (group.roomType) transformed.roomType = group.roomType;
       if (group.floorType && group.floorType !== 'n') transformed.floorType = group.floorType;
-      if (group.guests) transformed.guests = group.guests.map((guest) => guest.id);
+      if (group.guests) transformed.guests = group.guests.map((guest) => guest.cardno);
       if (group.meals) transformed.meals = group.meals;
       if (group.spicy !== undefined) transformed.spicy = group.spicy;
       if (group.hightea) transformed.high_tea = group.hightea;

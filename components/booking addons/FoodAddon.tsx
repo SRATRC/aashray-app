@@ -2,14 +2,14 @@ import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { icons, dropdowns } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import React, { useEffect, useState } from 'react';
-import moment from 'moment';
 import CustomDropdown from '../CustomDropdown';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FormDisplayField from '../FormDisplayField';
 import AddonItem from '../AddonItem';
 import CustomMultiSelectDropdown from '../CustomMultiSelectDropdown';
-import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
+import Toast from 'react-native-toast-message';
+import moment from 'moment';
 
 interface FoodAddonProps {
   foodForm: any;
@@ -46,8 +46,8 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
         setFoodForm({
           startDay: '',
           endDay: '',
-          spicy: '',
-          hightea: 'NONE',
+          spicy: dropdowns.SPICE_LIST[0].key,
+          hightea: dropdowns.HIGHTEA_LIST[0].key,
         });
         setMeals([]);
 
@@ -173,6 +173,7 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
         placeholder={'How much spice do you want?'}
         data={dropdowns.SPICE_LIST}
         setSelected={(val: any) => setFoodForm({ ...foodForm, spicy: val })}
+        defaultOption={dropdowns.SPICE_LIST[0]}
       />
 
       <CustomDropdown
@@ -180,8 +181,8 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
         text={'Hightea'}
         placeholder={'Hightea'}
         data={dropdowns.HIGHTEA_LIST}
-        defaultOption={{ key: 'NONE', value: 'None' }}
         setSelected={(val: any) => setFoodForm({ ...foodForm, hightea: val })}
+        defaultOption={dropdowns.HIGHTEA_LIST[2]}
       />
     </AddonItem>
   );

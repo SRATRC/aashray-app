@@ -46,9 +46,9 @@ const BookingSuccess = () => {
             handlePress={() => router.replace('/bookings')}
           />
 
-          <TouchableOpacity onPress={() => router.replace('/paymentConfirmation')}>
+          {/* <TouchableOpacity onPress={() => router.replace('/paymentConfirmation')}>
             <Text className="py-3 text-center font-pmedium text-gray-600">Pay Now!</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </Animated.View>
     </SafeAreaView>

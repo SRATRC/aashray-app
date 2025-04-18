@@ -135,9 +135,6 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
         </View>
       }
       containerStyles={'mt-3'}>
-      {!isLoading && !isError && adhyayanList.length == 0 && (
-        <CustomEmptyMessage message={'No Adhyayans available on selected dates!'} />
-      )}
       <FlatList
         className="mt-2 w-full py-2"
         showsHorizontalScrollIndicator={false}
@@ -146,6 +143,11 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         ListFooterComponent={renderFooter}
+        ListEmptyComponent={
+          <View className="mt-6 flex-1">
+            <CustomEmptyMessage message={'No Adhyayans available on selected dates!'} />
+          </View>
+        }
         scrollEnabled={false}
       />
     </AddonItem>

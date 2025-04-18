@@ -141,9 +141,6 @@ const GuestAdhyayanAddon: React.FC<GuestAdhyayanAddonProps> = ({
         </View>
       }
       containerStyles={'mt-3'}>
-      {!isLoading && !isError && adhyayanList?.length == 0 && (
-        <CustomEmptyMessage message={'No Adhyayans available on selected dates!'} />
-      )}
       {(adhyayanList?.length > 0 || isError) && (
         <View className="w-full flex-col items-center justify-center">
           <CustomMultiSelectDropdown
@@ -157,18 +154,23 @@ const GuestAdhyayanAddon: React.FC<GuestAdhyayanAddonProps> = ({
             }}
             guest={true}
           />
-          <FlatList
-            className="flex-grow-1 mt-2 w-full py-2"
-            showsHorizontalScrollIndicator={false}
-            nestedScrollEnabled={true}
-            data={adhyayanList}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            ListFooterComponent={renderFooter}
-            scrollEnabled={false}
-          />
         </View>
       )}
+      <FlatList
+        className="flex-grow-1 mt-2 w-full py-2"
+        showsHorizontalScrollIndicator={false}
+        nestedScrollEnabled={true}
+        data={adhyayanList}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={
+          <View className="mt-6 flex-1">
+            <CustomEmptyMessage message={'No Adhyayans available on selected dates!'} />
+          </View>
+        }
+        scrollEnabled={false}
+      />
     </AddonItem>
   );
 };
