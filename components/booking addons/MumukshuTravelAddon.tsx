@@ -230,6 +230,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
           <CustomDropdown
             otherStyles="mt-5"
             text={'Luggage'}
+            save={'value'}
             placeholder={'Select any luggage'}
             data={dropdowns.LUGGAGE_LIST}
             setSelected={(val: any) => updateTravelForm(index, 'luggage', val)}
@@ -241,7 +242,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             placeholder={'Leaving post adhyayan?'}
             data={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
             setSelected={(val: any) => updateTravelForm(index, 'adhyayan', val)}
-            defaultOption={{ key: 0, value: 'No' }}
+            defaultOption={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1]}
           />
 
           <CustomDropdown
@@ -249,8 +250,8 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             text={'Booking Type'}
             placeholder={'Select booking type'}
             data={dropdowns.BOOKING_TYPE_LIST}
-            defaultOption={{ key: 'regular', value: 'Regular' }}
             setSelected={(val: any) => updateTravelForm(index, 'type', val)}
+            defaultOption={dropdowns.BOOKING_TYPE_LIST[0]}
           />
 
           <FormField

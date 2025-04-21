@@ -220,6 +220,7 @@ const GuestFoodAddon: React.FC<GuestFoodAddonProps> = ({
             data={dropdowns.SPICE_LIST}
             setSelected={(val: any) => updateFoodForm(index, 'spicy', val)}
             value={assignment.spicy}
+            defaultOption={dropdowns.SPICE_LIST[0]}
           />
 
           <CustomDropdown
@@ -227,9 +228,9 @@ const GuestFoodAddon: React.FC<GuestFoodAddonProps> = ({
             text={'Hightea'}
             placeholder={'Hightea'}
             data={dropdowns.HIGHTEA_LIST}
-            defaultOption={{ key: 'NONE', value: 'None' }}
             setSelected={(val: any) => updateFoodForm(index, 'hightea', val)}
             value={assignment.hightea}
+            defaultOption={dropdowns.HIGHTEA_LIST[2]}
           />
         </View>
       ))}

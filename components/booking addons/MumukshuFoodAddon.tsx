@@ -169,9 +169,7 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
             foodEnd: false,
           })
         }
-        minimumDate={
-          foodForm.startDay ? moment(foodForm.startDay).add(1, 'days').toDate() : undefined
-        }
+        minimumDate={foodForm.startDay ? moment(foodForm.startDay).toDate() : undefined}
       />
 
       {foodForm.mumukshuGroup.map((assignment: any, index: any) => (
@@ -219,6 +217,7 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
             data={dropdowns.SPICE_LIST}
             setSelected={(val: any) => updateFoodForm(index, 'spicy', val)}
             value={assignment.spicy}
+            defaultOption={dropdowns.SPICE_LIST[0]}
           />
 
           <CustomDropdown
@@ -226,9 +225,9 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
             text={'Hightea'}
             placeholder={'Hightea'}
             data={dropdowns.HIGHTEA_LIST}
-            defaultOption={{ key: 'NONE', value: 'None' }}
-            setSelected={(val: any) => updateFoodForm(index, 'hightea', val)}
             value={assignment.hightea}
+            setSelected={(val: any) => updateFoodForm(index, 'hightea', val)}
+            defaultOption={dropdowns.HIGHTEA_LIST[2]}
           />
         </View>
       ))}

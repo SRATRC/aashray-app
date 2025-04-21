@@ -206,6 +206,7 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
             placeholder="Select Room Type"
             data={dropdowns.ROOM_TYPE_LIST}
             setSelected={(val: any) => updateRoomForm(index, 'roomType', val)}
+            defaultOption={dropdowns.ROOM_TYPE_LIST[0]}
           />
 
           <CustomDropdown
@@ -214,6 +215,7 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
             placeholder="Select Floor Type"
             data={dropdowns.FLOOR_TYPE_LIST}
             setSelected={(val: any) => updateRoomForm(index, 'floorType', val)}
+            defaultOption={dropdowns.FLOOR_TYPE_LIST[0]}
           />
         </View>
       ))}
