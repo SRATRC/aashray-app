@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { colors, icons, dropdowns } from '../../constants';
-import CustomDropdown from '../CustomDropdown';
 import moment from 'moment';
 import AddonItem from '../AddonItem';
 import HorizontalSeparator from '../HorizontalSeparator';
@@ -226,14 +225,13 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
             onValueChange={(val: any) => updateFoodForm(index, 'spicy', val)}
           />
 
-          <CustomDropdown
-            otherStyles="mt-5 w-full px-1"
-            text={'Hightea'}
-            placeholder={'Hightea'}
-            data={dropdowns.HIGHTEA_LIST}
-            value={assignment.hightea}
-            setSelected={(val: any) => updateFoodForm(index, 'hightea', val)}
-            defaultOption={dropdowns.HIGHTEA_LIST[2]}
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label="Hightea"
+            placeholder="Hightea"
+            options={dropdowns.HIGHTEA_LIST}
+            selectedValue={assignment.hightea}
+            onValueChange={(val: any) => updateFoodForm(index, 'hightea', val)}
           />
         </View>
       ))}

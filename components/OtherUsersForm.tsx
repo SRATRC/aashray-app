@@ -3,7 +3,6 @@ import { colors, icons, dropdowns } from '../constants';
 import { useQueries } from '@tanstack/react-query';
 import { useGlobalContext } from '../context/GlobalProvider';
 import React from 'react';
-import CustomDropdown from './CustomDropdown';
 import FormField from './FormField';
 import handleAPICall from '../utils/HandleApiCall';
 
@@ -118,7 +117,7 @@ const OtherUsersForm: React.FC<OtherUsersFormProps> = ({
                   placeholder="Name of the User"
                 />
 
-                <CustomDropdown
+                {/* <CustomDropdown
                   otherStyles="mt-7"
                   text={'Gender'}
                   placeholder={'Select Gender'}
@@ -134,7 +133,7 @@ const OtherUsersForm: React.FC<OtherUsersFormProps> = ({
                   data={dropdowns.GUEST_TYPE_LIST}
                   value={user.type}
                   setSelected={(val: string) => handleUserFormChange(index, 'type', val)}
-                />
+                /> */}
               </View>
             )}
             {children(index)}

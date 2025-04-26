@@ -1,13 +1,11 @@
+import { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { colors, icons, dropdowns } from '../../constants';
-import CustomDropdown from '../CustomDropdown';
 import moment from 'moment';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import AddonItem from '../AddonItem';
-import CustomMultiSelectDropdown from '../CustomMultiSelectDropdown';
 import HorizontalSeparator from '../HorizontalSeparator';
 import FormDisplayField from '../FormDisplayField';
-import { useEffect, useState } from 'react';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';

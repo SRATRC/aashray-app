@@ -24,7 +24,6 @@ import moment from 'moment';
 import CustomChipGroup from '../CustomChipGroup';
 import GuestForm from '../GuestForm';
 import FormField from '../FormField';
-import CustomDropdown from '../CustomDropdown';
 import Toast from 'react-native-toast-message';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomEmptyMessage from '../CustomEmptyMessage';
@@ -365,7 +364,7 @@ const EventBooking = () => {
                         />
                         {selectedChip == CHIPS[0] && (
                           <View>
-                            <CustomDropdown
+                            {/* <CustomDropdown
                               otherStyles="mt-7"
                               text={'Package'}
                               placeholder={'Select Package'}
@@ -385,7 +384,7 @@ const EventBooking = () => {
                               setSelected={(val: any) => {
                                 setSelfForm({ ...selfForm, arrival: val });
                               }}
-                            />
+                            /> */}
 
                             {selfForm.arrival == 'car' && (
                               <View>
@@ -425,7 +424,7 @@ const EventBooking = () => {
                             removeMumukshuForm={removeMumukshuForm}>
                             {(index: any) => (
                               <View>
-                                <CustomDropdown
+                                {/* <CustomDropdown
                                   otherStyles="mt-7"
                                   text={'Package'}
                                   placeholder={'Select Package'}
@@ -445,7 +444,7 @@ const EventBooking = () => {
                                   setSelected={(val: any) => {
                                     handleMumukshuFormChange(index, 'arrival', val);
                                   }}
-                                />
+                                /> */}
 
                                 {mumukshuForm.mumukshus[index].arrival == 'car' && (
                                   <FormField
@@ -491,7 +490,7 @@ const EventBooking = () => {
                           removeGuestForm={removeGuestForm}>
                           {(index: any) => (
                             <View>
-                              <CustomDropdown
+                              {/* <CustomDropdown
                                 otherStyles="mt-7"
                                 text={'Package'}
                                 placeholder={'Select Package'}
@@ -511,7 +510,7 @@ const EventBooking = () => {
                                 setSelected={(val: any) => {
                                   handleGuestFormChange(index, 'arrival', val);
                                 }}
-                              />
+                              /> */}
 
                               {guestForm.guests[index].arrival == 'car' && (
                                 <View>

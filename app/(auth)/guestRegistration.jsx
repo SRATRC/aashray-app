@@ -15,7 +15,6 @@ import { images } from '../../constants';
 import moment from 'moment';
 import FormField from '../../components/FormField';
 import CustomButton from '../../components/CustomButton';
-import CustomDropdown from '../../components/CustomDropdown';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FormDisplayField from '../../components/FormDisplayField';
 
@@ -81,7 +80,7 @@ const guestRegistration = () => {
               placeholder="Enter Your Name"
             />
 
-            <CustomDropdown
+            {/* <CustomDropdown
               otherStyles={`mt-5 w-full ${
                 Platform.OS === 'ios' ? 'shadow-lg border-gray-200' : 'shadow-2xl border-gray-400'
               }`}
@@ -90,7 +89,7 @@ const guestRegistration = () => {
               placeholder={'Select Your Gender'}
               data={genderList}
               setSelected={(val) => setForm({ ...form, gender: val })}
-            />
+            /> */}
 
             <TouchableOpacity onPress={showDatePicker}>
               <FormDisplayField
@@ -131,7 +130,7 @@ const guestRegistration = () => {
               autoCorrect={false}
             />
 
-            <CustomDropdown
+            {/* <CustomDropdown
               otherStyles={`mt-5 w-full ${
                 Platform.OS === 'ios' ? 'shadow-lg border-gray-200' : 'shadow-2xl border-gray-400'
               }`}
@@ -140,7 +139,7 @@ const guestRegistration = () => {
               placeholder={'Select ID Type'}
               data={idTypeList}
               setSelected={(val) => setForm({ ...form, idType: val })}
-            />
+            /> */}
 
             <FormField
               text="ID Number"

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Image } from 'react-native';
 import { icons, colors, dropdowns } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
-import CustomDropdown from '../CustomDropdown';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
