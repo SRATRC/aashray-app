@@ -10,6 +10,7 @@ import FormDisplayField from '../FormDisplayField';
 import { useEffect, useState } from 'react';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 
 interface MumukshuRoomAddonProps {
   roomForm: any;
@@ -21,6 +22,7 @@ interface MumukshuRoomAddonProps {
   mumukshu_dropdown: any;
   isDatePickerVisible: any;
   setDatePickerVisibility: any;
+  onToggle?: (isOpen: boolean) => void;
 }
 
 const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
@@ -33,6 +35,7 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
   mumukshu_dropdown,
   isDatePickerVisible,
   setDatePickerVisibility,
+  onToggle,
 }) => {
   // Temporary state to hold the date for the checkin picker
   const [tempCheckinDate, setTempCheckinDate] = useState(new Date());
@@ -72,6 +75,7 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
   return (
     <AddonItem
       onCollapse={resetRoomForm}
+      onToggle={onToggle}
       visibleContent={
         <View className="flex flex-row items-center gap-x-4">
           <Image source={icons.room} className="h-10 w-10" resizeMode="contain" />
@@ -190,32 +194,33 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
               </TouchableOpacity>
             </View>
           )}
-          <CustomMultiSelectDropdown
-            otherStyles="mt-5"
-            text={`Mumukshus for Room ${index + 1}`}
-            placeholder="Select Mumukshus"
-            data={getAvailableMumukshus(index)}
-            value={assignment.mumukshuIndices}
-            setSelected={(val: any) => updateRoomForm(index, 'mumukshus', val)}
-            guest={true}
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label={`Guests group - ${index + 1}`}
+            placeholder="Select Guests"
+            options={getAvailableMumukshus(index)}
+            selectedValues={assignment.mumukshuIndices}
+            onValuesChange={(val) => updateRoomForm(index, 'mumukshus', val)}
+            multiSelect={true}
+            confirmButtonText="Select"
           />
 
-          <CustomDropdown
-            otherStyles="mt-5"
-            text="Room Type"
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label="Room Type"
             placeholder="Select Room Type"
-            data={dropdowns.ROOM_TYPE_LIST}
-            setSelected={(val: any) => updateRoomForm(index, 'roomType', val)}
-            defaultOption={dropdowns.ROOM_TYPE_LIST[0]}
+            options={dropdowns.ROOM_TYPE_LIST}
+            selectedValue={assignment.roomType}
+            onValueChange={(val: any) => updateRoomForm(index, 'roomType', val)}
           />
 
-          <CustomDropdown
-            otherStyles="mt-5"
-            text="Floor Type"
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label="Select Floor Type"
             placeholder="Select Floor Type"
-            data={dropdowns.FLOOR_TYPE_LIST}
-            setSelected={(val: any) => updateRoomForm(index, 'floorType', val)}
-            defaultOption={dropdowns.FLOOR_TYPE_LIST[0]}
+            options={dropdowns.FLOOR_TYPE_LIST}
+            selectedValue={assignment.floorType}
+            onValueChange={(val: any) => updateRoomForm(index, 'floorType', val)}
           />
         </View>
       ))}

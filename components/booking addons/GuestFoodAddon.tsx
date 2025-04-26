@@ -1,15 +1,14 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { useEffect, useState } from 'react';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { colors, icons, dropdowns } from '../../constants';
-import CustomDropdown from '../CustomDropdown';
-import moment from 'moment';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import AddonItem from '../AddonItem';
-import CustomMultiSelectDropdown from '../CustomMultiSelectDropdown';
 import HorizontalSeparator from '../HorizontalSeparator';
 import FormDisplayField from '../FormDisplayField';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
+import AddonItem from '../AddonItem';
+import moment from 'moment';
 
 interface GuestFoodAddonProps {
   foodForm: any;
@@ -21,6 +20,7 @@ interface GuestFoodAddonProps {
   guest_dropdown: any;
   isDatePickerVisible: any;
   setDatePickerVisibility: any;
+  onToggle?: (isOpen: boolean) => void;
 }
 
 const GuestFoodAddon: React.FC<GuestFoodAddonProps> = ({
@@ -33,6 +33,7 @@ const GuestFoodAddon: React.FC<GuestFoodAddonProps> = ({
   guest_dropdown,
   isDatePickerVisible,
   setDatePickerVisibility,
+  onToggle,
 }) => {
   // Temporary state to hold the date for the checkin picker
   const [tempFoodStartDate, setTempFoodStartDate] = useState(new Date());
@@ -73,6 +74,7 @@ const GuestFoodAddon: React.FC<GuestFoodAddonProps> = ({
       onCollapse={() => {
         resetFoodForm();
       }}
+      onToggle={onToggle}
       visibleContent={
         <View className="flex flex-row items-center gap-x-4">
           <Image source={icons.food} className="h-10 w-10" resizeMode="contain" />
@@ -191,46 +193,46 @@ const GuestFoodAddon: React.FC<GuestFoodAddonProps> = ({
               </TouchableOpacity>
             </View>
           )}
-          <CustomMultiSelectDropdown
-            otherStyles="mt-5"
-            text={`Guests group - ${index + 1}`}
+
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label={`Guests group - ${index + 1}`}
             placeholder="Select Guests"
-            data={getAvailableGuests(index)}
-            value={assignment.guestIndices}
-            setSelected={(val: any) => updateFoodForm(index, 'guests', val)}
-            guest={true}
+            options={getAvailableGuests(index)}
+            selectedValues={assignment.guestIndices}
+            onValuesChange={(val) => updateFoodForm(index, 'guests', val)}
+            multiSelect={true}
+            confirmButtonText="Select"
           />
 
-          <CustomMultiSelectDropdown
-            otherStyles="mt-5"
-            text={`Select Meals`}
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label="Food Type"
             placeholder="Select Meals"
-            data={dropdowns.GUEST_FOOD_TYPE_LIST}
-            value={assignment.meals}
-            labelField="key"
-            valueField="value"
-            setSelected={(val: any) => updateFoodForm(index, 'meals', val)}
-            guest={true}
+            options={dropdowns.FOOD_TYPE_LIST}
+            selectedValues={assignment.meals}
+            onValuesChange={(val) => updateFoodForm(index, 'meals', val)}
+            multiSelect={true}
+            confirmButtonText="Select"
+            maxSelectedDisplay={3}
           />
 
-          <CustomDropdown
-            otherStyles="mt-5 w-full px-1"
-            text={'Spice Level'}
-            placeholder={'How much spice do you want?'}
-            data={dropdowns.SPICE_LIST}
-            setSelected={(val: any) => updateFoodForm(index, 'spicy', val)}
-            value={assignment.spicy}
-            defaultOption={dropdowns.SPICE_LIST[0]}
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label="Spice Level"
+            placeholder="How much spice do you want?"
+            options={dropdowns.SPICE_LIST}
+            selectedValue={assignment.spicy}
+            onValueChange={(val: any) => updateFoodForm(index, 'spicy', val)}
           />
 
-          <CustomDropdown
-            otherStyles="mt-5 w-full px-1"
-            text={'Hightea'}
-            placeholder={'Hightea'}
-            data={dropdowns.HIGHTEA_LIST}
-            setSelected={(val: any) => updateFoodForm(index, 'hightea', val)}
-            value={assignment.hightea}
-            defaultOption={dropdowns.HIGHTEA_LIST[2]}
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label="Hightea"
+            placeholder="Hightea"
+            options={dropdowns.HIGHTEA_LIST}
+            selectedValue={assignment.hightea}
+            onValueChange={(val: any) => updateFoodForm(index, 'hightea', val)}
           />
         </View>
       ))}

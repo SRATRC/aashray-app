@@ -2,13 +2,13 @@ import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator } from
 import { icons } from '../../constants';
 import { useQuery } from '@tanstack/react-query';
 import { useGlobalContext } from '../../context/GlobalProvider';
-import AddonItem from '../AddonItem';
 import handleAPICall from '../../utils/HandleApiCall';
 import HorizontalSeparator from '../HorizontalSeparator';
-import moment from 'moment';
-import * as Haptics from 'expo-haptics';
-import CustomMultiSelectDropdown from '../CustomMultiSelectDropdown';
 import CustomEmptyMessage from '../CustomEmptyMessage';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
+import AddonItem from '../AddonItem';
+import * as Haptics from 'expo-haptics';
+import moment from 'moment';
 
 interface MumukshuAdhyayanAddonProps {
   adhyayanForm: any;
@@ -144,16 +144,15 @@ const MumukshuAdhyayanAddon: React.FC<MumukshuAdhyayanAddonProps> = ({
       containerStyles={'mt-3'}>
       {(adhyayanList?.length > 0 || isError) && (
         <View className="w-full flex-col items-center justify-center">
-          <CustomMultiSelectDropdown
-            otherStyles="mt-5 w-full"
-            text={'Select Mumukshus'}
+          <CustomSelectBottomSheet
+            className="mt-5 w-full"
+            label="Select Mumukshus"
             placeholder="Select Mumukshus"
-            data={mumukshu_dropdown}
-            value={adhyayanForm.mumukshuIndices}
-            setSelected={(val: any) => {
-              updateAdhyayanForm('mumukshuIndices', val);
-            }}
-            guest={true}
+            options={mumukshu_dropdown}
+            selectedValues={adhyayanForm.mumukshuIndices}
+            onValuesChange={(val) => updateAdhyayanForm('mumukshuIndices', val)}
+            multiSelect={true}
+            confirmButtonText="Select"
           />
         </View>
       )}

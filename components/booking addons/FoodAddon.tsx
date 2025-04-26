@@ -1,16 +1,14 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image } from 'react-native';
 import { icons, dropdowns } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
-import React, { useEffect, useState } from 'react';
-import CustomDropdown from '../CustomDropdown';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import FormDisplayField from '../FormDisplayField';
 import AddonItem from '../AddonItem';
-import CustomMultiSelectDropdown from '../CustomMultiSelectDropdown';
 import * as Haptics from 'expo-haptics';
 import Toast from 'react-native-toast-message';
 import moment from 'moment';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 
 interface FoodAddonProps {
   foodForm: any;

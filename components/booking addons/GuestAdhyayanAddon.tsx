@@ -7,8 +7,8 @@ import handleAPICall from '../../utils/HandleApiCall';
 import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
 import * as Haptics from 'expo-haptics';
-import CustomMultiSelectDropdown from '../CustomMultiSelectDropdown';
 import CustomEmptyMessage from '../CustomEmptyMessage';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 
 interface GuestAdhyayanAddonProps {
   adhyayanForm: any;
@@ -143,16 +143,15 @@ const GuestAdhyayanAddon: React.FC<GuestAdhyayanAddonProps> = ({
       containerStyles={'mt-3'}>
       {(adhyayanList?.length > 0 || isError) && (
         <View className="w-full flex-col items-center justify-center">
-          <CustomMultiSelectDropdown
-            otherStyles="mt-5 w-full"
-            text={'Select Guests'}
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label="Select Guests"
             placeholder="Select Guests"
-            data={guest_dropdown}
-            value={adhyayanForm.guestIndices}
-            setSelected={(val: any) => {
-              updateAdhyayanForm('guestIndices', val);
-            }}
-            guest={true}
+            options={guest_dropdown}
+            selectedValues={adhyayanForm.guestIndices}
+            onValuesChange={(val) => updateAdhyayanForm('guestIndices', val)}
+            multiSelect={true}
+            confirmButtonText="Select"
           />
         </View>
       )}

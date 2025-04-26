@@ -59,7 +59,7 @@ interface CustomSelectBottomSheetProps {
   estimatedItemSize?: number;
 }
 
-// Optimized item component to reduce re-renders
+// Optimized item component with improved memo implementation
 const SelectItem = memo(
   ({
     item,
@@ -130,6 +130,14 @@ const SelectItem = memo(
           />
         )}
       </TouchableOpacity>
+    );
+  },
+  // Explicit comparison function to ensure we correctly handle selection state changes
+  (prevProps, nextProps) => {
+    return (
+      prevProps.isSelected === nextProps.isSelected &&
+      prevProps.multiSelect === nextProps.multiSelect &&
+      prevProps.item.key === nextProps.item.key
     );
   }
 );
@@ -320,16 +328,22 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
     });
   }, [slideAnim, height]);
 
+  // Improved handleSelect to ensure instant visual feedback
   const handleSelect = useCallback(
     (item: Option) => {
       const value = saveKeyInsteadOfValue ? item.key : item.value;
       if (multiSelect) {
+        // Use functional update pattern for best performance
         setTempSelectedValues((prev) =>
           prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
         );
       } else {
+        // Update the selected value immediately
         onValueChange?.(value);
-        closeBottomSheet();
+        // Add a small delay before closing to show the tick mark
+        setTimeout(() => {
+          closeBottomSheet();
+        }, 150); // 150ms is enough to see the tick without feeling slow
       }
     },
     [multiSelect, saveKeyInsteadOfValue, onValueChange, closeBottomSheet]
@@ -340,6 +354,7 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
     closeBottomSheet();
   }, [tempSelectedValues, onValuesChange, closeBottomSheet]);
 
+  // Optimized isSelected function
   const isSelected = useCallback(
     (item: Option): boolean => {
       const value = saveKeyInsteadOfValue ? item.key : item.value;
@@ -348,7 +363,7 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
     [multiSelect, tempSelectedValues, saveKeyInsteadOfValue, selectedValue]
   );
 
-  // Optimized renderItem function for FlashList
+  // Optimized renderItem function with proper dependencies
   const renderItem = useCallback(
     ({ item }: { item: Option }) => {
       return (
@@ -360,7 +375,7 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
         />
       );
     },
-    [isSelected, handleSelect, multiSelect]
+    [isSelected, handleSelect, multiSelect, tempSelectedValues, selectedValue] // Include selection state dependencies
   );
 
   // For multi-select, we need a selected chips display component
@@ -650,6 +665,7 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
                       initialScrollIndex={0}
                       onEndReachedThreshold={0.5}
                       removeClippedSubviews={true}
+                      extraData={[tempSelectedValues, selectedValue]} // Add this to ensure list updates when selection changes
                     />
                   </View>
                 )}

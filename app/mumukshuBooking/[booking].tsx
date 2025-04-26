@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { View, Text, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, icons, types } from '../../constants';
@@ -20,57 +20,252 @@ import Toast from 'react-native-toast-message';
 import handleAPICall from '~/utils/HandleApiCall';
 import CustomModal from '~/components/CustomModal';
 
-const INITIAL_ROOM_FORM = {
-  startDay: '',
-  endDay: '',
-  mumukshuGroup: [{ roomType: '', floorType: '', mumukshus: [], mumukshuIndices: [] }],
-};
-
-const INITIAL_FOOD_FORM = {
-  startDay: '',
-  endDay: '',
-  mumukshuGroup: [
+// Define initial form structures with factory functions for better reuse
+const createInitialRoomForm = (existingData: any = null) => ({
+  startDay: existingData?.startDay || '',
+  endDay: existingData?.endDay || '',
+  mumukshuGroup: existingData?.mumukshuGroup || [
     {
-      meals: [],
-      spicy: '',
-      hightea: dropdowns.HIGHTEA_LIST[2].key,
+      roomType: dropdowns.ROOM_TYPE_LIST[0].key,
+      floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
       mumukshus: [],
       mumukshuIndices: [],
     },
   ],
-};
+});
 
-const INITIAL_ADHYAYAN_FORM = {
-  adhyayan: {},
-  mumukshus: [],
-  mumukshuIndices: [],
-};
+const createInitialFoodForm = (existingData: any = null) => ({
+  startDay: existingData?.startDay || '',
+  endDay: existingData?.endDay || '',
+  mumukshuGroup: existingData?.mumukshuGroup || [
+    {
+      meals: ['breakfast', 'lunch', 'dinner'],
+      spicy: dropdowns.SPICE_LIST[0].key,
+      hightea: dropdowns.HIGHTEA_LIST[0].key,
+      mumukshus: existingData?.mumukshuGroup?.[0]?.mumukshus || [],
+      mumukshuIndices: existingData?.mumukshuGroup?.[0]?.mumukshuIndices || [],
+    },
+  ],
+});
 
-const INITIAL_TRAVEL_FORM = {
-  date: '',
-  mumukshuGroup: [
+const createInitialAdhyayanForm = (existingData: any = null) => ({
+  adhyayan: existingData?.adhyayan || {},
+  mumukshus: existingData?.mumukshus || [],
+  mumukshuIndices: existingData?.mumukshuIndices || [],
+});
+
+const createInitialTravelForm = (existingData: any = null) => ({
+  date: existingData?.date || '',
+  mumukshuGroup: existingData?.mumukshuGroup || [
     {
       pickup: '',
       drop: '',
       luggage: '',
-      type: 'regular',
-      adhyayan: 0,
+      type: dropdowns.BOOKING_TYPE_LIST[0].value,
+      adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
       arrival_time: '',
       special_request: '',
       mumukshus: [],
       mumukshuIndices: [],
     },
   ],
-};
+});
 
 const MumukshuAddons = () => {
   const router = useRouter();
-
   const { booking } = useLocalSearchParams();
   const { user, mumukshuData, setMumukshuData } = useGlobalContext();
 
-  const transformedData = prepareMumukshuRequestBody(user, mumukshuData);
-  const fetchValidation = async () => {
+  const [addonOpen, setAddonOpen] = useState({
+    room: false,
+    food: false,
+    travel: false,
+  });
+
+  // Get shared date information from all booking types
+  const getInitialDates = useMemo(() => {
+    // Find the first available date from any existing booking
+    const startDate =
+      mumukshuData.room?.startDay ||
+      mumukshuData.food?.startDay ||
+      mumukshuData.adhyayan?.adhyayan?.start_date ||
+      mumukshuData.travel?.date ||
+      '';
+
+    const endDate =
+      mumukshuData.room?.endDay ||
+      mumukshuData.food?.endDay ||
+      mumukshuData.adhyayan?.adhyayan?.end_date ||
+      '';
+
+    return { startDate, endDate };
+  }, [mumukshuData]);
+
+  // Get mumukshus from all possible sources
+  const mumukshus = useMemo(() => {
+    const fromRoom =
+      mumukshuData.room?.mumukshuGroup?.flatMap((group: any) => group.mumukshus || []) || [];
+    const fromFood =
+      mumukshuData.food?.mumukshuGroup?.flatMap((group: any) => group.mumukshus || []) || [];
+    const fromAdhyayan = mumukshuData.adhyayan?.mumukshus || [];
+    const fromTravel =
+      mumukshuData.travel?.mumukshuGroup?.flatMap((group: any) => group.mumukshus || []) || [];
+
+    // Use the non-empty array, prioritizing the primary booking type based on the current page
+    let result = [];
+
+    if (booking === types.ROOM_DETAILS_TYPE && fromRoom.length > 0) {
+      result = fromRoom;
+    } else if (booking === types.ADHYAYAN_DETAILS_TYPE && fromAdhyayan.length > 0) {
+      result = fromAdhyayan;
+    } else if (booking === types.TRAVEL_DETAILS_TYPE && fromTravel.length > 0) {
+      result = fromTravel;
+    } else {
+      // Use the first non-empty array
+      result =
+        fromRoom.length > 0
+          ? fromRoom
+          : fromAdhyayan.length > 0
+            ? fromAdhyayan
+            : fromTravel.length > 0
+              ? fromTravel
+              : fromFood.length > 0
+                ? fromFood
+                : [];
+    }
+
+    return result;
+  }, [booking, mumukshuData]);
+
+  // Create dropdown options for mumukshus
+  const mumukshu_dropdown = useMemo(() => {
+    return mumukshus.map((mumukshu: any, index: any) => ({
+      key: `${index}`,
+      value: mumukshu.issuedto,
+    }));
+  }, [mumukshus]);
+
+  // Initialize form states with existing data and cross-referenced dates
+  const [roomForm, setRoomForm] = useState(() => {
+    const initialForm = createInitialRoomForm(mumukshuData.room);
+    // Prefill dates from other booking types if not already set
+    if (!initialForm.startDay) initialForm.startDay = getInitialDates.startDate;
+    if (!initialForm.endDay) initialForm.endDay = getInitialDates.endDate;
+    return initialForm;
+  });
+
+  const [foodForm, setFoodForm] = useState(() => {
+    const initialForm = createInitialFoodForm(mumukshuData.food);
+    // Prefill dates from other booking types if not already set
+    if (!initialForm.startDay) initialForm.startDay = getInitialDates.startDate;
+    if (!initialForm.endDay) initialForm.endDay = getInitialDates.endDate;
+    return initialForm;
+  });
+
+  const [adhyayanForm, setAdhyayanForm] = useState(() =>
+    createInitialAdhyayanForm(mumukshuData.adhyayan)
+  );
+
+  const [travelForm, setTravelForm] = useState(() => {
+    const initialForm = createInitialTravelForm(mumukshuData.travel);
+    // Prefill date from other booking types if not already set
+    if (!initialForm.date) initialForm.date = getInitialDates.startDate;
+    return initialForm;
+  });
+
+  // Update forms when context data changes (for proper prefilling)
+  useEffect(() => {
+    // Get latest dates from any booking type
+    const startDate =
+      mumukshuData.room?.startDay ||
+      mumukshuData.food?.startDay ||
+      mumukshuData.adhyayan?.adhyayan?.start_date ||
+      mumukshuData.travel?.date ||
+      '';
+
+    const endDate =
+      mumukshuData.room?.endDay ||
+      mumukshuData.food?.endDay ||
+      mumukshuData.adhyayan?.adhyayan?.end_date ||
+      '';
+
+    // Update room form with cross-referenced dates
+    if (mumukshuData.room) {
+      setRoomForm((prev) => ({
+        ...createInitialRoomForm(mumukshuData.room),
+        startDay: mumukshuData.room.startDay || startDate,
+        endDay: mumukshuData.room.endDay || endDate,
+      }));
+    } else if (startDate || endDate) {
+      // If room data doesn't exist but we have dates from other bookings
+      setRoomForm((prev) => ({
+        ...prev,
+        startDay: prev.startDay || startDate,
+        endDay: prev.endDay || endDate,
+      }));
+    }
+
+    // Update food form with cross-referenced dates
+    if (mumukshuData.food) {
+      setFoodForm((prev) => ({
+        ...createInitialFoodForm(mumukshuData.food),
+        startDay: mumukshuData.food.startDay || startDate,
+        endDay: mumukshuData.food.endDay || endDate,
+      }));
+    } else if (startDate || endDate) {
+      // If food data doesn't exist but we have dates from other bookings
+      setFoodForm((prev) => ({
+        ...prev,
+        startDay: prev.startDay || startDate,
+        endDay: prev.endDay || endDate,
+      }));
+    }
+
+    // Update adhyayan form
+    if (mumukshuData.adhyayan) {
+      setAdhyayanForm(createInitialAdhyayanForm(mumukshuData.adhyayan));
+    }
+
+    // Update travel form with cross-referenced date
+    if (mumukshuData.travel) {
+      setTravelForm((prev) => ({
+        ...createInitialTravelForm(mumukshuData.travel),
+        date: mumukshuData.travel.date || startDate,
+      }));
+    } else if (startDate) {
+      // If travel data doesn't exist but we have date from other bookings
+      setTravelForm((prev) => ({
+        ...prev,
+        date: prev.date || startDate,
+      }));
+    }
+  }, [mumukshuData]);
+
+  // Date picker visibility state
+  const [isDatePickerVisible, setDatePickerVisibility] = useState({
+    checkin: false,
+    checkout: false,
+    foodStart: false,
+    foodEnd: false,
+    travel: false,
+    travel_time: false,
+  });
+
+  const toggleAddon = useCallback((addonType: any, isOpen: any) => {
+    setAddonOpen((prev) => ({ ...prev, [addonType]: isOpen }));
+  }, []);
+
+  // Toggle date picker visibility
+  const toggleDatePicker = useCallback((pickerType: any, isVisible: any) => {
+    setDatePickerVisibility((prev) => ({ ...prev, [pickerType]: isVisible }));
+  }, []);
+
+  // API validation state and handler
+  const transformedData = useMemo(() => {
+    return prepareMumukshuRequestBody(user, mumukshuData);
+  }, [user, mumukshuData]);
+
+  const fetchValidation = useCallback(async () => {
     return new Promise((resolve, reject) => {
       handleAPICall(
         'POST',
@@ -82,67 +277,50 @@ const MumukshuAddons = () => {
           resolve(res.data);
         },
         () => {},
-        (errorDetails: any) => {
+        (errorDetails) => {
           reject(new Error(errorDetails.message));
         }
       );
     });
-  };
+  }, [transformedData, setMumukshuData]);
 
   const {
     isLoading: isValidationDataLoading,
     isError: isValidationDataError,
     error: validationDataError,
     data: validationData,
-  }: any = useQuery({
-    queryKey: ['mumukshuValidations', user.cardno],
+  } = useQuery({
+    queryKey: ['mumukshuValidations', user.cardno, JSON.stringify(mumukshuData)],
     queryFn: fetchValidation,
     retry: false,
+    enabled: !!user.cardno && Object.keys(mumukshuData).length > 0,
   });
 
-  const mumukshus = (
-    mumukshuData.room?.mumukshuGroup ||
-    mumukshuData.adhyayan?.mumukshuGroup ||
-    mumukshuData.travel?.mumukshuGroup ||
-    []
-  ).flatMap((group: any) => group.mumukshus || [group]);
-  const mumukshu_dropdown = mumukshus.map((mumukshu: any, index: any) => ({
-    value: `${index}`,
-    label: mumukshu.issuedto,
-  }));
-
+  // Form submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDatePickerVisible, setDatePickerVisibility] = useState({
-    checkin: false,
-    checkout: false,
-    foodStart: false,
-    foodEnd: false,
-    travel: false,
-    travel_time: false,
-  });
 
-  // Room Addon Form Data
-  const [roomForm, setRoomForm] = useState(JSON.parse(JSON.stringify(INITIAL_ROOM_FORM)));
-  const resetRoomForm = () => {
-    setRoomForm(JSON.parse(JSON.stringify(INITIAL_ROOM_FORM)));
+  // Room form handlers
+  const resetRoomForm = useCallback(() => {
+    setRoomForm(createInitialRoomForm());
     setMumukshuData((prev: any) => {
       const { room, ...rest } = prev;
       return rest;
     });
-  };
-  const addRoomForm = () => {
-    setRoomForm((prevRoomForm: any) => ({
+  }, [setMumukshuData]);
+
+  const addRoomForm = useCallback(() => {
+    setRoomForm((prevRoomForm) => ({
       ...prevRoomForm,
       mumukshuGroup: [
         ...prevRoomForm.mumukshuGroup,
         { roomType: '', floorType: '', mumukshus: [], mumukshuIndices: [] },
       ],
     }));
-  };
+  }, []);
 
-  const reomveRoomForm = (indexToRemove: any) => {
+  const removeRoomForm = useCallback((indexToRemove: any) => {
     return () => {
-      setRoomForm((prevRoomForm: any) => {
+      setRoomForm((prevRoomForm) => {
         const updatedMumukshuGroup = [...prevRoomForm.mumukshuGroup];
         updatedMumukshuGroup.splice(indexToRemove, 1);
         return {
@@ -151,57 +329,59 @@ const MumukshuAddons = () => {
         };
       });
     };
-  };
+  }, []);
 
-  const updateRoomForm = (groupIndex: any, key: any, value: any) => {
-    setRoomForm((prevRoomForm: any) => {
-      const updatedMumukshuGroup: any = [...prevRoomForm.mumukshuGroup];
+  const updateRoomForm = useCallback(
+    (groupIndex: any, key: any, value: any) => {
+      setRoomForm((prevRoomForm) => {
+        const updatedMumukshuGroup = [...prevRoomForm.mumukshuGroup];
 
-      if (key === 'mumukshus') {
-        updatedMumukshuGroup[groupIndex].mumukshuIndices = value;
-        updatedMumukshuGroup[groupIndex].mumukshus = mumukshus.filter((_: any, i: any) =>
-          value.includes(i.toString())
-        );
-      } else {
-        updatedMumukshuGroup[groupIndex][key] = value;
-      }
+        if (key === 'mumukshus') {
+          updatedMumukshuGroup[groupIndex].mumukshuIndices = value;
+          updatedMumukshuGroup[groupIndex].mumukshus = mumukshus.filter((_: any, i: any) =>
+            value.includes(i.toString())
+          );
+        } else {
+          updatedMumukshuGroup[groupIndex][key] = value;
+        }
 
-      return {
-        ...prevRoomForm,
-        mumukshuGroup: updatedMumukshuGroup,
-      };
-    });
-  };
+        return {
+          ...prevRoomForm,
+          mumukshuGroup: updatedMumukshuGroup,
+        };
+      });
+    },
+    [mumukshus]
+  );
 
-  // Food Addon Form Data
-  const [foodForm, setFoodForm] = useState(JSON.parse(JSON.stringify(INITIAL_FOOD_FORM)));
-  const resetFoodForm = () => {
-    setFoodForm(JSON.parse(JSON.stringify(INITIAL_FOOD_FORM)));
+  // Food form handlers
+  const resetFoodForm = useCallback(() => {
+    setFoodForm(createInitialFoodForm());
     setMumukshuData((prev: any) => {
       const { food, ...rest } = prev;
       return rest;
     });
-  };
+  }, [setMumukshuData]);
 
-  const addFoodForm = () => {
-    setFoodForm((prevFoodForm: any) => ({
+  const addFoodForm = useCallback(() => {
+    setFoodForm((prevFoodForm) => ({
       ...prevFoodForm,
       mumukshuGroup: [
         ...prevFoodForm.mumukshuGroup,
         {
-          meals: [],
-          spicy: '',
-          hightea: 'NONE',
+          meals: ['breakfast', 'lunch', 'dinner'],
+          spicy: dropdowns.SPICE_LIST[0].key,
+          hightea: dropdowns.HIGHTEA_LIST[0].key,
           mumukshus: [],
           mumukshuIndices: [],
         },
       ],
     }));
-  };
+  }, []);
 
-  const reomveFoodForm = (indexToRemove: any) => {
+  const removeFoodForm = useCallback((indexToRemove: any) => {
     return () => {
-      setFoodForm((prevFoodForm: any) => {
+      setFoodForm((prevFoodForm) => {
         const updatedMumukshuGroup = [...prevFoodForm.mumukshuGroup];
         updatedMumukshuGroup.splice(indexToRemove, 1);
         return {
@@ -210,40 +390,42 @@ const MumukshuAddons = () => {
         };
       });
     };
-  };
+  }, []);
 
-  const updateFoodForm = (groupIndex: any, key: any, value: any) => {
-    setFoodForm((prevFoodForm: any) => {
-      const updatedMumukshuGroup: any = [...prevFoodForm.mumukshuGroup];
+  const updateFoodForm = useCallback(
+    (groupIndex: any, key: any, value: any) => {
+      setFoodForm((prevFoodForm) => {
+        const updatedMumukshuGroup = [...prevFoodForm.mumukshuGroup];
 
-      if (key === 'mumukshus') {
-        updatedMumukshuGroup[groupIndex].mumukshuIndices = value;
-        updatedMumukshuGroup[groupIndex].mumukshus = mumukshus.filter((_: any, i: any) =>
-          value.includes(i.toString())
-        );
-      } else {
-        updatedMumukshuGroup[groupIndex][key] = value;
-      }
+        if (key === 'mumukshus') {
+          updatedMumukshuGroup[groupIndex].mumukshuIndices = value;
+          updatedMumukshuGroup[groupIndex].mumukshus = mumukshus.filter((_: any, i: any) =>
+            value.includes(i.toString())
+          );
+        } else {
+          updatedMumukshuGroup[groupIndex][key] = value;
+        }
 
-      return {
-        ...prevFoodForm,
-        mumukshuGroup: updatedMumukshuGroup,
-      };
-    });
-  };
+        return {
+          ...prevFoodForm,
+          mumukshuGroup: updatedMumukshuGroup,
+        };
+      });
+    },
+    [mumukshus]
+  );
 
-  // Travel Booking Form Data
-  const [travelForm, setTravelForm] = useState(JSON.parse(JSON.stringify(INITIAL_TRAVEL_FORM)));
-  const resetTravelForm = () => {
-    setTravelForm(JSON.parse(JSON.stringify(INITIAL_TRAVEL_FORM)));
+  // Travel form handlers
+  const resetTravelForm = useCallback(() => {
+    setTravelForm(createInitialTravelForm());
     setMumukshuData((prev: any) => {
       const { travel, ...rest } = prev;
       return rest;
     });
-  };
+  }, [setMumukshuData]);
 
-  const addTravelForm = () => {
-    setTravelForm((prevTravelForm: any) => ({
+  const addTravelForm = useCallback(() => {
+    setTravelForm((prevTravelForm) => ({
       ...prevTravelForm,
       mumukshuGroup: [
         ...prevTravelForm.mumukshuGroup,
@@ -252,19 +434,19 @@ const MumukshuAddons = () => {
           drop: '',
           arrival_time: '',
           luggage: '',
-          adhyayan: 0,
-          type: 'regular',
+          adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
+          type: dropdowns.BOOKING_TYPE_LIST[0].value,
           special_request: '',
           mumukshus: [],
           mumukshuIndices: [],
         },
       ],
     }));
-  };
+  }, []);
 
-  const reomveTravelForm = (indexToRemove: any) => {
+  const removeTravelForm = useCallback((indexToRemove: any) => {
     return () => {
-      setTravelForm((prevTravelForm: any) => {
+      setTravelForm((prevTravelForm) => {
         const updatedMumukshuGroup = [...prevTravelForm.mumukshuGroup];
         updatedMumukshuGroup.splice(indexToRemove, 1);
         return {
@@ -273,43 +455,201 @@ const MumukshuAddons = () => {
         };
       });
     };
-  };
+  }, []);
 
-  const updateTravelForm = (groupIndex: any, key: any, value: any) => {
-    setTravelForm((prevTravelForm: any) => {
-      const updatedMumukshuGroup: any = [...prevTravelForm.mumukshuGroup];
+  const updateTravelForm = useCallback(
+    (groupIndex: any, key: any, value: any) => {
+      setTravelForm((prevTravelForm) => {
+        const updatedMumukshuGroup = [...prevTravelForm.mumukshuGroup];
 
-      if (key === 'mumukshus') {
-        updatedMumukshuGroup[groupIndex].mumukshuIndices = value;
-        updatedMumukshuGroup[groupIndex].mumukshus = mumukshus.filter((_: any, i: any) =>
-          value.includes(i.toString())
-        );
-      } else {
-        updatedMumukshuGroup[groupIndex][key] = value;
+        if (key === 'mumukshus') {
+          updatedMumukshuGroup[groupIndex].mumukshuIndices = value;
+          updatedMumukshuGroup[groupIndex].mumukshus = mumukshus.filter((_: any, i: any) =>
+            value.includes(i.toString())
+          );
+        } else {
+          updatedMumukshuGroup[groupIndex][key] = value;
+        }
+
+        return {
+          ...prevTravelForm,
+          mumukshuGroup: updatedMumukshuGroup,
+        };
+      });
+    },
+    [mumukshus]
+  );
+
+  // Adhyayan form handler
+  const updateAdhyayanForm = useCallback(
+    (field: any, value: any) => {
+      setAdhyayanForm((prevAdhyayanForm) => ({
+        ...prevAdhyayanForm,
+        [field]: value,
+        ...(field === 'mumukshuIndices' && {
+          mumukshus: mumukshus.filter((_: any, i: any) => value.includes(i.toString())),
+        }),
+      }));
+    },
+    [mumukshus]
+  );
+
+  // Form validation handlers
+  const validateRoomForm = useCallback(() => {
+    const hasEmptyFields = roomForm.mumukshuGroup.some(
+      (group: any) => !group.roomType || !group.floorType || group.mumukshus.length === 0
+    );
+    return !hasEmptyFields && roomForm.startDay && roomForm.endDay;
+  }, [roomForm]);
+
+  const validateFoodForm = useCallback(() => {
+    const hasEmptyFields = foodForm.mumukshuGroup.some(
+      (group: any) => group.meals.length === 0 || group.mumukshus.length === 0 || group.spicy === ''
+    );
+    return !hasEmptyFields && foodForm.startDay && foodForm.endDay;
+  }, [foodForm]);
+
+  const validateAdhyayanForm = useCallback(() => {
+    return Object.keys(adhyayanForm.adhyayan).length !== 0 && adhyayanForm.mumukshus.length !== 0;
+  }, [adhyayanForm]);
+
+  const validateTravelForm = useCallback(() => {
+    const hasEmptyFields = travelForm.mumukshuGroup.some(
+      (group: any) => !group.pickup || !group.drop || !group.luggage || group.mumukshus.length === 0
+    );
+    return !hasEmptyFields && travelForm.date;
+  }, [travelForm]);
+
+  // Form content check handlers (to see if user has started filling them)
+  const isRoomFormEmpty = useCallback(() => {
+    return roomForm.mumukshuGroup.some(
+      (group: any) => group.roomType !== '' || group.floorType !== '' || group.mumukshus.length > 0
+    );
+  }, [roomForm]);
+
+  const isFoodFormEmpty = useCallback(() => {
+    return foodForm.mumukshuGroup.some(
+      (group: any) => group.meals.length > 0 || group.spicy !== '' || group.mumukshus.length > 0
+    );
+  }, [foodForm]);
+
+  const isAdhyayanFormEmpty = useCallback(() => {
+    return Object.keys(adhyayanForm.adhyayan).length > 0 || adhyayanForm.mumukshus.length > 0;
+  }, [adhyayanForm]);
+
+  const isTravelFormEmpty = useCallback(() => {
+    return travelForm.mumukshuGroup.some(
+      (group: any) =>
+        group.pickup !== '' ||
+        group.drop !== '' ||
+        group.luggage !== '' ||
+        group.mumukshus.length > 0
+    );
+  }, [travelForm]);
+
+  // Form submission handler
+  const handleSubmit = useCallback(() => {
+    setIsSubmitting(true);
+    let hasValidationError = false;
+
+    try {
+      // Validate and set Room Form data
+      if (booking !== types.ROOM_DETAILS_TYPE && addonOpen.room) {
+        if (!validateRoomForm()) {
+          Toast.show({
+            type: 'error',
+            text1: 'Please fill all the room booking fields',
+            text2: '',
+            swipeable: false,
+          });
+          hasValidationError = true;
+          return;
+        }
+        setMumukshuData((prev: any) => ({ ...prev, room: roomForm }));
       }
 
-      return {
-        ...prevTravelForm,
-        mumukshuGroup: updatedMumukshuGroup,
-      };
-    });
-  };
+      // Validate and set Food Form data
+      if (addonOpen.food) {
+        if (!validateFoodForm()) {
+          Toast.show({
+            type: 'error',
+            text1: 'Please fill all the food booking fields',
+            text2: '',
+            swipeable: false,
+          });
+          hasValidationError = true;
+          return;
+        }
+        setMumukshuData((prev: any) => ({ ...prev, food: foodForm }));
+      }
 
-  // Adhyayan Booking Form Data
-  const [adhyayanForm, setAdhyayanForm] = useState(
-    JSON.parse(JSON.stringify(INITIAL_ADHYAYAN_FORM))
-  );
-  const updateAdhyayanForm = (field: any, value: any) => {
-    setAdhyayanForm((prevAdhyayanForm: any) => ({
-      ...prevAdhyayanForm,
-      [field]: value,
-      ...(field === 'mumukshuIndices' && {
-        mumukshus: mumukshus.filter((_v: any, i: any) => {
-          return value.includes(i.toString());
-        }),
-      }),
-    }));
-  };
+      // Validate and set Adhyayan Form data
+      if (booking !== types.ADHYAYAN_DETAILS_TYPE && isAdhyayanFormEmpty()) {
+        if (!validateAdhyayanForm()) {
+          Toast.show({
+            type: 'error',
+            text1: 'Please fill all the adhyayan booking fields',
+            text2: '',
+            swipeable: false,
+          });
+          hasValidationError = true;
+          return;
+        }
+        setMumukshuData((prev: any) => ({ ...prev, adhyayan: adhyayanForm }));
+      }
+
+      // Validate and set Travel Form data
+      if (booking !== types.TRAVEL_DETAILS_TYPE && addonOpen.travel) {
+        if (!validateTravelForm()) {
+          Toast.show({
+            type: 'error',
+            text1: 'Please fill all travel fields',
+            swipeable: false,
+          });
+          hasValidationError = true;
+          return;
+        }
+        setMumukshuData((prev: any) => ({ ...prev, travel: travelForm }));
+      }
+
+      // If no validation errors, navigate to confirmation page
+      if (!hasValidationError) {
+        router.push('/mumukshuBooking/mumukshuBookingConfirmation');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [
+    booking,
+    isRoomFormEmpty,
+    isFoodFormEmpty,
+    isAdhyayanFormEmpty,
+    isTravelFormEmpty,
+    validateRoomForm,
+    validateFoodForm,
+    validateAdhyayanForm,
+    validateTravelForm,
+    roomForm,
+    foodForm,
+    adhyayanForm,
+    travelForm,
+    setMumukshuData,
+    router,
+  ]);
+
+  // Check if Adhyayan is in Research Centre
+  const isAdhyayanInResearchCentre = useMemo(() => {
+    return (
+      booking === types.ADHYAYAN_DETAILS_TYPE &&
+      mumukshuData.adhyayan?.adhyayan?.location !== 'Research Centre'
+    );
+  }, [booking, mumukshuData.adhyayan]);
+
+  // Handle validation error modal close
+  const handleCloseValidationModal = useCallback(() => {
+    setMumukshuData((prev: any) => ({ ...prev, dismissedValidationError: true }));
+    router.back();
+  }, [router, setMumukshuData]);
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
@@ -321,19 +661,17 @@ const MumukshuAddons = () => {
           <PageHeader title="Booking Details" icon={icons.backArrow} />
 
           {booking === types.ROOM_DETAILS_TYPE && (
-            <MumukshuRoomBookingDetails containerStyles={'mt-2'} />
+            <MumukshuRoomBookingDetails containerStyles="mt-2" />
           )}
           {booking === types.ADHYAYAN_DETAILS_TYPE && (
-            <MumukshuAdhyayanBookingDetails containerStyles={'mt-2'} />
+            <MumukshuAdhyayanBookingDetails containerStyles="mt-2" />
           )}
           {booking === types.TRAVEL_DETAILS_TYPE && (
-            <MumukshuTravelBookingDetails containerStyles={'mt-2'} />
+            <MumukshuTravelBookingDetails containerStyles="mt-2" />
           )}
+
           <View className="w-full px-4">
-            {!(
-              booking === types.ADHYAYAN_DETAILS_TYPE &&
-              mumukshuData.adhyayan.adhyayan.location != 'Research Centre'
-            ) && (
+            {!isAdhyayanInResearchCentre && (
               <View>
                 <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
 
@@ -343,12 +681,13 @@ const MumukshuAddons = () => {
                     roomForm={roomForm}
                     setRoomForm={setRoomForm}
                     addRoomForm={addRoomForm}
-                    reomveRoomForm={reomveRoomForm}
+                    reomveRoomForm={removeRoomForm}
                     updateRoomForm={updateRoomForm}
                     resetRoomForm={resetRoomForm}
                     mumukshu_dropdown={mumukshu_dropdown}
                     isDatePickerVisible={isDatePickerVisible}
-                    setDatePickerVisibility={setDatePickerVisibility}
+                    setDatePickerVisibility={toggleDatePicker}
+                    onToggle={(isOpen) => toggleAddon('room', isOpen)}
                   />
                 )}
 
@@ -358,11 +697,12 @@ const MumukshuAddons = () => {
                   setFoodForm={setFoodForm}
                   addFoodForm={addFoodForm}
                   resetFoodForm={resetFoodForm}
-                  reomveFoodForm={reomveFoodForm}
+                  reomveFoodForm={removeFoodForm}
                   updateFoodForm={updateFoodForm}
                   mumukshu_dropdown={mumukshu_dropdown}
                   isDatePickerVisible={isDatePickerVisible}
-                  setDatePickerVisibility={setDatePickerVisibility}
+                  setDatePickerVisibility={toggleDatePicker}
+                  onToggle={(isOpen) => toggleAddon('food', isOpen)}
                 />
 
                 {/* MUMUKSHU ADHYAYAN BOOKING COMPONENT */}
@@ -371,7 +711,7 @@ const MumukshuAddons = () => {
                     adhyayanForm={adhyayanForm}
                     setAdhyayanForm={setAdhyayanForm}
                     updateAdhyayanForm={updateAdhyayanForm}
-                    INITIAL_ADHYAYAN_FORM={INITIAL_ADHYAYAN_FORM}
+                    INITIAL_ADHYAYAN_FORM={createInitialAdhyayanForm()}
                     mumukshu_dropdown={mumukshu_dropdown}
                   />
                 )}
@@ -384,10 +724,11 @@ const MumukshuAddons = () => {
                     addTravelForm={addTravelForm}
                     updateTravelForm={updateTravelForm}
                     resetTravelForm={resetTravelForm}
-                    removeTravelForm={reomveTravelForm}
+                    removeTravelForm={removeTravelForm}
                     mumukshu_dropdown={mumukshu_dropdown}
                     isDatePickerVisible={isDatePickerVisible}
-                    setDatePickerVisibility={setDatePickerVisibility}
+                    setDatePickerVisibility={toggleDatePicker}
+                    onToggle={(isOpen) => toggleAddon('travel', isOpen)}
                   />
                 )}
               </View>
@@ -395,135 +736,8 @@ const MumukshuAddons = () => {
 
             <CustomButton
               text="Confirm"
-              handlePress={() => {
-                setIsSubmitting(true);
-
-                const isRoomFormEmpty = () => {
-                  return roomForm.mumukshuGroup.some(
-                    (group: any) =>
-                      group.roomType !== '' || group.floorType !== '' || group.mumukshus.length > 0
-                  );
-                };
-
-                const isFoodFormEmpty = () => {
-                  return foodForm.mumukshuGroup.some(
-                    (group: any) =>
-                      group.meals.length > 0 || group.spicy !== '' || group.mumukshus.length > 0
-                  );
-                };
-
-                const isAdhyayanFormEmpty = () => {
-                  return (
-                    Object.keys(adhyayanForm.adhyayan).length > 0 ||
-                    adhyayanForm.mumukshus.length > 0
-                  );
-                };
-
-                const isTravelFormEmpty = () => {
-                  return travelForm.mumukshuGroup.some(
-                    (group: any) =>
-                      group.pickup !== '' ||
-                      group.drop !== '' ||
-                      group.luggage !== '' ||
-                      group.mumukshus.length === 0
-                  );
-                };
-
-                // Validate and set Room Form data
-                if (booking !== types.ROOM_DETAILS_TYPE && isRoomFormEmpty()) {
-                  const hasEmptyFields = roomForm.mumukshuGroup.some(
-                    (group: any) =>
-                      !group.roomType || !group.floorType || group.mumukshus.length === 0
-                  );
-
-                  if (hasEmptyFields || !roomForm.startDay || !roomForm.endDay) {
-                    Toast.show({
-                      type: 'error',
-                      text1: 'Please fill all the room booking fields',
-                      text2: '',
-                      swipeable: false,
-                    });
-                    setIsSubmitting(false);
-                    return;
-                  }
-                  setMumukshuData((prev: any) => ({ ...prev, room: roomForm }));
-                }
-
-                // Validate and set Food Form data
-                if (
-                  isFoodFormEmpty() &&
-                  JSON.stringify(foodForm) !== JSON.stringify(INITIAL_FOOD_FORM)
-                ) {
-                  const hasEmptyFields = foodForm.mumukshuGroup.some((group: any) => {
-                    return (
-                      group.meals.length === 0 || group.mumukshus.length === 0 || group.spicy === ''
-                    );
-                  });
-
-                  if (hasEmptyFields || !foodForm.startDay || !foodForm.endDay) {
-                    Toast.show({
-                      type: 'error',
-                      text1: 'Please fill all the food booking fields',
-                      text2: '',
-                      swipeable: false,
-                    });
-                    setIsSubmitting(false);
-                    return;
-                  }
-                  setMumukshuData((prev: any) => ({ ...prev, food: foodForm }));
-                }
-
-                // Validate and set Adhyayan Form data
-                if (booking !== types.ADHYAYAN_DETAILS_TYPE && isAdhyayanFormEmpty()) {
-                  if (
-                    Object.keys(adhyayanForm.adhyayan).length === 0 ||
-                    adhyayanForm.mumukshus.length === 0
-                  ) {
-                    Toast.show({
-                      type: 'error',
-                      text1: 'Please fill all the adhyayan booking fields',
-                      text2: '',
-                      swipeable: false,
-                    });
-                    setIsSubmitting(false);
-                    return;
-                  }
-                  setMumukshuData((prev: any) => ({
-                    ...prev,
-                    adhyayan: adhyayanForm,
-                  }));
-                }
-
-                // Validate and set Travel Form data
-                if (
-                  booking !== types.TRAVEL_DETAILS_TYPE &&
-                  isTravelFormEmpty() &&
-                  JSON.stringify(travelForm) !== JSON.stringify(INITIAL_TRAVEL_FORM)
-                ) {
-                  const hasEmptyFields = travelForm.mumukshuGroup.some(
-                    (group: any) =>
-                      group.pickup == '' ||
-                      group.drop == '' ||
-                      group.luggage == '' ||
-                      group.mumukshus.length == 0
-                  );
-
-                  if (hasEmptyFields || !travelForm.date) {
-                    Toast.show({
-                      type: 'error',
-                      text1: 'Please fill all travel the fields',
-                      swipeable: false,
-                    });
-                    setIsSubmitting(false);
-                    return;
-                  }
-
-                  setMumukshuData((prev: any) => ({ ...prev, travel: travelForm }));
-                }
-                setIsSubmitting(false);
-                router.push('/mumukshuBooking/mumukshuBookingConfirmation');
-              }}
-              containerStyles="mb-8 min-h-[62px]"
+              handlePress={handleSubmit}
+              containerStyles="mb-8 min-h-[62px] mt-6"
               isLoading={isSubmitting}
             />
           </View>
@@ -531,9 +745,9 @@ const MumukshuAddons = () => {
           {validationDataError && !mumukshuData.dismissedValidationError && (
             <CustomModal
               visible={true}
-              onClose={() => router.back()}
+              onClose={handleCloseValidationModal}
               message={validationDataError.message}
-              btnText={'Okay'}
+              btnText="Okay"
             />
           )}
         </ScrollView>

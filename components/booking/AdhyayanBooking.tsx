@@ -441,8 +441,8 @@ function transformData(inputData: any) {
   return {
     adhyayan: adhyayan,
     guestGroup: guests.map((guest: any) => ({
-      id: guest.cardno,
-      name: guest.issuedto || guest.name,
+      cardno: guest.cardno,
+      issuedto: guest.issuedto || guest.name,
     })),
   };
 }

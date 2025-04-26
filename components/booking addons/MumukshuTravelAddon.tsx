@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { icons, colors, dropdowns } from '../../constants';
-import CustomDropdown from '../CustomDropdown';
-import CustomMultiSelectDropdowm from '../CustomMultiSelectDropdown';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import FormField from '../FormField';
-import AddonItem from '../AddonItem';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import HorizontalSeparator from '../HorizontalSeparator';
 import FormDisplayField from '../FormDisplayField';
+import FormField from '../FormField';
+import AddonItem from '../AddonItem';
 import moment from 'moment';
 
 interface MumukshuTravelAddonProps {
@@ -20,6 +19,7 @@ interface MumukshuTravelAddonProps {
   mumukshu_dropdown: any;
   isDatePickerVisible: any;
   setDatePickerVisibility: any;
+  onToggle?: (isOpen: boolean) => void;
 }
 
 const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
@@ -32,6 +32,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
   mumukshu_dropdown,
   isDatePickerVisible,
   setDatePickerVisibility,
+  onToggle,
 }) => {
   const [activeMumukshuIndex, setActiveMumukshuIndex] = useState(null);
 
@@ -75,6 +76,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
       onCollapse={() => {
         resetTravelForm();
       }}
+      onToggle={onToggle}
       visibleContent={
         <View className="flex flex-row items-center gap-x-4">
           <Image source={icons.travel} className="h-10 w-10" resizeMode="contain" />
@@ -141,34 +143,36 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
               </TouchableOpacity>
             </View>
           )}
-          <CustomMultiSelectDropdowm
-            otherStyles="mt-5"
-            text={`Mumukshus for Seat ${index + 1}`}
+
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label={`Mumukshu group - ${index + 1}`}
             placeholder="Select Mumukshus"
-            data={getAvailableMumukshus(index)}
-            value={assignment.mumukshuIndices}
-            setSelected={(val: any) => {
-              updateTravelForm(index, 'mumukshus', val);
-            }}
-            guest={true}
+            options={getAvailableMumukshus(index)}
+            selectedValues={assignment.mumukshuIndices}
+            onValuesChange={(val) => updateTravelForm(index, 'mumukshus', val)}
+            multiSelect={true}
+            confirmButtonText="Select"
           />
 
-          <CustomDropdown
-            otherStyles="mt-5"
-            text={'Pickup Location'}
-            placeholder={'Select Location'}
-            data={dropdowns.LOCATION_LIST}
-            setSelected={(val: any) => updateTravelForm(index, 'pickup', val)}
-            save={'value'}
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label="Pickup Location"
+            placeholder="Select Pickup Location"
+            options={dropdowns.LOCATION_LIST}
+            selectedValue={assignment.pickup}
+            onValueChange={(val: any) => updateTravelForm(index, 'pickup', val)}
+            saveKeyInsteadOfValue={false}
           />
 
-          <CustomDropdown
-            otherStyles="mt-5"
-            text={'Drop Location'}
-            placeholder={'Select Location'}
-            data={dropdowns.LOCATION_LIST}
-            setSelected={(val: any) => updateTravelForm(index, 'drop', val)}
-            save={'value'}
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label="Drop Location"
+            placeholder="Select Drop Location"
+            options={dropdowns.LOCATION_LIST}
+            selectedValue={travelForm.drop}
+            onValueChange={(val: any) => updateTravelForm(index, 'drop', val)}
+            saveKeyInsteadOfValue={false}
           />
 
           {(travelForm.mumukshuGroup[index].pickup &&
@@ -227,32 +231,37 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             </>
           ) : null}
 
-          <CustomDropdown
-            otherStyles="mt-5"
-            text={'Luggage'}
-            save={'value'}
-            placeholder={'Select any luggage'}
-            data={dropdowns.LUGGAGE_LIST}
-            setSelected={(val: any) => updateTravelForm(index, 'luggage', val)}
+          <CustomSelectBottomSheet
+            className="mt-7"
+            label="Booking Type"
+            placeholder="Booking Type"
+            options={dropdowns.BOOKING_TYPE_LIST}
+            selectedValue={travelForm.type}
+            onValueChange={(val: any) => updateTravelForm(index, 'type', val)}
+            saveKeyInsteadOfValue={false}
           />
 
-          <CustomDropdown
-            otherStyles="mt-7"
-            text={'Leaving post adhyayan?'}
-            placeholder={'Leaving post adhyayan?'}
-            data={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
-            setSelected={(val: any) => updateTravelForm(index, 'adhyayan', val)}
-            defaultOption={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1]}
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label="Luggage"
+            placeholder="Select any Luggage"
+            options={dropdowns.LUGGAGE_LIST}
+            selectedValue={assignment.luggage}
+            onValueChange={(val: any) => updateTravelForm(index, 'luggage', val)}
+            saveKeyInsteadOfValue={false}
           />
 
-          <CustomDropdown
-            otherStyles="mt-5"
-            text={'Booking Type'}
-            placeholder={'Select booking type'}
-            data={dropdowns.BOOKING_TYPE_LIST}
-            setSelected={(val: any) => updateTravelForm(index, 'type', val)}
-            defaultOption={dropdowns.BOOKING_TYPE_LIST[0]}
-          />
+          {assignment.pickup == dropdowns.LOCATION_LIST[0].value && (
+            <CustomSelectBottomSheet
+              className="mt-5"
+              label="Leaving post adhyayan?"
+              placeholder="Leaving post adhyayan?"
+              options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
+              selectedValue={assignment.adhyayan}
+              onValueChange={(val: any) => updateTravelForm(index, 'adhyayan', val)}
+              saveKeyInsteadOfValue={false}
+            />
+          )}
 
           <FormField
             text="Any Special Request?"

@@ -1,13 +1,13 @@
+import { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { colors, icons, dropdowns } from '../../constants';
 import CustomDropdown from '../CustomDropdown';
 import moment from 'moment';
 import AddonItem from '../AddonItem';
-import CustomMultiSelectDropdown from '../CustomMultiSelectDropdown';
 import HorizontalSeparator from '../HorizontalSeparator';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FormDisplayField from '../FormDisplayField';
-import { useEffect, useState } from 'react';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
 
@@ -21,6 +21,7 @@ interface MumukshuFoodAddonProps {
   mumukshu_dropdown: any;
   isDatePickerVisible: any;
   setDatePickerVisibility: any;
+  onToggle?: (isOpen: boolean) => void;
 }
 
 const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
@@ -33,6 +34,7 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
   mumukshu_dropdown,
   isDatePickerVisible,
   setDatePickerVisibility,
+  onToggle,
 }) => {
   // Temporary state to hold the date for the checkin picker
   const [tempFoodStartDate, setTempFoodStartDate] = useState(new Date());
@@ -74,6 +76,7 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
       onCollapse={() => {
         resetFoodForm();
       }}
+      onToggle={onToggle}
       visibleContent={
         <View className="flex flex-row items-center gap-x-4">
           <Image source={icons.food} className="h-10 w-10" resizeMode="contain" />
@@ -190,34 +193,37 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
               </TouchableOpacity>
             </View>
           )}
-          <CustomMultiSelectDropdown
-            otherStyles="mt-5"
-            text={`Mumukshus group - ${index + 1}`}
+
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label={`Mumukshu group - ${index + 1}`}
             placeholder="Select Mumukshus"
-            data={getAvailableMumukshus(index)}
-            value={assignment.mumukshuIndices}
-            setSelected={(val: any) => updateFoodForm(index, 'mumukshus', val)}
-            guest={true}
+            options={getAvailableMumukshus(index)}
+            selectedValues={assignment.mumukshuIndices}
+            onValuesChange={(val) => updateFoodForm(index, 'mumukshus', val)}
+            multiSelect={true}
+            confirmButtonText="Select"
           />
 
-          <CustomMultiSelectDropdown
-            otherStyles="mt-5"
-            text={`Select Meals`}
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label="Select Meals"
             placeholder="Select Meals"
-            data={dropdowns.GUEST_FOOD_TYPE_LIST}
-            value={assignment.meals}
-            setSelected={(val: any) => updateFoodForm(index, 'meals', val)}
-            guest={true}
+            options={dropdowns.FOOD_TYPE_LIST}
+            selectedValues={assignment.meals}
+            onValuesChange={(val) => updateFoodForm(index, 'meals', val)}
+            multiSelect={true}
+            confirmButtonText="Select"
+            maxSelectedDisplay={3}
           />
 
-          <CustomDropdown
-            otherStyles="mt-5 w-full px-1"
-            text={'Spice Level'}
-            placeholder={'How much spice do you want?'}
-            data={dropdowns.SPICE_LIST}
-            setSelected={(val: any) => updateFoodForm(index, 'spicy', val)}
-            value={assignment.spicy}
-            defaultOption={dropdowns.SPICE_LIST[0]}
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label="Spice Level"
+            placeholder="How much spice do you want?"
+            options={dropdowns.SPICE_LIST}
+            selectedValue={assignment.spicy}
+            onValueChange={(val: any) => updateFoodForm(index, 'spicy', val)}
           />
 
           <CustomDropdown

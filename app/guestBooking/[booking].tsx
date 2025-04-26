@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, icons, types } from '../../constants';
-import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { prepareGuestRequestBody } from '~/utils/preparingRequestBody';
 import CustomButton from '../../components/CustomButton';
@@ -18,10 +17,11 @@ import Toast from 'react-native-toast-message';
 import handleAPICall from '~/utils/HandleApiCall';
 import CustomModal from '~/components/CustomModal';
 
-const INITIAL_ROOM_FORM = {
-  startDay: '',
-  endDay: '',
-  guestGroup: [
+// Define initial form structures
+const createInitialRoomForm = (existingData: any = null) => ({
+  startDay: existingData?.startDay || '',
+  endDay: existingData?.endDay || '',
+  guestGroup: existingData?.guestGroup || [
     {
       roomType: dropdowns.ROOM_TYPE_LIST[0].key,
       floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
@@ -29,12 +29,12 @@ const INITIAL_ROOM_FORM = {
       guestIndices: [],
     },
   ],
-};
+});
 
-const INITIAL_FOOD_FORM = {
-  startDay: '',
-  endDay: '',
-  guestGroup: [
+const createInitialFoodForm = (existingData: any = null) => ({
+  startDay: existingData?.startDay || '',
+  endDay: existingData?.endDay || '',
+  guestGroup: existingData?.guestGroup || [
     {
       meals: ['breakfast', 'lunch', 'dinner'],
       spicy: dropdowns.SPICE_LIST[0].key,
@@ -43,21 +43,161 @@ const INITIAL_FOOD_FORM = {
       guestIndices: [],
     },
   ],
-};
+});
 
-const INITIAL_ADHYAYAN_FORM = {
-  adhyayan: {},
-  guests: [],
-  guestIndices: [],
-};
+const createInitialAdhyayanForm = (existingData: any = null) => ({
+  adhyayan: existingData?.adhyayan || {},
+  guests: existingData?.guests || [],
+  guestIndices: existingData?.guestIndices || [],
+});
 
-const guestAddons = () => {
+const GuestAddons = () => {
   const { booking } = useLocalSearchParams();
   const { user, guestData, setGuestData } = useGlobalContext();
+  const router = useRouter();
 
-  const transformedData = prepareGuestRequestBody(user, guestData);
+  const [addonOpen, setAddonOpen] = useState({
+    room: false,
+    food: false,
+  });
 
-  const fetchValidation = async () => {
+  // Get all guests from existing data
+  const guests = useMemo(() => {
+    return (
+      guestData.room?.guestGroup?.flatMap((group: any) => group.guests) ||
+      guestData.adhyayan?.guestGroup ||
+      []
+    );
+  }, [guestData.room, guestData.adhyayan]);
+
+  // Create dropdown options for guests
+  const guest_dropdown = useMemo(() => {
+    return guests.map((guest: any, index: any) => ({
+      key: index,
+      value: guest.issuedto,
+    }));
+  }, [guests]);
+
+  // Get initial dates based on existing data
+  const getInitialDates = useMemo(() => {
+    // Find the first available date from any existing booking
+    const startDate =
+      guestData.room?.startDay ||
+      guestData.food?.startDay ||
+      guestData.adhyayan?.adhyayan?.start_date ||
+      '';
+
+    const endDate =
+      guestData.room?.endDay ||
+      guestData.food?.endDay ||
+      guestData.adhyayan?.adhyayan?.end_date ||
+      '';
+
+    return { startDate, endDate };
+  }, [guestData]);
+
+  // Create initial forms with dates prefilled from any available source
+  const createInitialForms = useCallback(() => {
+    // Create room form with dates from any existing booking
+    const roomFormInitial = {
+      ...createInitialRoomForm(guestData.room),
+      startDay: guestData.room?.startDay || getInitialDates.startDate,
+      endDay: guestData.room?.endDay || getInitialDates.endDate,
+    };
+
+    // Create food form with dates from any existing booking
+    const foodFormInitial = {
+      ...createInitialFoodForm(guestData.food),
+      startDay: guestData.food?.startDay || getInitialDates.startDate,
+      endDay: guestData.food?.endDay || getInitialDates.endDate,
+    };
+
+    // Create adhyayan form
+    const adhyayanFormInitial = createInitialAdhyayanForm(guestData.adhyayan);
+
+    return { roomFormInitial, foodFormInitial, adhyayanFormInitial };
+  }, [guestData, getInitialDates]);
+
+  // Initialize forms with existing data if available
+  const initialForms = useMemo(() => createInitialForms(), [createInitialForms]);
+
+  const [roomForm, setRoomForm] = useState(initialForms.roomFormInitial);
+  const [foodForm, setFoodForm] = useState(initialForms.foodFormInitial);
+  const [adhyayanForm, setAdhyayanForm] = useState(initialForms.adhyayanFormInitial);
+
+  // Update forms when guestData changes (for prefilling)
+  useEffect(() => {
+    // Get latest dates from any booking type
+    const startDate =
+      guestData.room?.startDay ||
+      guestData.food?.startDay ||
+      guestData.adhyayan?.adhyayan?.start_date ||
+      '';
+
+    const endDate =
+      guestData.room?.endDay ||
+      guestData.food?.endDay ||
+      guestData.adhyayan?.adhyayan?.end_date ||
+      '';
+
+    // Update room form with cross-referenced dates
+    if (guestData.room) {
+      setRoomForm((prev) => ({
+        ...createInitialRoomForm(guestData.room),
+        startDay: guestData.room.startDay || startDate,
+        endDay: guestData.room.endDay || endDate,
+      }));
+    } else if (startDate || endDate) {
+      // If room data doesn't exist but we have dates from other bookings
+      setRoomForm((prev) => ({
+        ...prev,
+        startDay: prev.startDay || startDate,
+        endDay: prev.endDay || endDate,
+      }));
+    }
+
+    // Update food form with cross-referenced dates
+    if (guestData.food) {
+      setFoodForm((prev) => ({
+        ...createInitialFoodForm(guestData.food),
+        startDay: guestData.food.startDay || startDate,
+        endDay: guestData.food.endDay || endDate,
+      }));
+    } else if (startDate || endDate) {
+      // If food data doesn't exist but we have dates from other bookings
+      setFoodForm((prev) => ({
+        ...prev,
+        startDay: prev.startDay || startDate,
+        endDay: prev.endDay || endDate,
+      }));
+    }
+
+    // Update adhyayan form
+    if (guestData.adhyayan) {
+      setAdhyayanForm(createInitialAdhyayanForm(guestData.adhyayan));
+    }
+  }, [guestData]);
+
+  const toggleAddon = useCallback((addonType: any, isOpen: any) => {
+    setAddonOpen((prev) => ({ ...prev, [addonType]: isOpen }));
+  }, []);
+
+  // Date picker state
+  const [isDatePickerVisible, setDatePickerVisibility] = useState({
+    checkin: false,
+    checkout: false,
+    foodStart: false,
+    foodEnd: false,
+    travel: false,
+  });
+
+  // Prepare API payload
+  const transformedData = useMemo(() => {
+    return prepareGuestRequestBody(user, guestData);
+  }, [user, guestData]);
+
+  // Validation API call
+  const fetchValidation = useCallback(async () => {
     return new Promise((resolve, reject) => {
       handleAPICall(
         'POST',
@@ -69,47 +209,42 @@ const guestAddons = () => {
           resolve(res.data);
         },
         () => {},
-        (errorDetails: any) => reject(new Error(errorDetails.message))
+        (errorDetails) => reject(new Error(errorDetails.message))
       );
     });
-  };
+  }, [transformedData, setGuestData]);
 
   const {
     isLoading: isValidationDataLoading,
     isError: isValidationDataError,
     error: validationDataError,
     data: validationData,
-  }: any = useQuery({
-    queryKey: ['guestValidations', user.cardno],
+  } = useQuery({
+    queryKey: ['guestValidations', user.cardno, JSON.stringify(guestData)],
     queryFn: fetchValidation,
     retry: false,
+    enabled: !!user.cardno && Object.keys(guestData).length > 0,
   });
 
-  const guests =
-    guestData.room?.guestGroup?.flatMap((group: any) => group.guests) ||
-    guestData.adhyayan?.guestGroup;
-  const guest_dropdown = guests.map((guest: any, index: any) => ({
-    value: index,
-    label: guest.issuedto,
-  }));
-
-  const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [roomForm, setRoomForm] = useState(JSON.parse(JSON.stringify(INITIAL_ROOM_FORM)));
-  const addRoomForm = () => {
-    setRoomForm((prevRoomForm: any) => ({
+  // Room form handling functions
+  const addRoomForm = useCallback(() => {
+    setRoomForm((prevRoomForm) => ({
       ...prevRoomForm,
       guestGroup: [
         ...prevRoomForm.guestGroup,
-        { roomType: '', floorType: '', guests: [], guestIndices: [] },
+        {
+          roomType: dropdowns.ROOM_TYPE_LIST[0].key,
+          floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
+          guests: [],
+          guestIndices: [],
+        },
       ],
     }));
-  };
+  }, []);
 
-  const reomveRoomForm = (indexToRemove: any) => {
+  const removeRoomForm = useCallback((indexToRemove: any) => {
     return () => {
-      setRoomForm((prevRoomForm: any) => {
+      setRoomForm((prevRoomForm) => {
         const updatedGuestGroup = [...prevRoomForm.guestGroup];
         updatedGuestGroup.splice(indexToRemove, 1);
         return {
@@ -118,48 +253,59 @@ const guestAddons = () => {
         };
       });
     };
-  };
+  }, []);
 
-  const updateRoomForm = (groupIndex: any, key: any, value: any) => {
-    setRoomForm((prevRoomForm: any) => {
-      const updatedGuestGroup: any = [...prevRoomForm.guestGroup];
+  const updateRoomForm = useCallback(
+    (groupIndex: any, key: any, value: any) => {
+      setRoomForm((prevRoomForm) => {
+        const updatedGuestGroup = [...prevRoomForm.guestGroup];
 
-      if (key === 'guests') {
-        updatedGuestGroup[groupIndex].guestIndices = value;
-        updatedGuestGroup[groupIndex].guests = guests.filter((_: any, i: any) => value.includes(i));
-      } else {
-        updatedGuestGroup[groupIndex][key] = value;
-      }
+        if (key === 'guests') {
+          updatedGuestGroup[groupIndex].guestIndices = value;
+          updatedGuestGroup[groupIndex].guests = guests.filter((_: any, i: any) =>
+            value.includes(i)
+          );
+        } else {
+          updatedGuestGroup[groupIndex][key] = value;
+        }
 
-      return {
-        ...prevRoomForm,
-        guestGroup: updatedGuestGroup,
-      };
-    });
-  };
+        return {
+          ...prevRoomForm,
+          guestGroup: updatedGuestGroup,
+        };
+      });
+    },
+    [guests]
+  );
 
-  const [foodForm, setFoodForm] = useState(JSON.parse(JSON.stringify(INITIAL_FOOD_FORM)));
-  const resetFoodForm = () => {
-    setFoodForm(JSON.parse(JSON.stringify(INITIAL_FOOD_FORM)));
+  // Food form handling functions
+  const addFoodForm = useCallback(() => {
+    setFoodForm((prevFoodForm) => ({
+      ...prevFoodForm,
+      guestGroup: [
+        ...prevFoodForm.guestGroup,
+        {
+          meals: ['breakfast', 'lunch', 'dinner'],
+          spicy: dropdowns.SPICE_LIST[0].key,
+          hightea: dropdowns.HIGHTEA_LIST[0].key,
+          guests: [],
+          guestIndices: [],
+        },
+      ],
+    }));
+  }, []);
+
+  const resetFoodForm = useCallback(() => {
+    setFoodForm(createInitialFoodForm());
     setGuestData((prev: any) => {
       const { food, ...rest } = prev;
       return rest;
     });
-  };
+  }, [setGuestData]);
 
-  const addFoodForm = () => {
-    setFoodForm((prevFoodForm: any) => ({
-      ...prevFoodForm,
-      guestGroup: [
-        ...prevFoodForm.guestGroup,
-        { meals: [], spicy: '', hightea: 'NONE', guests: [], guestIndices: [] },
-      ],
-    }));
-  };
-
-  const reomveFoodForm = (indexToRemove: any) => {
+  const removeFoodForm = useCallback((indexToRemove: any) => {
     return () => {
-      setFoodForm((prevFoodForm: any) => {
+      setFoodForm((prevFoodForm) => {
         const updatedGuestGroup = [...prevFoodForm.guestGroup];
         updatedGuestGroup.splice(indexToRemove, 1);
         return {
@@ -168,44 +314,169 @@ const guestAddons = () => {
         };
       });
     };
-  };
+  }, []);
 
-  const updateFoodForm = (groupIndex: any, key: any, value: any) => {
-    setFoodForm((prevFoodForm: any) => {
-      const updatedGuestGroup: any = [...prevFoodForm.guestGroup];
+  const updateFoodForm = useCallback(
+    (groupIndex: any, key: any, value: any) => {
+      setFoodForm((prevFoodForm) => {
+        const updatedGuestGroup = [...prevFoodForm.guestGroup];
 
-      if (key === 'guests') {
-        updatedGuestGroup[groupIndex].guestIndices = value;
-        updatedGuestGroup[groupIndex].guests = guests.filter((_: any, i: any) => value.includes(i));
-      } else {
-        updatedGuestGroup[groupIndex][key] = value;
+        if (key === 'guests') {
+          updatedGuestGroup[groupIndex].guestIndices = value;
+          updatedGuestGroup[groupIndex].guests = guests.filter((_: any, i: any) =>
+            value.includes(i)
+          );
+        } else {
+          updatedGuestGroup[groupIndex][key] = value;
+        }
+
+        return {
+          ...prevFoodForm,
+          guestGroup: updatedGuestGroup,
+        };
+      });
+    },
+    [guests]
+  );
+
+  // Adhyayan form handling functions
+  const updateAdhyayanForm = useCallback(
+    (field: any, value: any) => {
+      setAdhyayanForm((prevAdhyayanForm) => ({
+        ...prevAdhyayanForm,
+        [field]: value,
+        ...(field === 'guestIndices' && {
+          guests: guests.filter((_: any, i: any) => value.includes(i)),
+        }),
+      }));
+    },
+    [guests]
+  );
+
+  // Form validation functions
+  const validateRoomForm = useCallback(() => {
+    const hasEmptyFields = roomForm.guestGroup.some(
+      (group: any) => !group.roomType || !group.floorType || group.guests.length === 0
+    );
+    return !hasEmptyFields && roomForm.startDay && roomForm.endDay;
+  }, [roomForm]);
+
+  const validateFoodForm = useCallback(() => {
+    const hasEmptyFields = foodForm.guestGroup.some((group: any) => {
+      return group.meals.length === 0 || group.guests.length === 0 || group.spicy === '';
+    });
+    return !hasEmptyFields && foodForm.startDay && foodForm.endDay;
+  }, [foodForm]);
+
+  const validateAdhyayanForm = useCallback(() => {
+    return Object.keys(adhyayanForm.adhyayan).length !== 0 && adhyayanForm.guests.length !== 0;
+  }, [adhyayanForm]);
+
+  // Check if forms are not empty (have user input)
+  const isRoomFormEmpty = useCallback(() => {
+    return roomForm.guestGroup.some(
+      (group: any) => group.roomType !== '' || group.floorType !== '' || group.guests.length > 0
+    );
+  }, [roomForm]);
+
+  const isFoodFormEmpty = useCallback(() => {
+    return foodForm.guestGroup.some(
+      (group: any) => group.meals.length > 0 || group.spicy !== '' || group.guests.length > 0
+    );
+  }, [foodForm]);
+
+  const isAdhyayanFormEmpty = useCallback(() => {
+    return Object.keys(adhyayanForm.adhyayan).length > 0 || adhyayanForm.guests.length > 0;
+  }, [adhyayanForm]);
+
+  // Form submission state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Handle form submission
+  const handleSubmit = useCallback(() => {
+    setIsSubmitting(true);
+    let hasValidationError = false;
+
+    try {
+      // Validate and set Room Form data
+      if (booking !== types.ROOM_DETAILS_TYPE && addonOpen.room) {
+        if (!validateRoomForm()) {
+          Toast.show({
+            type: 'error',
+            text1: 'Please fill all the room booking fields',
+            text2: '',
+            swipeable: false,
+          });
+          hasValidationError = true;
+          return;
+        }
+        setGuestData((prev: any) => ({ ...prev, room: roomForm }));
       }
 
-      return {
-        ...prevFoodForm,
-        guestGroup: updatedGuestGroup,
-      };
-    });
-  };
+      // Validate and set Food Form data
+      if (addonOpen.food) {
+        if (!validateFoodForm()) {
+          Toast.show({
+            type: 'error',
+            text1: 'Please fill all the food booking fields',
+            text2: '',
+            swipeable: false,
+          });
+          hasValidationError = true;
+          return;
+        }
+        setGuestData((prev: any) => ({ ...prev, food: foodForm }));
+      }
 
-  const [adhyayanForm, setAdhyayanForm] = useState(INITIAL_ADHYAYAN_FORM);
-  const updateAdhyayanForm = (field: any, value: any) => {
-    setAdhyayanForm((prevAdhyayanForm) => ({
-      ...prevAdhyayanForm,
-      [field]: value,
-      ...(field === 'guestIndices' && {
-        guests: guests.filter((_: any, i: any) => value.includes(i)),
-      }),
-    }));
-  };
+      // Validate and set Adhyayan Form data
+      if (booking !== types.ADHYAYAN_DETAILS_TYPE && isAdhyayanFormEmpty()) {
+        if (!validateAdhyayanForm()) {
+          Toast.show({
+            type: 'error',
+            text1: 'Please fill all the adhyayan booking fields',
+            text2: '',
+            swipeable: false,
+          });
+          hasValidationError = true;
+          return;
+        }
+        setGuestData((prev: any) => ({ ...prev, adhyayan: adhyayanForm }));
+      }
 
-  const [isDatePickerVisible, setDatePickerVisibility] = useState({
-    checkin: false,
-    checkout: false,
-    foodStart: false,
-    foodEnd: false,
-    travel: false,
-  });
+      // If no validation errors, navigate to confirmation page
+      if (!hasValidationError) {
+        router.push('/guestBooking/guestBookingConfirmation');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [
+    booking,
+    isRoomFormEmpty,
+    isFoodFormEmpty,
+    isAdhyayanFormEmpty,
+    validateRoomForm,
+    validateFoodForm,
+    validateAdhyayanForm,
+    roomForm,
+    foodForm,
+    adhyayanForm,
+    setGuestData,
+    router,
+  ]);
+
+  // Check if Adhyayan is in Research Centre
+  const isAdhyayanInResearchCentre = useMemo(() => {
+    return (
+      booking === types.ADHYAYAN_DETAILS_TYPE &&
+      guestData.adhyayan?.adhyayan?.location !== 'Research Centre'
+    );
+  }, [booking, guestData.adhyayan]);
+
+  // Handle validation error modal close
+  const handleCloseValidationModal = useCallback(() => {
+    router.back();
+  }, [router]);
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
@@ -217,17 +488,14 @@ const guestAddons = () => {
           <PageHeader title="Guest Booking Details" icon={icons.backArrow} />
 
           {booking === types.ROOM_DETAILS_TYPE && (
-            <GuestRoomBookingDetails containerStyles={'mt-2'} />
+            <GuestRoomBookingDetails containerStyles="mt-2" />
           )}
           {booking === types.ADHYAYAN_DETAILS_TYPE && (
-            <GuestAdhyayanBookingDetails containerStyles={'mt-2'} />
+            <GuestAdhyayanBookingDetails containerStyles="mt-2" />
           )}
 
           <View className="w-full px-4">
-            {!(
-              booking === types.ADHYAYAN_DETAILS_TYPE &&
-              guestData.adhyayan.adhyayan.location != 'Research Centre'
-            ) && (
+            {!isAdhyayanInResearchCentre && (
               <View>
                 <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
 
@@ -237,12 +505,13 @@ const guestAddons = () => {
                     roomForm={roomForm}
                     setRoomForm={setRoomForm}
                     addRoomForm={addRoomForm}
-                    reomveRoomForm={reomveRoomForm}
+                    reomveRoomForm={removeRoomForm}
                     updateRoomForm={updateRoomForm}
-                    INITIAL_ROOM_FORM={INITIAL_ROOM_FORM}
+                    INITIAL_ROOM_FORM={createInitialRoomForm()}
                     guest_dropdown={guest_dropdown}
                     isDatePickerVisible={isDatePickerVisible}
                     setDatePickerVisibility={setDatePickerVisibility}
+                    onToggle={(isOpen) => toggleAddon('room', isOpen)}
                   />
                 )}
 
@@ -252,11 +521,12 @@ const guestAddons = () => {
                   setFoodForm={setFoodForm}
                   addFoodForm={addFoodForm}
                   resetFoodForm={resetFoodForm}
-                  reomveFoodForm={reomveFoodForm}
+                  reomveFoodForm={removeFoodForm}
                   updateFoodForm={updateFoodForm}
                   guest_dropdown={guest_dropdown}
                   isDatePickerVisible={isDatePickerVisible}
                   setDatePickerVisibility={setDatePickerVisibility}
+                  onToggle={(isOpen) => toggleAddon('food', isOpen)}
                 />
 
                 {/* GUEST ADHYAYAN BOOKING COMPONENT */}
@@ -265,7 +535,7 @@ const guestAddons = () => {
                     adhyayanForm={adhyayanForm}
                     setAdhyayanForm={setAdhyayanForm}
                     updateAdhyayanForm={updateAdhyayanForm}
-                    INITIAL_ADHYAYAN_FORM={INITIAL_ADHYAYAN_FORM}
+                    INITIAL_ADHYAYAN_FORM={createInitialAdhyayanForm()}
                     guest_dropdown={guest_dropdown}
                   />
                 )}
@@ -274,93 +544,8 @@ const guestAddons = () => {
 
             <CustomButton
               text="Confirm"
-              handlePress={() => {
-                setIsSubmitting(true);
-
-                const isRoomFormEmpty = () => {
-                  return roomForm.guestGroup.some(
-                    (group: any) =>
-                      group.roomType !== '' || group.floorType !== '' || group.guests.length > 0
-                  );
-                };
-
-                const isFoodFormEmpty = () => {
-                  return foodForm.guestGroup.some(
-                    (group: any) =>
-                      group.meals.length > 0 || group.spicy !== '' || group.guests.length > 0
-                  );
-                };
-
-                const isAdhyayanFormEmpty = () => {
-                  return (
-                    Object.keys(adhyayanForm.adhyayan).length > 0 || adhyayanForm.guests.length > 0
-                  );
-                };
-
-                // Validate and set Room Form data
-                if (booking !== types.ROOM_DETAILS_TYPE && isRoomFormEmpty()) {
-                  const hasEmptyFields = roomForm.guestGroup.some(
-                    (group: any) => !group.roomType || !group.floorType || group.guests.length === 0
-                  );
-
-                  if (hasEmptyFields || !roomForm.startDay || !roomForm.endDay) {
-                    console.log(JSON.stringify(roomForm));
-
-                    Toast.show({
-                      type: 'error',
-                      text1: 'Please fill all the room booking fields',
-                      text2: '',
-                      swipeable: false,
-                    });
-                    setIsSubmitting(false);
-                    return;
-                  }
-                  setGuestData((prev: any) => ({ ...prev, room: roomForm }));
-                }
-
-                // Validate and set Food Form data
-                if (isFoodFormEmpty()) {
-                  const hasEmptyFields = foodForm.guestGroup.some((group: any) => {
-                    return (
-                      group.meals.length === 0 || group.guests.length === 0 || group.spicy === ''
-                    );
-                  });
-
-                  if (hasEmptyFields || !foodForm.startDay || !foodForm.endDay) {
-                    Toast.show({
-                      type: 'error',
-                      text1: 'Please fill all the food booking fields',
-                      text2: '',
-                      swipeable: false,
-                    });
-                    setIsSubmitting(false);
-                    return;
-                  }
-                  setGuestData((prev: any) => ({ ...prev, food: foodForm }));
-                }
-
-                // Validate and set Adhyayan Form data
-                if (booking !== types.ADHYAYAN_DETAILS_TYPE && isAdhyayanFormEmpty()) {
-                  if (
-                    Object.keys(adhyayanForm.adhyayan).length === 0 ||
-                    adhyayanForm.guests.length === 0
-                  ) {
-                    Toast.show({
-                      type: 'error',
-                      text1: 'Please fill all the adhyayan booking fields',
-                      text2: '',
-                      swipeable: false,
-                    });
-                    setIsSubmitting(false);
-                    return;
-                  }
-                  setGuestData((prev: any) => ({ ...prev, adhyayan: adhyayanForm }));
-                }
-
-                setIsSubmitting(false);
-                router.push('/guestBooking/guestBookingConfirmation');
-              }}
-              containerStyles="mb-8 min-h-[62px]"
+              handlePress={handleSubmit}
+              containerStyles="mb-8 min-h-[62px] mt-6"
               isLoading={isSubmitting}
             />
           </View>
@@ -368,9 +553,9 @@ const guestAddons = () => {
           {validationDataError && (
             <CustomModal
               visible={true}
-              onClose={() => router.back()}
+              onClose={handleCloseValidationModal}
               message={validationDataError.message}
-              btnText={'Okay'}
+              btnText="Okay"
             />
           )}
         </ScrollView>
@@ -379,4 +564,4 @@ const guestAddons = () => {
   );
 };
 
-export default guestAddons;
+export default GuestAddons;

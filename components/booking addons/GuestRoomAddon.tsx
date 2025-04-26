@@ -2,11 +2,10 @@ import { View, Text, Image, TouchableOpacity } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { colors, icons, dropdowns } from '../../constants';
-import CustomDropdown from '../CustomDropdown';
 import moment from 'moment';
 import AddonItem from '../AddonItem';
-import CustomMultiSelectDropdown from '../CustomMultiSelectDropdown';
 import HorizontalSeparator from '../HorizontalSeparator';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FormDisplayField from '../FormDisplayField';
 import Toast from 'react-native-toast-message';
@@ -22,6 +21,7 @@ interface GuestRoomAddonProps {
   INITIAL_ROOM_FORM: any;
   isDatePickerVisible: any;
   setDatePickerVisibility: any;
+  onToggle?: (isOpen: boolean) => void;
 }
 
 const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
@@ -34,6 +34,7 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
   INITIAL_ROOM_FORM,
   isDatePickerVisible,
   setDatePickerVisibility,
+  onToggle,
 }) => {
   const { setGuestData } = useGlobalContext();
 
@@ -80,6 +81,7 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
           return rest;
         });
       }}
+      onToggle={onToggle}
       visibleContent={
         <View className="flex flex-row items-center gap-x-4">
           <Image source={icons.room} className="h-10 w-10" resizeMode="contain" />
@@ -201,30 +203,34 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
               </TouchableOpacity>
             </View>
           )}
-          <CustomMultiSelectDropdown
-            otherStyles="mt-5"
-            text={`Guests for Room ${index + 1}`}
+
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label={`Guests group - ${index + 1}`}
             placeholder="Select Guests"
-            data={getAvailableGuests(index)}
-            value={assignment.guestIndices}
-            setSelected={(val: any) => updateRoomForm(index, 'guests', val)}
-            guest={true}
+            options={getAvailableGuests(index)}
+            selectedValues={assignment.guestIndices}
+            onValuesChange={(val) => updateRoomForm(index, 'guests', val)}
+            multiSelect={true}
+            confirmButtonText="Select"
           />
 
-          <CustomDropdown
-            otherStyles="mt-5"
-            text="Room Type"
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label="Room Type"
             placeholder="Select Room Type"
-            data={dropdowns.ROOM_TYPE_LIST}
-            setSelected={(val: any) => updateRoomForm(index, 'roomType', val)}
+            options={dropdowns.ROOM_TYPE_LIST}
+            selectedValue={assignment.roomType}
+            onValueChange={(val: any) => updateRoomForm(index, 'roomType', val)}
           />
 
-          <CustomDropdown
-            otherStyles="mt-5"
-            text="Floor Type"
+          <CustomSelectBottomSheet
+            className="mt-5"
+            label="Select Floor Type"
             placeholder="Select Floor Type"
-            data={dropdowns.FLOOR_TYPE_LIST}
-            setSelected={(val: any) => updateRoomForm(index, 'floorType', val)}
+            options={dropdowns.FLOOR_TYPE_LIST}
+            selectedValue={assignment.floorType}
+            onValueChange={(val: any) => updateRoomForm(index, 'floorType', val)}
           />
         </View>
       ))}
