@@ -13,15 +13,36 @@ import { icons, images, status } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { useRouter } from 'expo-router';
 import CustomHomeIcon from '../../components/CustomHomeIcon';
-
-interface User {
-  issuedto: string;
-  res_status: string;
-}
+// import CustomSelectBottomSheet from '~/components/CustomSelectBottomSheet';
 
 const Home: React.FC = () => {
-  const { user } = useGlobalContext() as { user: User };
+  const { user } = useGlobalContext();
   const router: any = useRouter();
+
+  // const [selectedFruit, setSelectedFruit] = React.useState<string | null>(null);
+  // const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
+
+  // const fruitOptions = [
+  //   { key: 'Apple', value: 'apple' },
+  //   { key: 'Banana', value: 'banana' },
+  //   { key: 'Orange', value: 'orange' },
+  //   { key: 'Strawberry', value: 'strawberry' },
+  //   { key: 'Mango', value: 'mango' },
+  //   { key: 'Pineapple', value: 'pineapple' },
+  //   { key: 'Watermelon', value: 'watermelon' },
+  //   { key: 'Grapes', value: 'grapes' },
+  // ];
+
+  // const categoryOptions = [
+  //   { key: 'Electronics', value: 'electronics' },
+  //   { key: 'Clothing', value: 'clothing' },
+  //   { key: 'Food & Beverages', value: 'food' },
+  //   { key: 'Home & Garden', value: 'home' },
+  //   { key: 'Sports & Outdoors', value: 'sports' },
+  //   { key: 'Books', value: 'books' },
+  //   { key: 'Toys & Games', value: 'toys' },
+  //   { key: 'Health & Beauty', value: 'health' },
+  // ];
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
@@ -118,6 +139,27 @@ const Home: React.FC = () => {
           </View>
         </ScrollView>
       </View>
+
+      {/* <CustomSelectBottomSheet
+        label="Choose a fruit"
+        options={fruitOptions}
+        selectedValue={selectedFruit}
+        onValueChange={(value) => setSelectedFruit(value as string)}
+        placeholder="Select a fruit"
+        className="px-4"
+      />
+
+      <CustomSelectBottomSheet
+        label="Choose categories"
+        options={categoryOptions}
+        selectedValues={selectedCategories}
+        onValuesChange={(values) => setSelectedCategories(values as string[])}
+        placeholder="Select categories"
+        multiSelect={true}
+        confirmButtonText="Apply Categories"
+        maxSelectedDisplay={3}
+        className="px-4"
+      /> */}
     </SafeAreaView>
   );
 };

@@ -36,7 +36,7 @@ const FormDisplayField: React.FC<FormDisplayFieldProps> = ({
         activeOpacity={0.7}
         style={shadowStyle}
         className={`h-16 w-full flex-row items-center rounded-2xl px-4 ${bgStyle} ${displayViewStyles}`}>
-        <Text className={`font-pmedium text-base text-gray-400 ${inputStyles}`} numberOfLines={1}>
+        <Text className={`font-pmedium text-base ${inputStyles}`} numberOfLines={1}>
           {value}
         </Text>
       </TouchableOpacity>

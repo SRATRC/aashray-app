@@ -6,7 +6,7 @@ import {
   Platform,
   Image,
   Alert,
-  TouchableOpacity
+  TouchableOpacity,
 } from 'react-native';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -31,19 +31,19 @@ const guestRegistration = () => {
     address: null,
     city: null,
     state: null,
-    pin: null
+    pin: null,
   });
 
   const genderList = [
     { key: 'M', value: 'Male' },
-    { key: 'F', value: 'Female' }
+    { key: 'F', value: 'Female' },
   ];
 
   const idTypeList = [
     { key: 'PAN', value: 'PAN Card' },
     { key: 'ADHAAR', value: 'Adhaar Card' },
     { key: 'DL', value: 'Driving Licence' },
-    { key: 'PASSPORT', value: 'Passport' }
+    { key: 'PASSPORT', value: 'Passport' },
   ];
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,17 +64,11 @@ const guestRegistration = () => {
 
   return (
     <SafeAreaView className="h-full bg-white">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView alwaysBounceVertical={false}>
-          <View className="w-full justify-center min-h-[83vh] px-4 my-6">
-            <Image
-              source={images.logo}
-              className="w-[108px] h-[57px]"
-              resizeMode="contain"
-            />
-            <Text className="text-2xl text-black text-semibold font-psemibold mt-5">
+          <View className="my-6 min-h-[83vh] w-full justify-center px-4">
+            <Image source={images.logo} className="h-[57px] w-[108px]" resizeMode="contain" />
+            <Text className="text-semibold mt-5 font-psemibold text-2xl text-black">
               Welcome to SRATRC
             </Text>
 
@@ -89,9 +83,7 @@ const guestRegistration = () => {
 
             <CustomDropdown
               otherStyles={`mt-5 w-full ${
-                Platform.OS === 'ios'
-                  ? 'shadow-lg border-gray-200'
-                  : 'shadow-2xl border-gray-400'
+                Platform.OS === 'ios' ? 'shadow-lg border-gray-200' : 'shadow-2xl border-gray-400'
               }`}
               boxbg={'white'}
               text={'Gender'}
@@ -141,9 +133,7 @@ const guestRegistration = () => {
 
             <CustomDropdown
               otherStyles={`mt-5 w-full ${
-                Platform.OS === 'ios'
-                  ? 'shadow-lg border-gray-200'
-                  : 'shadow-2xl border-gray-400'
+                Platform.OS === 'ios' ? 'shadow-lg border-gray-200' : 'shadow-2xl border-gray-400'
               }`}
               boxbg={'white'}
               text={'ID Type'}

@@ -3,7 +3,7 @@ import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-na
 import { useLocalSearchParams } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { icons, types } from '../../constants';
+import { dropdowns, icons, types } from '../../constants';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { prepareGuestRequestBody } from '~/utils/preparingRequestBody';
@@ -21,13 +21,28 @@ import CustomModal from '~/components/CustomModal';
 const INITIAL_ROOM_FORM = {
   startDay: '',
   endDay: '',
-  guestGroup: [{ roomType: '', floorType: '', guests: [], guestIndices: [] }],
+  guestGroup: [
+    {
+      roomType: dropdowns.ROOM_TYPE_LIST[0].key,
+      floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
+      guests: [],
+      guestIndices: [],
+    },
+  ],
 };
 
 const INITIAL_FOOD_FORM = {
   startDay: '',
   endDay: '',
-  guestGroup: [{ meals: [], spicy: '', hightea: 'NONE', guests: [], guestIndices: [] }],
+  guestGroup: [
+    {
+      meals: ['breakfast', 'lunch', 'dinner'],
+      spicy: dropdowns.SPICE_LIST[0].key,
+      hightea: dropdowns.HIGHTEA_LIST[0].key,
+      guests: [],
+      guestIndices: [],
+    },
+  ],
 };
 
 const INITIAL_ADHYAYAN_FORM = {

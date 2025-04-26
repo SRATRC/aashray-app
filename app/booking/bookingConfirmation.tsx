@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, Platform } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, icons } from '../../constants';
@@ -21,6 +21,7 @@ import CustomModal from '~/components/CustomModal';
 const bookingConfirmation = () => {
   const router = useRouter();
   const { user, data, setData } = useGlobalContext();
+  const queryClient = useQueryClient();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -176,7 +177,11 @@ const bookingConfirmation = () => {
         {validationDataError && (
           <CustomModal
             visible={true}
-            onClose={() => router.back()}
+            onClose={() => {
+              setData((prev: any) => ({ ...prev, dismissedValidationError: true }));
+              queryClient.resetQueries({ queryKey: ['validations', user.cardno] });
+              router.back();
+            }}
             message={validationDataError.message}
             btnText={'Okay'}
           />

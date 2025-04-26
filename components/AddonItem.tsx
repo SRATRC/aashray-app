@@ -11,6 +11,7 @@ interface AddonItemProps {
   backgroundColor?: any;
   shadowShown?: any;
   onCollapse: any;
+  onToggle?: (isOpen: boolean) => void;
 }
 
 const AddonItem: React.FC<AddonItemProps> = ({
@@ -20,6 +21,7 @@ const AddonItem: React.FC<AddonItemProps> = ({
   backgroundColor,
   shadowShown,
   onCollapse,
+  onToggle,
 }) => {
   const [selected, setSelected] = useState(false);
 
@@ -31,8 +33,10 @@ const AddonItem: React.FC<AddonItemProps> = ({
   );
 
   const toggleSelection = () => {
-    setSelected(!selected);
+    const newSelected = !selected;
+    setSelected(newSelected);
     if (onCollapse) onCollapse();
+    if (onToggle) onToggle(newSelected);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 

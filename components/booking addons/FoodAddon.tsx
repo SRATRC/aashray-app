@@ -10,23 +10,24 @@ import CustomMultiSelectDropdown from '../CustomMultiSelectDropdown';
 import * as Haptics from 'expo-haptics';
 import Toast from 'react-native-toast-message';
 import moment from 'moment';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 
 interface FoodAddonProps {
   foodForm: any;
   setFoodForm: any;
-  setMeals: any;
   isDatePickerVisible: any;
   setDatePickerVisibility: any;
+  onToggle?: (isOpen: boolean) => void;
 }
 
 const FoodAddon: React.FC<FoodAddonProps> = ({
   foodForm,
   setFoodForm,
-  setMeals,
   isDatePickerVisible,
   setDatePickerVisibility,
+  onToggle,
 }) => {
-  const { setData } = useGlobalContext();
+  const { data, setData } = useGlobalContext();
 
   // Temporary state to hold the date for the checkin picker
   const [tempFoodStartDate, setTempFoodStartDate] = useState(new Date());
@@ -44,18 +45,23 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
     <AddonItem
       onCollapse={() => {
         setFoodForm({
-          startDay: '',
-          endDay: '',
+          startDay:
+            data.room?.startDay ||
+            (data.adhyayan && data.adhyayan[0]?.start_date) ||
+            data.travel?.date ||
+            '',
+          endDay: data.room?.endDay || (data.adhyayan && data.adhyayan[0]?.end_date) || '',
+          meals: ['breakfast', 'lunch', 'dinner'],
           spicy: dropdowns.SPICE_LIST[0].key,
           hightea: dropdowns.HIGHTEA_LIST[0].key,
         });
-        setMeals([]);
 
         setData((prev: any) => {
           const { food, ...rest } = prev;
           return rest;
         });
       }}
+      onToggle={onToggle}
       visibleContent={
         <View className="flex flex-row items-center gap-x-4">
           <Image source={icons.food} className="h-10 w-10" resizeMode="contain" />
@@ -159,30 +165,34 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
         minimumDate={foodForm.startDay ? moment(foodForm.startDay).toDate() : undefined}
       />
 
-      <CustomMultiSelectDropdown
-        otherStyles="mt-5 w-full px-1"
-        text={'Food Type'}
-        placeholder={'Select Food Type'}
-        data={dropdowns.FOOD_TYPE_LIST}
-        setSelected={(val: any) => setMeals(val)}
+      <CustomSelectBottomSheet
+        className="mt-5 w-full px-1"
+        label="Food Type"
+        placeholder="Select Meals"
+        options={dropdowns.FOOD_TYPE_LIST}
+        selectedValues={foodForm.meals}
+        onValuesChange={(val) => setFoodForm({ ...foodForm, meals: val as string[] })}
+        multiSelect={true}
+        confirmButtonText="Select"
+        maxSelectedDisplay={3}
       />
 
-      <CustomDropdown
-        otherStyles="mt-5 w-full px-1"
-        text={'Spice Level'}
-        placeholder={'How much spice do you want?'}
-        data={dropdowns.SPICE_LIST}
-        setSelected={(val: any) => setFoodForm({ ...foodForm, spicy: val })}
-        defaultOption={dropdowns.SPICE_LIST[0]}
+      <CustomSelectBottomSheet
+        className="mt-5 w-full px-1"
+        label="Spice Level"
+        placeholder="How much spice do you want?"
+        options={dropdowns.SPICE_LIST}
+        selectedValue={foodForm.spicy}
+        onValueChange={(val: any) => setFoodForm({ ...foodForm, spicy: val })}
       />
 
-      <CustomDropdown
-        otherStyles="mt-5 w-full px-1"
-        text={'Hightea'}
-        placeholder={'Hightea'}
-        data={dropdowns.HIGHTEA_LIST}
-        setSelected={(val: any) => setFoodForm({ ...foodForm, hightea: val })}
-        defaultOption={dropdowns.HIGHTEA_LIST[2]}
+      <CustomSelectBottomSheet
+        className="mt-5 w-full px-1"
+        label="Hightea"
+        placeholder="Hightea"
+        options={dropdowns.HIGHTEA_LIST}
+        selectedValue={foodForm.hightea}
+        onValueChange={(val: any) => setFoodForm({ ...foodForm, hightea: val })}
       />
     </AddonItem>
   );

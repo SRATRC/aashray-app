@@ -24,11 +24,11 @@ import CustomChipGroup from '../../components/CustomChipGroup';
 import CustomTag from '../../components/CustomTag';
 import ExpandableItem from '../../components/ExpandableItem';
 import HorizontalSeparator from '../../components/HorizontalSeparator';
-import CustomDropdown from '../../components/CustomDropdown';
 import FormField from '../../components/FormField';
 import CustomButton from '../../components/CustomButton';
-import moment from 'moment';
 import CustomEmptyMessage from '../../components/CustomEmptyMessage';
+import CustomSelectBottomSheet from '~/components/CustomSelectBottomSheet';
+import moment from 'moment';
 
 const CHIPS = [
   types.MAINTENANCE_TYPE_ALL,
@@ -231,13 +231,13 @@ const maintenanceRequestList = () => {
                 JSDV {user.issuedto}, please register your maintenance request
               </Text>
 
-              <CustomDropdown
-                otherStyles="mt-7"
-                text={'Department'}
-                save={'key'}
-                placeholder={'Select Department'}
-                data={DEPARTMENT_LIST}
-                setSelected={(val: any) => setForm({ ...form, department: val })}
+              <CustomSelectBottomSheet
+                className="mt-7"
+                label="Department"
+                placeholder="Select Department"
+                options={DEPARTMENT_LIST}
+                selectedValue={form.department}
+                onValueChange={(val: any) => setForm({ ...form, department: val })}
               />
 
               <FormField

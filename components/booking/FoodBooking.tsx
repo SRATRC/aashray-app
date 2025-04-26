@@ -1,13 +1,11 @@
 import { View, Alert, Text } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { colors, dropdowns, status } from '../../constants';
-import CustomDropdown from '../CustomDropdown';
 import CustomButton from '../CustomButton';
 import CustomCalender from '../CustomCalender';
 import handleAPICall from '../../utils/HandleApiCall';
-import CustomMultiSelectDropdown from '../CustomMultiSelectDropdown';
 import CustomChipGroup from '../CustomChipGroup';
 import CustomModal from '../CustomModal';
 import GuestForm from '../GuestForm';
@@ -17,6 +15,7 @@ import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
 import moment from 'moment';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
@@ -31,6 +30,7 @@ const FoodBooking = () => {
   const [foodForm, setFoodForm] = useState({
     startDay: '',
     endDay: '',
+    meals: ['breakfast', 'lunch', 'dinner'],
     spicy: 1,
     hightea: 'NONE',
   });
@@ -44,14 +44,13 @@ const FoodBooking = () => {
         gender: '',
         mobno: '',
         type: '',
-        meals: [],
+        meals: ['breakfast', 'lunch', 'dinner'],
         spicy: 1,
         hightea: 'NONE',
       },
     ],
   });
 
-  const [type, setType] = useState<any>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -72,7 +71,7 @@ const FoodBooking = () => {
           gender: '',
           mobno: '',
           type: '',
-          meals: [],
+          meals: ['breakfast', 'lunch', 'dinner'],
           spicy: 1,
           hightea: 'NONE',
         },
@@ -124,7 +123,7 @@ const FoodBooking = () => {
       {
         cardno: '',
         mobno: '',
-        meals: [],
+        meals: ['breakfast', 'lunch', 'dinner'],
         spicy: 1,
         hightea: 'NONE',
       },
@@ -139,7 +138,7 @@ const FoodBooking = () => {
         {
           cardno: '',
           mobno: '',
-          meals: [],
+          meals: ['breakfast', 'lunch', 'dinner'],
           spicy: 1,
           hightea: 'NONE',
         },
@@ -217,29 +216,34 @@ const FoodBooking = () => {
 
       {selectedChip == CHIPS[0] && (
         <View className="flex w-full flex-col">
-          <CustomMultiSelectDropdown
-            otherStyles="mt-5 w-full px-1"
-            text={'Food Type'}
-            placeholder={'Select Food Type'}
-            data={dropdowns.FOOD_TYPE_LIST}
-            setSelected={(val: any) => setType(val)}
+          <CustomSelectBottomSheet
+            className="mt-5 w-full px-1"
+            label="Food Type"
+            placeholder="Select Meals"
+            options={dropdowns.FOOD_TYPE_LIST}
+            selectedValues={foodForm.meals}
+            onValuesChange={(val) => setFoodForm({ ...foodForm, meals: val as string[] })}
+            multiSelect={true}
+            confirmButtonText="Select"
+            maxSelectedDisplay={3}
           />
 
-          <CustomDropdown
-            otherStyles="mt-5 w-full px-1"
-            text={'Spice Level'}
-            placeholder={'How much spice do you want?'}
-            data={dropdowns.SPICE_LIST}
-            setSelected={(val: any) => setFoodForm({ ...foodForm, spicy: val })}
+          <CustomSelectBottomSheet
+            className="mt-5 w-full px-1"
+            label="Spice Level"
+            placeholder="How much spice do you want?"
+            options={dropdowns.SPICE_LIST}
+            selectedValue={foodForm.spicy}
+            onValueChange={(val: any) => setFoodForm({ ...foodForm, spicy: val })}
           />
 
-          <CustomDropdown
-            otherStyles="mt-5 w-full px-1"
-            text={'Hightea'}
-            placeholder={'Hightea'}
-            data={dropdowns.HIGHTEA_LIST}
-            defaultOption={{ key: 'NONE', value: 'None' }}
-            setSelected={(val: any) => setFoodForm({ ...foodForm, hightea: val })}
+          <CustomSelectBottomSheet
+            className="mt-5 w-full px-1"
+            label="Hightea"
+            placeholder="Hightea"
+            options={dropdowns.HIGHTEA_LIST}
+            selectedValue={foodForm.hightea}
+            onValueChange={(val: any) => setFoodForm({ ...foodForm, hightea: val })}
           />
 
           <CustomButton
@@ -247,7 +251,7 @@ const FoodBooking = () => {
             handlePress={async () => {
               if (
                 !foodForm.startDay ||
-                type.length == 0 ||
+                foodForm.meals.length == 0 ||
                 foodForm.spicy == null ||
                 !foodForm.hightea
               ) {
@@ -275,9 +279,9 @@ const FoodBooking = () => {
                     details: {
                       start_date: foodForm.startDay,
                       end_date: foodForm.endDay ? foodForm.endDay : foodForm.startDay,
-                      breakfast: type.includes('breakfast') ? 1 : 0,
-                      lunch: type.includes('lunch') ? 1 : 0,
-                      dinner: type.includes('dinner') ? 1 : 0,
+                      breakfast: foodForm.meals.includes('breakfast') ? 1 : 0,
+                      lunch: foodForm.meals.includes('lunch') ? 1 : 0,
+                      dinner: foodForm.meals.includes('dinner') ? 1 : 0,
                       spicy: foodForm.spicy,
                       high_tea: foodForm.hightea,
                     },
@@ -303,34 +307,34 @@ const FoodBooking = () => {
             removeGuestForm={removeGuestForm}>
             {(index: any) => (
               <>
-                <CustomMultiSelectDropdown
-                  otherStyles="mt-5"
-                  text={`Select Meals`}
+                <CustomSelectBottomSheet
+                  className="mt-5 w-full px-1"
+                  label="Food Type"
                   placeholder="Select Meals"
-                  data={dropdowns.GUEST_FOOD_TYPE_LIST}
-                  value={guestForm.guests[index].meals}
-                  setSelected={(val: any) => handleGuestFormChange(index, 'meals', val)}
-                  guest={true}
+                  options={dropdowns.FOOD_TYPE_LIST}
+                  selectedValues={guestForm.guests[index].meals}
+                  onValuesChange={(val) => handleGuestFormChange(index, 'meals', val)}
+                  multiSelect={true}
+                  confirmButtonText="Select"
+                  maxSelectedDisplay={3}
                 />
 
-                <CustomDropdown
-                  otherStyles="mt-5 w-full px-1"
-                  text={'Spice Level'}
-                  placeholder={'How much spice do you want?'}
-                  data={dropdowns.SPICE_LIST}
-                  setSelected={(val: any) => handleGuestFormChange(index, 'spicy', val)}
-                  value={guestForm.guests[index].spicy}
-                  defaultOption={dropdowns.SPICE_LIST[0]}
+                <CustomSelectBottomSheet
+                  className="mt-5 w-full px-1"
+                  label="Spice Level"
+                  placeholder="How much spice do you want?"
+                  options={dropdowns.SPICE_LIST}
+                  selectedValue={guestForm.guests[index].spicy}
+                  onValueChange={(val: any) => handleGuestFormChange(index, 'spicy', val)}
                 />
 
-                <CustomDropdown
-                  otherStyles="mt-5 w-full px-1"
-                  text={'Hightea'}
-                  placeholder={'Hightea'}
-                  data={dropdowns.HIGHTEA_LIST}
-                  defaultOption={{ key: 'NONE', value: 'None' }}
-                  setSelected={(val: any) => handleGuestFormChange(index, 'hightea', val)}
-                  value={guestForm.guests[index].hightea}
+                <CustomSelectBottomSheet
+                  className="mt-5 w-full px-1"
+                  label="Hightea"
+                  placeholder="Hightea"
+                  options={dropdowns.HIGHTEA_LIST}
+                  selectedValue={guestForm.guests[index].hightea}
+                  onValueChange={(val: any) => handleGuestFormChange(index, 'hightea', val)}
                 />
               </>
             )}
@@ -460,33 +464,34 @@ const FoodBooking = () => {
             removeMumukshuForm={removeMumukshuForm}>
             {(index: any) => (
               <>
-                <CustomMultiSelectDropdown
-                  otherStyles="mt-5"
-                  text={`Select Meals`}
+                <CustomSelectBottomSheet
+                  className="mt-5 w-full px-1"
+                  label="Food Type"
                   placeholder="Select Meals"
-                  data={dropdowns.GUEST_FOOD_TYPE_LIST}
-                  value={mumukshuForm.mumukshus[index].meals}
-                  setSelected={(val: any) => handleMumukshuFormChange(index, 'meals', val)}
-                  guest={true}
+                  options={dropdowns.FOOD_TYPE_LIST}
+                  selectedValues={mumukshuForm.mumukshus[index].meals}
+                  onValuesChange={(val) => handleMumukshuFormChange(index, 'meals', val)}
+                  multiSelect={true}
+                  confirmButtonText="Select"
+                  maxSelectedDisplay={3}
                 />
 
-                <CustomDropdown
-                  otherStyles="mt-5 w-full px-1"
-                  text={'Spice Level'}
-                  placeholder={'How much spice do you want?'}
-                  data={dropdowns.SPICE_LIST}
-                  setSelected={(val: any) => handleMumukshuFormChange(index, 'spicy', val)}
-                  value={mumukshuForm.mumukshus[index].spicy}
+                <CustomSelectBottomSheet
+                  className="mt-5 w-full px-1"
+                  label="Spice Level"
+                  placeholder="How much spice do you want?"
+                  options={dropdowns.SPICE_LIST}
+                  selectedValue={mumukshuForm.mumukshus[index].spicy}
+                  onValueChange={(val: any) => handleMumukshuFormChange(index, 'spicy', val)}
                 />
 
-                <CustomDropdown
-                  otherStyles="mt-5 w-full px-1"
-                  text={'Hightea'}
-                  placeholder={'Hightea'}
-                  data={dropdowns.HIGHTEA_LIST}
-                  defaultOption={{ key: 'NONE', value: 'None' }}
-                  setSelected={(val: any) => handleMumukshuFormChange(index, 'hightea', val)}
-                  value={mumukshuForm.mumukshus[index].hightea}
+                <CustomSelectBottomSheet
+                  className="mt-5 w-full px-1"
+                  label="Hightea"
+                  placeholder="Hightea"
+                  options={dropdowns.HIGHTEA_LIST}
+                  selectedValue={mumukshuForm.mumukshus[index].hightea}
+                  onValueChange={(val: any) => handleMumukshuFormChange(index, 'hightea', val)}
                 />
               </>
             )}

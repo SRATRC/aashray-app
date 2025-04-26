@@ -22,7 +22,7 @@ export const prepareSelfRequestBody = (user, data) => {
         drop_point: data.travel?.drop,
         arrival_time: data.travel?.arrival_time,
         luggage: data.travel?.luggage,
-        leaving_post_adhyayan: data.travel?.adhyayan,
+        leaving_post_adhyayan: data.travel?.adhyayan == 'No' ? 0 : 1,
         type: data.travel?.type,
         special_request: data.travel?.special_request,
       },
@@ -71,7 +71,7 @@ export const prepareSelfRequestBody = (user, data) => {
         drop_point: data.travel?.drop,
         arrival_time: data.travel?.arrival_time,
         luggage: data.travel?.luggage,
-        leaving_post_adhyayan: data.travel?.adhyayan,
+        leaving_post_adhyayan: data.travel?.adhyayan == 'No' ? 0 : 1,
         type: data.travel?.type,
         comments: data.travel?.special_request,
       },
@@ -223,7 +223,10 @@ export const prepareMumukshuRequestBody = (user, input) => {
       if (group.pickup) transformed.pickup_point = group.pickup;
       if (group.drop) transformed.drop_point = group.drop;
       if (group.arrival_time) transformed.arrival_time = group.arrival_time;
-      if (group.adhyayan) transformed.leaving_post_adhyayan = group.adhyayan;
+      if (group.adhyayan)
+        group.adhyayan == 'No'
+          ? (transformed.leaving_post_adhyayan = 0)
+          : (transformed.leaving_post_adhyayan = 1);
       if (group.luggage) transformed.luggage = group.luggage;
       if (group.type) transformed.type = group.type;
       if (group.special_request) transformed.comments = group.special_request;

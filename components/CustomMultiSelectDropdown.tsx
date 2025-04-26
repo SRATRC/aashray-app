@@ -17,6 +17,7 @@ interface CustomMultiSelectDropdownProps {
   boxbg?: any;
   enableSearch?: any;
   guest?: any;
+  defaultOption?: any;
 }
 
 const CustomMultiSelectDropdown: React.FC<CustomMultiSelectDropdownProps> = ({

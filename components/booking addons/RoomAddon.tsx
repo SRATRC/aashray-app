@@ -9,12 +9,14 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 
 interface RoomAddonProps {
   roomForm: any;
   setRoomForm: any;
   isDatePickerVisible: any;
   setDatePickerVisibility: any;
+  onToggle?: (isOpen: boolean) => void;
 }
 
 const RoomAddon: React.FC<RoomAddonProps> = ({
@@ -22,8 +24,9 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
   setRoomForm,
   isDatePickerVisible,
   setDatePickerVisibility,
+  onToggle,
 }) => {
-  const { setData } = useGlobalContext();
+  const { data, setData } = useGlobalContext();
 
   // Temporary state to hold the date for the checkin picker
   const [tempCheckinDate, setTempCheckinDate] = useState(new Date());
@@ -39,12 +42,13 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
 
   return (
     <AddonItem
+      onToggle={onToggle}
       onCollapse={() => {
         setRoomForm({
           roomType: dropdowns.ROOM_TYPE_LIST[0].key,
           floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
-          startDay: '',
-          endDay: '',
+          startDay: data.travel?.date || (data.adhyayan && data.adhyayan[0]?.start_date) || '',
+          endDay: (data.adhyayan && data.adhyayan[0]?.end_date) || '',
         });
         setData((prev: any) => {
           const { room, ...rest } = prev;
@@ -154,22 +158,22 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
         }
       />
 
-      <CustomDropdown
-        otherStyles="mt-7"
-        text={'Room Type'}
-        placeholder={'Select Room Type'}
-        data={dropdowns.ROOM_TYPE_LIST}
-        setSelected={(val: any) => setRoomForm({ ...roomForm, roomType: val })}
-        defaultOption={dropdowns.ROOM_TYPE_LIST[0]}
+      <CustomSelectBottomSheet
+        className="mt-7"
+        label="Room Type"
+        placeholder="Select Room Type"
+        options={dropdowns.ROOM_TYPE_LIST}
+        selectedValue={roomForm.roomType}
+        onValueChange={(val: any) => setRoomForm({ ...roomForm, roomType: val })}
       />
 
-      <CustomDropdown
-        otherStyles="mt-7"
-        text={'Book Only if Ground Floor is Available'}
-        placeholder={'Select Floor Type'}
-        data={dropdowns.FLOOR_TYPE_LIST}
-        setSelected={(val: any) => setRoomForm({ ...roomForm, floorType: val })}
-        defaultOption={dropdowns.FLOOR_TYPE_LIST[0]}
+      <CustomSelectBottomSheet
+        className="mt-7"
+        label="Select Floor Type"
+        placeholder="Select Floor Type"
+        options={dropdowns.FLOOR_TYPE_LIST}
+        selectedValue={roomForm.floorType}
+        onValueChange={(val: any) => setRoomForm({ ...roomForm, floorType: val })}
       />
     </AddonItem>
   );

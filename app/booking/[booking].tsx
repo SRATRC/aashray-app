@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, icons, types } from '../../constants';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { prepareSelfRequestBody } from '~/utils/preparingRequestBody';
 import CustomButton from '../../components/CustomButton';
 import PageHeader from '../../components/PageHeader';
@@ -23,6 +23,7 @@ const details = () => {
   const { user, data, setData } = useGlobalContext();
 
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const payload = prepareSelfRequestBody(user, data);
 
@@ -56,20 +57,25 @@ const details = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [addonOpen, setAddonOpen] = useState({ room: false, food: false, travel: false });
+
   // FOOD BOOKING VAIABLESs
   const [foodForm, setFoodForm] = useState({
-    startDay: '',
-    endDay: '',
+    startDay:
+      data.room?.startDay ||
+      data.travel?.date ||
+      (data.adhyayan && data.adhyayan[0]?.start_date) ||
+      '',
+    endDay: data.room?.endDay || (data.adhyayan && data.adhyayan[0]?.end_date) || '',
+    meals: ['breakfast', 'lunch', 'dinner'],
     spicy: dropdowns.SPICE_LIST[0].key,
     hightea: dropdowns.HIGHTEA_LIST[0].key,
   });
 
-  const [meals, setMeals] = useState([]);
-
   // ROOM BOOKING VARIABLES
   const [roomForm, setRoomForm] = useState({
-    startDay: '',
-    endDay: '',
+    startDay: (data.adhyayan && data.adhyayan[0]?.start_date) || data.travel?.date || '',
+    endDay: (data.adhyayan && data.adhyayan[0]?.end_date) || '',
     roomType: dropdowns.ROOM_TYPE_LIST[0].key,
     floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
   });
@@ -85,10 +91,12 @@ const details = () => {
 
   // TRAVEL BOOKING VARIABLES
   const [travelForm, setTravelForm] = useState({
-    date: '',
+    date:
+      data.room?.startDay ||
+      (data.adhyayan && data.adhyayan.length > 0 ? data.adhyayan[0]?.start_date || '' : ''),
     pickup: '',
     drop: '',
-    adhyayan: 0,
+    adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
     arrival_time: '',
     luggage: '',
     type: dropdowns.BOOKING_TYPE_LIST[0].value,
@@ -119,6 +127,8 @@ const details = () => {
           <View className="w-full px-4">
             {!(
               booking === types.ADHYAYAN_DETAILS_TYPE &&
+              data.adhyayan &&
+              data.adhyayan.length > 0 &&
               data.adhyayan[0].location != 'Research Centre'
             ) && (
               <View>
@@ -131,6 +141,7 @@ const details = () => {
                     setRoomForm={setRoomForm}
                     isDatePickerVisible={isDatePickerVisible}
                     setDatePickerVisibility={setDatePickerVisibility}
+                    onToggle={(isOpen) => setAddonOpen({ ...addonOpen, room: isOpen })}
                   />
                 )}
 
@@ -138,9 +149,9 @@ const details = () => {
                 <FoodAddon
                   foodForm={foodForm}
                   setFoodForm={setFoodForm}
-                  setMeals={setMeals}
                   isDatePickerVisible={isDatePickerVisible}
                   setDatePickerVisibility={setDatePickerVisibility}
+                  onToggle={(isOpen) => setAddonOpen({ ...addonOpen, food: isOpen })}
                 />
 
                 {/* ADHYAYAN BOOKING COMPONENT */}
@@ -159,6 +170,7 @@ const details = () => {
                     setTravelForm={setTravelForm}
                     isDatePickerVisible={isDatePickerVisible}
                     setDatePickerVisibility={setDatePickerVisibility}
+                    onToggle={(isOpen) => setAddonOpen({ ...addonOpen, travel: isOpen })}
                   />
                 )}
               </View>
@@ -168,37 +180,14 @@ const details = () => {
               handlePress={() => {
                 setIsSubmitting(true);
 
-                const hasRoomFormData = () => {
-                  return roomForm.startDay && roomForm.endDay;
-                };
-
-                const hasFoodFormData = () => {
-                  // Check if any fields other than 'hightea' and 'spicy' are filled
-                  // or if meals array is not empty
-                  return (
-                    Object.entries(foodForm)
-                      .filter(([key]) => key !== 'hightea' && key !== 'spicy')
-                      .some(([_, value]) => value !== '') || meals.length !== 0
-                  );
-                };
-
-                const isTravelFormStarted = () => {
-                  // Check if user has started filling any of the main travel fields
-                  return (
-                    travelForm.date !== '' ||
-                    travelForm.pickup !== '' ||
-                    travelForm.drop !== '' ||
-                    travelForm.luggage !== ''
-                  );
-                };
-
                 const isTravelFormComplete = () => {
                   // Check if all required travel fields are filled
                   return (
                     travelForm.date !== '' &&
                     travelForm.pickup !== '' &&
                     travelForm.drop !== '' &&
-                    travelForm.luggage !== ''
+                    travelForm.luggage !== '' &&
+                    travelForm.type !== ''
                   );
                 };
 
@@ -206,7 +195,7 @@ const details = () => {
                   return adhyayanBookingList.length != 0;
                 };
 
-                if (booking !== types.ROOM_DETAILS_TYPE && hasRoomFormData()) {
+                if (booking !== types.ROOM_DETAILS_TYPE && addonOpen.room) {
                   if (Object.values(roomForm).some((value) => value == '')) {
                     Alert.alert('Please fill all the room fields');
                     setIsSubmitting(false);
@@ -220,23 +209,24 @@ const details = () => {
                     adhyayan: adhyayanBookingList,
                   }));
                 }
-                if (hasFoodFormData()) {
+
+                if (addonOpen.food) {
                   // Check if any required fields are empty (excluding 'spicy')
-                  const requiredFields = Object.entries(foodForm)
+                  const hasEmptyRequiredFields = Object.entries(foodForm)
                     .filter(([key]) => key !== 'spicy' && key !== 'hightea')
                     .some(([_, value]) => value === '');
 
-                  if (requiredFields) {
+                  if (hasEmptyRequiredFields) {
                     Alert.alert('Please fill all the required food fields');
                     setIsSubmitting(false);
                     return;
                   }
                   setData((prev: any) => ({
                     ...prev,
-                    food: { ...foodForm, meals: meals },
+                    food: foodForm,
                   }));
                 }
-                if (booking !== types.TRAVEL_DETAILS_TYPE && isTravelFormStarted()) {
+                if (booking !== types.TRAVEL_DETAILS_TYPE && addonOpen.travel) {
                   // Only validate if user has started filling the travel form
                   if (!isTravelFormComplete()) {
                     Alert.alert('Please fill all the travel fields');
@@ -261,10 +251,14 @@ const details = () => {
             />
           </View>
 
-          {validationDataError && (
+          {validationDataError && !data.dismissedValidationError && (
             <CustomModal
               visible={true}
-              onClose={() => router.back()}
+              onClose={() => {
+                setData((prev: any) => ({ ...prev, dismissedValidationError: true }));
+                queryClient.resetQueries({ queryKey: ['validations', user.cardno] });
+                router.back();
+              }}
               message={validationDataError.message}
               btnText={'Okay'}
             />

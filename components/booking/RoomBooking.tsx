@@ -5,7 +5,6 @@ import { types, dropdowns, status } from '../../constants';
 import { useRouter } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import SegmentedControl from '../../components/SegmentedControl';
-import CustomDropdown from '../../components/CustomDropdown';
 import CustomButton from '../../components/CustomButton';
 import CustomCalender from '../../components/CustomCalender';
 import handleAPICall from '../../utils/HandleApiCall';
@@ -13,6 +12,7 @@ import CustomModal from '../CustomModal';
 import CustomChipGroup from '../../components/CustomChipGroup';
 import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 
 const SWITCH_OPTIONS = ['Select Dates', 'One Day Visit'];
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
@@ -354,22 +354,22 @@ const RoomBooking = () => {
           </View>
           {selectedChip === CHIPS[0] && (
             <View>
-              <CustomDropdown
-                otherStyles="mt-7"
-                text={'Room Type'}
-                placeholder={'Select Room Type'}
-                data={dropdowns.ROOM_TYPE_LIST}
-                setSelected={(val: any) => setMultiDayForm({ ...multiDayForm, roomType: val })}
-                defaultOption={dropdowns.ROOM_TYPE_LIST[0]}
+              <CustomSelectBottomSheet
+                className="mt-7"
+                label="Room Type"
+                placeholder="Select Room Type"
+                options={dropdowns.ROOM_TYPE_LIST}
+                selectedValue={multiDayForm.roomType}
+                onValueChange={(val: any) => setMultiDayForm({ ...multiDayForm, roomType: val })}
               />
 
-              <CustomDropdown
-                otherStyles="mt-7"
-                text={'Select Floor Type'}
-                placeholder={'Select Floor Type'}
-                data={dropdowns.FLOOR_TYPE_LIST}
-                setSelected={(val: any) => setMultiDayForm({ ...multiDayForm, floorType: val })}
-                defaultOption={dropdowns.FLOOR_TYPE_LIST[0]}
+              <CustomSelectBottomSheet
+                className="mt-7"
+                label="Select Floor Type"
+                placeholder="Select Floor Type"
+                options={dropdowns.FLOOR_TYPE_LIST}
+                selectedValue={multiDayForm.floorType}
+                onValueChange={(val: any) => setMultiDayForm({ ...multiDayForm, floorType: val })}
               />
 
               <CustomButton
@@ -402,24 +402,22 @@ const RoomBooking = () => {
                 removeGuestForm={removeGuestForm}>
                 {(index: any) => (
                   <>
-                    <CustomDropdown
-                      otherStyles="mt-7"
-                      text={'Room Type'}
-                      placeholder={'Select Room Type'}
-                      data={dropdowns.ROOM_TYPE_LIST}
-                      value={guestForm.guests[index].roomType}
-                      setSelected={(val: any) => handleGuestFormChange(index, 'roomType', val)}
-                      defaultOption={dropdowns.ROOM_TYPE_LIST[0]}
+                    <CustomSelectBottomSheet
+                      className="mt-7"
+                      label="Room Type"
+                      placeholder="Select Room Type"
+                      options={dropdowns.ROOM_TYPE_LIST}
+                      selectedValue={guestForm.guests[index].roomType}
+                      onValueChange={(val: any) => handleGuestFormChange(index, 'roomType', val)}
                     />
 
-                    <CustomDropdown
-                      otherStyles="mt-7"
-                      text={'Select Floor Type'}
-                      placeholder={'Select Floor Type'}
-                      data={dropdowns.FLOOR_TYPE_LIST}
-                      value={guestForm.guests[index].floorType}
-                      setSelected={(val: any) => handleGuestFormChange(index, 'floorType', val)}
-                      defaultOption={dropdowns.FLOOR_TYPE_LIST[0]}
+                    <CustomSelectBottomSheet
+                      className="mt-7"
+                      label="Floor Type"
+                      placeholder="Select Floor Type"
+                      options={dropdowns.FLOOR_TYPE_LIST}
+                      selectedValue={guestForm.guests[index].floorType}
+                      onValueChange={(val: any) => handleGuestFormChange(index, 'floorType', val)}
                     />
                   </>
                 )}
@@ -494,22 +492,24 @@ const RoomBooking = () => {
                 removeMumukshuForm={removeMumukshuForm}>
                 {(index: any) => (
                   <View>
-                    <CustomDropdown
-                      otherStyles="mt-7"
-                      text={'Room Type'}
-                      placeholder={'Select Room Type'}
-                      data={dropdowns.ROOM_TYPE_LIST}
-                      setSelected={(val: any) => handleMumukshuFormChange(index, 'roomType', val)}
-                      defaultOption={dropdowns.ROOM_TYPE_LIST[0]}
+                    <CustomSelectBottomSheet
+                      className="mt-7"
+                      label="Room Type"
+                      placeholder="Select Room Type"
+                      options={dropdowns.ROOM_TYPE_LIST}
+                      selectedValue={mumukshuForm.mumukshus[index].roomType}
+                      onValueChange={(val: any) => handleMumukshuFormChange(index, 'roomType', val)}
                     />
 
-                    <CustomDropdown
-                      otherStyles="mt-7"
-                      text={'Select Floor Type'}
-                      placeholder={'Select Floor Type'}
-                      data={dropdowns.FLOOR_TYPE_LIST}
-                      setSelected={(val: any) => handleMumukshuFormChange(index, 'floorType', val)}
-                      defaultOption={dropdowns.FLOOR_TYPE_LIST[0]}
+                    <CustomSelectBottomSheet
+                      className="mt-7"
+                      label="Floor Type"
+                      placeholder="Select Floor Type"
+                      options={dropdowns.FLOOR_TYPE_LIST}
+                      selectedValue={mumukshuForm.mumukshus[index].floorType}
+                      onValueChange={(val: any) =>
+                        handleMumukshuFormChange(index, 'floorType', val)
+                      }
                     />
                   </View>
                 )}

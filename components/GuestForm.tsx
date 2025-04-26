@@ -3,9 +3,9 @@ import { colors, icons, dropdowns } from '../constants';
 import { useQueries } from '@tanstack/react-query';
 import { useGlobalContext } from '../context/GlobalProvider';
 import React from 'react';
-import CustomDropdown from './CustomDropdown';
 import FormField from './FormField';
 import handleAPICall from '../utils/HandleApiCall';
+import CustomSelectBottomSheet from './CustomSelectBottomSheet';
 
 interface GuestFormProps {
   guestForm: any;
@@ -95,7 +95,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
               value={guest.mobno}
               handleChangeText={(e: string) => handleGuestFormChange(index, 'mobno', e)}
               otherStyles="mt-7"
-              inputStyles="font-pmedium text-base text-gray-400"
+              inputStyles="font-pmedium text-base"
               keyboardType="number-pad"
               placeholder="Enter Guest Phone Number"
               maxLength={10}
@@ -111,28 +111,28 @@ const GuestForm: React.FC<GuestFormProps> = ({
                   autoCorrect={false}
                   handleChangeText={(e: string) => handleGuestFormChange(index, 'name', e)}
                   otherStyles="mt-4"
-                  inputStyles="font-pmedium text-base text-gray-400"
+                  inputStyles="font-pmedium text-base"
                   containerStyles="bg-gray-100"
                   keyboardType="default"
                   placeholder="Guest Name"
                 />
 
-                <CustomDropdown
-                  otherStyles="mt-7"
-                  text={'Gender'}
-                  placeholder={'Select Gender'}
-                  data={dropdowns.GENDER_LIST}
-                  value={guest.gender}
-                  setSelected={(val: string) => handleGuestFormChange(index, 'gender', val)}
+                <CustomSelectBottomSheet
+                  className="mt-7"
+                  label="Gender"
+                  placeholder="Select Gender"
+                  options={dropdowns.GENDER_LIST}
+                  selectedValue={guest.gender}
+                  onValueChange={(val) => handleGuestFormChange(index, 'gender', val)}
                 />
 
-                <CustomDropdown
-                  otherStyles="mt-7"
-                  text={'Guest Type'}
-                  placeholder={'Select Guest Type'}
-                  data={dropdowns.GUEST_TYPE_LIST}
-                  value={guest.type}
-                  setSelected={(val: string) => handleGuestFormChange(index, 'type', val)}
+                <CustomSelectBottomSheet
+                  className="mt-7"
+                  label="Guest Type"
+                  placeholder="Select Guest Type"
+                  options={dropdowns.GUEST_TYPE_LIST}
+                  selectedValue={guest.type}
+                  onValueChange={(val) => handleGuestFormChange(index, 'type', val)}
                 />
               </View>
             )}

@@ -18,9 +18,6 @@ const Index = () => {
     }
   }, [loading]);
 
-  if (!loading && user) return <Redirect href="/home" />;
-  if (!loading && !user) return <Redirect href="/sign-in" />;
-
   return (
     <SafeAreaView>
       <StatusBar style="dark" />

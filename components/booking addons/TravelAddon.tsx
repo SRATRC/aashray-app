@@ -8,12 +8,14 @@ import FormField from '../FormField';
 import AddonItem from '../AddonItem';
 import moment from 'moment';
 import FormDisplayField from '../FormDisplayField';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 
 interface TravelAddonProps {
   travelForm: any;
   setTravelForm: any;
   isDatePickerVisible: any;
   setDatePickerVisibility: any;
+  onToggle?: (isOpen: boolean) => void;
 }
 
 const TravelAddon: React.FC<TravelAddonProps> = ({
@@ -21,8 +23,9 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
   setTravelForm,
   isDatePickerVisible,
   setDatePickerVisibility,
+  onToggle,
 }) => {
-  const { setData } = useGlobalContext();
+  const { data, setData } = useGlobalContext();
 
   // Temporary state to hold the date for the checkin picker
   const [tempTravelDate, setTempTravelDate] = useState(new Date());
@@ -38,14 +41,15 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
 
   return (
     <AddonItem
+      onToggle={onToggle}
       onCollapse={() => {
         setTravelForm({
-          date: '',
+          date: data.room?.startDay || (data.adhyayan && data.adhyayan[0]?.start_date) || '',
           pickup: '',
           drop: '',
           arrival_time: '',
           luggage: '',
-          adhyayan: 0,
+          adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
           type: dropdowns.BOOKING_TYPE_LIST[0].value,
           special_request: '',
         });
@@ -101,34 +105,24 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         minimumDate={moment().add(1, 'days').toDate()}
       />
 
-      <CustomDropdown
-        otherStyles="mt-7"
-        text={'Pickup Location'}
-        placeholder={'Select Location'}
-        data={dropdowns.LOCATION_LIST}
-        setSelected={(val: any) =>
-          setTravelForm({
-            ...travelForm,
-            pickup: val,
-          })
-        }
-        boxbg={colors.gray_100}
-        save={'value'}
+      <CustomSelectBottomSheet
+        className="mt-7"
+        label="Pickup Location"
+        placeholder="Select Pickup Location"
+        options={dropdowns.LOCATION_LIST}
+        selectedValue={travelForm.pickup}
+        onValueChange={(val: any) => setTravelForm({ ...travelForm, pickup: val })}
+        saveKeyInsteadOfValue={false}
       />
 
-      <CustomDropdown
-        otherStyles="mt-7"
-        text={'Drop Location'}
-        placeholder={'Select Location'}
-        data={dropdowns.LOCATION_LIST}
-        setSelected={(val: any) =>
-          setTravelForm({
-            ...travelForm,
-            drop: val,
-          })
-        }
-        boxbg={colors.gray_100}
-        save={'value'}
+      <CustomSelectBottomSheet
+        className="mt-7"
+        label="Drop Location"
+        placeholder="Select Drop Location"
+        options={dropdowns.LOCATION_LIST}
+        selectedValue={travelForm.drop}
+        onValueChange={(val: any) => setTravelForm({ ...travelForm, drop: val })}
+        saveKeyInsteadOfValue={false}
       />
 
       {(travelForm.pickup &&
@@ -190,33 +184,37 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         </>
       ) : null}
 
-      <CustomDropdown
-        otherStyles="mt-7"
-        text={'Luggage'}
-        placeholder={'Select any luggage'}
-        data={dropdowns.LUGGAGE_LIST}
-        save={'value'}
-        setSelected={(val: any) => setTravelForm({ ...travelForm, luggage: val })}
+      <CustomSelectBottomSheet
+        className="mt-7"
+        label="Booking Type"
+        placeholder="Booking Type"
+        options={dropdowns.BOOKING_TYPE_LIST}
+        selectedValue={travelForm.type}
+        onValueChange={(val: any) => setTravelForm({ ...travelForm, type: val })}
+        saveKeyInsteadOfValue={false}
       />
 
-      <CustomDropdown
-        otherStyles="mt-7"
-        text={'Leaving post adhyayan?'}
-        placeholder={'Leaving post adhyayan?'}
-        data={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
-        setSelected={(val: any) => setTravelForm({ ...travelForm, adhyayan: val })}
-        defaultOption={{ key: 0, value: 'No' }}
+      <CustomSelectBottomSheet
+        className="mt-7"
+        label="Luggage"
+        placeholder="Select any Luggage"
+        options={dropdowns.LUGGAGE_LIST}
+        selectedValue={travelForm.luggage}
+        onValueChange={(val: any) => setTravelForm({ ...travelForm, luggage: val })}
+        saveKeyInsteadOfValue={false}
       />
 
-      <CustomDropdown
-        otherStyles="mt-7"
-        text={'Booking Type'}
-        placeholder={'Select booking type'}
-        data={dropdowns.BOOKING_TYPE_LIST}
-        save={'value'}
-        defaultOption={dropdowns.BOOKING_TYPE_LIST[0]}
-        setSelected={(val: any) => setTravelForm({ ...travelForm, type: val })}
-      />
+      {travelForm.pickup == dropdowns.LOCATION_LIST[0].value && (
+        <CustomSelectBottomSheet
+          className="mt-7"
+          label="Leaving post adhyayan?"
+          placeholder="Leaving post adhyayan?"
+          options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
+          selectedValue={travelForm.adhyayan}
+          onValueChange={(val: any) => setTravelForm({ ...travelForm, adhyayan: val })}
+          saveKeyInsteadOfValue={false}
+        />
+      )}
 
       <FormField
         text="Any Special Request?"

@@ -3,7 +3,6 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { types, dropdowns, status } from '../../constants';
 import { useRouter } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
-import CustomDropdown from '../CustomDropdown';
 import CustomButton from '../CustomButton';
 import CustomCalender from '../CustomCalender';
 import FormField from '../FormField';
@@ -12,6 +11,7 @@ import CustomChipGroup from '../CustomChipGroup';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import FormDisplayField from '../FormDisplayField';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import moment from 'moment';
 
 let CHIPS = ['Self', 'Mumukshus'];
@@ -25,8 +25,8 @@ const INITIAL_MUMUKSHU_FORM = {
       pickup: '',
       drop: '',
       luggage: '',
-      adhyayan: 0,
-      type: 'regular',
+      adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
+      type: dropdowns.BOOKING_TYPE_LIST[0].value,
       special_request: '',
       arrival_time: '',
     },
@@ -64,8 +64,8 @@ const TravelBooking = () => {
     drop: '',
     arrival_time: '',
     luggage: '',
-    adhyayan: 0,
-    type: 'regular',
+    adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
+    type: dropdowns.BOOKING_TYPE_LIST[0].value,
     special_request: '',
   });
 
@@ -115,8 +115,8 @@ const TravelBooking = () => {
           pickup: '',
           drop: '',
           luggage: '',
-          adhyayan: 0,
-          type: 'regular',
+          adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
+          type: dropdowns.BOOKING_TYPE_LIST[0].value,
           special_request: '',
           arrival_time: '',
         },
@@ -202,22 +202,26 @@ const TravelBooking = () => {
 
       {selectedChip == CHIPS[0] && (
         <View>
-          <CustomDropdown
-            otherStyles="mt-7"
-            text={'Pickup Location'}
-            placeholder={'Select Location'}
-            save={'value'}
-            data={dropdowns.LOCATION_LIST}
-            setSelected={(val: any) => setTravelForm({ ...travelForm, pickup: val })}
+          <CustomSelectBottomSheet
+            className="mt-7"
+            label="Pickup Location"
+            placeholder="Select Pickup Location"
+            options={dropdowns.LOCATION_LIST}
+            selectedValue={travelForm.pickup}
+            onValueChange={(val: any) => setTravelForm({ ...travelForm, pickup: val })}
+            saveKeyInsteadOfValue={false}
           />
-          <CustomDropdown
-            otherStyles="mt-7"
-            text={'Drop Location'}
-            placeholder={'Select Location'}
-            data={dropdowns.LOCATION_LIST}
-            save={'value'}
-            setSelected={(val: any) => setTravelForm({ ...travelForm, drop: val })}
+
+          <CustomSelectBottomSheet
+            className="mt-7"
+            label="Drop Location"
+            placeholder="Select Drop Location"
+            options={dropdowns.LOCATION_LIST}
+            selectedValue={travelForm.drop}
+            onValueChange={(val: any) => setTravelForm({ ...travelForm, drop: val })}
+            saveKeyInsteadOfValue={false}
           />
+
           {(travelForm.pickup &&
             dropdowns.LOCATION_LIST.find(
               (loc: { value: string }) =>
@@ -241,7 +245,7 @@ const TravelBooking = () => {
                     : 'Flight/Train Time'
                 }
                 otherStyles="mt-5"
-                inputStyles={'font-pmedium text-gray-400 text-lg'}
+                inputStyles={'font-pmedium text-black text-lg'}
                 backgroundColor="bg-gray-100"
                 onPress={() => setDatePickerVisibility(true)}
               />
@@ -267,31 +271,39 @@ const TravelBooking = () => {
               />
             </>
           ) : null}
-          <CustomDropdown
-            otherStyles="mt-7"
-            text={'Luggage'}
-            placeholder={'Select any luggage'}
-            data={dropdowns.LUGGAGE_LIST}
-            save={'value'}
-            setSelected={(val: any) => setTravelForm({ ...travelForm, luggage: val })}
+
+          <CustomSelectBottomSheet
+            className="mt-7"
+            label="Booking Type"
+            placeholder="Booking Type"
+            options={dropdowns.BOOKING_TYPE_LIST}
+            selectedValue={travelForm.type}
+            onValueChange={(val: any) => setTravelForm({ ...travelForm, type: val })}
+            saveKeyInsteadOfValue={false}
           />
-          <CustomDropdown
-            otherStyles="mt-7"
-            text={'Leaving post adhyayan?'}
-            placeholder={'Leaving post adhyayan?'}
-            data={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
-            setSelected={(val: any) => setTravelForm({ ...travelForm, adhyayan: val })}
-            defaultOption={{ key: 0, value: 'No' }}
+
+          <CustomSelectBottomSheet
+            className="mt-7"
+            label="Luggage"
+            placeholder="Select any Luggage"
+            options={dropdowns.LUGGAGE_LIST}
+            selectedValue={travelForm.luggage}
+            onValueChange={(val: any) => setTravelForm({ ...travelForm, luggage: val })}
+            saveKeyInsteadOfValue={false}
           />
-          <CustomDropdown
-            otherStyles="mt-7"
-            text={'Booking Type'}
-            placeholder={'Select booking type'}
-            data={dropdowns.BOOKING_TYPE_LIST}
-            save={'value'}
-            defaultOption={{ key: 'regular', value: 'Regular' }}
-            setSelected={(val: any) => setTravelForm({ ...travelForm, type: val })}
-          />
+
+          {travelForm.pickup == dropdowns.LOCATION_LIST[0].value && (
+            <CustomSelectBottomSheet
+              className="mt-7"
+              label="Leaving post adhyayan?"
+              placeholder="Leaving post adhyayan?"
+              options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
+              selectedValue={travelForm.adhyayan}
+              onValueChange={(val: any) => setTravelForm({ ...travelForm, adhyayan: val })}
+              saveKeyInsteadOfValue={false}
+            />
+          )}
+
           <FormField
             text="Any Special Request?"
             value={travelForm.special_request}
@@ -315,22 +327,26 @@ const TravelBooking = () => {
             removeMumukshuForm={removeMumukshuForm}>
             {(index: any) => (
               <>
-                <CustomDropdown
-                  otherStyles="mt-7"
-                  text={'Pickup Location'}
-                  placeholder={'Select Location'}
-                  data={dropdowns.LOCATION_LIST}
-                  setSelected={(val: any) => handleMumukshuFormChange(index, 'pickup', val)}
-                  save={'value'}
+                <CustomSelectBottomSheet
+                  className="mt-7"
+                  label="Pickup Location"
+                  placeholder="Select Pickup Location"
+                  options={dropdowns.LOCATION_LIST}
+                  selectedValue={mumukshuForm.mumukshus[index].pickup}
+                  onValueChange={(val: any) => handleMumukshuFormChange(index, 'pickup', val)}
+                  saveKeyInsteadOfValue={false}
                 />
-                <CustomDropdown
-                  otherStyles="mt-7"
-                  text={'Drop Location'}
-                  placeholder={'Select Location'}
-                  data={dropdowns.LOCATION_LIST}
-                  setSelected={(val: any) => handleMumukshuFormChange(index, 'drop', val)}
-                  save={'value'}
+
+                <CustomSelectBottomSheet
+                  className="mt-7"
+                  label="Drop Location"
+                  placeholder="Select Drop Location"
+                  options={dropdowns.LOCATION_LIST}
+                  selectedValue={mumukshuForm.mumukshus[index].drop}
+                  onValueChange={(val: any) => handleMumukshuFormChange(index, 'drop', val)}
+                  saveKeyInsteadOfValue={false}
                 />
+
                 {(mumukshuForm.mumukshus[index].pickup &&
                   dropdowns.LOCATION_LIST.find(
                     (loc) =>
@@ -384,30 +400,35 @@ const TravelBooking = () => {
                     />
                   </>
                 ) : null}
-                <CustomDropdown
-                  otherStyles="mt-7"
-                  text={'Luggage'}
-                  placeholder={'Select any luggage'}
-                  data={dropdowns.LUGGAGE_LIST}
-                  save={'value'}
-                  setSelected={(val: any) => handleMumukshuFormChange(index, 'luggage', val)}
+
+                <CustomSelectBottomSheet
+                  className="mt-7"
+                  label="Booking Type"
+                  placeholder="Select Booking Type"
+                  options={dropdowns.BOOKING_TYPE_LIST}
+                  selectedValue={mumukshuForm.mumukshus[index].type}
+                  onValueChange={(val: any) => handleMumukshuFormChange(index, 'type', val)}
+                  saveKeyInsteadOfValue={false}
                 />
-                <CustomDropdown
-                  otherStyles="mt-7"
-                  text={'Leaving post adhyayan?'}
-                  placeholder={'Leaving post adhyayan?'}
-                  data={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
-                  setSelected={(val: any) => handleMumukshuFormChange(index, 'adhyayan', val)}
-                  defaultOption={{ key: 0, value: 'No' }}
+
+                <CustomSelectBottomSheet
+                  className="mt-7"
+                  label="Luggage"
+                  placeholder="Select any luggage"
+                  options={dropdowns.LUGGAGE_LIST}
+                  selectedValue={mumukshuForm.mumukshus[index].luggage}
+                  onValueChange={(val: any) => handleMumukshuFormChange(index, 'luggage', val)}
+                  saveKeyInsteadOfValue={false}
                 />
-                <CustomDropdown
-                  otherStyles="mt-7"
-                  text={'Booking Type'}
-                  placeholder={'Select booking type'}
-                  data={dropdowns.BOOKING_TYPE_LIST}
-                  defaultOption={{ key: 'regular', value: 'Regular' }}
-                  save={'value'}
-                  setSelected={(val: any) => handleMumukshuFormChange(index, 'type', val)}
+
+                <CustomSelectBottomSheet
+                  className="mt-7"
+                  label="Leaving post adhyayan?"
+                  placeholder="Leaving post adhyayan?"
+                  options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
+                  selectedValue={mumukshuForm.mumukshus[index].adhyayan}
+                  onValueChange={(val: any) => handleMumukshuFormChange(index, 'adhyayan', val)}
+                  saveKeyInsteadOfValue={false}
                 />
 
                 <FormField

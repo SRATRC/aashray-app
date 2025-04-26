@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, icons, status } from '../../constants';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { prepareMumukshuRequestBody } from '~/utils/preparingRequestBody';
 import PageHeader from '../../components/PageHeader';
 import CustomButton from '../../components/CustomButton';
@@ -16,10 +16,12 @@ import MumukshuFoodBookingDetails from '../../components/booking details cards/M
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
+import CustomModal from '~/components/CustomModal';
 
 const mumukshuBookingConfirmation = () => {
   const router = useRouter();
   const { user, mumukshuData, setMumukshuData } = useGlobalContext();
+  const queryClient = useQueryClient();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -187,6 +189,19 @@ const mumukshuBookingConfirmation = () => {
             isDisabled={!validationData || validationDataError}
           />
         </View>
+
+        {validationDataError && (
+          <CustomModal
+            visible={true}
+            onClose={() => {
+              setMumukshuData((prev: any) => ({ ...prev, dismissedValidationError: true }));
+              queryClient.resetQueries({ queryKey: ['validations', user.cardno] });
+              router.back();
+            }}
+            message={validationDataError.message}
+            btnText={'Okay'}
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );

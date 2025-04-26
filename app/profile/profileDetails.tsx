@@ -9,10 +9,10 @@ import PageHeader from '../../components/PageHeader';
 import FormField from '../../components/FormField';
 import FormDisplayField from '../../components/FormDisplayField';
 import CustomButton from '../../components/CustomButton';
-import CustomDropdown from '../../components/CustomDropdown';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import handleAPICall from '../../utils/HandleApiCall';
 import moment from 'moment';
+import CustomSelectBottomSheet from '~/components/CustomSelectBottomSheet';
 
 const fetchCountries = () => {
   return new Promise((resolve, reject) => {
@@ -87,7 +87,7 @@ const profileDetails = () => {
     data: countries,
     isLoading: isCountriesLoading,
     isError: isCountriesError,
-  } = useQuery({
+  }: any = useQuery({
     queryKey: ['countries'],
     queryFn: fetchCountries,
     staleTime: 1000 * 60 * 30,
@@ -97,7 +97,7 @@ const profileDetails = () => {
     data: states,
     isLoading: isStatesLoading,
     isError: isStatesError,
-  } = useQuery({
+  }: any = useQuery({
     queryKey: ['states', selectedCountry],
     queryFn: () => fetchStates(selectedCountry),
     enabled: !!selectedCountry,
@@ -180,7 +180,7 @@ const profileDetails = () => {
               value={form.issuedto}
               handleChangeText={(e: any) => setForm({ ...form, issuedto: e })}
               otherStyles="mt-2"
-              inputStyles="font-pmedium text-base text-gray-400"
+              inputStyles="font-pmedium text-base"
               keyboardType="default"
               placeholder="Enter Your Name"
               containerStyles={'bg-gray-100'}
@@ -191,7 +191,7 @@ const profileDetails = () => {
               value={form.mobno.toString()}
               handleChangeText={(e: any) => setForm({ ...form, mobno: Number(e) })}
               otherStyles="mt-7"
-              inputStyles="font-pmedium text-base text-gray-400"
+              inputStyles="font-pmedium text-base"
               keyboardType="number-pad"
               placeholder="Enter Your Phone Number"
               maxLength={10}
@@ -203,7 +203,7 @@ const profileDetails = () => {
               value={form.email}
               handleChangeText={(e: any) => setForm({ ...form, email: e.trim() })}
               otherStyles="mt-7"
-              inputStyles="font-pmedium text-base text-gray-400"
+              inputStyles="font-pmedium text-base"
               keyboardType="email-address"
               placeholder="Enter Your Email ID"
               maxLength={100}
@@ -233,15 +233,13 @@ const profileDetails = () => {
               maximumDate={moment().toDate()}
             />
 
-            <CustomDropdown
-              otherStyles="mt-7"
-              text={'Gender'}
-              placeholder={'Select Gender'}
-              data={dropdowns.GENDER_LIST}
-              setSelected={(val: any) => setForm({ ...form, gender: val })}
-              defaultOption={
-                form.gender == 'M' ? { key: 'M', value: 'Male' } : { key: 'F', value: 'Female' }
-              }
+            <CustomSelectBottomSheet
+              className="mt-7"
+              label="Gender"
+              placeholder="Select Gender"
+              options={dropdowns.GENDER_LIST}
+              selectedValue={form.gender}
+              onValueChange={(val: any) => setForm({ ...form, gender: val })}
             />
 
             <FormField
@@ -249,7 +247,7 @@ const profileDetails = () => {
               value={form.center}
               handleChangeText={(e: any) => setForm({ ...form, center: e.trim() })}
               otherStyles="mt-7"
-              inputStyles="font-pmedium text-base text-gray-400"
+              inputStyles="font-pmedium text-base"
               keyboardType="default"
               placeholder="Enter Your Center"
               maxLength={100}
@@ -263,62 +261,74 @@ const profileDetails = () => {
               multiline={true}
               numberOfLines={4}
               otherStyles="mt-7"
-              inputStyles="font-pmedium text-base text-gray-400"
+              inputStyles="font-pmedium text-base"
               keyboardType="default"
               placeholder="Enter Your Address"
               maxLength={200}
               containerStyles={'bg-gray-100'}
             />
 
-            <CustomDropdown
-              otherStyles="mt-7"
-              text={'Country'}
-              placeholder={'Select Country'}
-              data={countries}
-              save={'value'}
-              setSelected={(val: any) => {
+            <CustomSelectBottomSheet
+              className="mt-7"
+              label="Country"
+              placeholder="Select Country"
+              options={countries}
+              selectedValue={form.country}
+              onValueChange={(val: any) => {
                 setForm({ ...form, country: val, state: '', city: '' });
                 setSelectedCountry(val);
               }}
-              defaultOption={{ key: form.country, value: form.country }}
-              enableSearch={true}
+              searchable={true}
+              searchPlaceholder="Search Countries..."
+              noResultsText="No Countries Found"
+              isLoading={isCountriesLoading}
+              onRetry={fetchCountries}
+              saveKeyInsteadOfValue={false}
             />
 
             {selectedCountry && (
-              <CustomDropdown
-                otherStyles="mt-7"
-                text={'State'}
-                placeholder={'Select State'}
-                data={states}
-                save={'value'}
-                setSelected={(val: any) => {
+              <CustomSelectBottomSheet
+                className="mt-7"
+                label="State"
+                placeholder="Select State"
+                options={states}
+                selectedValue={form.state}
+                onValueChange={(val: any) => {
                   setForm({ ...form, state: val, city: '' });
                   setSelectedState(val);
                 }}
-                defaultOption={{ key: form.state, value: form.state }}
-                enableSearch={true}
+                searchable={true}
+                searchPlaceholder="Search States..."
+                noResultsText="No States Found"
+                isLoading={isStatesLoading}
+                onRetry={() => fetchStates(selectedCountry)}
+                saveKeyInsteadOfValue={false}
               />
             )}
 
             {selectedState && (
-              <CustomDropdown
-                otherStyles="mt-7"
-                text={'City'}
-                placeholder={'Select City'}
-                data={cities}
-                save={'value'}
-                setSelected={(val: any) => setForm({ ...form, city: val })}
-                defaultOption={{ key: form.city, value: form.city }}
-                enableSearch={true}
+              <CustomSelectBottomSheet
+                className="mt-7"
+                label="City"
+                placeholder="Select City"
+                options={cities}
+                selectedValue={form.city}
+                onValueChange={(val: any) => setForm({ ...form, city: val })}
+                searchable={true}
+                searchPlaceholder="Search Cities..."
+                noResultsText="No Cities Found"
+                isLoading={isCitiesLoading}
+                onRetry={() => fetchCities(selectedCountry, selectedState)}
+                saveKeyInsteadOfValue={false}
               />
             )}
 
             <FormField
               text="Pin Code"
               value={form.pin.toString()}
-              handleChangeText={(e: any) => setForm({ ...form, pin: Number(e) })}
+              handleChangeText={(e: any) => setForm({ ...form, pin: e })}
               otherStyles="mt-7"
-              inputStyles="font-pmedium text-base text-gray-400"
+              inputStyles="font-pmedium text-base"
               keyboardType="number-pad"
               placeholder="Enter Your pin Code"
               maxLength={6}

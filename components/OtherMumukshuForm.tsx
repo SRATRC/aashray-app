@@ -100,7 +100,7 @@ const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
               value={mumukshu.mobno}
               handleChangeText={(e: any) => handleMumukshuFormChange(index, 'mobno', e)}
               otherStyles="mt-7"
-              inputStyles="font-pmedium text-base text-gray-400"
+              inputStyles="font-pmedium text-base"
               keyboardType="number-pad"
               placeholder="Enter Mumukshu's Phone Number"
               maxLength={10}

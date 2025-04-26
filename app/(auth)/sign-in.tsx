@@ -1,4 +1,13 @@
-import { View, Text, KeyboardAvoidingView, ScrollView, Platform, Image, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+  Image,
+  Alert,
+  TouchableOpacity,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import { images } from '../../constants';
@@ -88,6 +97,12 @@ const SignIn = () => {
               placeholder="Enter Your Password"
               isPassword={true}
             />
+
+            <View className="mt-2 flex flex-row items-center justify-end">
+              <TouchableOpacity onPress={() => {}}>
+                <Text className="font-pmedium text-sm text-secondary-100">Forgot Password?</Text>
+              </TouchableOpacity>
+            </View>
 
             <CustomButton
               text="Sign In"

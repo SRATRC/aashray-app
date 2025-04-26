@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { icons, types } from '../../constants';
+import { dropdowns, icons, types } from '../../constants';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -33,7 +33,7 @@ const INITIAL_FOOD_FORM = {
     {
       meals: [],
       spicy: '',
-      hightea: 'NONE',
+      hightea: dropdowns.HIGHTEA_LIST[2].key,
       mumukshus: [],
       mumukshuIndices: [],
     },
@@ -528,7 +528,7 @@ const MumukshuAddons = () => {
             />
           </View>
 
-          {validationDataError && (
+          {validationDataError && !mumukshuData.dismissedValidationError && (
             <CustomModal
               visible={true}
               onClose={() => router.back()}
