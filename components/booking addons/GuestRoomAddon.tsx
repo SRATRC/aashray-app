@@ -20,7 +20,7 @@ interface GuestRoomAddonProps {
   guest_dropdown: any;
   INITIAL_ROOM_FORM: any;
   isDatePickerVisible: any;
-  setDatePickerVisibility: any;
+  setDatePickerVisibility: (pickerType: string, isVisible: boolean) => void;
   onToggle?: (isOpen: boolean) => void;
 }
 
@@ -96,12 +96,7 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
         }
         otherStyles="mt-5"
         backgroundColor="bg-gray-100"
-        onPress={() =>
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            checkin: true,
-          })
-        }
+        onPress={() => setDatePickerVisibility('checkin', true)}
       />
 
       <DateTimePickerModal
@@ -120,17 +115,9 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
             startDay: validDate.format('YYYY-MM-DD'),
             endDay: null,
           });
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            checkin: false,
-          });
+          setDatePickerVisibility('checkin', false);
         }}
-        onCancel={() =>
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            checkin: false,
-          })
-        }
+        onCancel={() => setDatePickerVisibility('checkin', false)}
         minimumDate={moment().add(1, 'days').toDate()}
       />
 
@@ -141,10 +128,7 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
         backgroundColor="bg-gray-100"
         onPress={() => {
           if (roomForm.startDay) {
-            setDatePickerVisibility({
-              ...isDatePickerVisible,
-              checkout: true,
-            });
+            setDatePickerVisibility('checkout', true);
           } else {
             Toast.show({
               type: 'info',
@@ -169,17 +153,9 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
             ...roomForm,
             endDay: moment(validDate).format('YYYY-MM-DD'),
           });
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            checkout: false,
-          });
+          setDatePickerVisibility('checkout', false);
         }}
-        onCancel={() =>
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            checkout: false,
-          })
-        }
+        onCancel={() => setDatePickerVisibility('checkout', false)}
         minimumDate={
           roomForm.startDay ? moment(roomForm.startDay).add(1, 'days').toDate() : undefined
         }

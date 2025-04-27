@@ -14,7 +14,7 @@ interface FoodAddonProps {
   foodForm: any;
   setFoodForm: any;
   isDatePickerVisible: any;
-  setDatePickerVisibility: any;
+  setDatePickerVisibility: (pickerType: any, isVisible: any) => void;
   onToggle?: (isOpen: boolean) => void;
 }
 
@@ -72,12 +72,7 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
         value={foodForm.startDay ? moment(foodForm.startDay).format('Do MMMM YYYY') : 'Start Date'}
         otherStyles="mt-5"
         backgroundColor="bg-gray-100"
-        onPress={() =>
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            foodStart: true,
-          })
-        }
+        onPress={() => setDatePickerVisibility('foodStart', true)}
       />
       <DateTimePickerModal
         isVisible={isDatePickerVisible.foodStart}
@@ -97,17 +92,9 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
             startDay: validDate.format('YYYY-MM-DD'),
             endDay: '',
           });
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            foodStart: false,
-          });
+          setDatePickerVisibility('foodStart', false);
         }}
-        onCancel={() =>
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            foodStart: false,
-          })
-        }
+        onCancel={() => setDatePickerVisibility('foodStart', false)}
         minimumDate={
           moment().hour() < 11
             ? moment(new Date()).add(1, 'days').toDate()
@@ -122,10 +109,7 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
         backgroundColor="bg-gray-100"
         onPress={() => {
           if (foodForm.startDay) {
-            setDatePickerVisibility({
-              ...isDatePickerVisible,
-              foodEnd: true,
-            });
+            setDatePickerVisibility('foodEnd', true);
           } else {
             Toast.show({
               type: 'info',
@@ -149,17 +133,9 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
             ...foodForm,
             endDay: moment(validDate).format('YYYY-MM-DD'),
           });
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            foodEnd: false,
-          });
+          setDatePickerVisibility('foodEnd', false);
         }}
-        onCancel={() =>
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            foodEnd: false,
-          })
-        }
+        onCancel={() => setDatePickerVisibility('foodEnd', false)}
         minimumDate={foodForm.startDay ? moment(foodForm.startDay).toDate() : undefined}
       />
 

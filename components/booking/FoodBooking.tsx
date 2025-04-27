@@ -249,19 +249,26 @@ const FoodBooking = () => {
           <CustomButton
             text="Book Now"
             handlePress={async () => {
+              setIsSubmitting(true);
               if (
                 !foodForm.startDay ||
                 foodForm.meals.length == 0 ||
                 foodForm.spicy == null ||
                 !foodForm.hightea
               ) {
-                Alert.alert('Please fill all fields');
-                return;
+                setIsSubmitting(false);
+                setModalMessage('Please fill all fields');
+                setModalVisible(true);
               }
-              setIsSubmitting(true);
 
               const onSuccess = (_data: any) => {
                 Alert.alert('Booking Successful');
+              };
+
+              const onError = (errorDetails: any) => {
+                setIsSubmitting(false);
+                setModalMessage(errorDetails.message);
+                setModalVisible(true);
               };
 
               const onFinally = () => {
@@ -288,7 +295,8 @@ const FoodBooking = () => {
                   },
                 },
                 onSuccess,
-                onFinally
+                onFinally,
+                onError
               );
             }}
             containerStyles="mt-7 w-full px-1 min-h-[62px]"

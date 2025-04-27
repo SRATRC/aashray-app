@@ -144,7 +144,7 @@ const Profile: React.FC = () => {
     <View className="mb-10 mt-8 flex-col items-center justify-center">
       <TouchableOpacity onPress={() => router.push('/camera')}>
         <Image
-          source={user.pfp ? { uri: user.pfp } : images.pfp}
+          source={user.pfp ? { uri: user.pfp, cache: 'force-cache' } : images.pfp}
           className="h-[150] w-[150] rounded-full"
           resizeMode="cover"
           style={{

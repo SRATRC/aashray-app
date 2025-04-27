@@ -13,7 +13,7 @@ interface TravelAddonProps {
   travelForm: any;
   setTravelForm: any;
   isDatePickerVisible: any;
-  setDatePickerVisibility: any;
+  setDatePickerVisibility: (pickerType: any, isVisible: any) => void;
   onToggle?: (isOpen: boolean) => void;
 }
 
@@ -69,12 +69,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         value={travelForm.date ? moment(travelForm.date).format('Do MMMM YYYY') : 'Date'}
         otherStyles="mt-7"
         backgroundColor="bg-gray-100"
-        onPress={() =>
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            travel: true,
-          })
-        }
+        onPress={() => setDatePickerVisibility('travel', true)}
       />
       <DateTimePickerModal
         isVisible={isDatePickerVisible.travel}
@@ -90,17 +85,9 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
             ...travelForm,
             date: validDate.format('YYYY-MM-DD'),
           });
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            travel: false,
-          });
+          setDatePickerVisibility('travel', false);
         }}
-        onCancel={() =>
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            travel: false,
-          })
-        }
+        onCancel={() => setDatePickerVisibility('travel', false)}
         minimumDate={moment().add(1, 'days').toDate()}
       />
 
@@ -149,12 +136,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
             otherStyles="mt-5"
             inputStyles={'font-pmedium text-gray-400 text-lg'}
             backgroundColor="bg-gray-100"
-            onPress={() =>
-              setDatePickerVisibility({
-                ...isDatePickerVisible,
-                travel_time: true,
-              })
-            }
+            onPress={() => setDatePickerVisibility('travel_time', true)}
           />
           <DateTimePickerModal
             isVisible={isDatePickerVisible.travel_time}
@@ -165,17 +147,9 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
                 ...prev,
                 arrival_time: date.toISOString(),
               }));
-              setDatePickerVisibility({
-                ...isDatePickerVisible,
-                travel_time: false,
-              });
+              setDatePickerVisibility('travel_time', false);
             }}
-            onCancel={() =>
-              setDatePickerVisibility({
-                ...isDatePickerVisible,
-                travel_time: false,
-              })
-            }
+            onCancel={() => setDatePickerVisibility('travel_time', false)}
             minimumDate={
               travelForm.arrival_time ? moment(travelForm.arrival_time).toDate() : moment().toDate()
             }

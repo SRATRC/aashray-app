@@ -18,7 +18,7 @@ interface MumukshuTravelAddonProps {
   removeTravelForm: any;
   mumukshu_dropdown: any;
   isDatePickerVisible: any;
-  setDatePickerVisibility: any;
+  setDatePickerVisibility: (pickerType: string, isVisible: boolean) => void;
   onToggle?: (isOpen: boolean) => void;
 }
 
@@ -89,12 +89,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
         value={travelForm.date ? moment(travelForm.date).format('Do MMMM YYYY') : 'Date'}
         otherStyles="mt-7"
         backgroundColor="bg-gray-100"
-        onPress={() =>
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            travel: true,
-          })
-        }
+        onPress={() => setDatePickerVisibility('travel', true)}
       />
 
       <DateTimePickerModal
@@ -111,17 +106,9 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             ...travelForm,
             date: validDate.format('YYYY-MM-DD'),
           });
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            travel: false,
-          });
+          setDatePickerVisibility('travel', false);
         }}
-        onCancel={() =>
-          setDatePickerVisibility({
-            ...isDatePickerVisible,
-            travel: false,
-          })
-        }
+        onCancel={() => setDatePickerVisibility('travel', false)}
         minimumDate={moment().add(1, 'days').toDate()}
       />
 
@@ -203,7 +190,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
                 inputStyles={'font-pmedium text-gray-400 text-lg'}
                 backgroundColor="bg-gray-100"
                 onPress={() => {
-                  setDatePickerVisibility(true);
+                  setDatePickerVisibility('travel_time', true);
                   setActiveMumukshuIndex(index);
                 }}
               />
@@ -217,11 +204,9 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
                 }
                 onConfirm={(date: Date) => {
                   updateTravelForm(index, 'arrival_time', date.toISOString());
-                  setDatePickerVisibility({ ...isDatePickerVisible, travel_time: false });
+                  setDatePickerVisibility('travel_time', false);
                 }}
-                onCancel={() =>
-                  setDatePickerVisibility({ ...isDatePickerVisible, travel_time: false })
-                }
+                onCancel={() => setDatePickerVisibility('travel_time', false)}
                 minimumDate={
                   travelForm.mumukshuGroup[index].arrival_time
                     ? moment(travelForm.mumukshuGroup[index].arrival_time).toDate()

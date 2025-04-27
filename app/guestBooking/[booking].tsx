@@ -191,6 +191,10 @@ const GuestAddons = () => {
     travel: false,
   });
 
+  const toggleDatePicker = useCallback((pickerType: string, isVisible: boolean) => {
+    setDatePickerVisibility((prev) => ({ ...prev, [pickerType]: isVisible }));
+  }, []);
+
   // Prepare API payload
   const transformedData = useMemo(() => {
     return prepareGuestRequestBody(user, guestData);
@@ -510,7 +514,7 @@ const GuestAddons = () => {
                     INITIAL_ROOM_FORM={createInitialRoomForm()}
                     guest_dropdown={guest_dropdown}
                     isDatePickerVisible={isDatePickerVisible}
-                    setDatePickerVisibility={setDatePickerVisibility}
+                    setDatePickerVisibility={toggleDatePicker}
                     onToggle={(isOpen) => toggleAddon('room', isOpen)}
                   />
                 )}
@@ -525,7 +529,7 @@ const GuestAddons = () => {
                   updateFoodForm={updateFoodForm}
                   guest_dropdown={guest_dropdown}
                   isDatePickerVisible={isDatePickerVisible}
-                  setDatePickerVisibility={setDatePickerVisibility}
+                  setDatePickerVisibility={toggleDatePicker}
                   onToggle={(isOpen) => toggleAddon('food', isOpen)}
                 />
 

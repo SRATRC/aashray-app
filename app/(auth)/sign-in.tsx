@@ -7,6 +7,7 @@ import {
   Image,
   Alert,
   TouchableOpacity,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
@@ -19,6 +20,38 @@ import FormField from '../../components/FormField';
 import CustomButton from '../../components/CustomButton';
 import handleAPICall from '../../utils/HandleApiCall';
 
+const PasswordResetModal = ({ visible, onClose, email }: any) => {
+  return (
+    <Modal animationType="fade" transparent={true} visible={visible} onRequestClose={onClose}>
+      <View className="flex-1 items-center justify-center bg-black/50">
+        <View className="w-[85%] max-w-[400px] items-center rounded-3xl bg-white p-8 shadow-md">
+          <View className="mb-5 rounded-full bg-secondary-50 p-5">
+            <Image source={images.logo} className="h-[50px] w-[50px]" resizeMode="contain" />
+          </View>
+
+          <Text className="mb-4 font-psemibold text-2xl text-gray-800">Check Your Email</Text>
+
+          <Text className="mb-1 text-center font-pregular text-base text-gray-600">
+            We've sent a password reset link to:
+          </Text>
+
+          <Text className="mb-4 text-center font-pmedium text-base text-secondary">{email}</Text>
+
+          <Text className="mb-6 text-center font-pregular text-sm text-gray-600">
+            Click the link in the email to reset your password. The link will expire in 30 minutes.
+          </Text>
+
+          <CustomButton
+            containerStyles="w-full mb-4 px-8 py-3"
+            text="Got It"
+            handlePress={onClose}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
 const SignIn = () => {
   const [form, setForm] = useState({
     phone: '',
@@ -26,6 +59,8 @@ const SignIn = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
 
   const { setUser, setCurrentUser } = useGlobalContext();
   const { expoPushToken } = useNotification();
@@ -66,6 +101,35 @@ const SignIn = () => {
     );
   };
 
+  const handleForgotPassword = async () => {
+    if (!form.phone || form.phone.length !== 10) {
+      Alert.alert('Error', 'Please enter a valid phone number first');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const onSuccess = async (data: any) => {
+      setResetEmail(data?.email);
+      setModalVisible(true);
+    };
+
+    const onFinally = () => {
+      setIsSubmitting(false);
+    };
+
+    await handleAPICall(
+      'POST',
+      '/client/requestPasswordReset',
+      null,
+      {
+        mobno: form.phone,
+      },
+      onSuccess,
+      onFinally
+    );
+  };
+
   return (
     <SafeAreaView className="h-full bg-white">
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -81,7 +145,7 @@ const SignIn = () => {
               value={form.phone}
               handleChangeText={(e: any) => setForm({ ...form, phone: e })}
               otherStyles="mt-7"
-              inputStyles="font-pmedium text-base text-gray-400"
+              inputStyles="font-pmedium text-base"
               keyboardType="number-pad"
               placeholder="Enter Your Phone Number"
               maxLength={10}
@@ -92,15 +156,15 @@ const SignIn = () => {
               value={form.password}
               handleChangeText={(e: any) => setForm({ ...form, password: e })}
               otherStyles="mt-7"
-              inputStyles="font-pmedium text-base text-gray-400"
+              inputStyles="font-pmedium text-base"
               keyboardType="default"
               placeholder="Enter Your Password"
               isPassword={true}
             />
 
             <View className="mt-2 flex flex-row items-center justify-end">
-              <TouchableOpacity onPress={() => {}}>
-                <Text className="font-pmedium text-sm text-secondary-100">Forgot Password?</Text>
+              <TouchableOpacity onPress={handleForgotPassword}>
+                <Text className="font-pmedium text-sm text-secondary">Forgot Password?</Text>
               </TouchableOpacity>
             </View>
 
@@ -112,17 +176,12 @@ const SignIn = () => {
               isDisabled={!form.phone || !form.password}
             />
 
-            {/* <View className="flex flex-row items-center justify-start mt-2 gap-x-2">
-              <Text className="text-sm font-pregular">
-                Do not have an account?
-              </Text>
-
-              <Pressable onPress={() => router.push('/guestReferral')}>
-                <Text className="text-secondary-100 text-sm font-pmedium">
-                  sign up
-                </Text>
-              </Pressable>
-            </View> */}
+            {/* Password Reset Modal */}
+            <PasswordResetModal
+              visible={modalVisible}
+              onClose={() => setModalVisible(false)}
+              email={resetEmail}
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
