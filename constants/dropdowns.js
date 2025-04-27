@@ -70,23 +70,6 @@ const GUEST_TYPE_LIST = [
   { key: 'family', value: 'Family' },
 ];
 
-const GUEST_FOOD_TYPE_LIST = [
-  { value: 'breakfast', label: 'Breakfast' },
-  { value: 'lunch', label: 'Lunch' },
-  { value: 'dinner', label: 'Dinner' },
-];
-
-const GUEST_SPICE_LIST = [
-  { value: 1, label: 'Regular' },
-  { value: 0, label: 'Non Spicy' },
-];
-
-const GUEST_HIGHTEA_LIST = [
-  { value: 'TEA', label: 'Tea' },
-  { value: 'COFFEE', label: 'Coffee' },
-  { value: 'NONE', label: 'None' },
-];
-
 export default {
   GENDER_LIST,
   ROOM_TYPE_LIST,
@@ -99,7 +82,4 @@ export default {
   BOOKING_TYPE_LIST,
   TRAVEL_ADHYAYAN_ASK_LIST,
   GUEST_TYPE_LIST,
-  GUEST_FOOD_TYPE_LIST,
-  GUEST_SPICE_LIST,
-  GUEST_HIGHTEA_LIST,
 };

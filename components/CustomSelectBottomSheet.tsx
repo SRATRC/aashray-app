@@ -74,7 +74,7 @@ const SelectItem = memo(
   }) => {
     return (
       <TouchableOpacity
-        className="flex-row items-center justify-between border-b border-gray-100 px-4 py-4"
+        className="mb-1 flex-row items-center justify-between border-b border-gray-100 px-4 py-4"
         onPress={onSelect}
         activeOpacity={0.7}
         style={{
@@ -256,6 +256,15 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
   // Stable callback reference to prevent re-renders
   const handleSearchChange = useCallback((text: string) => {
     setSearchQuery(text);
+  }, []);
+
+  const isValueSelected = useCallback((value: string | number | null | undefined): boolean => {
+    // Check if not null and not undefined
+    if (value === null || value === undefined) return false;
+    // Also exclude empty strings
+    if (typeof value === 'string' && value.trim() === '') return false;
+    // All other values are valid (including 0)
+    return true;
   }, []);
 
   const getDisplayText = useCallback((): string => {
@@ -558,7 +567,8 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
         }}>
         <Text
           className={`mr-2 flex-1 font-pmedium text-base ${
-            (isLoading || (multiSelect ? selectedValues.length === 0 : !selectedValue)) &&
+            (isLoading ||
+              (multiSelect ? selectedValues.length === 0 : !isValueSelected(selectedValue))) &&
             'text-gray-400'
           }`}
           numberOfLines={1}>

@@ -1,6 +1,6 @@
 export default {
   expo: {
-    name: 'aashray',
+    name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
     version: '1.0.8',
