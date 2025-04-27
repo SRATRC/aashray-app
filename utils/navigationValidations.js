@@ -1,11 +1,17 @@
 export const handleUserNavigation = async (user, router) => {
-  if (user) {
-    if (user.pfp) {
-      router.replace('/home');
+  try {
+    if (user) {
+      if (user.pfp) {
+        await router.replace('/home');
+      } else {
+        await router.replace('/imageCapture');
+      }
     } else {
-      router.replace('/imageCapture');
+      await router.replace('/sign-in');
     }
-  } else {
-    router.replace('/sign-in');
+  } catch (error) {
+    console.error('Navigation error:', error);
+    // Fallback navigation
+    await router.replace('/sign-in');
   }
 };

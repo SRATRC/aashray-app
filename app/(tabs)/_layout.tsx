@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Image, Modal, ImageBackground } from 'react-native';
+import { View, Image, Modal, ImageBackground, Text } from 'react-native';
 import { icons, images, colors } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { Tabs } from 'expo-router';
@@ -29,6 +29,9 @@ interface QRModalProps {
 }
 
 const QRModal: React.FC<QRModalProps> = React.memo(({ isVisible, onClose, user }) => {
+  // Add safety check for user data
+  const isUserValid = user && user.cardno;
+
   return (
     <Modal
       animationType="slide"
@@ -37,36 +40,43 @@ const QRModal: React.FC<QRModalProps> = React.memo(({ isVisible, onClose, user }
       onRequestClose={onClose}>
       <PageHeader title={'QR Code'} icon={icons.cross} onPress={onClose} />
       <View className="mt-10 h-full">
-        <ImageBackground
-          source={images.ticketbg}
-          resizeMode="contain"
-          className="items-center justify-center">
-          <View className="h-[70%] items-center justify-center">
-            <QRCodeStyled
-              data={user.cardno}
-              style={{
-                backgroundColor: '#fff',
-                borderRadius: 20,
-                overflow: 'hidden',
-              }}
-              padding={20}
-              pieceSize={10}
-              color={colors.black_200}
-              errorCorrectionLevel={'H'}
-              innerEyesOptions={{
-                borderRadius: 0,
-                color: colors.black_200,
-              }}
-              outerEyesOptions={{
-                borderRadius: 0,
-                color: colors.black_200,
-              }}
-              logo={{
-                href: require('../../assets/images/logo.png'),
-              }}
-            />
+        {!isUserValid ? (
+          // Show a loading or error state if user data isn't ready
+          <View className="h-full items-center justify-center">
+            <Text className="text-center font-pmedium text-base">Loading user information...</Text>
           </View>
-        </ImageBackground>
+        ) : (
+          <ImageBackground
+            source={images.ticketbg}
+            resizeMode="contain"
+            className="items-center justify-center">
+            <View className="h-[70%] items-center justify-center">
+              <QRCodeStyled
+                data={user.cardno}
+                style={{
+                  backgroundColor: '#fff',
+                  borderRadius: 20,
+                  overflow: 'hidden',
+                }}
+                padding={20}
+                pieceSize={10}
+                color={colors.black_200}
+                errorCorrectionLevel={'H'}
+                innerEyesOptions={{
+                  borderRadius: 0,
+                  color: colors.black_200,
+                }}
+                outerEyesOptions={{
+                  borderRadius: 0,
+                  color: colors.black_200,
+                }}
+                logo={{
+                  href: require('../../assets/images/logo.png'),
+                }}
+              />
+            </View>
+          </ImageBackground>
+        )}
       </View>
     </Modal>
   );
@@ -77,8 +87,12 @@ const TabsLayout: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
   const openModal = useCallback(() => {
-    setIsModalVisible(true);
-  }, []);
+    if (user && user.cardno) {
+      setIsModalVisible(true);
+    } else {
+      console.warn('User data not available yet');
+    }
+  }, [user]);
 
   return (
     <>

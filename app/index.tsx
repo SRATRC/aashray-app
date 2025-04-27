@@ -14,7 +14,9 @@ const Index = () => {
 
   useEffect(() => {
     if (!loading) {
-      handleUserNavigation(user, router);
+      (async () => {
+        await handleUserNavigation(user, router);
+      })();
     }
   }, [loading]);
 
