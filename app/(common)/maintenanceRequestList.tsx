@@ -282,6 +282,9 @@ const maintenanceRequestList = () => {
                   const onFinally = () => {
                     setIsSubmitting(false);
                   };
+                  const onError = (error: any) => {
+                    Alert.alert('Error', error.message);
+                  };
 
                   await handleAPICall(
                     'POST',
@@ -294,7 +297,8 @@ const maintenanceRequestList = () => {
                       area_of_work: form.area_of_work,
                     },
                     onSuccess,
-                    onFinally
+                    onFinally,
+                    onError
                   );
                 }}
                 containerStyles="min-h-[62px] mt-7"

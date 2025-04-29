@@ -28,4 +28,5 @@ android
 
 google-services.json
 GoogleService-Info.plist
+gcp-eas-key.json
 *.p8
