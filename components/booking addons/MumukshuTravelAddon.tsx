@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { icons, colors, dropdowns } from '../../constants';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
@@ -8,6 +9,67 @@ import FormDisplayField from '../FormDisplayField';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
 import moment from 'moment';
+
+// Define direction options outside the component
+const DIRECTION_OPTIONS = [
+  {
+    label: 'To Research Centre',
+    value: 'toResearchCentre',
+    icon: 'arrow-right',
+    fixedPickup: false,
+    fixedDrop: true,
+    fixedPickupValue: '',
+    fixedDropValue: 'Research Centre',
+  },
+  {
+    label: 'From Research Centre',
+    value: 'fromResearchCentre',
+    icon: 'arrow-left',
+    fixedPickup: true,
+    fixedDrop: false,
+    fixedPickupValue: 'Research Centre',
+    fixedDropValue: '',
+  },
+];
+
+// DirectionSelector component for reuse
+const DirectionSelector = ({
+  selectedDirection,
+  onDirectionChange,
+  title = 'Select journey direction:',
+}) => (
+  <>
+    <Text className="mb-2 mt-5 font-pmedium text-base text-gray-600">{title}</Text>
+
+    <View className="mt-2 flex flex-row justify-between">
+      {DIRECTION_OPTIONS.map((option) => (
+        <TouchableOpacity
+          key={option.value}
+          onPress={() => onDirectionChange(option.value)}
+          activeOpacity={0.7}
+          className={`flex-1 flex-row items-center justify-center rounded-lg border p-4 ${
+            selectedDirection === option.value
+              ? 'border-orange-300 bg-orange-50'
+              : 'border-gray-200 bg-gray-50'
+          } ${option.value === 'fromResearchCentre' ? 'ml-2' : 'mr-2'}`}>
+          <FontAwesome5
+            name={option.icon}
+            size={16}
+            color={selectedDirection === option.value ? colors.orange : '#BAB9C7'}
+            style={{ marginRight: 8 }}
+            solid
+          />
+          <Text
+            className={`font-pmedium text-sm ${
+              selectedDirection === option.value ? 'text-orange-600' : 'text-gray-600'
+            }`}>
+            {option.label}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  </>
+);
 
 interface MumukshuTravelAddonProps {
   travelForm: any;
@@ -39,6 +101,28 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
   // Temporary state to hold the date for the checkin picker
   const [tempTravelDate, setTempTravelDate] = useState(new Date());
 
+  // Track active direction
+  const [selectedDirection, setSelectedDirection] = useState('toResearchCentre');
+
+  // Create filtered dropdown options (exclude Research Centre for outbound pickup and return drop)
+  const nonResearchCentreOptions = React.useMemo(
+    () => dropdowns.LOCATION_LIST.filter((loc) => loc.value !== 'Research Centre'),
+    []
+  );
+
+  // Helper function to check if location is a transport hub
+  const isTransportHub = (location) => {
+    return (
+      location &&
+      dropdowns.LOCATION_LIST.find(
+        (loc) =>
+          loc.value === location &&
+          (loc.value.toLowerCase().includes('railway') ||
+            loc.value.toLowerCase().includes('airport'))
+      )
+    );
+  };
+
   // When the checkin picker is opened, initialize the temporary date
   useEffect(() => {
     if (isDatePickerVisible.travel) {
@@ -47,6 +131,41 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
       );
     }
   }, [isDatePickerVisible.travel]);
+
+  // Handle direction change
+  const handleDirectionChange = (direction) => {
+    setSelectedDirection(direction);
+
+    // Update direction for all travel groups
+    const updatedMumukshuGroup = travelForm.mumukshuGroup.map((group) => {
+      const directionInfo = DIRECTION_OPTIONS.find((opt) => opt.value === direction);
+
+      if (directionInfo) {
+        return {
+          ...group,
+          direction: direction,
+          pickup: directionInfo.fixedPickup ? directionInfo.fixedPickupValue : group.pickup,
+          drop: directionInfo.fixedDrop ? directionInfo.fixedDropValue : group.drop,
+        };
+      }
+      return group;
+    });
+
+    setTravelForm({
+      ...travelForm,
+      direction: direction,
+      mumukshuGroup: updatedMumukshuGroup,
+    });
+  };
+
+  // Initialize direction if not set
+  useEffect(() => {
+    if (!travelForm.direction) {
+      handleDirectionChange('toResearchCentre');
+    } else {
+      setSelectedDirection(travelForm.direction);
+    }
+  }, []);
 
   const getAvailableMumukshus = (currentGroupIndex: number) => {
     // Get all selected mumukshu indices from other groups
@@ -71,6 +190,26 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
     return mumukshu_dropdown.some((mumukshu: any) => !selectedIndices.includes(mumukshu.value));
   };
 
+  // Modified function to add new travel form with current direction
+  const handleAddTravelForm = () => {
+    const directionInfo = DIRECTION_OPTIONS.find((opt) => opt.value === travelForm.direction);
+
+    const newGroup = {
+      direction: travelForm.direction,
+      pickup: directionInfo?.fixedPickup ? directionInfo.fixedPickupValue : '',
+      drop: directionInfo?.fixedDrop ? directionInfo.fixedDropValue : '',
+      arrival_time: '',
+      luggage: '',
+      adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
+      type: dropdowns.BOOKING_TYPE_LIST[0].value,
+      special_request: '',
+      mumukshus: [],
+      mumukshuIndices: [],
+    };
+
+    addTravelForm(newGroup);
+  };
+
   return (
     <AddonItem
       onCollapse={() => {
@@ -87,7 +226,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
       <FormDisplayField
         text="Date"
         value={travelForm.date ? moment(travelForm.date).format('Do MMMM YYYY') : 'Date'}
-        otherStyles="mt-7"
+        otherStyles="mt-5"
         backgroundColor="bg-gray-100"
         onPress={() => setDatePickerVisibility('travel', true)}
       />
@@ -110,6 +249,12 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
         }}
         onCancel={() => setDatePickerVisibility('travel', false)}
         minimumDate={moment().add(1, 'days').toDate()}
+      />
+
+      {/* Direction Selector */}
+      <DirectionSelector
+        selectedDirection={travelForm.direction || selectedDirection}
+        onDirectionChange={handleDirectionChange}
       />
 
       {travelForm.mumukshuGroup.map((assignment: any, index: any) => (
@@ -142,48 +287,74 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             confirmButtonText="Select"
           />
 
-          <CustomSelectBottomSheet
-            className="mt-5"
-            label="Pickup Location"
-            placeholder="Select Pickup Location"
-            options={dropdowns.LOCATION_LIST}
-            selectedValue={assignment.pickup}
-            onValueChange={(val: any) => updateTravelForm(index, 'pickup', val)}
-            saveKeyInsteadOfValue={false}
-          />
+          {/* Show pickup field only if it's not fixed for this direction */}
+          {!DIRECTION_OPTIONS.find(
+            (opt) => opt.value === (assignment.direction || travelForm.direction)
+          )?.fixedPickup && (
+            <CustomSelectBottomSheet
+              className="mt-5"
+              label="Pickup Location"
+              placeholder="Select Pickup Location"
+              options={nonResearchCentreOptions}
+              selectedValue={assignment.pickup}
+              onValueChange={(val: any) => updateTravelForm(index, 'pickup', val)}
+              saveKeyInsteadOfValue={false}
+            />
+          )}
 
-          <CustomSelectBottomSheet
-            className="mt-5"
-            label="Drop Location"
-            placeholder="Select Drop Location"
-            options={dropdowns.LOCATION_LIST}
-            selectedValue={travelForm.drop}
-            onValueChange={(val: any) => updateTravelForm(index, 'drop', val)}
-            saveKeyInsteadOfValue={false}
-          />
+          {/* Show fixed pickup if applicable */}
+          {DIRECTION_OPTIONS.find(
+            (opt) => opt.value === (assignment.direction || travelForm.direction)
+          )?.fixedPickup && (
+            <FormDisplayField
+              text="Pickup Location"
+              value="Research Centre"
+              otherStyles="mt-5"
+              backgroundColor="bg-gray-100"
+              inputStyles="font-pmedium text-gray-800 text-lg"
+            />
+          )}
 
-          {(travelForm.mumukshuGroup[index].pickup &&
-            dropdowns.LOCATION_LIST.find(
-              (loc) =>
-                loc.value === travelForm.mumukshuGroup[index].pickup &&
-                (loc.key.toLowerCase().includes('railway') ||
-                  loc.key.toLowerCase().includes('airport'))
-            )) ||
-          (travelForm.mumukshuGroup[index].drop &&
-            dropdowns.LOCATION_LIST.find(
-              (loc) =>
-                loc.value === travelForm.mumukshuGroup[index].drop &&
-                (loc.key.toLowerCase().includes('railway') ||
-                  loc.key.toLowerCase().includes('airport'))
-            )) ? (
+          {/* Show drop field only if it's not fixed for this direction */}
+          {!DIRECTION_OPTIONS.find(
+            (opt) => opt.value === (assignment.direction || travelForm.direction)
+          )?.fixedDrop && (
+            <CustomSelectBottomSheet
+              className="mt-5"
+              label="Drop Location"
+              placeholder="Select Drop Location"
+              options={nonResearchCentreOptions}
+              selectedValue={assignment.drop}
+              onValueChange={(val: any) => updateTravelForm(index, 'drop', val)}
+              saveKeyInsteadOfValue={false}
+            />
+          )}
+
+          {/* Show fixed drop if applicable */}
+          {DIRECTION_OPTIONS.find(
+            (opt) => opt.value === (assignment.direction || travelForm.direction)
+          )?.fixedDrop && (
+            <FormDisplayField
+              text="Drop Location"
+              value="Research Centre"
+              otherStyles="mt-5"
+              backgroundColor="bg-gray-100"
+              inputStyles="font-pmedium text-gray-800 text-lg"
+            />
+          )}
+
+          {/* Determine if time picker is needed based on direction */}
+          {isTransportHub(
+            (assignment.direction || travelForm.direction) === 'toResearchCentre'
+              ? assignment.pickup
+              : assignment.drop
+          ) && (
             <>
               <FormDisplayField
                 text="Flight/Train Time"
                 value={
-                  travelForm.mumukshuGroup[index].arrival_time
-                    ? moment(travelForm.mumukshuGroup[index].arrival_time).format(
-                        'Do MMMM YYYY, h:mm a'
-                      )
+                  assignment.arrival_time
+                    ? moment(assignment.arrival_time).format('Do MMMM YYYY, h:mm a')
                     : 'Flight/Train Time'
                 }
                 otherStyles="mt-5"
@@ -198,9 +369,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
                 isVisible={isDatePickerVisible.travel_time && activeMumukshuIndex === index}
                 mode="datetime"
                 date={
-                  travelForm.mumukshuGroup[index].time
-                    ? moment(travelForm.mumukshuGroup[index].time).toDate()
-                    : new Date()
+                  assignment.arrival_time ? moment(assignment.arrival_time).toDate() : new Date()
                 }
                 onConfirm={(date: Date) => {
                   updateTravelForm(index, 'arrival_time', date.toISOString());
@@ -208,20 +377,20 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
                 }}
                 onCancel={() => setDatePickerVisibility('travel_time', false)}
                 minimumDate={
-                  travelForm.mumukshuGroup[index].arrival_time
-                    ? moment(travelForm.mumukshuGroup[index].arrival_time).toDate()
+                  assignment.arrival_time
+                    ? moment(assignment.arrival_time).toDate()
                     : moment().toDate()
                 }
               />
             </>
-          ) : null}
+          )}
 
           <CustomSelectBottomSheet
-            className="mt-7"
+            className="mt-5"
             label="Booking Type"
             placeholder="Booking Type"
             options={dropdowns.BOOKING_TYPE_LIST}
-            selectedValue={travelForm.type}
+            selectedValue={assignment.type}
             onValueChange={(val: any) => updateTravelForm(index, 'type', val)}
             saveKeyInsteadOfValue={false}
           />
@@ -236,7 +405,8 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             saveKeyInsteadOfValue={false}
           />
 
-          {assignment.pickup == dropdowns.LOCATION_LIST[0].value && (
+          {/* Only show adhyayan dropdown for "From Research Centre" direction */}
+          {(assignment.direction || travelForm.direction) === 'fromResearchCentre' && (
             <CustomSelectBottomSheet
               className="mt-5"
               label="Leaving post adhyayan?"
@@ -250,9 +420,9 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
 
           <FormField
             text="Any Special Request?"
-            value={travelForm.special_request}
+            value={assignment.special_request}
             handleChangeText={(e: any) => updateTravelForm(index, 'special_request', e)}
-            otherStyles="mt-7"
+            otherStyles="mt-5"
             containerStyles="bg-gray-100"
             keyboardType="default"
             placeholder="please specify your request here..."
@@ -264,7 +434,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
         className={`mt-4 w-full flex-row items-center justify-start gap-x-1 ${
           !hasAvailableMumukshus() ? 'opacity-50' : ''
         }`}
-        onPress={hasAvailableMumukshus() ? addTravelForm : undefined}
+        onPress={hasAvailableMumukshus() ? handleAddTravelForm : undefined}
         disabled={!hasAvailableMumukshus()}>
         <Image
           source={icons.addon}

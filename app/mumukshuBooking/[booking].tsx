@@ -56,10 +56,12 @@ const createInitialAdhyayanForm = (existingData: any = null) => ({
 
 const createInitialTravelForm = (existingData: any = null) => ({
   date: existingData?.date || '',
+  direction: existingData?.direction || 'toResearchCentre', // Default direction
   mumukshuGroup: existingData?.mumukshuGroup || [
     {
-      pickup: '',
-      drop: '',
+      direction: existingData?.direction || 'toResearchCentre', // Default direction
+      pickup: existingData?.direction === 'fromResearchCentre' ? 'Research Centre' : '',
+      drop: existingData?.direction === 'toResearchCentre' ? 'Research Centre' : '',
       luggage: '',
       type: dropdowns.BOOKING_TYPE_LIST[0].value,
       adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
@@ -249,6 +251,10 @@ const MumukshuAddons = () => {
     foodEnd: false,
     travel: false,
     travel_time: false,
+    toRC_travel: false,
+    fromRC_travel: false,
+    toRC_time: false,
+    fromRC_time: false,
   });
 
   const toggleAddon = useCallback((addonType: any, isOpen: any) => {
@@ -424,25 +430,36 @@ const MumukshuAddons = () => {
     });
   }, [setMumukshuData]);
 
-  const addTravelForm = useCallback(() => {
-    setTravelForm((prevTravelForm) => ({
-      ...prevTravelForm,
-      mumukshuGroup: [
-        ...prevTravelForm.mumukshuGroup,
-        {
-          pickup: '',
-          drop: '',
-          arrival_time: '',
-          luggage: '',
-          adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
-          type: dropdowns.BOOKING_TYPE_LIST[0].value,
-          special_request: '',
-          mumukshus: [],
-          mumukshuIndices: [],
-        },
-      ],
-    }));
-  }, []);
+  const addTravelFormWithDirection = useCallback(
+    (newGroup = null) => {
+      // Get the current direction
+      const direction = travelForm.direction || 'toResearchCentre';
+
+      // Create a new group with the current direction
+      const baseGroup = {
+        direction: direction,
+        pickup: direction === 'fromResearchCentre' ? 'Research Centre' : '',
+        drop: direction === 'toResearchCentre' ? 'Research Centre' : '',
+        arrival_time: '',
+        luggage: '',
+        adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
+        type: dropdowns.BOOKING_TYPE_LIST[0].value,
+        special_request: '',
+        mumukshus: [],
+        mumukshuIndices: [],
+      };
+
+      // Use the provided group or the default one
+      const groupToAdd = newGroup || baseGroup;
+
+      // Add the new group
+      setTravelForm((prevTravelForm) => ({
+        ...prevTravelForm,
+        mumukshuGroup: [...prevTravelForm.mumukshuGroup, groupToAdd],
+      }));
+    },
+    [travelForm]
+  );
 
   const removeTravelForm = useCallback((indexToRemove: any) => {
     return () => {
@@ -514,9 +531,21 @@ const MumukshuAddons = () => {
   }, [adhyayanForm]);
 
   const validateTravelForm = useCallback(() => {
-    const hasEmptyFields = travelForm.mumukshuGroup.some(
-      (group: any) => !group.pickup || !group.drop || !group.luggage || group.mumukshus.length === 0
-    );
+    // Get the current direction
+    const direction = travelForm.direction || 'toResearchCentre';
+
+    // Check if all groups have required fields based on direction
+    const hasEmptyFields = travelForm.mumukshuGroup.some((group: any) => {
+      // Determine which location field to validate based on direction
+      if (direction === 'toResearchCentre') {
+        // To Research Centre: need pickup, drop is fixed
+        return !group.pickup || !group.luggage || !group.type || group.mumukshus.length === 0;
+      } else {
+        // From Research Centre: need drop, pickup is fixed
+        return !group.drop || !group.luggage || !group.type || group.mumukshus.length === 0;
+      }
+    });
+
     return !hasEmptyFields && travelForm.date;
   }, [travelForm]);
 
@@ -721,7 +750,7 @@ const MumukshuAddons = () => {
                   <MumukshuTravelAddon
                     travelForm={travelForm}
                     setTravelForm={setTravelForm}
-                    addTravelForm={addTravelForm}
+                    addTravelForm={addTravelFormWithDirection}
                     updateTravelForm={updateTravelForm}
                     resetTravelForm={resetTravelForm}
                     removeTravelForm={removeTravelForm}

@@ -60,14 +60,29 @@ const BookingDetails = () => {
       hightea: dropdowns.HIGHTEA_LIST[0].key,
     },
     travel: {
-      date: initialDates.startDate,
-      pickup: '',
-      drop: '',
+      // Outbound journey (to Research Centre)
+      outbound: {
+        date: initialDates.startDate,
+        pickup: '',
+        drop: 'Research Centre', // Always Research Centre
+        arrival_time: '',
+        type: dropdowns.BOOKING_TYPE_LIST[0].value,
+        luggage: '',
+      },
+      // Return journey (from Research Centre)
+      return: {
+        date: initialDates.endDate || '', // Default to end date if available
+        pickup: 'Research Centre', // Always Research Centre
+        drop: '',
+        arrival_time: '',
+        type: dropdowns.BOOKING_TYPE_LIST[0].value,
+        luggage: '',
+      },
+      // Common fields
       adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
-      type: dropdowns.BOOKING_TYPE_LIST[0].value,
-      arrival_time: '',
-      luggage: '',
       special_request: '',
+      // New field to track if return journey is needed
+      needsReturn: false,
     },
     adhyayan: [],
   });
@@ -80,18 +95,12 @@ const BookingDetails = () => {
     foodEnd: false,
     travel: false,
     travel_time: false,
+    // Add these for the TravelAddon component
+    toRC_travel: false,
+    fromRC_travel: false,
+    toRC_time: false,
+    fromRC_time: false,
   });
-
-  // Update form field handler
-  const updateForm = useCallback((formType: any, fieldName: any, value: any) => {
-    setForms((prev: any) => ({
-      ...prev,
-      [formType]: {
-        ...prev[formType],
-        [fieldName]: value,
-      },
-    }));
-  }, []);
 
   // Update entire form handler
   const setFormValues = useCallback((formType: any, values: any) => {
@@ -145,10 +154,10 @@ const BookingDetails = () => {
     error: validationDataError,
     data: validationData,
   } = useQuery({
-    queryKey: ['validations', user.cardno, JSON.stringify(data)],
+    queryKey: ['validations', user.cardno],
     queryFn: fetchValidation,
     retry: false,
-    enabled: !!user.cardno, // Only run when user.cardno is available
+    enabled: !!user.cardno,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -178,8 +187,77 @@ const BookingDetails = () => {
   }, [forms.food]);
 
   const validateTravelForm = useCallback(() => {
-    const requiredFields = ['date', 'pickup', 'drop', 'luggage', 'type'];
-    return requiredFields.every((field) => forms.travel[field] !== '');
+    // Check if travel form exists
+    if (!forms.travel) return false;
+
+    // Check for different travel form structures
+    if (
+      forms.travel.toResearchCentre !== undefined ||
+      forms.travel.fromResearchCentre !== undefined
+    ) {
+      // New structure with toResearchCentre and fromResearchCentre
+      let hasValidJourney = false;
+      let allValid = true;
+
+      // Validate "To Research Centre" journey if active
+      if (forms.travel.toResearchCentre?.active === true) {
+        hasValidJourney = true;
+        // Make sure toResearchCentre exists and has all required fields
+        if (forms.travel.toResearchCentre) {
+          const requiredFields = ['date', 'pickup', 'drop', 'luggage', 'type'];
+          const isValid = requiredFields.every(
+            (field) => forms.travel.toResearchCentre[field] !== ''
+          );
+          if (!isValid) allValid = false;
+        } else {
+          allValid = false;
+        }
+      }
+
+      // Validate "From Research Centre" journey if active
+      if (forms.travel.fromResearchCentre?.active === true) {
+        hasValidJourney = true;
+        // Make sure fromResearchCentre exists and has all required fields
+        if (forms.travel.fromResearchCentre) {
+          const requiredFields = ['date', 'pickup', 'drop', 'luggage', 'type'];
+          const isValid = requiredFields.every(
+            (field) => forms.travel.fromResearchCentre[field] !== ''
+          );
+          if (!isValid) allValid = false;
+        } else {
+          allValid = false;
+        }
+      }
+
+      // At least one journey must be active and all active journeys must be valid
+      return hasValidJourney && allValid;
+    } else if (forms.travel.outbound !== undefined || forms.travel.return !== undefined) {
+      // Structure with outbound and return
+      // First check if outbound exists
+      if (!forms.travel.outbound) return false;
+
+      // Validate outbound journey
+      const outboundRequiredFields = ['date', 'pickup', 'drop', 'luggage', 'type'];
+      const outboundValid = outboundRequiredFields.every(
+        (field) => forms.travel.outbound[field] !== ''
+      );
+
+      // Validate return journey if needed
+      let returnValid = true;
+      if (forms.travel.needsReturn) {
+        // Check if return exists
+        if (!forms.travel.return) return false;
+
+        const returnRequiredFields = ['date', 'pickup', 'drop', 'luggage', 'type'];
+        returnValid = returnRequiredFields.every((field) => forms.travel.return[field] !== '');
+      }
+
+      return outboundValid && returnValid;
+    } else {
+      // Old structure - fallback to original implementation
+      const requiredFields = ['date', 'pickup', 'drop', 'luggage', 'type'];
+      return requiredFields.every((field) => forms.travel[field] !== '');
+    }
   }, [forms.travel]);
 
   // Handle form submission
@@ -211,7 +289,9 @@ const BookingDetails = () => {
       // Validate travel form if addon is open and not on travel details page
       if (booking !== types.TRAVEL_DETAILS_TYPE && addonOpen.travel) {
         if (!validateTravelForm()) {
-          Alert.alert('Please fill all the travel fields');
+          Alert.alert(
+            'Please fill all the required travel fields or activate at least one journey'
+          );
           hasValidationError = true;
           return;
         }

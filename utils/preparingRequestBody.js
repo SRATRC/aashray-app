@@ -14,19 +14,77 @@ export const prepareSelfRequestBody = (user, data) => {
       },
     };
   } else if (data.primary === 'travel') {
-    payload.primary_booking = {
-      booking_type: 'travel',
-      details: {
-        date: data.travel?.date,
-        pickup_point: data.travel?.pickup,
-        drop_point: data.travel?.drop,
-        arrival_time: data.travel?.arrival_time,
-        luggage: data.travel?.luggage,
-        leaving_post_adhyayan: data.travel?.adhyayan == 'No' ? 0 : 1,
-        type: data.travel?.type,
-        special_request: data.travel?.special_request,
-      },
-    };
+    // Handle different travel data structures for primary booking
+    if (
+      data.travel?.toResearchCentre !== undefined ||
+      data.travel?.fromResearchCentre !== undefined
+    ) {
+      // New structure with potentially two separate journeys
+      // For primary booking, include both directions if they're active
+
+      // First, create the primary booking with basic structure
+      payload.primary_booking = {
+        booking_type: 'travel',
+        details: {
+          bidirectional:
+            data.travel.toResearchCentre?.active && data.travel.fromResearchCentre?.active ? 1 : 0,
+        },
+      };
+
+      // Then add the active journeys to the details
+      if (data.travel.toResearchCentre?.active) {
+        // Add To Research Centre journey details
+        payload.primary_booking.details.to_rc = {
+          date: data.travel.toResearchCentre.date,
+          pickup_point: data.travel.toResearchCentre.pickup,
+          drop_point: data.travel.toResearchCentre.drop,
+          arrival_time: data.travel.toResearchCentre.arrival_time || '',
+          luggage: data.travel.toResearchCentre.luggage,
+          type: data.travel.toResearchCentre.type,
+          special_request: data.travel.toResearchCentre.special_request || '',
+        };
+      }
+
+      if (data.travel.fromResearchCentre?.active) {
+        // Add From Research Centre journey details
+        payload.primary_booking.details.from_rc = {
+          date: data.travel.fromResearchCentre.date,
+          pickup_point: data.travel.fromResearchCentre.pickup,
+          drop_point: data.travel.fromResearchCentre.drop,
+          arrival_time: data.travel.fromResearchCentre.arrival_time || '',
+          luggage: data.travel.fromResearchCentre.luggage,
+          leaving_post_adhyayan: data.travel.fromResearchCentre.adhyayan === 'No' ? 0 : 1,
+          type: data.travel.fromResearchCentre.type,
+          special_request: data.travel.fromResearchCentre.special_request || '',
+        };
+      }
+    } else if (data.travel?.outbound) {
+      // Outbound/return structure
+      payload.primary_booking = {
+        booking_type: 'travel',
+        details: {
+          date: data.travel.outbound.date,
+          pickup_point: data.travel.outbound.pickup,
+          drop_point: data.travel.outbound.drop,
+          arrival_time: data.travel.outbound.arrival_time || '',
+          luggage: data.travel.outbound.luggage,
+          leaving_post_adhyayan: data.travel.adhyayan === 'No' ? 0 : 1,
+          type: data.travel.outbound.type,
+          special_request: data.travel.special_request || '',
+          has_return: data.travel.needsReturn ? 1 : 0,
+        },
+      };
+
+      // If return journey is needed, add return details
+      if (data.travel.needsReturn && data.travel.return) {
+        payload.primary_booking.details.return_date = data.travel.return.date;
+        payload.primary_booking.details.return_pickup_point = data.travel.return.pickup;
+        payload.primary_booking.details.return_drop_point = data.travel.return.drop;
+        payload.primary_booking.details.return_arrival_time = data.travel.return.arrival_time || '';
+        payload.primary_booking.details.return_luggage = data.travel.return.luggage;
+        payload.primary_booking.details.return_type = data.travel.return.type;
+      }
+    }
   } else if (data.primary === 'adhyayan') {
     payload.primary_booking = {
       booking_type: 'adhyayan',
@@ -63,19 +121,129 @@ export const prepareSelfRequestBody = (user, data) => {
     });
   }
   if (data.primary !== 'travel' && data.travel) {
-    addons.push({
-      booking_type: 'travel',
-      details: {
-        date: data.travel?.date,
-        pickup_point: data.travel?.pickup,
-        drop_point: data.travel?.drop,
-        arrival_time: data.travel?.arrival_time,
-        luggage: data.travel?.luggage,
-        leaving_post_adhyayan: data.travel?.adhyayan == 'No' ? 0 : 1,
-        type: data.travel?.type,
-        comments: data.travel?.special_request,
-      },
-    });
+    // Handle different travel data structures for addon
+    if (
+      data.travel?.toResearchCentre !== undefined ||
+      data.travel?.fromResearchCentre !== undefined
+    ) {
+      // New structure with potentially two separate journeys
+
+      // Create a single travel addon if both directions are active
+      if (data.travel.toResearchCentre?.active && data.travel.fromResearchCentre?.active) {
+        // Create bidirectional addon
+        const travelAddon = {
+          booking_type: 'travel',
+          details: {
+            bidirectional: 1,
+          },
+        };
+
+        // Add To Research Centre journey details
+        travelAddon.details.to_rc = {
+          date: data.travel.toResearchCentre.date,
+          pickup_point: data.travel.toResearchCentre.pickup,
+          drop_point: data.travel.toResearchCentre.drop,
+          arrival_time: data.travel.toResearchCentre.arrival_time || '',
+          luggage: data.travel.toResearchCentre.luggage,
+          type: data.travel.toResearchCentre.type,
+          special_request: data.travel.toResearchCentre.special_request || '',
+        };
+
+        // Add From Research Centre journey details
+        travelAddon.details.from_rc = {
+          date: data.travel.fromResearchCentre.date,
+          pickup_point: data.travel.fromResearchCentre.pickup,
+          drop_point: data.travel.fromResearchCentre.drop,
+          arrival_time: data.travel.fromResearchCentre.arrival_time || '',
+          luggage: data.travel.fromResearchCentre.luggage,
+          leaving_post_adhyayan: data.travel.fromResearchCentre.adhyayan === 'No' ? 0 : 1,
+          type: data.travel.fromResearchCentre.type,
+          special_request: data.travel.fromResearchCentre.special_request || '',
+        };
+
+        addons.push(travelAddon);
+      } else {
+        // Add individual journeys if only one direction is active
+        if (data.travel.toResearchCentre?.active) {
+          // Add To Research Centre journey
+          addons.push({
+            booking_type: 'travel',
+            details: {
+              date: data.travel.toResearchCentre.date,
+              pickup_point: data.travel.toResearchCentre.pickup,
+              drop_point: data.travel.toResearchCentre.drop,
+              arrival_time: data.travel.toResearchCentre.arrival_time || '',
+              luggage: data.travel.toResearchCentre.luggage,
+              leaving_post_adhyayan: 0, // Not applicable for To RC journey
+              type: data.travel.toResearchCentre.type,
+              special_request: data.travel.toResearchCentre.special_request || '',
+              direction: 'to_rc',
+            },
+          });
+        }
+
+        if (data.travel.fromResearchCentre?.active) {
+          // Add From Research Centre journey
+          addons.push({
+            booking_type: 'travel',
+            details: {
+              date: data.travel.fromResearchCentre.date,
+              pickup_point: data.travel.fromResearchCentre.pickup,
+              drop_point: data.travel.fromResearchCentre.drop,
+              arrival_time: data.travel.fromResearchCentre.arrival_time || '',
+              luggage: data.travel.fromResearchCentre.luggage,
+              leaving_post_adhyayan: data.travel.fromResearchCentre.adhyayan === 'No' ? 0 : 1,
+              type: data.travel.fromResearchCentre.type,
+              special_request: data.travel.fromResearchCentre.special_request || '',
+              direction: 'from_rc',
+            },
+          });
+        }
+      }
+    } else if (data.travel?.outbound) {
+      // Outbound/return structure
+      const travelAddon = {
+        booking_type: 'travel',
+        details: {
+          date: data.travel.outbound.date,
+          pickup_point: data.travel.outbound.pickup,
+          drop_point: data.travel.outbound.drop,
+          arrival_time: data.travel.outbound.arrival_time || '',
+          luggage: data.travel.outbound.luggage,
+          leaving_post_adhyayan: data.travel.adhyayan === 'No' ? 0 : 1,
+          type: data.travel.outbound.type,
+          special_request: data.travel.special_request || '',
+          has_return: data.travel.needsReturn ? 1 : 0,
+        },
+      };
+
+      // If return journey is needed, add return details
+      if (data.travel.needsReturn && data.travel.return) {
+        travelAddon.details.return_date = data.travel.return.date;
+        travelAddon.details.return_pickup_point = data.travel.return.pickup;
+        travelAddon.details.return_drop_point = data.travel.return.drop;
+        travelAddon.details.return_arrival_time = data.travel.return.arrival_time || '';
+        travelAddon.details.return_luggage = data.travel.return.luggage;
+        travelAddon.details.return_type = data.travel.return.type;
+      }
+
+      addons.push(travelAddon);
+    } else {
+      // Legacy structure
+      addons.push({
+        booking_type: 'travel',
+        details: {
+          date: data.travel?.date,
+          pickup_point: data.travel?.pickup,
+          drop_point: data.travel?.drop,
+          arrival_time: data.travel?.arrival_time || '',
+          luggage: data.travel?.luggage,
+          leaving_post_adhyayan: data.travel?.adhyayan === 'No' ? 0 : 1,
+          type: data.travel?.type,
+          special_request: data.travel?.special_request || '',
+        },
+      });
+    }
   }
   if (data.primary !== 'adhyayan' && data.adhyayan) {
     addons.push({

@@ -50,6 +50,7 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
     queryKey: ['adhyayans', booking, data.room?.startDay, data.travel?.date],
     queryFn: fetchAdhyayans,
     staleTime: 1000 * 60 * 30,
+    retry: false,
   });
 
   const renderItem = ({ item }: any) => {
