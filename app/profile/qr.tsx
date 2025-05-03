@@ -19,7 +19,7 @@ const QrScreen = () => {
       visible={true}
       presentationStyle="pageSheet"
       onRequestClose={closeModal}>
-      <PageHeader title={'QR Code'} icon={icons.cross} />
+      <PageHeader title={'QR Code'} />
       <View className="mt-10 h-full">
         <ImageBackground
           source={images.ticketbg}

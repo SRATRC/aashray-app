@@ -107,7 +107,7 @@ const Menu = () => {
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
-      <PageHeader title={'Menu'} icon={icons.backArrow} />
+      <PageHeader title={'Menu'} />
       {renderContent()}
     </SafeAreaView>
   );

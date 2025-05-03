@@ -658,7 +658,7 @@ const MumukshuAddons = () => {
           alwaysBounceVertical={false}
           showsVerticalScrollIndicator={false}
           nestedScrollEnabled={true}>
-          <PageHeader title="Booking Details" icon={icons.backArrow} />
+          <PageHeader title="Booking Details" />
 
           {booking === types.ROOM_DETAILS_TYPE && (
             <MumukshuRoomBookingDetails containerStyles="mt-2" />

@@ -17,6 +17,7 @@ import AdhyayanAddon from '../../components/booking addons/AdhyayanAddon';
 import TravelAddon from '../../components/booking addons/TravelAddon';
 import handleAPICall from '~/utils/HandleApiCall';
 import CustomModal from '~/components/CustomModal';
+import EventBookingDetails from '~/components/booking details cards/EventBookingDetails';
 
 const BookingDetails = () => {
   const { booking } = useLocalSearchParams();
@@ -81,17 +82,6 @@ const BookingDetails = () => {
     travel: false,
     travel_time: false,
   });
-
-  // Update form field handler
-  const updateForm = useCallback((formType: any, fieldName: any, value: any) => {
-    setForms((prev: any) => ({
-      ...prev,
-      [formType]: {
-        ...prev[formType],
-        [fieldName]: value,
-      },
-    }));
-  }, []);
 
   // Update entire form handler
   const setFormValues = useCallback((formType: any, values: any) => {
@@ -257,6 +247,8 @@ const BookingDetails = () => {
         return <AdhyayanBookingDetails containerStyles="mt-2" />;
       case types.TRAVEL_DETAILS_TYPE:
         return <TravelBookingDetails containerStyles="mt-2" />;
+      case types.EVENT_DETAILS_TYPE:
+        return <EventBookingDetails containerStyles="mt-2" />;
       default:
         return null;
     }
@@ -270,7 +262,7 @@ const BookingDetails = () => {
           showsVerticalScrollIndicator={false}
           nestedScrollEnabled={true}
           className="h-full">
-          <PageHeader title="Booking Details" icon={icons.backArrow} />
+          <PageHeader title="Booking Details" />
 
           {renderBookingDetails()}
 

@@ -57,7 +57,7 @@ const mumukshuBookingConfirmation = () => {
   return (
     <SafeAreaView className="h-full bg-white">
       <ScrollView alwaysBounceVertical={false} showsVerticalScrollIndicator={false}>
-        <PageHeader title="Payment Summary" icon={icons.backArrow} />
+        <PageHeader title="Payment Summary" />
 
         {mumukshuData.room && <MumukshuRoomBookingDetails containerStyles={'mt-2'} />}
         {mumukshuData.adhyayan && <MumukshuAdhyayanBookingDetails containerStyles={'mt-2'} />}

@@ -153,7 +153,7 @@ const maintenanceRequestList = () => {
 
   const renderHeader = () => (
     <View className="flex-col">
-      <PageHeader title={'Maintenance History'} icon={icons.backArrow} />
+      <PageHeader title={'Maintenance History'} />
       <View className="mx-4 mb-6">
         <CustomChipGroup
           chips={CHIPS}
@@ -222,7 +222,7 @@ const maintenanceRequestList = () => {
           <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
             <PageHeader
               title="Maintenance Request"
-              icon={icons.cross}
+              iconName="times"
               onPress={() => setIsModalVisible(false)}
             />
 

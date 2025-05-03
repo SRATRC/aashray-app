@@ -198,13 +198,13 @@ const wifi = () => {
   if (isError)
     return (
       <SafeAreaView className="h-full bg-white">
-        <PageHeader title={'Wifi Passwords'} icon={icons.backArrow} />
+        <PageHeader title={'Wifi Passwords'} />
         <CustomErrorMessage />
       </SafeAreaView>
     );
   return (
     <SafeAreaView className="h-full bg-white">
-      <PageHeader title={'Wifi Passwords'} icon={icons.backArrow} />
+      <PageHeader title={'Wifi Passwords'} />
       <FlashList
         className="flex-grow-1"
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 32 }}

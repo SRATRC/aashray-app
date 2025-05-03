@@ -56,7 +56,7 @@ const guestBookingConfirmation = () => {
   return (
     <SafeAreaView className="h-full bg-white" edges={['top', 'right', 'left']}>
       <ScrollView alwaysBounceVertical={false} showsVerticalScrollIndicator={false}>
-        <PageHeader title="Payment Summary" icon={icons.backArrow} />
+        <PageHeader title="Payment Summary" />
 
         {guestData.room && <GuestRoomBookingDetails containerStyles={'mt-2'} />}
         {guestData.adhyayan && <GuestAdhyayanBookingDetails containerStyles={'mt-2'} />}

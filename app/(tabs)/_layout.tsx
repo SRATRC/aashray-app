@@ -38,7 +38,7 @@ const QRModal: React.FC<QRModalProps> = React.memo(({ isVisible, onClose, user }
       visible={isVisible}
       presentationStyle="pageSheet"
       onRequestClose={onClose}>
-      <PageHeader title={'QR Code'} icon={icons.cross} onPress={onClose} />
+      <PageHeader title={'QR Code'} iconName="times" onPress={onClose} />
       <View className="mt-10 h-full">
         {!isUserValid ? (
           // Show a loading or error state if user data isn't ready

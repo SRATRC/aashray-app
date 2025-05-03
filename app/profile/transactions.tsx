@@ -74,7 +74,7 @@ const Transactions = () => {
         renderItem={renderItem}
         ListHeaderComponent={
           <View className="flex-col">
-            <PageHeader title="Transaction History" icon={icons.backArrow} />
+            <PageHeader title="Transaction History" />
             {isError ? (
               <CustomErrorMessage />
             ) : (

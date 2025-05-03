@@ -172,7 +172,7 @@ const profileDetails = () => {
   return (
     <SafeAreaView className="h-full bg-white">
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <PageHeader title={'Profile Details'} icon={icons.backArrow} />
+        <PageHeader title={'Profile Details'} />
         <ScrollView>
           <View className="mb-8 w-full px-4">
             <FormField

@@ -489,7 +489,7 @@ const GuestAddons = () => {
           alwaysBounceVertical={false}
           showsVerticalScrollIndicator={false}
           nestedScrollEnabled={true}>
-          <PageHeader title="Guest Booking Details" icon={icons.backArrow} />
+          <PageHeader title="Guest Booking Details" />
 
           {booking === types.ROOM_DETAILS_TYPE && (
             <GuestRoomBookingDetails containerStyles="mt-2" />

@@ -7,9 +7,9 @@ import CustomButton from '../CustomButton';
 import handleAPICall from '../../utils/HandleApiCall';
 import ExpandableItem from '../ExpandableItem';
 import CustomTag from '../CustomTag';
-import moment from 'moment';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomEmptyMessage from '../CustomEmptyMessage';
+import moment from 'moment';
 
 const TravelBookingCancellation = () => {
   const { user } = useGlobalContext();
@@ -156,15 +156,17 @@ const TravelBookingCancellation = () => {
                         ? 'text-secondary-200'
                         : 'text-green-200'
                   }
-                  containerStyles={`${
-                    item.transaction_status == status.STATUS_CANCELLED ||
-                    item.transaction_status == status.STATUS_ADMIN_CANCELLED
-                      ? 'bg-red-100'
-                      : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
-                          item.transaction_status == status.STATUS_CASH_PENDING
-                        ? 'bg-secondary-50'
-                        : 'bg-green-100'
-                  } mx-1`}
+                  containerStyles={{
+                    backgroundColor:
+                      item.transaction_status == status.STATUS_CANCELLED ||
+                      item.transaction_status == status.STATUS_ADMIN_CANCELLED
+                        ? 'bg-red-100'
+                        : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
+                            item.transaction_status == status.STATUS_CASH_PENDING
+                          ? 'bg-secondary-50'
+                          : 'bg-green-100',
+                    marginHorizontal: 4,
+                  }}
                 />
               )}
             </View>

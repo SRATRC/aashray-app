@@ -5,5 +5,6 @@ import pfp from '../assets/images/pfp.png';
 import ticketbg from '../assets/images/ticketbg.png';
 import banner from '../assets/images/banner.png';
 import sadFace from '../assets/images/sad-face.png';
+import sratrcLogo from '../assets/images/sratrc-logo.png';
 
-export default { icon, adaptiveLogo, logo, pfp, ticketbg, banner, sadFace };
+export default { icon, adaptiveLogo, logo, pfp, ticketbg, banner, sadFace, sratrcLogo };

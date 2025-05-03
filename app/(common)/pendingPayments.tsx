@@ -287,7 +287,7 @@ const PendingPayments = () => {
   if (isLoading) {
     return (
       <SafeAreaView className="h-full bg-white">
-        <PageHeader title="Pending Payments" icon={icons.backArrow} />
+        <PageHeader title="Pending Payments" />
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={colors.orange} />
         </View>
@@ -298,7 +298,7 @@ const PendingPayments = () => {
   if (isError) {
     return (
       <SafeAreaView className="h-full bg-white">
-        <PageHeader title="Pending Payments" icon={icons.backArrow} />
+        <PageHeader title="Pending Payments" />
         <CustomErrorMessage />
       </SafeAreaView>
     );
@@ -306,7 +306,7 @@ const PendingPayments = () => {
 
   return (
     <SafeAreaView className="h-full bg-white">
-      <PageHeader title="Pending Payments" icon={icons.backArrow} />
+      <PageHeader title="Pending Payments" />
 
       <FlashList
         className="flex-grow"

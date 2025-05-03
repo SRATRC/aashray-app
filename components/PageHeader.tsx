@@ -1,25 +1,33 @@
-import { View, Text, Image, Platform, Pressable, ImageSourcePropType } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { icons } from '../constants';
 import React from 'react';
 
 interface PageHeaderProps {
   title: string;
-  icon?: ImageSourcePropType;
+  iconName?: string;
   onPress?: () => void;
+  iconColor?: string;
+  iconSize?: number;
 }
 
-const PageHeader: React.FC<PageHeaderProps> = ({ title, icon, onPress }) => {
+const PageHeader: React.FC<PageHeaderProps> = ({
+  title,
+  iconName = 'chevron-left',
+  onPress,
+  iconColor = '#000000',
+  iconSize = 20,
+}) => {
   const router = useRouter();
 
   return (
     <View className="mb-4 mt-6 w-full flex-row items-center px-4">
       <Pressable onPress={onPress ? onPress : () => router.back()}>
-        <Image
-          source={icon ? icon : icons.backArrow}
-          className="android:h-4 android:w-4 ios:h-6 ios:w-6 mx-2 p-1"
-          resizeMode="contain"
-          tintColor={'#000000'}
+        <FontAwesome5
+          name={iconName}
+          size={iconSize}
+          color={iconColor}
+          style={{ marginHorizontal: 8, padding: 4 }}
         />
       </Pressable>
       <Text className="font-psemibold text-2xl">{title}</Text>

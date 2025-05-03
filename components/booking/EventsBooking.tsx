@@ -12,7 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { colors, icons, status, types } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { useRouter } from 'expo-router';
@@ -29,6 +29,7 @@ import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 
 const CHIPS = ['Self', 'Guest', 'Mumukshus'];
 const ARRIVAL = [
@@ -77,6 +78,12 @@ const INITIAL_MUMUKSHU_FORM = {
 const EventBooking = () => {
   const router: any = useRouter();
   const queryClient = useQueryClient();
+
+  useEffect(
+    useCallback(() => {
+      setIsSubmitting(false);
+    }, [])
+  );
 
   const { user, updateBooking, updateMumukshuBooking } = useGlobalContext();
 
@@ -364,27 +371,27 @@ const EventBooking = () => {
                         />
                         {selectedChip == CHIPS[0] && (
                           <View>
-                            {/* <CustomDropdown
-                              otherStyles="mt-7"
-                              text={'Package'}
-                              placeholder={'Select Package'}
-                              data={PACKAGES}
-                              value={selfForm.package}
-                              setSelected={(val: any) => {
-                                setSelfForm({ ...selfForm, package: val });
-                              }}
+                            <CustomSelectBottomSheet
+                              className="mt-7"
+                              label="Package"
+                              placeholder="Select Package"
+                              options={PACKAGES}
+                              selectedValue={selfForm.package}
+                              onValueChange={(val: any) =>
+                                setSelfForm({ ...selfForm, package: val })
+                              }
                             />
 
-                            <CustomDropdown
-                              otherStyles="mt-7"
-                              text={'How will you arrive?'}
-                              placeholder={'How will you arrive?'}
-                              data={ARRIVAL}
-                              value={selfForm.arrival}
-                              setSelected={(val: any) => {
-                                setSelfForm({ ...selfForm, arrival: val });
-                              }}
-                            /> */}
+                            <CustomSelectBottomSheet
+                              className="mt-7"
+                              label="How will you arrive?"
+                              placeholder="How will you arrive?"
+                              options={ARRIVAL}
+                              selectedValue={selfForm.arrival}
+                              onValueChange={(val: any) =>
+                                setSelfForm({ ...selfForm, arrival: val })
+                              }
+                            />
 
                             {selfForm.arrival == 'car' && (
                               <View>

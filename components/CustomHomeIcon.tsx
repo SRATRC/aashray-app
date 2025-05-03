@@ -10,7 +10,7 @@ interface CustomHomeIconProps {
 
 const CustomHomeIcon: FC<CustomHomeIconProps> = ({ image, title, onPress, containerStyles }) => {
   return (
-    <View className={`${containerStyles}`}>
+    <View className={`mr-2 ${containerStyles || ''}`}>
       <TouchableWithoutFeedback onPress={onPress}>
         <View className="w-[76px] items-center justify-center">
           <View
@@ -21,7 +21,10 @@ const CustomHomeIcon: FC<CustomHomeIconProps> = ({ image, title, onPress, contai
             }`}>
             <Image source={image} className="h-12 w-12" />
           </View>
-          <Text className="mt-2 flex-wrap text-center font-pregular text-[10px] text-black">
+          <Text
+            className="mt-2 text-center font-pregular text-[10px] text-black"
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}>
             {title}
           </Text>
         </View>
