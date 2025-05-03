@@ -37,7 +37,7 @@ const SPICE_LIST = [
   { key: 'false', value: 'Non Spicy' },
 ];
 
-const FoodBookingCancellation = () => {
+export default function FoodBookingCancellation() {
   const { user } = useGlobalContext();
   const queryClient = useQueryClient();
 
@@ -509,6 +509,4 @@ const FoodBookingCancellation = () => {
       />
     </View>
   );
-};
-
-export default FoodBookingCancellation;
+}

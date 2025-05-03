@@ -8,7 +8,7 @@ import { handleUserNavigation } from '../utils/navigationValidations';
 
 import 'react-native-reanimated';
 
-const Index = () => {
+export default function Index() {
   const { loading, user } = useGlobalContext();
   const router = useRouter();
 
@@ -28,6 +28,4 @@ const Index = () => {
       </View>
     </SafeAreaView>
   );
-};
-
-export default Index;
+}
