@@ -17,6 +17,7 @@ import MumukshuFoodBookingDetails from '../../components/booking details cards/M
 import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
 import CustomModal from '~/components/CustomModal';
+import MumukshuEventBookingDetails from '~/components/booking details cards/MumukshuEventBookingDetails';
 
 const mumukshuBookingConfirmation = () => {
   const router = useRouter();
@@ -63,6 +64,7 @@ const mumukshuBookingConfirmation = () => {
         {mumukshuData.adhyayan && <MumukshuAdhyayanBookingDetails containerStyles={'mt-2'} />}
         {mumukshuData.food && <MumukshuFoodBookingDetails containerStyles={'mt-2'} />}
         {mumukshuData.travel && <MumukshuTravelBookingDetails containerStyles={'mt-2'} />}
+        {mumukshuData.utsav && <MumukshuEventBookingDetails containerStyles={'mt-2'} />}
 
         {validationData && (
           <View className="mt-4 w-full px-4">
@@ -109,6 +111,23 @@ const mumukshuBookingConfirmation = () => {
                         ₹{' '}
                         {validationData.adhyayanDetails.reduce(
                           (total: any, shibir: any) => total + shibir.charge,
+                          0
+                        )}
+                      </Text>
+                    </View>
+                  )}
+                {validationData.utsavDetails &&
+                  validationData.utsavDetails.length > 0 &&
+                  validationData.utsavDetails.reduce(
+                    (total: any, utsav: any) => total + utsav.charge,
+                    0
+                  ) && (
+                    <View className="flex-row items-center justify-between">
+                      <Text className="font-pregular text-base text-gray-500">Utsav Charge</Text>
+                      <Text className="font-pregular text-base text-black">
+                        ₹{' '}
+                        {validationData.utsavDetails.reduce(
+                          (total: any, utsav: any) => total + utsav.charge,
                           0
                         )}
                       </Text>

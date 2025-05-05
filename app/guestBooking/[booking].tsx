@@ -16,6 +16,7 @@ import GuestAdhyayanAddon from '../../components/booking addons/GuestAdhyayanAdd
 import Toast from 'react-native-toast-message';
 import handleAPICall from '~/utils/HandleApiCall';
 import CustomModal from '~/components/CustomModal';
+import GuestEventBookingDetails from '~/components/booking details cards/GuestEventBookingDetails';
 
 // Define initial form structures
 const createInitialRoomForm = (existingData: any = null) => ({
@@ -497,6 +498,9 @@ const GuestAddons = () => {
           {booking === types.ADHYAYAN_DETAILS_TYPE && (
             <GuestAdhyayanBookingDetails containerStyles="mt-2" />
           )}
+          {booking === types.EVENT_DETAILS_TYPE && (
+            <GuestEventBookingDetails containerStyles="mt-2" />
+          )}
 
           <View className="w-full px-4">
             {!isAdhyayanInResearchCentre && (
@@ -534,7 +538,7 @@ const GuestAddons = () => {
                 />
 
                 {/* GUEST ADHYAYAN BOOKING COMPONENT */}
-                {booking !== types.ADHYAYAN_DETAILS_TYPE && (
+                {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking) && (
                   <GuestAdhyayanAddon
                     adhyayanForm={adhyayanForm}
                     setAdhyayanForm={setAdhyayanForm}

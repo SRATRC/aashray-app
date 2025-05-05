@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, MutableRefObject } from 'react';
+import React, { useState, useCallback, useRef, RefObject, useEffect } from 'react';
 import { View, Text, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-virtualized-view';
@@ -20,10 +20,10 @@ const CHIPS = [
 ];
 
 interface BookingCategoriesProps {
-  onRefresh: MutableRefObject<() => void>;
+  setRefreshHandler: (handler: () => void) => void;
 }
 
-const BookingCategories: React.FC<BookingCategoriesProps> = ({ onRefresh }) => {
+const BookingCategories: React.FC<BookingCategoriesProps> = ({ setRefreshHandler }) => {
   const queryClient = useQueryClient();
   const [selectedChip, setSelectedChip] = useState<string>(types.booking_type_adhyayan);
 
@@ -65,8 +65,9 @@ const BookingCategories: React.FC<BookingCategoriesProps> = ({ onRefresh }) => {
     invalidateSelectedData(selectedChip);
   };
 
-  // Passing the handleRefresh function to parent
-  onRefresh.current = handleRefresh;
+  useEffect(() => {
+    setRefreshHandler(handleRefresh);
+  }, [setRefreshHandler, handleRefresh]);
 
   return (
     <View className="w-full">
@@ -90,7 +91,7 @@ const BookingCategories: React.FC<BookingCategoriesProps> = ({ onRefresh }) => {
 };
 
 const Bookings: React.FC = () => {
-  const refreshControlRef = useRef<() => void>(() => {});
+  const [refreshHandler, setRefreshHandler] = useState<() => void>(() => {});
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
@@ -99,13 +100,8 @@ const Bookings: React.FC = () => {
           className="h-full"
           alwaysBounceVertical={false}
           showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={false}
-              onRefresh={() => refreshControlRef.current && refreshControlRef.current()}
-            />
-          }>
-          <BookingCategories onRefresh={refreshControlRef} />
+          refreshControl={<RefreshControl refreshing={false} onRefresh={refreshHandler} />}>
+          <BookingCategories setRefreshHandler={setRefreshHandler} />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

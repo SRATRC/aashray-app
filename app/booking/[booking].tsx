@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useMemo, useCallback } from 'react';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { dropdowns, icons, types } from '../../constants';
+import { dropdowns, types } from '../../constants';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { prepareSelfRequestBody } from '~/utils/preparingRequestBody';
 import CustomButton from '../../components/CustomButton';
@@ -143,16 +143,6 @@ const BookingDetails = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Check if Adhyayan is in Research Centre
-  const isAdhyayanInResearchCentre = useMemo(() => {
-    return (
-      booking === types.ADHYAYAN_DETAILS_TYPE &&
-      data.adhyayan &&
-      data.adhyayan.length > 0 &&
-      data.adhyayan[0].location !== 'Research Centre'
-    );
-  }, [booking, data.adhyayan]);
-
   // Validation functions
   const validateRoomForm = useCallback(() => {
     return Object.values(forms.room).every((value) => value !== '');
@@ -267,51 +257,49 @@ const BookingDetails = () => {
           {renderBookingDetails()}
 
           <View className="w-full px-4">
-            {!isAdhyayanInResearchCentre && (
-              <View>
-                <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
+            <View>
+              <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
 
-                {/* ROOM BOOKING COMPONENT */}
-                {booking !== types.ROOM_DETAILS_TYPE && (
-                  <RoomAddon
-                    roomForm={forms.room}
-                    setRoomForm={(formData: any) => setFormValues('room', formData)}
-                    isDatePickerVisible={isDatePickerVisible}
-                    setDatePickerVisibility={toggleDatePicker}
-                    onToggle={(isOpen) => toggleAddon('room', isOpen)}
-                  />
-                )}
-
-                {/* FOOD BOOKING COMPONENT */}
-                <FoodAddon
-                  foodForm={forms.food}
-                  setFoodForm={(formData: any) => setFormValues('food', formData)}
+              {/* ROOM BOOKING COMPONENT */}
+              {booking !== types.ROOM_DETAILS_TYPE && (
+                <RoomAddon
+                  roomForm={forms.room}
+                  setRoomForm={(formData: any) => setFormValues('room', formData)}
                   isDatePickerVisible={isDatePickerVisible}
                   setDatePickerVisibility={toggleDatePicker}
-                  onToggle={(isOpen) => toggleAddon('food', isOpen)}
+                  onToggle={(isOpen) => toggleAddon('room', isOpen)}
                 />
+              )}
 
-                {/* ADHYAYAN BOOKING COMPONENT */}
-                {booking !== types.ADHYAYAN_DETAILS_TYPE && (
-                  <AdhyayanAddon
-                    adhyayanBookingList={forms.adhyayan}
-                    setAdhyayanBookingList={setAdhyayanBookingList}
-                    booking={booking}
-                  />
-                )}
+              {/* FOOD BOOKING COMPONENT */}
+              <FoodAddon
+                foodForm={forms.food}
+                setFoodForm={(formData: any) => setFormValues('food', formData)}
+                isDatePickerVisible={isDatePickerVisible}
+                setDatePickerVisibility={toggleDatePicker}
+                onToggle={(isOpen) => toggleAddon('food', isOpen)}
+              />
 
-                {/* TRAVEL BOOKING COMPONENT */}
-                {booking !== types.TRAVEL_DETAILS_TYPE && (
-                  <TravelAddon
-                    travelForm={forms.travel}
-                    setTravelForm={(formData: any) => setFormValues('travel', formData)}
-                    isDatePickerVisible={isDatePickerVisible}
-                    setDatePickerVisibility={toggleDatePicker}
-                    onToggle={(isOpen) => toggleAddon('travel', isOpen)}
-                  />
-                )}
-              </View>
-            )}
+              {/* ADHYAYAN BOOKING COMPONENT */}
+              {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking) && (
+                <AdhyayanAddon
+                  adhyayanBookingList={forms.adhyayan}
+                  setAdhyayanBookingList={setAdhyayanBookingList}
+                  booking={booking}
+                />
+              )}
+
+              {/* TRAVEL BOOKING COMPONENT */}
+              {booking !== types.TRAVEL_DETAILS_TYPE && (
+                <TravelAddon
+                  travelForm={forms.travel}
+                  setTravelForm={(formData: any) => setFormValues('travel', formData)}
+                  isDatePickerVisible={isDatePickerVisible}
+                  setDatePickerVisibility={toggleDatePicker}
+                  onToggle={(isOpen) => toggleAddon('travel', isOpen)}
+                />
+              )}
+            </View>
 
             <CustomButton
               text="Confirm"

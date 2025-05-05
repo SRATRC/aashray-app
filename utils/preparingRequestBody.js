@@ -34,6 +34,17 @@ export const prepareSelfRequestBody = (user, data) => {
         shibir_ids: data.adhyayan.map((shibir) => shibir.id),
       },
     };
+  } else if (data.primary === 'utsav') {
+    payload.primary_booking = {
+      booking_type: 'utsav',
+      details: {
+        utsavid: data.utsav.utsav.utsav_id,
+        packageid: data.utsav.package,
+        arrival: data.utsav.arrival,
+        carno: data.utsav.carno || '',
+        other: data.utsav.other || '',
+      },
+    };
   }
 
   const addons = [];
@@ -133,6 +144,22 @@ export const prepareGuestRequestBody = (user, input) => {
           details: {
             shibir_ids: [primaryData.adhyayan.id],
             guests: primaryData.guestGroup.map((guest) => guest.id),
+          },
+        };
+      case 'utsav':
+        return {
+          booking_type: 'utsav',
+          details: {
+            utsavid: primaryData.utsav.utsav_id,
+            guests: primaryData.guests.map((guest) => {
+              return {
+                cardno: guest.cardno,
+                packageid: guest.package,
+                arrival: guest.arrival,
+                carno: guest.carno,
+                other: guest.other,
+              };
+            }),
           },
         };
       default:
@@ -272,6 +299,22 @@ export const prepareMumukshuRequestBody = (user, input) => {
           details: {
             date: primaryData.date,
             mumukshuGroup: transformMumukshuGroup(primaryData.mumukshuGroup),
+          },
+        };
+      case 'utsav':
+        return {
+          booking_type: 'utsav',
+          details: {
+            utsavid: [primaryData.utsav.utsav_id],
+            mumukshus: primaryData.mumukshus.map((mumukshu) => {
+              return {
+                cardno: mumukshu.cardno,
+                packageid: mumukshu.package,
+                arrival: mumukshu.arrival,
+                carno: mumukshu.carno,
+                other: mumukshu.other,
+              };
+            }),
           },
         };
       default:

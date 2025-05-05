@@ -19,6 +19,7 @@ import MumukshuTravelAddon from '../../components/booking addons/MumukshuTravelA
 import Toast from 'react-native-toast-message';
 import handleAPICall from '~/utils/HandleApiCall';
 import CustomModal from '~/components/CustomModal';
+import MumukshuEventBookingDetails from '~/components/booking details cards/MumukshuEventBookingDetails';
 
 // Define initial form structures with factory functions for better reuse
 const createInitialRoomForm = (existingData: any = null) => ({
@@ -669,6 +670,9 @@ const MumukshuAddons = () => {
           {booking === types.TRAVEL_DETAILS_TYPE && (
             <MumukshuTravelBookingDetails containerStyles="mt-2" />
           )}
+          {booking === types.EVENT_DETAILS_TYPE && (
+            <MumukshuEventBookingDetails containerStyles="mt-2" />
+          )}
 
           <View className="w-full px-4">
             {!isAdhyayanInResearchCentre && (
@@ -706,7 +710,7 @@ const MumukshuAddons = () => {
                 />
 
                 {/* MUMUKSHU ADHYAYAN BOOKING COMPONENT */}
-                {booking !== types.ADHYAYAN_DETAILS_TYPE && (
+                {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking) && (
                   <MumukshuAdhyayanAddon
                     adhyayanForm={adhyayanForm}
                     setAdhyayanForm={setAdhyayanForm}

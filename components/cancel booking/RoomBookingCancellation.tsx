@@ -161,7 +161,7 @@ const RoomBookingCancellation: React.FC = () => {
               {moment(item.checkin).format('Do MMMM')} -{' '}
               {moment(item.checkout).format('Do MMMM, YYYY')}
             </Text>
-            {item.bookedBy && (
+            {item.bookedBy && user.cardno == item.bookedBy && (
               <Text className="font-pmedium">
                 Booked For: <Text className="text-secondary">{item.name}</Text>
               </Text>

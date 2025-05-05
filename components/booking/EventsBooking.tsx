@@ -42,6 +42,7 @@ var PACKAGES: any = [];
 
 const INITIAL_SELF_FORM = {
   package: null,
+  package_name: '',
   arrival: null,
   carno: '',
   other: null,
@@ -55,6 +56,7 @@ const INITIAL_GUEST_FORM = {
       mobno: '',
       guestType: '',
       package: null,
+      package_name: '',
       arrival: null,
       carno: '',
       other: null,
@@ -68,6 +70,7 @@ const INITIAL_MUMUKSHU_FORM = {
       cardno: '',
       mobno: '',
       package: null,
+      package_name: '',
       arrival: null,
       carno: '',
       other: null,
@@ -85,7 +88,7 @@ const EventBooking = () => {
     }, [])
   );
 
-  const { user, updateBooking, updateMumukshuBooking } = useGlobalContext();
+  const { user, updateBooking, updateGuestBooking, updateMumukshuBooking } = useGlobalContext();
 
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -125,6 +128,7 @@ const EventBooking = () => {
           mobno: '',
           guestType: '',
           package: null,
+          package_name: '',
           arrival: null,
           carno: '',
           other: null,
@@ -133,11 +137,11 @@ const EventBooking = () => {
     }));
   };
 
-  const handleGuestFormChange = (index: any, field: any, value: any) => {
-    const updatedForms = guestForm.guests.map((guest, i) =>
-      i === index ? { ...guest, [field]: value } : guest
-    );
-    setGuestForm((prev) => ({ ...prev, guests: updatedForms }));
+  const handleGuestFormChange = (index: any, key: any, value: any) => {
+    setGuestForm((prev) => ({
+      ...prev,
+      guests: prev.guests.map((guest, i) => (i === index ? { ...guest, [key]: value } : guest)),
+    }));
   };
 
   const removeGuestForm = (indexToRemove: any) => {
@@ -182,6 +186,7 @@ const EventBooking = () => {
           cardno: '',
           mobno: '',
           package: null,
+          package_name: '',
           arrival: null,
           carno: '',
           other: null,
@@ -306,7 +311,7 @@ const EventBooking = () => {
   const renderFooter = () => (
     <View className="items-center">
       {(isFetchingNextPage || isLoading) && <ActivityIndicator />}
-      {!hasNextPage && data?.pages?.[0]?.length > 0 && <Text>No more bookings at the moment</Text>}
+      {!hasNextPage && data?.pages?.[0]?.length > 0 && <Text>No more utsavs at the moment</Text>}
     </View>
   );
 
@@ -378,7 +383,12 @@ const EventBooking = () => {
                               options={PACKAGES}
                               selectedValue={selfForm.package}
                               onValueChange={(val: any) =>
-                                setSelfForm({ ...selfForm, package: val })
+                                setSelfForm({
+                                  ...selfForm,
+                                  package: val,
+                                  package_name: PACKAGES.find((item: any) => item.key == val)
+                                    ?.value,
+                                })
                               }
                             />
 
@@ -402,10 +412,11 @@ const EventBooking = () => {
                                     setSelfForm({ ...selfForm, carno: e })
                                   }
                                   otherStyles="mt-7"
-                                  inputStyles="font-pmedium text-base text-gray-400"
+                                  inputStyles="font-pmedium text-base"
                                   containerStyles="bg-gray-100"
                                   placeholder="XX-XXX-XXXX"
                                   maxLength={10}
+                                  autoCapitalize={'characters'}
                                   autoComplete={'off'}
                                 />
                               </View>
@@ -416,7 +427,7 @@ const EventBooking = () => {
                               value={selfForm.other}
                               handleChangeText={(e: any) => setSelfForm({ ...selfForm, other: e })}
                               otherStyles="mt-7"
-                              inputStyles="font-pmedium text-base text-gray-400"
+                              inputStyles="font-pmedium text-base"
                               containerStyles="bg-gray-100"
                               placeholder="Enter details here..."
                             />
@@ -431,27 +442,32 @@ const EventBooking = () => {
                             removeMumukshuForm={removeMumukshuForm}>
                             {(index: any) => (
                               <View>
-                                {/* <CustomDropdown
-                                  otherStyles="mt-7"
-                                  text={'Package'}
-                                  placeholder={'Select Package'}
-                                  data={PACKAGES}
-                                  value={mumukshuForm.mumukshus[index].package}
-                                  setSelected={(val: any) => {
+                                <CustomSelectBottomSheet
+                                  className="mt-7"
+                                  label="Package"
+                                  placeholder="Select Package"
+                                  options={PACKAGES}
+                                  selectedValue={mumukshuForm.mumukshus[index].package}
+                                  onValueChange={(val: any) => {
                                     handleMumukshuFormChange(index, 'package', val);
+                                    handleMumukshuFormChange(
+                                      index,
+                                      'package_name',
+                                      PACKAGES.find((item: any) => item.key == val)?.value
+                                    );
                                   }}
                                 />
 
-                                <CustomDropdown
-                                  otherStyles="mt-7"
-                                  text={'How will you arrive?'}
-                                  placeholder={'How will you arrive?'}
-                                  data={ARRIVAL}
-                                  value={mumukshuForm.mumukshus[index].arrival}
-                                  setSelected={(val: any) => {
+                                <CustomSelectBottomSheet
+                                  className="mt-7"
+                                  label="How will you arrive?"
+                                  placeholder="How will you arrive?"
+                                  options={ARRIVAL}
+                                  selectedValue={mumukshuForm.mumukshus[index].arrival}
+                                  onValueChange={(val: any) => {
                                     handleMumukshuFormChange(index, 'arrival', val);
                                   }}
-                                /> */}
+                                />
 
                                 {mumukshuForm.mumukshus[index].arrival == 'car' && (
                                   <FormField
@@ -461,10 +477,11 @@ const EventBooking = () => {
                                       handleMumukshuFormChange(index, 'carno', e)
                                     }
                                     otherStyles="mt-7"
-                                    inputStyles="font-pmedium text-base text-gray-400"
+                                    inputStyles="font-pmedium text-base"
                                     containerStyles="bg-gray-100"
                                     placeholder="XX-XXX-XXXX"
                                     maxLength={10}
+                                    autoCapitalize={'characters'}
                                     autoComplete={'off'}
                                   />
                                 )}
@@ -476,7 +493,7 @@ const EventBooking = () => {
                                     handleMumukshuFormChange(index, 'other', e)
                                   }
                                   otherStyles="mt-7"
-                                  inputStyles="font-pmedium text-base text-gray-400"
+                                  inputStyles="font-pmedium text-base"
                                   containerStyles="bg-gray-100"
                                   placeholder="Enter details here..."
                                 />
@@ -497,28 +514,32 @@ const EventBooking = () => {
                           removeGuestForm={removeGuestForm}>
                           {(index: any) => (
                             <View>
-                              {/* <CustomDropdown
-                                otherStyles="mt-7"
-                                text={'Package'}
-                                placeholder={'Select Package'}
-                                data={PACKAGES}
-                                value={guestForm.guests[index].package}
-                                setSelected={(val: any) => {
+                              <CustomSelectBottomSheet
+                                className="mt-7"
+                                label="Package"
+                                placeholder="Select Package"
+                                options={PACKAGES}
+                                selectedValue={guestForm.guests[index].package}
+                                onValueChange={(val: any) => {
                                   handleGuestFormChange(index, 'package', val);
+                                  handleGuestFormChange(
+                                    index,
+                                    'package_name',
+                                    PACKAGES.find((item: any) => item.key == val)?.value
+                                  );
                                 }}
                               />
 
-                              <CustomDropdown
-                                otherStyles="mt-7"
-                                text={'How will you arrive?'}
-                                placeholder={'How will you arrive?'}
-                                data={ARRIVAL}
-                                value={guestForm.guests[index].arrival}
-                                setSelected={(val: any) => {
+                              <CustomSelectBottomSheet
+                                className="mt-7"
+                                label="How will you arrive?"
+                                placeholder="How will you arrive?"
+                                options={ARRIVAL}
+                                selectedValue={guestForm.guests[index].arrival}
+                                onValueChange={(val: any) => {
                                   handleGuestFormChange(index, 'arrival', val);
                                 }}
-                              /> */}
-
+                              />
                               {guestForm.guests[index].arrival == 'car' && (
                                 <View>
                                   <FormField
@@ -528,9 +549,10 @@ const EventBooking = () => {
                                       handleGuestFormChange(index, 'carno', e)
                                     }
                                     otherStyles="mt-7"
-                                    inputStyles="font-pmedium text-base text-gray-400"
+                                    inputStyles="font-pmedium text-base"
                                     containerStyles="bg-gray-100"
                                     placeholder="XX-XXX-XXXX"
+                                    autoCapitalize={'characters'}
                                     maxLength={10}
                                   />
                                 </View>
@@ -543,7 +565,7 @@ const EventBooking = () => {
                                   handleGuestFormChange(index, 'other', e)
                                 }
                                 otherStyles="mt-7"
-                                inputStyles="font-pmedium text-base text-gray-400"
+                                inputStyles="font-pmedium text-bases"
                                 containerStyles="bg-gray-100"
                                 placeholder="Enter details here..."
                               />
@@ -564,7 +586,11 @@ const EventBooking = () => {
                               return;
                             }
 
-                            await updateBooking('utsav', mumukshuForm);
+                            const updatedForm = {
+                              ...selfForm,
+                              utsav: selectedItem,
+                            };
+                            await updateBooking('utsav', updatedForm);
                             router.push(`/booking/${types.EVENT_DETAILS_TYPE}`);
                           }
                           if (selectedChip == CHIPS[1]) {
@@ -574,10 +600,13 @@ const EventBooking = () => {
                               return;
                             }
 
-                            const temp = transformMumukshuData(mumukshuForm);
+                            const updatedForm = {
+                              ...guestForm,
+                              utsav: selectedItem,
+                            };
 
-                            await updateMumukshuBooking('utsav', temp);
-                            router.push(`/mumukshuBooking/${types.EVENT_DETAILS_TYPE}`);
+                            await updateGuestBooking('utsav', updatedForm);
+                            router.push(`/guestBooking/${types.EVENT_DETAILS_TYPE}`);
                           }
                           if (selectedChip == CHIPS[2]) {
                             if (!isMumukshuFormValid()) {
@@ -585,6 +614,14 @@ const EventBooking = () => {
                               setIsSubmitting(false);
                               return;
                             }
+
+                            const updatedForm = {
+                              ...mumukshuForm,
+                              utsav: selectedItem,
+                            };
+
+                            await updateMumukshuBooking('utsav', updatedForm);
+                            router.push(`/mumukshuBooking/${types.EVENT_DETAILS_TYPE}`);
                           }
                           // queryClient.invalidateQueries({
                           //   queryKey: ['utsavBooking', user.cardno],

@@ -21,7 +21,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   const router = useRouter();
 
   return (
-    <View className="mb-4 mt-6 w-full flex-row items-center px-4">
+    <View className="mb-4 mt-6 w-full flex-row items-center gap-x-1 px-2">
       <Pressable onPress={onPress ? onPress : () => router.back()}>
         <FontAwesome5
           name={iconName}

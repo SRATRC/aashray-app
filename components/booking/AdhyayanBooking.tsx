@@ -336,7 +336,9 @@ const AdhyayanBooking = () => {
                           setIsSubmitting(true);
                           if (selectedChip == CHIPS[0]) {
                             await updateBooking('adhyayan', [selectedItem]);
-                            router.push(`/booking/${types.ADHYAYAN_DETAILS_TYPE}`);
+                            if (selectedItem.location !== 'Research Centre')
+                              router.push('/booking/bookingConfirmation');
+                            else router.push(`/booking/${types.ADHYAYAN_DETAILS_TYPE}`);
                           }
                           if (selectedChip == CHIPS[1]) {
                             if (!isGuestFormValid()) {
@@ -371,7 +373,9 @@ const AdhyayanBooking = () => {
 
                               await updateGuestBooking('adhyayan', transformedData);
                               setGuestForm(INITIAL_GUEST_FORM);
-                              router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
+                              if (selectedItem.location !== 'Research Centre')
+                                router.push('/guestBooking/bookingConfirmation');
+                              else router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
                               setIsSubmitting(false);
                             }
                           }
@@ -384,7 +388,9 @@ const AdhyayanBooking = () => {
                             const temp = transformMumukshuData(mumukshuForm);
 
                             await updateMumukshuBooking('adhyayan', temp);
-                            router.push(`/mumukshuBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
+                            if (selectedItem.location !== 'Research Centre')
+                              router.push('/mumukshuBooking/bookingConfirmation');
+                            else router.push(`/mumukshuBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
                           }
                           setSelectedItem(null);
                           setSelectedChip('Self');

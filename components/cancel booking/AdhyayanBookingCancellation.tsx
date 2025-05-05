@@ -177,7 +177,7 @@ const AdhyayanBookingCancellation = () => {
                 {moment(item.start_date).format('Do MMMM')} -{' '}
                 {moment(item.end_date).format('Do MMMM, YYYY')}
               </Text>
-              {item.bookedBy && (
+              {item.bookedBy && user.cardno == item.bookedBy && (
                 <View className="flex-row items-center gap-x-2">
                   <Text className="font-pmedium">Booked For:</Text>
                   <Text className="font-pmedium text-secondary-100">{item.name}</Text>

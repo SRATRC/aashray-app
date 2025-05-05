@@ -160,7 +160,7 @@ const EventBookingCancellation = () => {
               />
             </View>
             <Text className="font-pmedium">{item.utsav_name}</Text>
-            {item.bookedBy && (
+            {item.bookedBy && user.cardno == item.bookedBy && (
               <Text className="font-pmedium">
                 Booked For: <Text className="font-pmedium text-secondary">{item.user_name}</Text>
               </Text>

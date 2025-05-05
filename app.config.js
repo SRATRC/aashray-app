@@ -30,12 +30,13 @@ export default {
       },
     },
     android: {
+      package: 'org.vitraagvigyaan.aashray',
+      edgeToEdgeEnabled: true,
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
         monochromeImage: './assets/images/adaptive-icon.png',
         backgroundColor: '#ffffff',
       },
-      package: 'org.vitraagvigyaan.aashray',
       googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
       intentFilters: [
         {
@@ -115,6 +116,12 @@ export default {
             backgroundColor: '#000000',
           },
           imageWidth: 200,
+        },
+      ],
+      [
+        'expo-web-browser',
+        {
+          experimentalLauncherActivity: true,
         },
       ],
     ],

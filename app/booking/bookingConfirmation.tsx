@@ -17,6 +17,7 @@ import handleAPICall from '../../utils/HandleApiCall';
 import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
 import CustomModal from '~/components/CustomModal';
+import EventBookingDetails from '~/components/booking details cards/EventBookingDetails';
 
 const bookingConfirmation = () => {
   const router = useRouter();
@@ -64,6 +65,7 @@ const bookingConfirmation = () => {
         {data.travel && <TravelBookingDetails containerStyles={'mt-2'} />}
         {data.adhyayan && <AdhyayanBookingDetails containerStyles={'mt-2'} />}
         {data.food && <FoodBookingDetails containerStyles={'mt-2'} />}
+        {data.utsav && <EventBookingDetails containerStyles={'mt-2'} />}
 
         {validationData && validationData.totalCharge > 0 && (
           <View className="mt-4 w-full px-4">
@@ -96,6 +98,18 @@ const bookingConfirmation = () => {
                       ₹{' '}
                       {validationData.adhyayanDetails.reduce(
                         (total: any, shibir: any) => total + shibir.charge,
+                        0
+                      )}
+                    </Text>
+                  </View>
+                )}
+                {validationData.utsavDetails && validationData.utsavDetails.length > 0 && (
+                  <View className="flex-row items-center justify-between">
+                    <Text className="font-pregular text-base text-gray-500">Utsav Charge</Text>
+                    <Text className="font-pregular text-base text-black">
+                      ₹{' '}
+                      {validationData.utsavDetails.reduce(
+                        (total: any, utsav: any) => total + utsav.charge,
                         0
                       )}
                     </Text>

@@ -156,17 +156,15 @@ const TravelBookingCancellation = () => {
                         ? 'text-secondary-200'
                         : 'text-green-200'
                   }
-                  containerStyles={{
-                    backgroundColor:
-                      item.transaction_status == status.STATUS_CANCELLED ||
-                      item.transaction_status == status.STATUS_ADMIN_CANCELLED
-                        ? 'bg-red-100'
-                        : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
-                            item.transaction_status == status.STATUS_CASH_PENDING
-                          ? 'bg-secondary-50'
-                          : 'bg-green-100',
-                    marginHorizontal: 4,
-                  }}
+                  containerStyles={`${
+                    item.transaction_status == status.STATUS_CANCELLED ||
+                    item.transaction_status == status.STATUS_ADMIN_CANCELLED
+                      ? 'bg-red-100'
+                      : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
+                          item.transaction_status == status.STATUS_CASH_PENDING
+                        ? 'bg-secondary-50'
+                        : 'bg-green-100'
+                  } mx-1`}
                 />
               )}
             </View>
@@ -176,7 +174,7 @@ const TravelBookingCancellation = () => {
                 ? 'Research Centre to Mumbai'
                 : 'Mumbai to Research Centre'}
             </Text>
-            {item.bookedBy && (
+            {item.bookedBy && user.cardno == item.bookedBy && (
               <Text className="font-pmedium">
                 Booked For: <Text className="text-secondary">{item.user_name}</Text>
               </Text>
