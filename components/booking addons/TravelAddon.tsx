@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image } from 'react-native';
-import { icons, colors, dropdowns } from '../../constants';
+import { icons, dropdowns } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FormField from '../FormField';
@@ -88,7 +88,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           setDatePickerVisibility('travel', false);
         }}
         onCancel={() => setDatePickerVisibility('travel', false)}
-        minimumDate={moment().add(1, 'days').toDate()}
+        minimumDate={tempTravelDate}
       />
 
       <CustomSelectBottomSheet
@@ -134,7 +134,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
                 : 'Flight/Train Time'
             }
             otherStyles="mt-5"
-            inputStyles={'font-pmedium text-gray-400 text-lg'}
+            inputStyles={'font-pmedium text-lg'}
             backgroundColor="bg-gray-100"
             onPress={() => setDatePickerVisibility('travel_time', true)}
           />
@@ -143,10 +143,10 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
             mode="datetime"
             date={travelForm.arrival_time ? moment(travelForm.arrival_time).toDate() : new Date()}
             onConfirm={(date: Date) => {
-              setTravelForm((prev: any) => ({
-                ...prev,
+              setTravelForm({
+                ...travelForm,
                 arrival_time: date.toISOString(),
-              }));
+              });
               setDatePickerVisibility('travel_time', false);
             }}
             onCancel={() => setDatePickerVisibility('travel_time', false)}

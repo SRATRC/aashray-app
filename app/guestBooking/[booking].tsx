@@ -3,7 +3,7 @@ import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-na
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { dropdowns, icons, types } from '../../constants';
+import { dropdowns, types } from '../../constants';
 import { useQuery } from '@tanstack/react-query';
 import { prepareGuestRequestBody } from '~/utils/preparingRequestBody';
 import CustomButton from '../../components/CustomButton';

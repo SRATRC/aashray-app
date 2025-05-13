@@ -101,22 +101,22 @@ const Home: React.FC = () => {
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
-      <View className=" flex-row items-center justify-start px-4">
-        <Image
-          source={images.sratrcLogo as ImageSourcePropType}
-          className="h-[60px] w-[150px] px-4"
-          resizeMode="contain"
-        />
-      </View>
+      <ScrollView showsVerticalScrollIndicator={false} className="flex-1" bounces={false}>
+        <View className=" flex-row items-center justify-start px-4">
+          <Image
+            source={images.sratrcLogo as ImageSourcePropType}
+            className="h-[60px] w-[150px] px-4"
+            resizeMode="contain"
+          />
+        </View>
 
-      {/* Banner */}
-      <QuotesBanner user={user} images={images} />
+        {/* Banner */}
+        <QuotesBanner user={user} images={images} />
 
-      {/* Services */}
-      <View className="mt-7 w-full">
-        <Text className="px-4 font-pmedium text-lg text-black">Quick Access</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View className="mt-3 flex-row items-baseline px-4">
+        {/* Services */}
+        <View className="mt-7 w-full">
+          <Text className="px-4 font-pmedium text-lg text-black">Quick Access</Text>
+          <View className="mt-3 flex-row flex-wrap gap-y-4 px-4">
             {user.res_status !== status.STATUS_RESIDENT && (
               <CustomHomeIcon
                 image={icons.wifiHome as ImageSourcePropType}
@@ -140,15 +140,12 @@ const Home: React.FC = () => {
               onPress={() => router.push('/pendingPayments')}
             />
           </View>
-        </ScrollView>
-      </View>
+        </View>
 
-      {/* Socials */}
-      <View className="mt-7 w-full">
-        <Text className="px-4 font-pmedium text-lg text-black">Checkout Our Social Media!</Text>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View className="mb-6 mt-3 flex-row items-baseline px-4">
+        {/* Socials */}
+        <View className="mt-7 w-full">
+          <Text className="px-4 font-pmedium text-lg text-black">Checkout Our Social Media!</Text>
+          <View className="mb-6 mt-3 flex-row flex-wrap gap-y-4 px-4">
             <CustomHomeIcon
               image={icons.satshrut as ImageSourcePropType}
               title={'Satshrut'}
@@ -180,8 +177,8 @@ const Home: React.FC = () => {
               onPress={() => Linking.openURL('https://www.instagram.com/sparsh.international/')}
             />
           </View>
-        </ScrollView>
-      </View>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

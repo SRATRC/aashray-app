@@ -206,7 +206,6 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
   searchable = false,
   searchPlaceholder = 'Search...',
   noResultsText = 'No matching options found',
-  // Default values for FlashList optimization
   estimatedItemSize = 60,
 }) => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);

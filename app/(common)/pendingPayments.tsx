@@ -70,7 +70,6 @@ const PendingPayments = () => {
             bookingids: paymentIds,
           },
           (res: any) => {
-            console.log(JSON.stringify(res));
             resolve(res);
           },
           () => {},

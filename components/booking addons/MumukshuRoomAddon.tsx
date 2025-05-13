@@ -108,7 +108,7 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
           setDatePickerVisibility('checkin', false);
         }}
         onCancel={() => setDatePickerVisibility('checkin', false)}
-        minimumDate={moment().add(1, 'days').toDate()}
+        minimumDate={tempCheckinDate}
       />
 
       <FormDisplayField
@@ -170,8 +170,8 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
           )}
           <CustomSelectBottomSheet
             className="mt-5"
-            label={`Guests group - ${index + 1}`}
-            placeholder="Select Guests"
+            label={`Mumukshu group - ${index + 1}`}
+            placeholder="Select Mumukshus"
             options={getAvailableMumukshus(index)}
             selectedValues={assignment.mumukshuIndices}
             onValuesChange={(val) => updateRoomForm(index, 'mumukshus', val)}

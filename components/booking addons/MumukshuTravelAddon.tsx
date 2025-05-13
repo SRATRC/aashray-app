@@ -109,7 +109,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
           setDatePickerVisibility('travel', false);
         }}
         onCancel={() => setDatePickerVisibility('travel', false)}
-        minimumDate={moment().add(1, 'days').toDate()}
+        minimumDate={tempTravelDate}
       />
 
       {travelForm.mumukshuGroup.map((assignment: any, index: any) => (
@@ -157,7 +157,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             label="Drop Location"
             placeholder="Select Drop Location"
             options={dropdowns.LOCATION_LIST}
-            selectedValue={travelForm.drop}
+            selectedValue={assignment.drop}
             onValueChange={(val: any) => updateTravelForm(index, 'drop', val)}
             saveKeyInsteadOfValue={false}
           />
@@ -187,7 +187,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
                     : 'Flight/Train Time'
                 }
                 otherStyles="mt-5"
-                inputStyles={'font-pmedium text-gray-400 text-lg'}
+                inputStyles={'font-pmedium text-lg'}
                 backgroundColor="bg-gray-100"
                 onPress={() => {
                   setDatePickerVisibility('travel_time', true);
@@ -221,7 +221,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             label="Booking Type"
             placeholder="Booking Type"
             options={dropdowns.BOOKING_TYPE_LIST}
-            selectedValue={travelForm.type}
+            selectedValue={assignment.type}
             onValueChange={(val: any) => updateTravelForm(index, 'type', val)}
             saveKeyInsteadOfValue={false}
           />
@@ -250,7 +250,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
 
           <FormField
             text="Any Special Request?"
-            value={travelForm.special_request}
+            value={assignment.special_request}
             handleChangeText={(e: any) => updateTravelForm(index, 'special_request', e)}
             otherStyles="mt-7"
             containerStyles="bg-gray-100"

@@ -1,7 +1,7 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { View, Text, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { dropdowns, icons, types } from '../../constants';
+import { dropdowns, types } from '../../constants';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -108,7 +108,7 @@ const MumukshuAddons = () => {
       mumukshuData.room?.mumukshuGroup?.flatMap((group: any) => group.mumukshus || []) || [];
     const fromFood =
       mumukshuData.food?.mumukshuGroup?.flatMap((group: any) => group.mumukshus || []) || [];
-    const fromAdhyayan = mumukshuData.adhyayan?.mumukshus || [];
+    const fromAdhyayan = mumukshuData.adhyayan?.mumukshuGroup || [];
     const fromTravel =
       mumukshuData.travel?.mumukshuGroup?.flatMap((group: any) => group.mumukshus || []) || [];
 

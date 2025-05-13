@@ -143,7 +143,7 @@ export const prepareGuestRequestBody = (user, input) => {
           booking_type: 'adhyayan',
           details: {
             shibir_ids: [primaryData.adhyayan.id],
-            guests: primaryData.guestGroup.map((guest) => guest.id),
+            guests: primaryData.guestGroup.map((guest) => guest.cardno),
           },
         };
       case 'utsav':
@@ -195,7 +195,7 @@ export const prepareGuestRequestBody = (user, input) => {
               booking_type: 'adhyayan',
               details: {
                 shibir_ids: [input[key].adhyayan.id],
-                guests: input[key].guests.map((guest) => guest.id),
+                guests: input[key].guests.map((guest) => guest.cardno),
               },
             };
           case 'validationData':

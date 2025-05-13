@@ -32,13 +32,14 @@ const PasswordResetModal = ({ visible, onClose, email }: any) => {
           <Text className="mb-4 font-psemibold text-2xl text-gray-800">Check Your Email</Text>
 
           <Text className="mb-1 text-center font-pregular text-base text-gray-600">
-            We've sent a password reset link to:
+            We've sent a temporary password to:
           </Text>
 
           <Text className="mb-4 text-center font-pmedium text-base text-secondary">{email}</Text>
 
           <Text className="mb-6 text-center font-pregular text-sm text-gray-600">
-            Click the link in the email to reset your password. The link will expire in 30 minutes.
+            We have emailed a temporary password to you. Please use it to sign in and then change
+            your password.
           </Text>
 
           <CustomButton
@@ -120,7 +121,7 @@ const SignIn = () => {
 
     await handleAPICall(
       'POST',
-      '/client/requestPasswordReset',
+      '/client/forgotPassword',
       null,
       {
         mobno: form.phone,
