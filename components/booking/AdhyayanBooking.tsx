@@ -183,7 +183,7 @@ const AdhyayanBooking = () => {
       },
     });
 
-  const renderItem: React.FC<{ item: any }> = ({ item }) => (
+  const renderItem = ({ item }: { item: any }) => (
     <ExpandableItem
       containerStyles={'mt-3'}
       visibleContent={
@@ -263,8 +263,13 @@ const AdhyayanBooking = () => {
           <View className="flex-1 items-center justify-center bg-black/50">
             <View className="max-h-[80%] w-[80%] max-w-[300px] rounded-lg bg-white p-5">
               <View className="mb-2 flex-row justify-between">
-                <View className="flex-col gap-y-1">
-                  <Text className="font-pmedium text-sm text-black">{selectedItem?.name}</Text>
+                <View className="flex-1 flex-col gap-y-1 pr-2">
+                  <Text
+                    className="font-pmedium text-sm text-black"
+                    numberOfLines={2}
+                    ellipsizeMode="tail">
+                    {selectedItem?.name}
+                  </Text>
                   <View className="flex-row gap-x-1">
                     <Text className="font-pregular text-xs text-gray-500">Date:</Text>
                     <Text className="font-pregular text-xs text-secondary">

@@ -648,7 +648,14 @@ const MumukshuAddons = () => {
 
   // Handle validation error modal close
   const handleCloseValidationModal = useCallback(() => {
-    setMumukshuData((prev: any) => ({ ...prev, dismissedValidationError: true }));
+    // Clean up state by removing only validation-related data
+    // but preserve the primary booking data
+    setMumukshuData((prev: any) => {
+      const { validationData, errorAlreadyShown, errorMessage, ...rest } = prev;
+      return rest;
+    });
+
+    // Navigate back immediately
     router.back();
   }, [router, setMumukshuData]);
 
@@ -710,7 +717,9 @@ const MumukshuAddons = () => {
                 />
 
                 {/* MUMUKSHU ADHYAYAN BOOKING COMPONENT */}
-                {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking) && (
+                {!(
+                  booking === types.ADHYAYAN_DETAILS_TYPE || booking === types.EVENT_DETAILS_TYPE
+                ) && (
                   <MumukshuAdhyayanAddon
                     adhyayanForm={adhyayanForm}
                     setAdhyayanForm={setAdhyayanForm}
@@ -746,7 +755,7 @@ const MumukshuAddons = () => {
             />
           </View>
 
-          {validationDataError && !mumukshuData.dismissedValidationError && (
+          {validationDataError && !mumukshuData.errorAlreadyShown && (
             <CustomModal
               visible={true}
               onClose={handleCloseValidationModal}

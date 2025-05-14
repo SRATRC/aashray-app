@@ -3,12 +3,17 @@ import { images } from '~/constants';
 
 interface CustomEmptyMessageProps {
   message: any;
+  containerClassName?: string;
 }
-const CustomEmptyMessage: React.FC<CustomEmptyMessageProps> = ({ message }) => {
+
+const CustomEmptyMessage: React.FC<CustomEmptyMessageProps> = ({
+  message,
+  containerClassName = 'py-10 items-center justify-center',
+}) => {
   return (
-    <View className="h-[80%] items-center justify-center">
-      <Image source={images.sadFace} className="h-[160] w-[160]" resizeMode="contain" />
-      <Text className="mt-10 w-[80%] text-center font-pmedium text-xl text-secondary">
+    <View className={`items-center justify-center ${containerClassName}`}>
+      <Image source={images.sadFace} className="h-[120] w-[120]" resizeMode="contain" />
+      <Text className="mt-6 w-[80%] text-center font-pmedium text-lg text-secondary">
         {message}
       </Text>
     </View>

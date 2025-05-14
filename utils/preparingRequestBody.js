@@ -192,7 +192,7 @@ export const prepareGuestRequestBody = (user, input) => {
             };
           case 'adhyayan':
             return {
-              booking_type: 'adhyayan',
+              booking_type: key,
               details: {
                 shibir_ids: [input[key].adhyayan.id],
                 guests: input[key].guests.map((guest) => guest.cardno),
@@ -214,6 +214,18 @@ export const prepareGuestRequestBody = (user, input) => {
 };
 
 export const prepareMumukshuRequestBody = (user, input) => {
+  // First, filter out any metadata fields that aren't booking-related
+  const metadataFields = [
+    'validationData',
+    'dismissedValidationError',
+    'errorAlreadyShown',
+    'errorMessage',
+  ];
+  const bookingInput = { ...input };
+  metadataFields.forEach((field) => {
+    if (bookingInput[field]) delete bookingInput[field];
+  });
+
   const transformMumukshuGroup = (mumukshuGroup) =>
     mumukshuGroup.map((group) => {
       const transformed = {};
@@ -264,7 +276,7 @@ export const prepareMumukshuRequestBody = (user, input) => {
     });
 
   const primaryBookingDetails = (primaryKey) => {
-    const primaryData = input[primaryKey];
+    const primaryData = bookingInput[primaryKey];
 
     switch (primaryKey) {
       case 'room':
@@ -362,15 +374,19 @@ export const prepareMumukshuRequestBody = (user, input) => {
               },
             };
           case 'validationData':
+          case 'dismissedValidationError':
+          case 'errorAlreadyShown':
+          case 'errorMessage':
             return null;
           default:
-            throw new Error(`Unsupported addon type: ${key}`);
+            console.log('input', input);
+            throw new Error(`Unsupported mumukshu addon type: ${key}`);
         }
       })
       .filter(Boolean);
   return {
     cardno: user.cardno,
-    primary_booking: primaryBookingDetails(input.primary),
-    addons: transformAddons(input),
+    primary_booking: primaryBookingDetails(bookingInput.primary),
+    addons: transformAddons(bookingInput),
   };
 };

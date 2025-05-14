@@ -118,6 +118,24 @@ const GlobalProvider = ({ children }) => {
     });
   };
 
+  // Function to clean up validation-related state
+  const cleanupValidationState = () => {
+    setMumukshuData((prev) => {
+      // Clean up all validation data but preserve error tracking if needed
+      const { validationData, ...rest } = prev;
+      return rest;
+    });
+  };
+
+  // Function to reset all validation and error states
+  const resetValidationState = () => {
+    setMumukshuData((prev) => {
+      const { validationData, dismissedValidationError, errorAlreadyShown, errorMessage, ...rest } =
+        prev;
+      return rest;
+    });
+  };
+
   return (
     <GlobalContext.Provider
       value={{
@@ -135,6 +153,8 @@ const GlobalProvider = ({ children }) => {
         updateBooking,
         updateGuestBooking,
         updateMumukshuBooking,
+        cleanupValidationState,
+        resetValidationState,
         settings,
         setSettings,
       }}>

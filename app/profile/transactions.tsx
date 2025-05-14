@@ -65,7 +65,7 @@ const Transactions = () => {
   const renderItem = ({ item }: { item: any }) => <TransactionItem item={item} />;
 
   return (
-    <SafeAreaView className="h-full bg-white">
+    <SafeAreaView className="h-full bg-white" edges={['top']}>
       <FlashList
         className="flex-grow-1 mt-2"
         data={data?.pages?.flatMap((page: any) => page) || []}
@@ -89,13 +89,18 @@ const Transactions = () => {
           </View>
         }
         ListFooterComponent={
-          <View className="items-center">
+          <View className="items-center pb-6">
             {(isFetchingNextPage || isLoading) && <ActivityIndicator />}
             {!hasNextPage && data?.pages?.[0]?.length > 0 && (
-              <Text>No more transactions at the moment</Text>
+              <Text className="py-2 font-pregular text-secondary">
+                No more transactions at the moment
+              </Text>
             )}
             {!isFetchingNextPage && data?.pages?.[0]?.length === 0 && (
-              <CustomEmptyMessage message="You don’t have any transactions yet" />
+              <CustomEmptyMessage
+                message="You don't have any transactions yet"
+                containerClassName="py-12 items-center justify-center"
+              />
             )}
           </View>
         }

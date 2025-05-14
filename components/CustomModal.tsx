@@ -1,7 +1,7 @@
 import { Modal, View, Text, TouchableOpacity, GestureResponderEvent } from 'react-native';
 import React from 'react';
 import CustomButton from './CustomButton';
-import AntDesign from '@expo/vector-icons/AntDesign';
+import { AntDesign } from '@expo/vector-icons';
 
 interface CustomModalProps {
   visible: boolean;
@@ -21,26 +21,32 @@ const CustomModal: React.FC<CustomModalProps> = ({
   return (
     <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
       <View
-        className="flex-1 items-center justify-center"
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-        <View className="w-[320] rounded-xl bg-white p-6 shadow-lg" style={{ elevation: 10 }}>
-          {/* Header with message and close button */}
-          <View className="mb-4 flex-row items-start justify-between">
-            <Text className="flex-1 pr-4 font-pmedium text-base text-gray-800">{message}</Text>
-            <TouchableOpacity onPress={onClose} className="rounded-full bg-gray-100 p-1.5">
-              <AntDesign name="close" size={16} color="#666" />
-            </TouchableOpacity>
-          </View>
+        className="flex-1 items-center justify-center px-6"
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}>
+        <View
+          className="w-full max-w-[350px] rounded-2xl bg-white p-6"
+          style={{
+            elevation: 5,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.2,
+            shadowRadius: 8,
+          }}>
+          <Text className="mb-5 pr-6 font-pmedium text-lg text-gray-800">{message}</Text>
 
-          {/* Button row */}
-          <View className="flex-row justify-end">
-            <CustomButton
-              handlePress={btnOnPress ? btnOnPress : onClose}
-              text={btnText ?? 'Confirm'}
-              bgcolor="bg-secondary"
-              containerStyles="mt-2 rounded-lg px-5 py-2.5"
-            />
-          </View>
+          <TouchableOpacity
+            onPress={onClose}
+            className="absolute right-4 top-4 rounded-full bg-gray-50 p-2"
+            activeOpacity={0.7}>
+            <AntDesign name="close" size={18} color="#666" />
+          </TouchableOpacity>
+
+          <CustomButton
+            handlePress={btnOnPress ?? onClose}
+            text={btnText ?? 'Confirm'}
+            bgcolor="bg-secondary"
+            containerStyles="mt-2 rounded-xl py-3 w-full"
+          />
         </View>
       </View>
     </Modal>
