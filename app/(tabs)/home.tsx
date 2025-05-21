@@ -10,57 +10,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { icons, images, status } from '../../constants';
+import { icons, images, quotes, status } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { useRouter } from 'expo-router';
 import CustomHomeIcon from '../../components/CustomHomeIcon';
-
-const quotes = [
-  {
-    quote:
-      'Every living being is capable of becoming Self-realised; one who realises this is himself bound to become a Realised Soul',
-    author: 'Shrimad Rajchandra',
-  },
-  {
-    quote:
-      'The greatest glory in living lies not in never falling, but in rising every time we fall.',
-    author: 'Nelson Mandela',
-  },
-  {
-    quote: 'The way to get started is to quit talking and begin doing.',
-    author: 'Walt Disney',
-  },
-  {
-    quote: "Your time is limited, so don't waste it living someone else's life.",
-    author: 'Steve Jobs',
-  },
-  {
-    quote: 'If life were predictable it would cease to be life, and be without flavor.',
-    author: 'Eleanor Roosevelt',
-  },
-  {
-    quote:
-      "If you look at what you have in life, you'll always have more. If you look at what you don't have in life, you'll never have enough.",
-    author: 'Oprah Winfrey',
-  },
-  {
-    quote:
-      "If you set your goals ridiculously high and it's a failure, you will fail above everyone else's success.",
-    author: 'James Cameron',
-  },
-  {
-    quote: "Life is what happens when you're busy making other plans.",
-    author: 'John Lennon',
-  },
-  {
-    quote: 'Happiness is not something ready-made. It comes from your own actions.',
-    author: 'Dalai Lama',
-  },
-  {
-    quote: 'The only way to do great work is to love what you do.',
-    author: 'Steve Jobs',
-  },
-];
 
 const QuotesBanner = ({ user, images }: any) => {
   // Select a random quote when component renders
@@ -76,12 +29,8 @@ const QuotesBanner = ({ user, images }: any) => {
         <Text className="px-4 pt-6 font-pbold text-lg text-secondary">
           JSDV, {user.issuedto.split(' ')[0]}!
         </Text>
-        <Text className="max-w-[63%] px-4 pt-4 font-pregular" adjustsFontSizeToFit>
-          "{randomQuote.quote}"
-        </Text>
-        <Text className="px-4 pt-2" adjustsFontSizeToFit>
-          ~ {randomQuote.author}
-        </Text>
+        <Text className="max-w-[63%] px-4 pt-4 font-pregular text-base">"{randomQuote.quote}"</Text>
+        <Text className="px-4 pt-2 font-pmedium text-sm">~ {randomQuote.author}</Text>
       </ImageBackground>
     </View>
   );
@@ -101,7 +50,7 @@ const Home: React.FC = () => {
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1" bounces={false}>
+      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
         <View className=" flex-row items-center justify-start px-4">
           <Image
             source={images.sratrcLogo as ImageSourcePropType}
@@ -138,6 +87,11 @@ const Home: React.FC = () => {
               image={icons.pendingPayment as ImageSourcePropType}
               title={'Pending Payments'}
               onPress={() => router.push('/pendingPayments')}
+            />
+            <CustomHomeIcon
+              image={icons.contact as ImageSourcePropType}
+              title={'Contact Info'}
+              onPress={() => router.push('/contactInfo')}
             />
           </View>
         </View>

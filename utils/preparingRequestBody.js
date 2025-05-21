@@ -317,7 +317,7 @@ export const prepareMumukshuRequestBody = (user, input) => {
         return {
           booking_type: 'utsav',
           details: {
-            utsavid: [primaryData.utsav.utsav_id],
+            utsavid: primaryData.utsav.utsav_id,
             mumukshus: primaryData.mumukshus.map((mumukshu) => {
               return {
                 cardno: mumukshu.cardno,

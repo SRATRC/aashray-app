@@ -182,19 +182,20 @@ const EventBookingCancellation = () => {
           <Text className="font-pmedium text-black">₹ {item.amount}</Text>
         </View>
         <View>
-          {moment(item.date).diff(moment().format('YYYY-MM-DD')) > 0 && (
-            <CustomButton
-              text="Cancel Booking"
-              containerStyles={'mt-5 py-3 mx-1 flex-1'}
-              textStyles={'text-sm text-white'}
-              handlePress={() => {
-                cancelBookingMutation.mutate({
-                  cardno: item.cardno,
-                  bookingid: item.bookingid,
-                });
-              }}
-            />
-          )}
+          {moment(item.date).diff(moment().format('YYYY-MM-DD')) > 0 &&
+            ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
+              <CustomButton
+                text="Cancel Booking"
+                containerStyles={'mt-5 py-3 mx-1 flex-1'}
+                textStyles={'text-sm text-white'}
+                handlePress={() => {
+                  cancelBookingMutation.mutate({
+                    cardno: item.cardno,
+                    bookingid: item.bookingid,
+                  });
+                }}
+              />
+            )}
         </View>
       </View>
     </ExpandableItem>

@@ -53,7 +53,7 @@ const AdhyayanBookingCancellation = () => {
   });
 
   const cancelBookingMutation = useMutation<any, any, any>({
-    mutationFn: ({ cardno, shibir_id, bookedBy }) => {
+    mutationFn: ({ cardno, bookingid }) => {
       return new Promise((resolve, reject) => {
         handleAPICall(
           'DELETE',
@@ -61,15 +61,14 @@ const AdhyayanBookingCancellation = () => {
           null,
           {
             cardno,
-            shibir_id,
-            bookedBy,
+            bookingid,
           },
           (res: any) => resolve(res),
           () => reject(new Error('Failed to cancel booking'))
         );
       });
     },
-    onSuccess: (_, { shibir_id, bookedBy }) => {
+    onSuccess: (_, { bookingid }) => {
       queryClient.setQueryData(['adhyayanBooking', user.cardno], (oldData: any) => {
         if (!oldData || !oldData.pages) return oldData;
 
@@ -77,9 +76,7 @@ const AdhyayanBookingCancellation = () => {
           ...oldData,
           pages: oldData.pages.map((page: any) =>
             page.map((booking: any) => {
-              const isMatchingBooking =
-                booking.shibir_id === shibir_id &&
-                (booking.bookedBy !== 'NA' ? booking.bookedBy == bookedBy : true);
+              const isMatchingBooking = booking.bookingid === bookingid;
 
               if (!isMatchingBooking) {
                 return booking;
@@ -213,9 +210,8 @@ const AdhyayanBookingCancellation = () => {
               textStyles={'text-sm text-white'}
               handlePress={() => {
                 cancelBookingMutation.mutate({
-                  shibir_id: item.shibir_id,
                   cardno: item.cardno,
-                  bookedBy: item.bookedFor == 'NA' ? undefined : item.bookedBy,
+                  bookingid: item.bookingid,
                 });
               }}
             />

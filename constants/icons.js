@@ -66,6 +66,7 @@ import smilestones from '../assets/icons/smilestones.png';
 import coin from '../assets/icons/coin.png';
 import pendingPayment from '../assets/icons/pending-payment.png';
 import tick from '../assets/icons/tick.png';
+import contact from '../assets/icons/contact.png';
 
 export default {
   play,
@@ -136,4 +137,5 @@ export default {
   coin,
   pendingPayment,
   tick,
+  contact,
 };

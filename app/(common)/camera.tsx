@@ -158,7 +158,15 @@ const CameraScreen: React.FC = () => {
           </View>
         </View>
       ) : (
-        <View className="flex-1">
+        <View className="relative flex-1">
+          <CameraView
+            ref={cameraRef}
+            style={{ flex: 1 }}
+            facing="front"
+            enableTorch={false}
+            mirror={true}
+          />
+
           <View className="absolute top-0 z-10 w-full bg-black/50 px-4 py-3 backdrop-blur-md">
             <Text className="text-center font-pmedium text-lg text-white">Take a Selfie</Text>
             <Text className="mt-1 text-center text-sm text-gray-400">
@@ -166,38 +174,31 @@ const CameraScreen: React.FC = () => {
             </Text>
           </View>
 
-          <CameraView
-            ref={cameraRef}
-            style={{ flex: 1 }}
-            facing="front"
-            enableTorch={false}
-            mirror={true}>
-            <View className="absolute bottom-0 w-full bg-black/40 pb-12 pt-6 backdrop-blur-sm">
-              <View className="flex-row items-center justify-center">
-                <View className="flex-1 items-center">
-                  <TouchableOpacity
-                    onPress={pickImage}
-                    className="h-14 w-14 items-center justify-center rounded-full border border-white/50 bg-black/60"
-                    style={{ elevation: 4 }}>
-                    <MaterialIcons name="photo-library" size={28} color="#fff" />
-                  </TouchableOpacity>
-                </View>
-
-                <View className="flex-1 items-center">
-                  <TouchableOpacity
-                    onPress={captureImage}
-                    className="h-20 w-20 items-center justify-center rounded-full border-4 border-secondary bg-white"
-                    style={{ elevation: 5 }}>
-                    <View className="h-16 w-16 items-center justify-center rounded-full border-2 border-secondary">
-                      <Ionicons name="camera" size={30} color="#000" />
-                    </View>
-                  </TouchableOpacity>
-                </View>
-
-                <View className="flex-1" />
+          <View className="absolute bottom-0 w-full bg-black/40 pb-12 pt-6 backdrop-blur-sm">
+            <View className="flex-row items-center justify-center">
+              <View className="flex-1 items-center">
+                <TouchableOpacity
+                  onPress={pickImage}
+                  className="h-14 w-14 items-center justify-center rounded-full border border-white/50 bg-black/60"
+                  style={{ elevation: 4 }}>
+                  <MaterialIcons name="photo-library" size={28} color="#fff" />
+                </TouchableOpacity>
               </View>
+
+              <View className="flex-1 items-center">
+                <TouchableOpacity
+                  onPress={captureImage}
+                  className="h-20 w-20 items-center justify-center rounded-full border-4 border-secondary bg-white"
+                  style={{ elevation: 5 }}>
+                  <View className="h-16 w-16 items-center justify-center rounded-full border-2 border-secondary">
+                    <Ionicons name="camera" size={30} color="#000" />
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              <View className="flex-1" />
             </View>
-          </CameraView>
+          </View>
         </View>
       )}
     </SafeAreaView>
