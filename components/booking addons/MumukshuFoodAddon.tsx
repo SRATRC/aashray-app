@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { colors, icons, dropdowns } from '../../constants';
 import moment from 'moment';
@@ -35,17 +35,9 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
   setDatePickerVisibility,
   onToggle,
 }) => {
-  // Temporary state to hold the date for the checkin picker
-  const [tempFoodStartDate, setTempFoodStartDate] = useState(new Date());
-
-  // When the checkin picker is opened, initialize the temporary date
-  useEffect(() => {
-    if (isDatePickerVisible.foodStart) {
-      setTempFoodStartDate(
-        foodForm.startDay ? moment(foodForm.startDay).toDate() : moment().add(1, 'days').toDate()
-      );
-    }
-  }, [isDatePickerVisible.foodStart]);
+  const [tempFoodStartDate, setTempFoodStartDate] = useState(
+    foodForm.startDay ? moment(foodForm.startDay).toDate() : moment().add(1, 'days').toDate()
+  );
 
   const getAvailableMumukshus = (currentGroupIndex: number) => {
     // Get all selected mumukshu indices from other groups

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { colors, icons, dropdowns } from '../../constants';
 import moment from 'moment';
@@ -36,16 +36,9 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
   onToggle,
 }) => {
   // Temporary state to hold the date for the checkin picker
-  const [tempCheckinDate, setTempCheckinDate] = useState(new Date());
-
-  // When the checkin picker is opened, initialize the temporary date
-  useEffect(() => {
-    if (isDatePickerVisible.checkin) {
-      setTempCheckinDate(
-        roomForm.startDay ? moment(roomForm.startDay).toDate() : moment().add(1, 'days').toDate()
-      );
-    }
-  }, [isDatePickerVisible.checkin]);
+  const [tempCheckinDate, setTempCheckinDate] = useState(
+    roomForm.startDay ? moment(roomForm.startDay).toDate() : moment().add(1, 'days').toDate()
+  );
 
   const getAvailableMumukshus = (currentGroupIndex: number) => {
     // Get all selected mumukshu indices from other groups
@@ -108,7 +101,7 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
           setDatePickerVisibility('checkin', false);
         }}
         onCancel={() => setDatePickerVisibility('checkin', false)}
-        minimumDate={tempCheckinDate}
+        minimumDate={moment().add(1, 'days').toDate()}
       />
 
       <FormDisplayField

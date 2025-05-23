@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image } from 'react-native';
 import { icons, dropdowns } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
@@ -28,16 +28,9 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
   const { data, setData } = useGlobalContext();
 
   // Temporary state to hold the date for the checkin picker
-  const [tempFoodStartDate, setTempFoodStartDate] = useState(new Date());
-
-  // When the checkin picker is opened, initialize the temporary date
-  useEffect(() => {
-    if (isDatePickerVisible.foodStart) {
-      setTempFoodStartDate(
-        foodForm.startDay ? moment(foodForm.startDay).toDate() : moment().add(1, 'days').toDate()
-      );
-    }
-  }, [isDatePickerVisible.foodStart]);
+  const [tempFoodStartDate, setTempFoodStartDate] = useState(
+    foodForm.startDay ? moment(foodForm.startDay).toDate() : moment().add(1, 'days').toDate()
+  );
 
   return (
     <AddonItem

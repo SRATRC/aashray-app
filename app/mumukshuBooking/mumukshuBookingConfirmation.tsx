@@ -106,7 +106,7 @@ const mumukshuBookingConfirmation = () => {
   };
 
   return (
-    <SafeAreaView className="h-full bg-white">
+    <SafeAreaView className="h-full bg-white" edges={['top', 'left', 'right']}>
       <ScrollView alwaysBounceVertical={false} showsVerticalScrollIndicator={false}>
         <PageHeader title="Payment Summary" />
 
@@ -116,7 +116,7 @@ const mumukshuBookingConfirmation = () => {
         {mumukshuData.travel && <MumukshuTravelBookingDetails containerStyles={'mt-2'} />}
         {mumukshuData.utsav && <MumukshuEventBookingDetails containerStyles={'mt-2'} />}
 
-        {validationData && (
+        {validationData && validationData.totalCharge > 0 && (
           <View className="mt-4 w-full px-4">
             <Text className="mb-4 font-psemibold text-xl text-secondary">Charges</Text>
             <View
@@ -196,7 +196,7 @@ const mumukshuBookingConfirmation = () => {
 
         <View className="mt-6 w-full px-4">
           <CustomButton
-            text="Proceed to Payment"
+            text={validationData && validationData.totalCharge > 0 ? 'Proceed to Payment' : 'Book'}
             handlePress={async () => {
               setIsSubmitting(true);
               try {

@@ -1,19 +1,37 @@
 import { View, Text, Image } from 'react-native';
-import { images } from '~/constants';
+import { images, colors } from '~/constants';
 
 interface CustomEmptyMessageProps {
-  message: any;
+  message: string;
   containerClassName?: string;
+  imageClassName?: string;
+  textClassName?: string;
+  image?: any; // Optional custom image
+  showImage?: boolean; // Option to hide image
 }
 
 const CustomEmptyMessage: React.FC<CustomEmptyMessageProps> = ({
   message,
-  containerClassName = 'py-10 items-center justify-center',
+  containerClassName = '',
+  imageClassName = '',
+  textClassName = '',
+  image = images.sadFace,
+  showImage = true,
 }) => {
   return (
-    <View className={`items-center justify-center ${containerClassName}`}>
-      <Image source={images.sadFace} className="h-[120] w-[120]" resizeMode="contain" />
-      <Text className="mt-6 w-[80%] text-center font-pmedium text-lg text-secondary">
+    <View
+      className={`flex-1 items-center justify-center px-4 py-8 ${containerClassName}`}
+      style={{ backgroundColor: 'transparent' }}>
+      {showImage && (
+        <Image
+          source={image}
+          className={`h-[140px] w-[140px] opacity-90 ${imageClassName}`}
+          resizeMode="contain"
+        />
+      )}
+      <Text
+        className={`mt-4 text-center font-pmedium text-base ${textClassName}`}
+        style={{ color: colors.gray_400 }}>
         {message}
       </Text>
     </View>

@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '../../constants';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -61,7 +61,7 @@ const createInitialTravelForm = (existingData: any = null) => ({
     {
       pickup: '',
       drop: '',
-      luggage: '',
+      luggage: [],
       type: dropdowns.BOOKING_TYPE_LIST[0].value,
       adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
       arrival_time: '',
@@ -434,7 +434,7 @@ const MumukshuAddons = () => {
           pickup: '',
           drop: '',
           arrival_time: '',
-          luggage: '',
+          luggage: [],
           adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
           type: dropdowns.BOOKING_TYPE_LIST[0].value,
           special_request: '',
@@ -516,7 +516,15 @@ const MumukshuAddons = () => {
 
   const validateTravelForm = useCallback(() => {
     const hasEmptyFields = travelForm.mumukshuGroup.some(
-      (group: any) => !group.pickup || !group.drop || !group.luggage || group.mumukshus.length === 0
+      (group: any) =>
+        !group.pickup ||
+        !group.drop ||
+        group.mumukshus.length === 0 ||
+        group.luggage.length === 0 ||
+        (group.pickup === 'Other' && group.special_request.trim() === '') ||
+        (group.drop === 'Other' && group.special_request.trim() === '') ||
+        (group.pickup == 'Research Centre' && group.drop == 'Research Centre') ||
+        (group.pickup != 'Research Centre' && group.drop != 'Research Centre')
     );
     return !hasEmptyFields && travelForm.date;
   }, [travelForm]);
@@ -543,7 +551,7 @@ const MumukshuAddons = () => {
       (group: any) =>
         group.pickup !== '' ||
         group.drop !== '' ||
-        group.luggage !== '' ||
+        group.luggage.length == 0 ||
         group.mumukshus.length > 0
     );
   }, [travelForm]);
@@ -557,12 +565,7 @@ const MumukshuAddons = () => {
       // Validate and set Room Form data
       if (booking !== types.ROOM_DETAILS_TYPE && addonOpen.room) {
         if (!validateRoomForm()) {
-          Toast.show({
-            type: 'error',
-            text1: 'Please fill all the room booking fields',
-            text2: '',
-            swipeable: false,
-          });
+          Alert.alert('Please fill all the room booking fields');
           hasValidationError = true;
           return;
         }
@@ -572,12 +575,7 @@ const MumukshuAddons = () => {
       // Validate and set Food Form data
       if (addonOpen.food) {
         if (!validateFoodForm()) {
-          Toast.show({
-            type: 'error',
-            text1: 'Please fill all the food booking fields',
-            text2: '',
-            swipeable: false,
-          });
+          Alert.alert('Please fill all the food booking fields');
           hasValidationError = true;
           return;
         }
@@ -587,12 +585,7 @@ const MumukshuAddons = () => {
       // Validate and set Adhyayan Form data
       if (booking !== types.ADHYAYAN_DETAILS_TYPE && isAdhyayanFormEmpty()) {
         if (!validateAdhyayanForm()) {
-          Toast.show({
-            type: 'error',
-            text1: 'Please fill all the adhyayan booking fields',
-            text2: '',
-            swipeable: false,
-          });
+          Alert.alert('Please fill all the adhyayan booking fields');
           hasValidationError = true;
           return;
         }
@@ -602,11 +595,7 @@ const MumukshuAddons = () => {
       // Validate and set Travel Form data
       if (booking !== types.TRAVEL_DETAILS_TYPE && addonOpen.travel) {
         if (!validateTravelForm()) {
-          Toast.show({
-            type: 'error',
-            text1: 'Please fill all travel fields',
-            swipeable: false,
-          });
+          Alert.alert('Please fill all travel fields');
           hasValidationError = true;
           return;
         }

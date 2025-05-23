@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { icons, colors, dropdowns } from '../../constants';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -36,17 +36,9 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
 }) => {
   const [activeMumukshuIndex, setActiveMumukshuIndex] = useState(null);
 
-  // Temporary state to hold the date for the checkin picker
-  const [tempTravelDate, setTempTravelDate] = useState(new Date());
-
-  // When the checkin picker is opened, initialize the temporary date
-  useEffect(() => {
-    if (isDatePickerVisible.travel) {
-      setTempTravelDate(
-        travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()
-      );
-    }
-  }, [isDatePickerVisible.travel]);
+  const [tempTravelDate, setTempTravelDate] = useState(
+    travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()
+  );
 
   const getAvailableMumukshus = (currentGroupIndex: number) => {
     // Get all selected mumukshu indices from other groups
@@ -109,7 +101,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
           setDatePickerVisibility('travel', false);
         }}
         onCancel={() => setDatePickerVisibility('travel', false)}
-        minimumDate={tempTravelDate}
+        minimumDate={moment().toDate()}
       />
 
       {travelForm.mumukshuGroup.map((assignment: any, index: any) => (
@@ -140,6 +132,16 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             onValuesChange={(val) => updateTravelForm(index, 'mumukshus', val)}
             multiSelect={true}
             confirmButtonText="Select"
+          />
+
+          <CustomSelectBottomSheet
+            className="mt-7"
+            label="Booking Type"
+            placeholder="Booking Type"
+            options={dropdowns.BOOKING_TYPE_LIST}
+            selectedValue={assignment.type}
+            onValueChange={(val: any) => updateTravelForm(index, 'type', val)}
+            saveKeyInsteadOfValue={false}
           />
 
           <CustomSelectBottomSheet
@@ -208,8 +210,8 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
                 }}
                 onCancel={() => setDatePickerVisibility('travel_time', false)}
                 minimumDate={
-                  travelForm.mumukshuGroup[index].arrival_time
-                    ? moment(travelForm.mumukshuGroup[index].arrival_time).toDate()
+                  travelForm.mumukshuGroup[index].date
+                    ? moment(travelForm.mumukshuGroup[index].date).toDate()
                     : moment().toDate()
                 }
               />
@@ -217,23 +219,16 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
           ) : null}
 
           <CustomSelectBottomSheet
-            className="mt-7"
-            label="Booking Type"
-            placeholder="Booking Type"
-            options={dropdowns.BOOKING_TYPE_LIST}
-            selectedValue={assignment.type}
-            onValueChange={(val: any) => updateTravelForm(index, 'type', val)}
-            saveKeyInsteadOfValue={false}
-          />
-
-          <CustomSelectBottomSheet
             className="mt-5"
             label="Luggage"
             placeholder="Select any Luggage"
             options={dropdowns.LUGGAGE_LIST}
-            selectedValue={assignment.luggage}
-            onValueChange={(val: any) => updateTravelForm(index, 'luggage', val)}
+            selectedValues={assignment.luggage}
+            onValuesChange={(val: any) => updateTravelForm(index, 'luggage', val)}
             saveKeyInsteadOfValue={false}
+            multiSelect={true}
+            confirmButtonText="Select"
+            maxSelectedDisplay={3}
           />
 
           {assignment.pickup == dropdowns.LOCATION_LIST[0].value && (

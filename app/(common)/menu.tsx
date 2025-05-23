@@ -1,7 +1,7 @@
 import { Text, View, ActivityIndicator } from 'react-native';
-import { Agenda } from 'react-native-calendars';
+import { Agenda, AgendaSchedule } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, icons } from '../../constants/index';
+import { colors, icons, images } from '../../constants/index';
 import { useQuery } from '@tanstack/react-query';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import handleAPICall from '../../utils/HandleApiCall';
@@ -78,17 +78,27 @@ const Menu = () => {
     }
 
     if (!menuData || Object.keys(menuData).length === 0) {
-      return <CustomEmptyMessage message={'No menu data available'} />;
+      return (
+        <CustomEmptyMessage
+          message="No menu data available for your visit"
+          image={images.sadFace}
+          imageClassName="h-[120px] w-[120px]"
+          textClassName="text-base font-psemibold"
+        />
+      );
     }
 
     const { firstDate, lastDate } = getFirstAndLastDate(menuData);
 
+    // Ensure we have a valid AgendaSchedule object
+    const agendaItems: AgendaSchedule = menuData || { [moment().format('YYYY-MM-DD')]: [] };
+
     return (
       <Agenda
-        items={menuData}
-        selected={moment(firstDate).format('YYYY-MM-DD')}
-        minDate={moment(firstDate).format('YYYY-MM-DD')}
-        maxDate={moment(lastDate).format('YYYY-MM-DD')}
+        items={agendaItems}
+        selected={moment(firstDate || new Date()).format('YYYY-MM-DD')}
+        minDate={moment(firstDate || new Date()).format('YYYY-MM-DD')}
+        maxDate={moment(lastDate || new Date()).format('YYYY-MM-DD')}
         pastScrollRange={1}
         futureScrollRange={1}
         renderItem={renderItem}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image } from 'react-native';
 import { icons, dropdowns } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
@@ -26,17 +26,9 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
 }) => {
   const { data, setData } = useGlobalContext();
 
-  // Temporary state to hold the date for the checkin picker
-  const [tempTravelDate, setTempTravelDate] = useState(new Date());
-
-  // When the checkin picker is opened, initialize the temporary date
-  useEffect(() => {
-    if (isDatePickerVisible.travel) {
-      setTempTravelDate(
-        travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()
-      );
-    }
-  }, [isDatePickerVisible.travel]);
+  const [tempTravelDate, setTempTravelDate] = useState(
+    travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()
+  );
 
   return (
     <AddonItem
@@ -47,7 +39,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           pickup: '',
           drop: '',
           arrival_time: '',
-          luggage: '',
+          luggage: [],
           adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
           type: dropdowns.BOOKING_TYPE_LIST[0].value,
           special_request: '',
@@ -88,7 +80,17 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           setDatePickerVisibility('travel', false);
         }}
         onCancel={() => setDatePickerVisibility('travel', false)}
-        minimumDate={tempTravelDate}
+        minimumDate={moment().toDate()}
+      />
+
+      <CustomSelectBottomSheet
+        className="mt-7"
+        label="Booking Type"
+        placeholder="Booking Type"
+        options={dropdowns.BOOKING_TYPE_LIST}
+        selectedValue={travelForm.type}
+        onValueChange={(val: any) => setTravelForm({ ...travelForm, type: val })}
+        saveKeyInsteadOfValue={false}
       />
 
       <CustomSelectBottomSheet
@@ -150,31 +152,22 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
               setDatePickerVisibility('travel_time', false);
             }}
             onCancel={() => setDatePickerVisibility('travel_time', false)}
-            minimumDate={
-              travelForm.arrival_time ? moment(travelForm.arrival_time).toDate() : moment().toDate()
-            }
+            minimumDate={travelForm.date ? moment(travelForm.date).toDate() : moment().toDate()}
           />
         </>
       ) : null}
 
       <CustomSelectBottomSheet
         className="mt-7"
-        label="Booking Type"
-        placeholder="Booking Type"
-        options={dropdowns.BOOKING_TYPE_LIST}
-        selectedValue={travelForm.type}
-        onValueChange={(val: any) => setTravelForm({ ...travelForm, type: val })}
-        saveKeyInsteadOfValue={false}
-      />
-
-      <CustomSelectBottomSheet
-        className="mt-7"
         label="Luggage"
         placeholder="Select any Luggage"
         options={dropdowns.LUGGAGE_LIST}
-        selectedValue={travelForm.luggage}
-        onValueChange={(val: any) => setTravelForm({ ...travelForm, luggage: val })}
+        selectedValues={travelForm.luggage}
+        onValuesChange={(val: any) => setTravelForm({ ...travelForm, luggage: val })}
         saveKeyInsteadOfValue={false}
+        multiSelect={true}
+        confirmButtonText="Select"
+        maxSelectedDisplay={3}
       />
 
       {travelForm.pickup == dropdowns.LOCATION_LIST[0].value && (

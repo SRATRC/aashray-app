@@ -67,7 +67,7 @@ const BookingDetails = () => {
       adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
       type: dropdowns.BOOKING_TYPE_LIST[0].value,
       arrival_time: '',
-      luggage: '',
+      luggage: [],
       special_request: '',
     },
     adhyayan: [],
@@ -158,8 +158,16 @@ const BookingDetails = () => {
   }, [forms.food]);
 
   const validateTravelForm = useCallback(() => {
-    const requiredFields = ['date', 'pickup', 'drop', 'luggage', 'type'];
-    return requiredFields.every((field) => forms.travel[field] !== '');
+    const { date, pickup, drop, luggage, special_request } = forms.travel;
+    if (!date || !pickup || !drop || luggage.length === 0) return false;
+    if (
+      (pickup === 'Other' && special_request.trim() === '') ||
+      (drop === 'Other' && special_request.trim() === '')
+    )
+      return false;
+    if (pickup === 'Research Centre' && drop === 'Research Centre') return false;
+    if (pickup !== 'Research Centre' && drop !== 'Research Centre') return false;
+    return true;
   }, [forms.travel]);
 
   // Handle form submission

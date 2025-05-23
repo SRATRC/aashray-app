@@ -189,16 +189,15 @@ const maintenanceRequestList = () => {
         renderItem={renderItem}
         ListHeaderComponent={renderHeader}
         ListFooterComponent={renderFooter}
+        ListEmptyComponent={
+          <CustomEmptyMessage message={'You dont have any maintenance requests yet'} />
+        }
         onEndReachedThreshold={0.1}
         onEndReached={() => {
           if (hasNextPage) fetchNextPage();
         }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       />
-
-      {!isFetchingNextPage && data?.pages?.[0]?.length == 0 && (
-        <CustomEmptyMessage message={'You dont have any maintenance requests yet'} />
-      )}
 
       <TouchableOpacity
         className="absolute bottom-8 right-6 rounded-2xl bg-secondary p-4"

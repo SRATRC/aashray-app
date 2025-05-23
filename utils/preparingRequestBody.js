@@ -21,7 +21,7 @@ export const prepareSelfRequestBody = (user, data) => {
         pickup_point: data.travel?.pickup,
         drop_point: data.travel?.drop,
         arrival_time: data.travel?.arrival_time,
-        luggage: data.travel?.luggage,
+        luggage: data.travel?.luggage.length > 0 ? data.travel?.luggage.join(', ') : '',
         leaving_post_adhyayan: data.travel?.adhyayan == 'No' ? 0 : 1,
         type: data.travel?.type,
         special_request: data.travel?.special_request,
@@ -81,7 +81,7 @@ export const prepareSelfRequestBody = (user, data) => {
         pickup_point: data.travel?.pickup,
         drop_point: data.travel?.drop,
         arrival_time: data.travel?.arrival_time,
-        luggage: data.travel?.luggage,
+        luggage: data.travel?.luggage.length > 0 ? data.travel?.luggage.join(', ') : '',
         leaving_post_adhyayan: data.travel?.adhyayan == 'No' ? 0 : 1,
         type: data.travel?.type,
         comments: data.travel?.special_request,
@@ -214,7 +214,6 @@ export const prepareGuestRequestBody = (user, input) => {
 };
 
 export const prepareMumukshuRequestBody = (user, input) => {
-  // First, filter out any metadata fields that aren't booking-related
   const metadataFields = [
     'validationData',
     'dismissedValidationError',
@@ -243,11 +242,13 @@ export const prepareMumukshuRequestBody = (user, input) => {
         if (!group.adhyayan) {
           const mumukshuWithAdhyayan = group.mumukshus.find((m) => m.adhyayan);
           if (mumukshuWithAdhyayan)
-            transformed.leaving_post_adhyayan = mumukshuWithAdhyayan.adhyayan;
+            transformed.leaving_post_adhyayan = mumukshuWithAdhyayan.adhyayan == 'No' ? 0 : 1;
         }
         if (!group.luggage) {
           const mumukshuWithLuggage = group.mumukshus.find((m) => m.luggage);
-          if (mumukshuWithLuggage) transformed.luggage = mumukshuWithLuggage.luggage;
+          if (mumukshuWithLuggage)
+            transformed.luggage =
+              mumukshuWithLuggage.luggage.length > 0 ? mumukshuWithLuggage.luggage.join(', ') : '';
         }
         if (!group.type) {
           const mumukshuWithType = group.mumukshus.find((m) => m.type);
@@ -266,7 +267,9 @@ export const prepareMumukshuRequestBody = (user, input) => {
         group.adhyayan == 'No'
           ? (transformed.leaving_post_adhyayan = 0)
           : (transformed.leaving_post_adhyayan = 1);
-      if (group.luggage) transformed.luggage = group.luggage;
+      if (group.luggage) {
+        transformed.luggage = group.luggage.length > 0 ? group.luggage.join(', ') : '';
+      }
       if (group.type) transformed.type = group.type;
       if (group.special_request) transformed.comments = group.special_request;
       if (group.meals) transformed.meals = group.meals;

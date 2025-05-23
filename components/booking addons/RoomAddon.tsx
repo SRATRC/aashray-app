@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image } from 'react-native';
 import { icons, dropdowns } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
@@ -28,16 +28,9 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
   const { data, setData } = useGlobalContext();
 
   // Temporary state to hold the date for the checkin picker
-  const [tempCheckinDate, setTempCheckinDate] = useState(new Date());
-
-  // When the checkin picker is opened, initialize the temporary date
-  useEffect(() => {
-    if (isDatePickerVisible.checkin) {
-      setTempCheckinDate(
-        roomForm.startDay ? moment(roomForm.startDay).toDate() : moment().add(1, 'days').toDate()
-      );
-    }
-  }, [isDatePickerVisible.checkin]);
+  const [tempCheckinDate, setTempCheckinDate] = useState(
+    roomForm.startDay ? moment(roomForm.startDay).toDate() : moment().add(1, 'days').toDate()
+  );
 
   return (
     <AddonItem

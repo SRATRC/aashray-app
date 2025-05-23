@@ -1,5 +1,5 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { colors, icons, dropdowns } from '../../constants';
 import moment from 'moment';
@@ -38,17 +38,9 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
 }) => {
   const { setGuestData } = useGlobalContext();
 
-  // Temporary state to hold the date for the checkin picker
-  const [tempCheckinDate, setTempCheckinDate] = useState(new Date());
-
-  // When the checkin picker is opened, initialize the temporary date
-  useEffect(() => {
-    if (isDatePickerVisible.checkin) {
-      setTempCheckinDate(
-        roomForm.startDay ? moment(roomForm.startDay).toDate() : moment().add(1, 'days').toDate()
-      );
-    }
-  }, [isDatePickerVisible.checkin]);
+  const [tempCheckinDate, setTempCheckinDate] = useState(
+    roomForm.startDay ? moment(roomForm.startDay).toDate() : moment().add(1, 'days').toDate()
+  );
 
   // Function to get available guests for a specific group index
   const getAvailableGuests = (currentGroupIndex: number) => {

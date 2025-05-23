@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { colors, icons, dropdowns } from '../../constants';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
@@ -35,17 +35,9 @@ const GuestFoodAddon: React.FC<GuestFoodAddonProps> = ({
   setDatePickerVisibility,
   onToggle,
 }) => {
-  // Temporary state to hold the date for the checkin picker
-  const [tempFoodStartDate, setTempFoodStartDate] = useState(new Date());
-
-  // When the checkin picker is opened, initialize the temporary date
-  useEffect(() => {
-    if (isDatePickerVisible.foodStart) {
-      setTempFoodStartDate(
-        foodForm.startDay ? moment(foodForm.startDay).toDate() : moment().add(1, 'days').toDate()
-      );
-    }
-  }, [isDatePickerVisible.foodStart]);
+  const [tempFoodStartDate, setTempFoodStartDate] = useState(
+    foodForm.startDay ? moment(foodForm.startDay).toDate() : moment().add(1, 'days').toDate()
+  );
 
   // Function to get available guests for a specific group index
   const getAvailableGuests = (currentGroupIndex: number) => {
@@ -108,7 +100,7 @@ const GuestFoodAddon: React.FC<GuestFoodAddonProps> = ({
           });
           setDatePickerVisibility('foodStart', false);
         }}
-        onCancel={() => setDatePickerVisibility('foodStart', true)}
+        onCancel={() => setDatePickerVisibility('foodStart', false)}
         minimumDate={moment().add(1, 'days').toDate()}
       />
 

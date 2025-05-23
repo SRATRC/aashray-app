@@ -62,7 +62,7 @@ const guestBookingConfirmation = () => {
         {guestData.adhyayan && <GuestAdhyayanBookingDetails containerStyles={'mt-2'} />}
         {guestData.food && <GuestFoodBookingDetails containerStyles={'mt-2'} />}
 
-        {validationData && (
+        {validationData && validationData.totalCharge > 0 && (
           <View className="mt-4 w-full px-4">
             <Text className="mb-4 font-psemibold text-xl text-secondary">Charges</Text>
             <View
@@ -121,7 +121,7 @@ const guestBookingConfirmation = () => {
 
         <View className="mt-6 w-full px-4">
           <CustomButton
-            text="Proceed to Payment"
+            text={validationData && validationData.totalCharge > 0 ? 'Proceed to Payment' : 'Book'}
             handlePress={async () => {
               setIsSubmitting(true);
               const onSuccess = (data: any) => {

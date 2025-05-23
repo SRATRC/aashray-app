@@ -38,6 +38,11 @@ const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerSt
       <HorizontalSeparator otherStyles={'mb-4'} />
 
       <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
+        <Image source={icons.car} className="h-4 w-4" resizeMode="contain" />
+        <Text className="font-pregular text-gray-400">Booking Type:</Text>
+        <Text className="font-pmedium text-black">{data.travel.type}</Text>
+      </View>
+      <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
         <Image source={icons.marker} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">
           {data.travel.pickup == 'RC' ? 'Drop Point' : 'Pickup Point'}
@@ -49,12 +54,9 @@ const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerSt
       <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
         <Image source={icons.luggage} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Luggage:</Text>
-        <Text className="font-pmedium text-black">{data.travel.luggage}</Text>
-      </View>
-      <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
-        <Image source={icons.car} className="h-4 w-4" resizeMode="contain" />
-        <Text className="font-pregular text-gray-400">Booking Type:</Text>
-        <Text className="font-pmedium text-black">{data.travel.type}</Text>
+        <Text className="font-pmedium text-black">
+          {data.travel.luggage.length > 0 ? data.travel.luggage.join(', ') : 'No luggage selected'}
+        </Text>
       </View>
       <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
         <Image source={icons.request} className="h-4 w-4" resizeMode="contain" />
