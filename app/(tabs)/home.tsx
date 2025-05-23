@@ -26,11 +26,13 @@ const QuotesBanner = ({ user, images }: any) => {
   return (
     <View className="w-full px-4">
       <ImageBackground className="h-[220px] w-full px-2" source={images.banner} resizeMode="cover">
-        <Text className="px-4 pt-6 font-pbold text-lg text-secondary">
+        <Text className="px-4 pt-6 text-right font-pbold text-lg text-secondary">
           JSDV, {user.issuedto.split(' ')[0]}!
         </Text>
-        <Text className="max-w-[63%] px-4 pt-4 font-pregular text-base">"{randomQuote.quote}"</Text>
-        <Text className="px-4 pt-2 font-pmedium text-sm">~ {randomQuote.author}</Text>
+        <Text className="ml-auto max-w-[63%] px-4 pt-4 text-right font-pregular text-base">
+          "{randomQuote.quote}"
+        </Text>
+        <Text className="px-4 pt-2 text-right font-pmedium text-sm">~ {randomQuote.author}</Text>
       </ImageBackground>
     </View>
   );
