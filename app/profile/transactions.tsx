@@ -92,9 +92,7 @@ const Transactions = () => {
           <View className="items-center pb-6">
             {(isFetchingNextPage || isLoading) && <ActivityIndicator />}
             {!hasNextPage && data?.pages?.[0]?.length > 0 && (
-              <Text className="py-2 font-pregular text-secondary">
-                No more transactions at the moment
-              </Text>
+              <Text>No more transactions at the moment</Text>
             )}
             {!isFetchingNextPage && data?.pages?.[0]?.length === 0 && (
               <CustomEmptyMessage

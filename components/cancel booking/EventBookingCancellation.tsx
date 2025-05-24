@@ -1,4 +1,5 @@
-import { View, Text, Image, ActivityIndicator } from 'react-native';
+import { View, Text, Image, ActivityIndicator, RefreshControl } from 'react-native';
+import { useState } from 'react';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { icons, status } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
@@ -14,6 +15,7 @@ import CustomEmptyMessage from '../CustomEmptyMessage';
 const EventBookingCancellation = () => {
   const { user } = useGlobalContext();
   const queryClient = useQueryClient();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchUtsavs = async ({ pageParam = 1 }) => {
     return new Promise((resolve, reject) => {
@@ -33,7 +35,7 @@ const EventBookingCancellation = () => {
     });
   };
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError }: any =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch }: any =
     useInfiniteQuery({
       queryKey: ['utsavBooking', user.cardno],
       queryFn: fetchUtsavs,
@@ -100,6 +102,17 @@ const EventBookingCancellation = () => {
       });
     },
   });
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const renderItem = ({ item }: any) => (
     <ExpandableItem
@@ -216,10 +229,10 @@ const EventBookingCancellation = () => {
     );
 
   return (
-    <View className="w-full">
+    <View className="mt-3 w-full flex-1">
       <FlashList
         className="flex-grow-1"
-        contentContainerStyle={{ paddingTop: 20, paddingHorizontal: 16 }}
+        contentContainerStyle={{ paddingHorizontal: 16 }}
         showsVerticalScrollIndicator={false}
         data={data?.pages?.flatMap((page: any) => page) || []}
         estimatedItemSize={113}
@@ -229,6 +242,7 @@ const EventBookingCancellation = () => {
         onEndReached={() => {
           if (hasNextPage) fetchNextPage();
         }}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
       />
       {!isFetchingNextPage && data?.pages?.[0]?.length == 0 && (
         <CustomEmptyMessage message={"No spiritual gatherings? Your soul's RSVP is missing."} />

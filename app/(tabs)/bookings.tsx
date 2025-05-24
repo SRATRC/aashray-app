@@ -1,7 +1,6 @@
-import React, { useState, useCallback, useRef, RefObject, useEffect } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import { View, Text, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ScrollView } from 'react-native-virtualized-view';
 import { types } from '../../constants';
 import { useQueryClient } from '@tanstack/react-query';
 import CustomChipGroup from '../../components/CustomChipGroup';
@@ -70,7 +69,7 @@ const BookingCategories: React.FC<BookingCategoriesProps> = ({ setRefreshHandler
   }, [setRefreshHandler, handleRefresh]);
 
   return (
-    <View className="w-full">
+    <View className="w-full flex-1">
       <View className="w-full px-4">
         <Text className="mt-6 font-psemibold text-2xl">{`${selectedChip} Booking`}</Text>
 
@@ -94,15 +93,13 @@ const Bookings: React.FC = () => {
   const [refreshHandler, setRefreshHandler] = useState<() => void>(() => {});
 
   return (
-    <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView
-          className="h-full"
-          alwaysBounceVertical={false}
-          showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={false} onRefresh={refreshHandler} />}>
+    <SafeAreaView className="flex-1 bg-white" edges={['right', 'top', 'left']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}>
+        <View className="flex-1">
           <BookingCategories setRefreshHandler={setRefreshHandler} />
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

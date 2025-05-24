@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, Image, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Image, ActivityIndicator, RefreshControl } from 'react-native';
 import { useInfiniteQuery, useMutation, useQueryClient, InfiniteData } from '@tanstack/react-query';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { icons, status } from '../../constants';
@@ -15,6 +15,7 @@ import CustomEmptyMessage from '../CustomEmptyMessage';
 const RoomBookingCancellation: React.FC = () => {
   const { user } = useGlobalContext();
   const queryClient = useQueryClient();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchRooms = async ({ pageParam = 1 }: { pageParam?: number }) => {
     return new Promise((resolve, reject) => {
@@ -31,7 +32,7 @@ const RoomBookingCancellation: React.FC = () => {
     });
   };
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError }: any =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch }: any =
     useInfiniteQuery({
       queryKey: ['roomBooking', user.cardno],
       queryFn: fetchRooms,
@@ -96,6 +97,17 @@ const RoomBookingCancellation: React.FC = () => {
       });
     },
   });
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const renderItem: ListRenderItem<any> = ({ item }) => (
     <ExpandableItem
@@ -244,10 +256,10 @@ const RoomBookingCancellation: React.FC = () => {
   }
 
   return (
-    <View className="w-full">
+    <View className="mt-3 w-full flex-1">
       <FlashList
         className="flex-grow-1"
-        contentContainerStyle={{ paddingTop: 20, paddingHorizontal: 16 }}
+        contentContainerStyle={{ paddingHorizontal: 16 }}
         showsVerticalScrollIndicator={false}
         data={data?.pages?.flatMap((page: any) => page) || []}
         estimatedItemSize={99}
@@ -257,6 +269,7 @@ const RoomBookingCancellation: React.FC = () => {
         onEndReached={() => {
           if (hasNextPage) fetchNextPage();
         }}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
       />
       {!isFetchingNextPage && data?.pages?.[0]?.length === 0 && (
         <CustomEmptyMessage message="Your room bookings are currently in a state of nirvana...empty" />
