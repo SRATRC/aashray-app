@@ -222,7 +222,14 @@ const maintenanceRequestList = () => {
             <PageHeader
               title="Maintenance Request"
               iconName="times"
-              onPress={() => setIsModalVisible(false)}
+              onPress={() => {
+                setForm({
+                  department: '',
+                  work_detail: '',
+                  area_of_work: '',
+                });
+                setIsModalVisible(false);
+              }}
             />
 
             <View className="mt-6 flex-1 px-4">
@@ -277,6 +284,11 @@ const maintenanceRequestList = () => {
                   const onSuccess = async (_data: any) => {
                     await queryClient.invalidateQueries({ queryKey: ['maintenance', user.cardno] });
                     setIsModalVisible(false);
+                    setForm({
+                      department: '',
+                      work_detail: '',
+                      area_of_work: '',
+                    });
                   };
                   const onFinally = () => {
                     setIsSubmitting(false);

@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
-import { colors, icons, status, types } from '../../constants';
+import { icons, status, types } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { useRouter } from 'expo-router';
 import CustomButton from '../CustomButton';
@@ -24,11 +24,9 @@ import moment from 'moment';
 import CustomChipGroup from '../CustomChipGroup';
 import GuestForm from '../GuestForm';
 import FormField from '../FormField';
-import Toast from 'react-native-toast-message';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 // @ts-ignore
-import RazorpayCheckout from 'react-native-razorpay';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 
 const CHIPS = ['Self', 'Guest', 'Mumukshus'];
@@ -677,14 +675,5 @@ const EventBooking = () => {
     </View>
   );
 };
-
-function transformMumukshuData(inputData: any) {
-  const { utsav, mumukshus } = inputData;
-
-  return {
-    utsav: utsav,
-    mumukshuGroup: mumukshus.map((mumukshu: any) => mumukshu),
-  };
-}
 
 export default EventBooking;

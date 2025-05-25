@@ -111,7 +111,7 @@ const SignIn = () => {
     setIsSubmitting(true);
 
     const onSuccess = async (data: any) => {
-      setResetEmail(data?.email);
+      setResetEmail(data?.data.email);
       setModalVisible(true);
     };
 
@@ -146,7 +146,7 @@ const SignIn = () => {
               value={form.phone}
               handleChangeText={(e: any) => setForm({ ...form, phone: e })}
               otherStyles="mt-7"
-              inputStyles="font-pmedium text-base"
+              inputStyles="font-pmedium text-base text-black"
               keyboardType="number-pad"
               placeholder="Enter Your Phone Number"
               maxLength={10}
@@ -157,7 +157,7 @@ const SignIn = () => {
               value={form.password}
               handleChangeText={(e: any) => setForm({ ...form, password: e })}
               otherStyles="mt-7"
-              inputStyles="font-pmedium text-base"
+              inputStyles="font-pmedium text-base text-black"
               keyboardType="default"
               placeholder="Enter Your Password"
               isPassword={true}

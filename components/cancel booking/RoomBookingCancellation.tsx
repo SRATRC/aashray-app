@@ -264,6 +264,11 @@ const RoomBookingCancellation: React.FC = () => {
         data={data?.pages?.flatMap((page: any) => page) || []}
         estimatedItemSize={99}
         renderItem={renderItem}
+        ListEmptyComponent={() => (
+          <View className="h-full flex-1 items-center justify-center pt-40">
+            <CustomEmptyMessage message="Your room bookings are currently in a state of nirvana...empty" />
+          </View>
+        )}
         ListFooterComponent={renderFooter}
         onEndReachedThreshold={0.1}
         onEndReached={() => {
@@ -271,9 +276,6 @@ const RoomBookingCancellation: React.FC = () => {
         }}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
       />
-      {!isFetchingNextPage && data?.pages?.[0]?.length === 0 && (
-        <CustomEmptyMessage message="Your room bookings are currently in a state of nirvana...empty" />
-      )}
     </View>
   );
 };

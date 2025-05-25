@@ -197,6 +197,7 @@ const Profile: React.FC = () => {
                 handleChangeText={setCurrentPassword}
                 otherStyles="mb-4"
                 containerStyles="bg-white border border-gray-300"
+                inputStyles="font-pmedium text-base text-black"
                 isPassword={true}
               />
 
@@ -207,6 +208,7 @@ const Profile: React.FC = () => {
                 handleChangeText={setNewPassword}
                 otherStyles="mb-4"
                 containerStyles="bg-white border border-gray-300"
+                inputStyles="font-pmedium text-base text-black"
                 isPassword={true}
               />
 
@@ -217,6 +219,7 @@ const Profile: React.FC = () => {
                 handleChangeText={setConfirmPassword}
                 otherStyles="mb-6"
                 containerStyles="bg-white border border-gray-300"
+                inputStyles="font-pmedium text-base text-black"
                 isPassword={true}
               />
 

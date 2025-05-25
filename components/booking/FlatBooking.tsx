@@ -1,12 +1,12 @@
 import { View, Text, Alert } from 'react-native';
 import React, { useState } from 'react';
+import { useGlobalContext } from '../../context/GlobalProvider';
 import CustomCalender from '../CustomCalender';
 import CustomChipGroup from '../CustomChipGroup';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomButton from '../CustomButton';
 import GuestForm from '../GuestForm';
 import handleAPICall from '../../utils/HandleApiCall';
-import { useGlobalContext } from '../../context/GlobalProvider';
 
 const CHIPS = ['Mumukshus', 'Guest'];
 const INITIAL_MUMUKSHU_FORM = {

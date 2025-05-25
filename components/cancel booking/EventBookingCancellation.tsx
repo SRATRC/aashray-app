@@ -237,6 +237,11 @@ const EventBookingCancellation = () => {
         data={data?.pages?.flatMap((page: any) => page) || []}
         estimatedItemSize={113}
         renderItem={renderItem}
+        ListEmptyComponent={() => (
+          <View className="h-full flex-1 items-center justify-center pt-40">
+            <CustomEmptyMessage message={"No spiritual gatherings? Your soul's RSVP is missing."} />
+          </View>
+        )}
         ListFooterComponent={renderFooter}
         onEndReachedThreshold={0.1}
         onEndReached={() => {
@@ -244,9 +249,6 @@ const EventBookingCancellation = () => {
         }}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
       />
-      {!isFetchingNextPage && data?.pages?.[0]?.length == 0 && (
-        <CustomEmptyMessage message={"No spiritual gatherings? Your soul's RSVP is missing."} />
-      )}
     </View>
   );
 };

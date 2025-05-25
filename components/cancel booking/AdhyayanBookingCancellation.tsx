@@ -257,6 +257,11 @@ const AdhyayanBookingCancellation = () => {
         data={data?.pages?.flatMap((page: any) => page) || []}
         estimatedItemSize={109}
         renderItem={renderItem}
+        ListEmptyComponent={() => (
+          <View className="h-full flex-1 items-center justify-center pt-40">
+            <CustomEmptyMessage message={'Zero adhyayans. Impressive...ly empty.'} />
+          </View>
+        )}
         ListFooterComponent={renderFooter}
         onEndReachedThreshold={0.1}
         onEndReached={() => {
@@ -264,9 +269,6 @@ const AdhyayanBookingCancellation = () => {
         }}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
       />
-      {!isFetchingNextPage && data?.pages?.[0]?.length == 0 && (
-        <CustomEmptyMessage message={'Zero adhyayans. Impressive...ly empty.'} />
-      )}
     </View>
   );
 };

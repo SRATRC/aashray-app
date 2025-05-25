@@ -409,40 +409,38 @@ const FoodBooking = () => {
                         });
                         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                       } else {
-                        router.replace('/bookingConfirmation');
-                        // var options = {
-                        //   key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
-                        //   name: 'Vitraag Vigyaan',
-                        //   image: 'https://vitraagvigyaan.org/img/logo.png',
-                        //   description: 'Payment for Vitraag Vigyaan',
-                        //   amount: `${data.data.amount}`,
-                        //   currency: 'INR',
-                        //   order_id: `${data.data.id}`,
-                        //   prefill: {
-                        //     email: `${user.email}`,
-                        //     contact: `${user.mobno}`,
-                        //     name: `${user.issuedto}`,
-                        //   },
-                        //   theme: { color: colors.orange },
-                        // };
-                        // RazorpayCheckout.open(options)
-                        //   .then((rzrpayData: any) => {
-                        //     // handle success
-                        //     setIsSubmitting(false);
-                        //     console.log(JSON.stringify(rzrpayData));
-                        //     router.replace('/paymentConfirmation');
-                        //   })
-                        //   .catch((error: any) => {
-                        //     // handle failure
-                        //     setIsSubmitting(false);
-                        //     Toast.show({
-                        //       type: 'error',
-                        //       text1: 'An error occurred!',
-                        //       text2: error.reason,
-                        //       swipeable: false,
-                        //     });
-                        //     console.log(JSON.stringify(error));
-                        //   });
+                        var options = {
+                          key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
+                          name: 'Vitraag Vigyaan',
+                          image: 'https://vitraagvigyaan.org/img/logo.png',
+                          description: 'Payment for Vitraag Vigyaan',
+                          amount: `${data.data.amount}`,
+                          currency: 'INR',
+                          order_id: `${data.data.id}`,
+                          prefill: {
+                            email: `${user.email}`,
+                            contact: `${user.mobno}`,
+                            name: `${user.issuedto}`,
+                          },
+                          theme: { color: colors.orange },
+                        };
+                        RazorpayCheckout.open(options)
+                          .then((rzrpayData: any) => {
+                            // handle success
+                            setIsSubmitting(false);
+                            router.replace('/paymentConfirmation');
+                          })
+                          .catch((error: any) => {
+                            // handle failure
+                            setIsSubmitting(false);
+                            Toast.show({
+                              type: 'error',
+                              text1: 'An error occurred!',
+                              text2: error.reason,
+                              swipeable: false,
+                            });
+                            console.log(JSON.stringify(error));
+                          });
                       }
                     },
                     () => {

@@ -138,7 +138,9 @@ const ContactInfoScreen = () => {
         <PageHeader title="Contact Information" />
 
         <View style={styles.headerSection}>
-          <Text style={styles.subtitle}>Get in touch with our support team for any assistance</Text>
+          <Text style={styles.subtitle}>
+            For inquiries, you can reach out during business hours (9:30 AM - 5:30 PM).
+          </Text>
         </View>
 
         <View style={styles.departmentsContainer}>
@@ -201,13 +203,6 @@ const ContactInfoScreen = () => {
             </View>
           ))}
         </View>
-
-        <View style={styles.footerSection}>
-          <Text style={styles.footerText}>
-            For urgent matters, please call directly. For non-urgent inquiries, you can also reach
-            out during business hours.
-          </Text>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -216,7 +211,7 @@ const ContactInfoScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#FFFFFF',
   },
   container: {
     flex: 1,
@@ -343,18 +338,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(241, 172, 9, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  footerSection: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  footerText: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 20,
-    fontWeight: '400',
   },
 });
 
