@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,7 +13,6 @@ import GuestAdhyayanBookingDetails from '../../components/booking details cards/
 import GuestRoomAddon from '../../components/booking addons/GuestRoomAddon';
 import GuestFoodAddon from '../../components/booking addons/GuestFoodAddon';
 import GuestAdhyayanAddon from '../../components/booking addons/GuestAdhyayanAddon';
-import Toast from 'react-native-toast-message';
 import handleAPICall from '~/utils/HandleApiCall';
 import CustomModal from '~/components/CustomModal';
 import GuestEventBookingDetails from '~/components/booking details cards/GuestEventBookingDetails';
@@ -406,12 +405,7 @@ const GuestAddons = () => {
       // Validate and set Room Form data
       if (booking !== types.ROOM_DETAILS_TYPE && addonOpen.room) {
         if (!validateRoomForm()) {
-          Toast.show({
-            type: 'error',
-            text1: 'Please fill all the room booking fields',
-            text2: '',
-            swipeable: false,
-          });
+          Alert.alert('Please fill all the room booking fields');
           hasValidationError = true;
           return;
         }
@@ -421,12 +415,7 @@ const GuestAddons = () => {
       // Validate and set Food Form data
       if (addonOpen.food) {
         if (!validateFoodForm()) {
-          Toast.show({
-            type: 'error',
-            text1: 'Please fill all the food booking fields',
-            text2: '',
-            swipeable: false,
-          });
+          Alert.alert('Please fill all the food booking fields');
           hasValidationError = true;
           return;
         }
@@ -436,12 +425,7 @@ const GuestAddons = () => {
       // Validate and set Adhyayan Form data
       if (booking !== types.ADHYAYAN_DETAILS_TYPE && isAdhyayanFormEmpty()) {
         if (!validateAdhyayanForm()) {
-          Toast.show({
-            type: 'error',
-            text1: 'Please fill all the adhyayan booking fields',
-            text2: '',
-            swipeable: false,
-          });
+          Alert.alert('Please fill all the adhyayan booking fields');
           hasValidationError = true;
           return;
         }

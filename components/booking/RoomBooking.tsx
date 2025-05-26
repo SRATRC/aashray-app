@@ -444,25 +444,30 @@ const RoomBooking = () => {
                       async (res: any) => {
                         const updatedGuests = guestForm.guests.map((formGuest) => {
                           const matchingApiGuest = res.guests.find(
-                            (apiGuest: any) => apiGuest.name === formGuest.name
+                            (apiGuest: any) => apiGuest.issuedto === formGuest.name
                           );
                           return matchingApiGuest
                             ? { ...formGuest, cardno: matchingApiGuest.cardno }
                             : formGuest;
                         });
 
+                        // Create the updated form object directly
+                        const updatedGuestForm = {
+                          ...guestForm,
+                          guests: updatedGuests,
+                        };
+
+                        // Update the state
                         await new Promise((resolve) => {
                           setGuestForm((prev) => {
-                            const newForm = {
-                              ...prev,
-                              guests: updatedGuests,
-                            };
+                            const newForm = updatedGuestForm;
                             resolve(newForm);
                             return newForm;
                           });
                         });
 
-                        const temp = transformGuestApiResponse(guestForm);
+                        // Use the updated form object directly, not the state
+                        const temp = transformGuestApiResponse(updatedGuestForm);
 
                         updateGuestBooking('room', temp);
                         setIsSubmitting(false);
@@ -655,6 +660,8 @@ const RoomBooking = () => {
                             checkout_date: selectedDay,
                             guestGroup: [
                               {
+                                roomType: 'nac',
+                                floorType: '',
                                 guests: updatedGuests,
                               },
                             ],
@@ -695,11 +702,15 @@ const RoomBooking = () => {
                       details: {
                         checkin_date: selectedDay,
                         checkout_date: selectedDay,
-                        mumukshuGroup: {
-                          mumukshus: singleDayMumukshuForm.mumukshus.map((mumukshu) => ({
-                            mobno: mumukshu.mobno,
-                          })),
-                        },
+                        mumukshuGroup: [
+                          {
+                            roomType: 'nac',
+                            floorType: '',
+                            mumukshus: singleDayMumukshuForm.mumukshus.map(
+                              (mumukshu) => mumukshu.cardno
+                            ),
+                          },
+                        ],
                       },
                     },
                   },
@@ -735,8 +746,8 @@ function transformGuestApiResponse(apiResponse: any) {
   const { startDay, endDay, guests } = apiResponse;
 
   // Group guests by roomType and floorType
-  const groupedGuests = guests.reduce((acc: any, guest: any, index: any) => {
-    const { roomType, floorType, cardno, issuedto } = guest;
+  const groupedGuests = guests.reduce((acc: any, guest: any) => {
+    const { roomType, floorType, name, gender, mobno, type, cardno } = guest;
 
     // Find existing group with the same roomType and floorType
     const groupKey = `${roomType}_${floorType}`;
@@ -749,7 +760,7 @@ function transformGuestApiResponse(apiResponse: any) {
     }
 
     // Add the guest to the appropriate group
-    acc[groupKey].guests.push({ cardno, issuedto });
+    acc[groupKey].guests.push({ name, gender, mobno, type, cardno });
 
     return acc;
   }, {});

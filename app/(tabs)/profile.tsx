@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
-import { Text, View, Image, Platform, TouchableOpacity, Modal, TextInput } from 'react-native';
+import {
+  Text,
+  View,
+  Image,
+  Platform,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native';
 import { colors, icons, images } from '../../constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGlobalContext } from '../../context/GlobalProvider';
@@ -70,6 +82,14 @@ const Profile: React.FC = () => {
         setIsLoading(false);
       }
     );
+  };
+
+  const closeModal = () => {
+    setPasswordModalVisible(false);
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    Keyboard.dismiss();
   };
 
   const profileList: any = [
@@ -185,67 +205,80 @@ const Profile: React.FC = () => {
           animationType="slide"
           transparent={true}
           visible={passwordModalVisible}
-          onRequestClose={() => setPasswordModalVisible(false)}>
-          <View className="flex-1 items-center justify-center bg-black/50">
-            <View className="w-[90%] rounded-xl bg-white p-6">
-              <Text className="mb-5 text-center font-psemibold text-xl">Reset Password</Text>
+          onRequestClose={closeModal}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            className="flex-1"
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View className="flex-1 items-center justify-center bg-black/50">
+                <TouchableWithoutFeedback onPress={() => {}}>
+                  <View className="max-h-[80%] w-[90%] rounded-xl bg-white">
+                    <ScrollView
+                      contentContainerStyle={{ flexGrow: 1 }}
+                      keyboardShouldPersistTaps="handled"
+                      showsVerticalScrollIndicator={false}>
+                      <View className="p-6">
+                        <Text className="mb-5 text-center font-psemibold text-xl">
+                          Reset Password
+                        </Text>
 
-              <FormField
-                text="Password"
-                value={currentPassword}
-                placeholder="Current Password"
-                handleChangeText={setCurrentPassword}
-                otherStyles="mb-4"
-                containerStyles="bg-white border border-gray-300"
-                inputStyles="font-pmedium text-base text-black"
-                isPassword={true}
-              />
+                        <FormField
+                          text="Current Password"
+                          value={currentPassword}
+                          placeholder="Enter current password"
+                          handleChangeText={setCurrentPassword}
+                          otherStyles="mb-4"
+                          containerStyles="bg-white border border-gray-300"
+                          inputStyles="font-pmedium text-base text-black"
+                          isPassword={true}
+                        />
 
-              <FormField
-                text="New Password"
-                value={newPassword}
-                placeholder="Enter New Password"
-                handleChangeText={setNewPassword}
-                otherStyles="mb-4"
-                containerStyles="bg-white border border-gray-300"
-                inputStyles="font-pmedium text-base text-black"
-                isPassword={true}
-              />
+                        <FormField
+                          text="New Password"
+                          value={newPassword}
+                          placeholder="Enter new password"
+                          handleChangeText={setNewPassword}
+                          otherStyles="mb-4"
+                          containerStyles="bg-white border border-gray-300"
+                          inputStyles="font-pmedium text-base text-black"
+                          isPassword={true}
+                        />
 
-              <FormField
-                text="Confirm Password"
-                value={confirmPassword}
-                placeholder="Confirm New Password"
-                handleChangeText={setConfirmPassword}
-                otherStyles="mb-6"
-                containerStyles="bg-white border border-gray-300"
-                inputStyles="font-pmedium text-base text-black"
-                isPassword={true}
-              />
+                        <FormField
+                          text="Confirm Password"
+                          value={confirmPassword}
+                          placeholder="Confirm new password"
+                          handleChangeText={setConfirmPassword}
+                          otherStyles="mb-6"
+                          containerStyles="bg-white border border-gray-300"
+                          inputStyles="font-pmedium text-base text-black"
+                          isPassword={true}
+                        />
 
-              <View className="flex-row justify-between">
-                <TouchableOpacity
-                  className="mr-2 h-12 flex-1 items-center justify-center rounded-lg border border-gray-300"
-                  onPress={() => {
-                    setPasswordModalVisible(false);
-                    setCurrentPassword('');
-                    setNewPassword('');
-                    setConfirmPassword('');
-                  }}>
-                  <Text className="font-pregular text-gray-700">Cancel</Text>
-                </TouchableOpacity>
+                        <View className="flex-row justify-between">
+                          <TouchableOpacity
+                            className="mr-2 h-12 flex-1 items-center justify-center rounded-lg border border-gray-300"
+                            onPress={closeModal}>
+                            <Text className="font-pregular text-gray-700">Cancel</Text>
+                          </TouchableOpacity>
 
-                <TouchableOpacity
-                  className={`ml-2 h-12 flex-1 items-center justify-center rounded-lg ${isLoading ? 'bg-gray-400' : 'bg-[#FF9500]'}`}
-                  onPress={handleResetPassword}
-                  disabled={isLoading}>
-                  <Text className="font-psemibold text-white">
-                    {isLoading ? 'Updating...' : 'Update Password'}
-                  </Text>
-                </TouchableOpacity>
+                          <TouchableOpacity
+                            className={`ml-2 h-12 flex-1 items-center justify-center rounded-lg ${isLoading ? 'bg-gray-400' : 'bg-[#FF9500]'}`}
+                            onPress={handleResetPassword}
+                            disabled={isLoading}>
+                            <Text className="font-psemibold text-white">
+                              {isLoading ? 'Updating...' : 'Update Password'}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </ScrollView>
+                  </View>
+                </TouchableWithoutFeedback>
               </View>
-            </View>
-          </View>
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
         </Modal>
       </View>
     </SafeAreaView>

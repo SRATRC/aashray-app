@@ -10,10 +10,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
-import { icons, status, types } from '../../constants';
+import { colors, icons, status, types } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { useRouter } from 'expo-router';
 import CustomButton from '../CustomButton';
@@ -246,6 +247,7 @@ const EventBooking = () => {
     status: queryStatus,
     isLoading,
     isError,
+    refetch,
   }: any = useInfiniteQuery({
     queryKey: ['utsavs', user.cardno],
     queryFn: fetchUtsavs,
@@ -313,12 +315,7 @@ const EventBooking = () => {
     </View>
   );
 
-  if (isError)
-    return (
-      <Text className="items-center justify-center font-pregular text-lg text-red-500">
-        An error occurred
-      </Text>
-    );
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   return (
     <View className="w-full">
@@ -663,15 +660,67 @@ const EventBooking = () => {
         renderItem={renderItem}
         keyExtractor={(item) => item.utsav_id.toString()}
         renderSectionHeader={renderSectionHeader}
-        ListFooterComponent={renderFooter}
+        ListEmptyComponent={() => (
+          <View className="h-full flex-1 items-center justify-center pt-40">
+            {isError ? (
+              <View className="items-center justify-center px-6">
+                <Text className="mb-2 text-center text-lg font-semibold text-gray-800">
+                  Oops! Something went wrong
+                </Text>
+                <Text className="mb-6 text-center text-gray-600">
+                  Unable to load content. Please check your connection and try again.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    refetch();
+                  }}
+                  className="rounded-lg bg-secondary px-6 py-3"
+                  activeOpacity={0.7}>
+                  <Text className="font-semibold text-white">Try Again</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View className="items-center justify-center px-6">
+                <Text className="text-center text-lg font-medium text-gray-600">
+                  No upcoming events at this moment!
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+        ListFooterComponent={() => (
+          <View>
+            {renderFooter()}
+            {isFetchingNextPage && isError && (
+              <View className="items-center py-4">
+                <Text className="mb-3 text-red-500">Failed to load more items</Text>
+                <TouchableOpacity
+                  onPress={() => fetchNextPage()}
+                  className="rounded bg-red-500 px-4 py-2"
+                  activeOpacity={0.7}>
+                  <Text className="font-medium text-white">Retry</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
         onEndReachedThreshold={0.1}
         onEndReached={() => {
-          if (hasNextPage) fetchNextPage();
+          if (hasNextPage && !isFetchingNextPage && !isError) {
+            fetchNextPage();
+          }
         }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing || false}
+            onRefresh={async () => {
+              setIsRefreshing(true);
+              await refetch();
+              setIsRefreshing(false);
+            }}
+          />
+        }
       />
-      {!isFetchingNextPage && data?.pages?.[0]?.length == 0 && (
-        <CustomEmptyMessage message={'No upcoming events at this moment!'} />
-      )}
     </View>
   );
 };

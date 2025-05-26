@@ -441,7 +441,7 @@ export default function FoodBookingCancellation() {
               <ActivityIndicator size="small" color="white" />
             ) : (
               <View className="flex-row items-center justify-center gap-x-2">
-                <FontAwesome size={12} name="trash" color={'white'} />
+                <FontAwesome size={16} name="trash" color={'white'} />
                 <Text className="font-psemibold text-white">
                   Cancel ({selectedItems.length}) Booking{selectedItems.length > 1 ? 's' : ''}
                 </Text>

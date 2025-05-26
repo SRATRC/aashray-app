@@ -200,8 +200,8 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
                 isVisible={isDatePickerVisible.travel_time && activeMumukshuIndex === index}
                 mode="datetime"
                 date={
-                  travelForm.mumukshuGroup[index].time
-                    ? moment(travelForm.mumukshuGroup[index].time).toDate()
+                  travelForm.mumukshuGroup[index].arrival_time
+                    ? moment(travelForm.mumukshuGroup[index].arrival_time).toDate()
                     : new Date()
                 }
                 onConfirm={(date: Date) => {

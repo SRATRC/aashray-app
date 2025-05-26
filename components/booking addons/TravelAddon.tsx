@@ -132,7 +132,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
             text="Flight/Train Time"
             value={
               travelForm.arrival_time
-                ? moment(travelForm.time).format('Do MMMM YYYY, h:mm a')
+                ? moment(travelForm.arrival_time).format('Do MMMM YYYY, h:mm a')
                 : 'Flight/Train Time'
             }
             otherStyles="mt-5"

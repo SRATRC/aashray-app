@@ -125,7 +125,7 @@ const TransactionItem = ({ item }: { item: any }) => {
       [types.GUEST_LUNCH_DETAILS_TYPE]: icons.food,
       [types.GUEST_DINNER_DETAILS_TYPE]: icons.food,
     };
-    return categoryIconMap[item.category] || icons.logout;
+    return categoryIconMap[item.category] || icons.miscellaneousTransaction;
   }, [item.category]);
 
   const getStatusDetails = useMemo(() => {
@@ -183,7 +183,7 @@ const TransactionItem = ({ item }: { item: any }) => {
       [types.GUEST_LUNCH_DETAILS_TYPE]: 'Guest Lunch Booking',
       [types.GUEST_DINNER_DETAILS_TYPE]: 'Guest Dinner Booking',
     };
-    return categoryNameMap[item.category] || 'Other';
+    return categoryNameMap[item.category] || 'Miscellaneous Transaction';
   }, [item.category]);
 
   return (

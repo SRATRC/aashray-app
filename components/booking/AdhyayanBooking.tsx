@@ -7,15 +7,16 @@ import {
   Modal,
   Image,
   Alert,
-  FlatList,
+  ScrollView,
   KeyboardAvoidingView,
   Platform,
+  RefreshControl,
 } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { icons, status, types } from '../../constants';
+import { colors, icons, status, types } from '../../constants';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useGlobalContext } from '../../context/GlobalProvider';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import CustomButton from '../CustomButton';
 import handleAPICall from '../../utils/HandleApiCall';
 import ExpandableItem from '../ExpandableItem';
@@ -54,6 +55,8 @@ const AdhyayanBooking = () => {
   const router = useRouter();
   const { user, updateBooking, updateGuestBooking, updateMumukshuBooking } = useGlobalContext();
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   if (user.res_status == status.STATUS_GUEST) {
     CHIPS = ['Self'];
   }
@@ -61,6 +64,17 @@ const AdhyayanBooking = () => {
   useEffect(
     useCallback(() => {
       setIsSubmitting(false);
+    }, [])
+  );
+
+  // Reset forms when navigating back to this screen
+  useFocusEffect(
+    useCallback(() => {
+      setGuestForm(INITIAL_GUEST_FORM);
+      setMumukshuForm(INITIAL_MUMUKSHU_FORM);
+      setSelectedChip('Self');
+      setIsModalVisible(false);
+      setSelectedItem(null);
     }, [])
   );
 
@@ -171,7 +185,7 @@ const AdhyayanBooking = () => {
     });
   };
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError }: any =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch }: any =
     useInfiniteQuery({
       queryKey: ['adhyayans', user.cardno],
       queryFn: fetchAdhyayans,
@@ -243,13 +257,6 @@ const AdhyayanBooking = () => {
     </View>
   );
 
-  if (isError)
-    return (
-      <Text className="items-center justify-center font-pregular text-lg text-red-500">
-        An error occurred
-      </Text>
-    );
-
   return (
     <View className="w-full">
       <Modal
@@ -290,136 +297,129 @@ const AdhyayanBooking = () => {
 
               <HorizontalSeparator otherStyles={'w-full'} />
 
-              <FlatList
+              <ScrollView
                 keyboardShouldPersistTaps="handled"
-                data={[{ key: 'bookFor' }, { key: 'guestForm' }, { key: 'confirmButton' }]}
-                renderItem={({ item }): any => {
-                  if (item.key === 'bookFor') {
-                    return (
-                      <View className="mt-2 flex-col">
-                        <Text className="font-pregular text-base text-black">Book For</Text>
-                        <CustomChipGroup
-                          chips={CHIPS}
-                          selectedChip={selectedChip}
-                          handleChipPress={handleChipClick}
-                          containerStyles={'mt-1'}
-                          chipContainerStyles={'py-1'}
-                          textStyles={'text-sm'}
-                        />
-                      </View>
-                    );
-                  } else if (item.key === 'guestForm') {
-                    if (selectedChip == CHIPS[1]) {
-                      return (
-                        <View>
-                          <GuestForm
-                            guestForm={guestForm}
-                            setGuestForm={setGuestForm}
-                            handleGuestFormChange={handleGuestFormChange}
-                            addGuestForm={addGuestForm}
-                            removeGuestForm={removeGuestForm}
-                          />
-                        </View>
-                      );
-                    } else if (selectedChip == CHIPS[2]) {
-                      return (
-                        <View>
-                          <OtherMumukshuForm
-                            mumukshuForm={mumukshuForm}
-                            setMumukshuForm={setMumukshuForm}
-                            handleMumukshuFormChange={handleMumukshuFormChange}
-                            addMumukshuForm={addMumukshuForm}
-                            removeMumukshuForm={removeMumukshuForm}
-                          />
-                        </View>
-                      );
-                    }
-                  } else if (item.key === 'confirmButton') {
-                    return (
-                      <CustomButton
-                        handlePress={async () => {
-                          setIsSubmitting(true);
-                          if (selectedChip == CHIPS[0]) {
-                            await updateBooking('adhyayan', [selectedItem]);
-                            if (selectedItem.location !== 'Research Centre')
-                              router.push('/booking/bookingConfirmation');
-                            else router.push(`/booking/${types.ADHYAYAN_DETAILS_TYPE}`);
-                          }
-                          if (selectedChip == CHIPS[1]) {
-                            if (!isGuestFormValid()) {
-                              Alert.alert('Fill all Fields');
-                              return;
-                            }
-
-                            if (guestForm.guests.filter((guest: any) => !guest.cardno).length > 0) {
-                              await handleAPICall(
-                                'POST',
-                                '/guest',
-                                null,
-                                {
-                                  cardno: user.cardno,
-                                  guests: guestForm.guests,
-                                },
-                                async (res: any) => {
-                                  guestForm.guests = res.guests;
-                                  const transformedData = transformData(guestForm);
-
-                                  await updateGuestBooking('adhyayan', transformedData);
-                                  setGuestForm(INITIAL_GUEST_FORM);
-
-                                  router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
-                                },
-                                () => {
-                                  setIsSubmitting(false);
-                                }
-                              );
-                            } else {
-                              const transformedData = transformData(guestForm);
-
-                              await updateGuestBooking('adhyayan', transformedData);
-                              setGuestForm(INITIAL_GUEST_FORM);
-                              if (selectedItem.location !== 'Research Centre')
-                                router.push('/guestBooking/bookingConfirmation');
-                              else router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
-                              setIsSubmitting(false);
-                            }
-                          }
-                          if (selectedChip == CHIPS[2]) {
-                            if (!isMumukshuFormValid()) {
-                              Alert.alert('Fill all Fields');
-                              return;
-                            }
-
-                            const temp = transformMumukshuData(mumukshuForm);
-
-                            await updateMumukshuBooking('adhyayan', temp);
-                            if (selectedItem.location !== 'Research Centre')
-                              router.push('/mumukshuBooking/bookingConfirmation');
-                            else router.push(`/mumukshuBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
-                          }
-                          setSelectedItem(null);
-                          setSelectedChip('Self');
-                          toggleModal();
-                        }}
-                        text={'Confirm'}
-                        bgcolor="bg-secondary"
-                        containerStyles="mt-4 p-2"
-                        textStyles={'text-sm text-white'}
-                        isDisabled={
-                          selectedChip === CHIPS[1]
-                            ? !isGuestFormValid()
-                            : selectedChip === CHIPS[2]
-                              ? !isMumukshuFormValid()
-                              : false
-                        }
-                        isLoading={isSubmitting}
-                      />
-                    );
-                  }
-                }}
-                keyExtractor={(item) => item.key}
                 showsVerticalScrollIndicator={false}
-              />
+                contentContainerStyle={{ flexGrow: 1 }}>
+                {/* Book For Section */}
+                <View className="mt-2 flex-col">
+                  <Text className="font-pregular text-base text-black">Book For</Text>
+                  <CustomChipGroup
+                    chips={CHIPS}
+                    selectedChip={selectedChip}
+                    handleChipPress={handleChipClick}
+                    containerStyles={'mt-1'}
+                    chipContainerStyles={'py-1'}
+                    textStyles={'text-sm'}
+                  />
+                </View>
+
+                {/* Guest Form Section */}
+                {selectedChip === CHIPS[1] && (
+                  <View>
+                    <GuestForm
+                      guestForm={guestForm}
+                      setGuestForm={setGuestForm}
+                      handleGuestFormChange={handleGuestFormChange}
+                      addGuestForm={addGuestForm}
+                      removeGuestForm={removeGuestForm}
+                    />
+                  </View>
+                )}
+
+                {/* Mumukshu Form Section */}
+                {selectedChip === CHIPS[2] && (
+                  <View>
+                    <OtherMumukshuForm
+                      mumukshuForm={mumukshuForm}
+                      setMumukshuForm={setMumukshuForm}
+                      handleMumukshuFormChange={handleMumukshuFormChange}
+                      addMumukshuForm={addMumukshuForm}
+                      removeMumukshuForm={removeMumukshuForm}
+                    />
+                  </View>
+                )}
+
+                {/* Confirm Button Section */}
+                <CustomButton
+                  handlePress={async () => {
+                    setIsSubmitting(true);
+                    if (selectedChip == CHIPS[0]) {
+                      await updateBooking('adhyayan', [selectedItem]);
+                      if (selectedItem.location !== 'Research Centre')
+                        router.push('/booking/bookingConfirmation');
+                      else router.push(`/booking/${types.ADHYAYAN_DETAILS_TYPE}`);
+                    }
+                    if (selectedChip == CHIPS[1]) {
+                      if (!isGuestFormValid()) {
+                        Alert.alert('Fill all Fields');
+                        return;
+                      }
+
+                      if (guestForm.guests.filter((guest: any) => !guest.cardno).length > 0) {
+                        await handleAPICall(
+                          'POST',
+                          '/guest',
+                          null,
+                          {
+                            cardno: user.cardno,
+                            guests: guestForm.guests,
+                          },
+                          async (res: any) => {
+                            guestForm.guests = res.guests;
+                            const transformedData = transformData(guestForm);
+
+                            await updateGuestBooking('adhyayan', transformedData);
+                            setGuestForm(INITIAL_GUEST_FORM);
+
+                            router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
+                          },
+                          () => {
+                            setIsSubmitting(false);
+                          }
+                        );
+                      } else {
+                        const transformedData = transformData(guestForm);
+
+                        await updateGuestBooking('adhyayan', transformedData);
+                        setGuestForm(INITIAL_GUEST_FORM);
+                        if (selectedItem.location !== 'Research Centre')
+                          router.push('/guestBooking/bookingConfirmation');
+                        else router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
+                        setIsSubmitting(false);
+                      }
+                    }
+                    if (selectedChip == CHIPS[2]) {
+                      if (!isMumukshuFormValid()) {
+                        Alert.alert('Fill all Fields');
+                        return;
+                      }
+
+                      const temp = transformMumukshuData(mumukshuForm);
+
+                      await updateMumukshuBooking('adhyayan', temp);
+                      if (selectedItem.location !== 'Research Centre')
+                        router.push('/mumukshuBooking/bookingConfirmation');
+                      else router.push(`/mumukshuBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
+                    }
+                    setSelectedItem(null);
+                    setSelectedChip('Self');
+                    toggleModal();
+                  }}
+                  text={'Confirm'}
+                  bgcolor="bg-secondary"
+                  containerStyles="mt-4 p-2"
+                  textStyles={'text-sm text-white'}
+                  isDisabled={
+                    selectedChip === CHIPS[1]
+                      ? !isGuestFormValid()
+                      : selectedChip === CHIPS[2]
+                        ? !isMumukshuFormValid()
+                        : false
+                  }
+                  isLoading={isSubmitting}
+                />
+              </ScrollView>
             </View>
           </View>
         </KeyboardAvoidingView>
@@ -433,15 +433,63 @@ const AdhyayanBooking = () => {
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         renderSectionHeader={renderSectionHeader}
-        ListFooterComponent={renderFooter}
+        ListEmptyComponent={() => (
+          <View className="h-full flex-1 items-center justify-center pt-40">
+            {isError ? (
+              <View className="items-center justify-center px-6">
+                <Text className="mb-2 text-center text-lg font-semibold text-gray-800">
+                  Oops! Something went wrong
+                </Text>
+                <Text className="mb-6 text-center text-gray-600">
+                  Unable to load Adhyayans. Please check your connection and try again.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    refetch();
+                  }}
+                  className="rounded-lg bg-secondary px-6 py-3"
+                  activeOpacity={0.7}>
+                  <Text className="font-semibold text-white">Try Again</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <CustomEmptyMessage message={'No upcoming Adhyayans at this moment!'} />
+            )}
+          </View>
+        )}
+        ListFooterComponent={() => (
+          <View>
+            {renderFooter()}
+            {isFetchingNextPage && isError && (
+              <View className="items-center py-4">
+                <Text className="mb-3 text-red-500">Failed to load more items</Text>
+                <TouchableOpacity
+                  onPress={() => fetchNextPage()}
+                  className="rounded bg-red-500 px-4 py-2"
+                  activeOpacity={0.7}>
+                  <Text className="font-medium text-white">Retry</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
         onEndReachedThreshold={0.1}
         onEndReached={() => {
-          if (hasNextPage) fetchNextPage();
+          if (hasNextPage && !isFetchingNextPage && !isError) {
+            fetchNextPage();
+          }
         }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing || false}
+            onRefresh={async () => {
+              setIsRefreshing(true);
+              await refetch();
+              setIsRefreshing(false);
+            }}
+          />
+        }
       />
-      {!isFetchingNextPage && data?.pages?.[0]?.length == 0 && (
-        <CustomEmptyMessage message={'No upcoming Adhyayans at this moment!'} />
-      )}
     </View>
   );
 };

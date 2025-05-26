@@ -29,7 +29,7 @@ const QuotesBanner = ({ user, images }: any) => {
         <Text className="px-4 pt-6 text-right font-pbold text-lg text-secondary">
           JSDV, {user.issuedto.split(' ')[0]}!
         </Text>
-        <Text className="ml-auto max-w-[63%] px-4 pt-4 text-right font-pregular text-base">
+        <Text className="ml-auto max-w-[60%] px-4 pt-4 text-right font-pregular text-base">
           "{randomQuote.quote}"
         </Text>
         <Text className="px-4 pt-2 text-right font-pmedium text-sm">~ {randomQuote.author}</Text>
