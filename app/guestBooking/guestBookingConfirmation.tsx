@@ -147,18 +147,12 @@ const guestBookingConfirmation = () => {
                     .then((rzrpayData: any) => {
                       // handle success
                       setIsSubmitting(false);
-                      router.replace('/booking/paymentConfirmation');
+                      router.replace('/booking/bookingConfirmation');
                     })
                     .catch((error: any) => {
                       // handle failure
                       setIsSubmitting(false);
-                      Toast.show({
-                        type: 'error',
-                        text1: 'An error occurred!',
-                        text2: error.reason,
-                        swipeable: false,
-                      });
-                      console.log(JSON.stringify(error));
+                      router.replace('/paymentFailed');
                     });
                 }
               };

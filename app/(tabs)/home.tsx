@@ -16,8 +16,6 @@ import { useRouter } from 'expo-router';
 import CustomHomeIcon from '../../components/CustomHomeIcon';
 
 const QuotesBanner = ({ user, images }: any) => {
-  // Select a random quote when component renders
-  // Using useMemo to ensure the quote only changes on re-render, not on every function call
   const randomQuote = useMemo(() => {
     const randomIndex = Math.floor(Math.random() * quotes.length);
     return quotes[randomIndex];
@@ -93,7 +91,7 @@ const Home: React.FC = () => {
             <CustomHomeIcon
               image={icons.contact as ImageSourcePropType}
               title={'Contact Info'}
-              onPress={() => router.push('/contactInfo')}
+              onPress={() => router.push('/bookingConfirmation')}
             />
           </View>
         </View>

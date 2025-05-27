@@ -205,16 +205,11 @@ const PendingPayments = () => {
               text1: 'Payment successful',
               swipeable: false,
             });
-            router.replace('/paymentConfirmation');
+            router.replace('/bookingConfirmation');
           })
           .catch((error: any) => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-            Toast.show({
-              type: 'error',
-              text1: 'Payment failed',
-              text2: error.reason || 'Please try again',
-              swipeable: false,
-            });
+            router.replace('/paymentFailed');
           });
       }
     } catch (error: any) {

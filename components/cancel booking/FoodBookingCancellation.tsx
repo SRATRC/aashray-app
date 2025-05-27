@@ -10,16 +10,12 @@ import {
 } from 'react-native';
 import { useState, useCallback, useRef } from 'react';
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
 import { icons } from '../../constants';
 import { FlashList } from '@shopify/flash-list';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { useBottomSheetModal } from '@gorhom/bottom-sheet';
+import { FontAwesome } from '@expo/vector-icons';
+import Animated from 'react-native-reanimated';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import handleAPICall from '../../utils/HandleApiCall';
 import CustomTag from '../CustomTag';
@@ -27,7 +23,6 @@ import moment from 'moment';
 import * as Haptics from 'expo-haptics';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import BottomSheetFilter from '../BottomSheetFilter';
-import { FontAwesome } from '@expo/vector-icons';
 
 const FOOD_TYPE_LIST = [
   { key: 'breakfast', value: 'Breakfast' },
@@ -58,6 +53,14 @@ export default function FoodBookingCancellation() {
     sheetRef.current?.present();
   }, []);
   const [activeFilter, setActiveFilter] = useState<any>(null);
+
+  const canCancelMeal = (mealDate: string) => {
+    const now = moment();
+    const mealMoment = moment(mealDate);
+    const cutoffTime = mealMoment.clone().subtract(1, 'day').hour(11).minute(0).second(0);
+
+    return now.isBefore(cutoffTime);
+  };
 
   const getFilterData = (filterType: any) => {
     switch (filterType) {
@@ -181,10 +184,11 @@ export default function FoodBookingCancellation() {
     }
   };
 
-  // Select all function
+  // Select all function - only cancellable items
   const handleSelectAll = () => {
     const allItems = data?.pages?.flat() || [];
-    const allItemsFormatted = allItems.map((item: any) => ({
+    const cancellableItems = allItems.filter((item: any) => canCancelMeal(item.date));
+    const allItemsFormatted = cancellableItems.map((item: any) => ({
       date: item.date,
       mealType: item.mealType,
       bookedFor: item.bookedFor,
@@ -199,43 +203,34 @@ export default function FoodBookingCancellation() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
-  // Check if all items are selected
+  // Check if all cancellable items are selected
   const allItems = data?.pages?.flat() || [];
-  const isAllSelected = allItems.length > 0 && selectedItems.length === allItems.length;
+  const cancellableItems = allItems.filter((item: any) => canCancelMeal(item.date));
+  const isAllSelected =
+    cancellableItems.length > 0 && selectedItems.length === cancellableItems.length;
 
   const renderItem = ({ item }: { item: any }) => {
     const itemKey = `${item.date}-${item.mealType}-${item.bookedFor}`;
+    const isCancellable = canCancelMeal(item.date);
 
     const isSelected = selectedItems.some(
       (selected: any) => `${selected.date}-${selected.mealType}-${selected.bookedFor}` === itemKey
     );
 
-    // const shakeTranslateX = useSharedValue(0);
-
-    // const shake = useCallback(() => {
-    //   shakeTranslateX.value = withSequence(
-    //     withTiming(-10, { duration: 50 }),
-    //     withTiming(10, { duration: 50 }),
-    //     withTiming(-10, { duration: 50 }),
-    //     withTiming(10, { duration: 50 }),
-    //     withTiming(0, { duration: 50 })
-    //   );
-    // }, [shakeTranslateX]);
-
-    // const rShakeStyle = useAnimatedStyle(() => {
-    //   return {
-    //     transform: [{ translateX: shakeTranslateX.value }],
-    //   };
-    // }, [shakeTranslateX]);
-
     return (
       <Animated.View
-        // style={[rShakeStyle]}
-        className={`mb-5 rounded-2xl bg-white p-3 ${
+        className={`mb-5 rounded-2xl p-3 ${
           Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-        } ${isSelected && 'border border-secondary'}`}>
+        } ${
+          isCancellable
+            ? `bg-white ${isSelected ? 'border border-secondary' : ''}`
+            : 'bg-gray-100 opacity-60'
+        }`}>
         <TouchableOpacity
+          disabled={!isCancellable}
           onPress={() => {
+            if (!isCancellable) return;
+
             const prevSelectedItems = [...selectedItems];
             const itemKey = `${item.date}-${item.mealType}-${item.bookedFor}`;
 
@@ -267,41 +262,73 @@ export default function FoodBookingCancellation() {
           <View className="flex-1 flex-row items-center gap-x-4">
             <View
               className={`flex-col items-center justify-center rounded-full px-3 py-1.5 ${
-                isSelected ? 'bg-secondary' : 'bg-secondary-50'
+                !isCancellable ? 'bg-gray-200' : isSelected ? 'bg-secondary' : 'bg-secondary-50'
               }`}>
               <Text
-                className={`${
-                  isSelected ? 'text-white' : 'text-secondary'
-                } font-psemibold text-base`}>
+                className={`font-psemibold text-base ${
+                  !isCancellable ? 'text-gray-400' : isSelected ? 'text-white' : 'text-secondary'
+                }`}>
                 {moment(item.date).date()}
               </Text>
               <Text
-                className={`${
-                  isSelected ? 'text-white' : 'text-secondary'
-                } font-psemibold text-xs`}>
+                className={`font-psemibold text-xs ${
+                  !isCancellable ? 'text-gray-400' : isSelected ? 'text-white' : 'text-secondary'
+                }`}>
                 {moment(item.date).format('MMM')}
               </Text>
             </View>
 
             <View className="flex-col gap-y-2">
+              {!isCancellable && (
+                <View className="mb-1">
+                  <Text className="font-pmedium text-xs text-red-500">
+                    Cannot cancel (deadline passed)
+                  </Text>
+                </View>
+              )}
+
               <CustomTag
                 icon={icons.spice}
                 iconStyles={'w-4 h-4 items-center justify-center'}
                 text={item.spicy ? 'Regular' : 'Non-Spicy'}
-                textStyles={item.spicy ? 'text-red-200' : 'text-green-200'}
-                containerStyles={item.spicy ? 'bg-red-100' : 'bg-green-100'}
-                tintColor={item.spicy ? '#EB5757' : '#05B617'}
+                textStyles={
+                  !isCancellable ? 'text-gray-400' : item.spicy ? 'text-red-200' : 'text-green-200'
+                }
+                containerStyles={
+                  !isCancellable ? 'bg-gray-100' : item.spicy ? 'bg-red-100' : 'bg-green-100'
+                }
+                tintColor={!isCancellable ? '#9CA3AF' : item.spicy ? '#EB5757' : '#05B617'}
               />
               <View className="flex-row items-center">
-                <Image source={icons.meal} resizeMode="contain" className="h-4 w-4" />
-                <Text className="ml-1 text-gray-400">Meal Type</Text>
-                <Text className="ml-1 font-pmedium text-black">{item.mealType}</Text>
+                <Image
+                  source={icons.meal}
+                  resizeMode="contain"
+                  className="h-4 w-4"
+                  style={!isCancellable ? { opacity: 0.5 } : {}}
+                />
+                <Text className={`ml-1 ${!isCancellable ? 'text-gray-400' : 'text-gray-400'}`}>
+                  Meal Type
+                </Text>
+                <Text
+                  className={`ml-1 font-pmedium ${!isCancellable ? 'text-gray-500' : 'text-black'}`}>
+                  {item.mealType}
+                </Text>
               </View>
               {item.bookedBy && (
                 <View className="flex-row items-center">
-                  <Image source={icons.person} resizeMode="contain" className="h-4 w-4" />
-                  <Text className="ml-1 text-gray-400">Booked For</Text>
-                  <Text className="ml-1 font-pmedium text-black">{item.name}</Text>
+                  <Image
+                    source={icons.person}
+                    resizeMode="contain"
+                    className="h-4 w-4"
+                    style={!isCancellable ? { opacity: 0.5 } : {}}
+                  />
+                  <Text className={`ml-1 ${!isCancellable ? 'text-gray-400' : 'text-gray-400'}`}>
+                    Booked For
+                  </Text>
+                  <Text
+                    className={`ml-1 font-pmedium ${!isCancellable ? 'text-gray-500' : 'text-black'}`}>
+                    {item.name}
+                  </Text>
                 </View>
               )}
             </View>
@@ -419,15 +446,17 @@ export default function FoodBookingCancellation() {
           {/* Selection info and Select/Deselect All button */}
           <View className="flex-1">
             <Text className="font-pmedium text-sm text-gray-600">
-              {selectedItems.length} of {allItems.length} selected
+              {selectedItems.length} of {cancellableItems.length} selected
             </Text>
-            <TouchableOpacity
-              onPress={isAllSelected ? handleDeselectAll : handleSelectAll}
-              className="mt-1">
-              <Text className="font-psemibold text-sm text-secondary">
-                {isAllSelected ? 'Deselect All' : 'Select All'}
-              </Text>
-            </TouchableOpacity>
+            {cancellableItems.length > 0 && (
+              <TouchableOpacity
+                onPress={isAllSelected ? handleDeselectAll : handleSelectAll}
+                className="mt-1">
+                <Text className="font-psemibold text-sm text-secondary">
+                  {isAllSelected ? 'Deselect All' : 'Select All'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Cancel Bookings button */}
