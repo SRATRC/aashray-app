@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, Image, ActivityIndicator, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  ActivityIndicator,
+  RefreshControl,
+  TouchableOpacity,
+} from 'react-native';
 import { useInfiniteQuery, useMutation, useQueryClient, InfiniteData } from '@tanstack/react-query';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { icons, status } from '../../constants';
@@ -247,14 +254,6 @@ const RoomBookingCancellation: React.FC = () => {
     </View>
   );
 
-  if (isError) {
-    return (
-      <Text className="items-center justify-center font-pregular text-lg text-red-500">
-        An error occurred
-      </Text>
-    );
-  }
-
   return (
     <View className="mt-3 w-full flex-1">
       <FlashList
@@ -269,7 +268,22 @@ const RoomBookingCancellation: React.FC = () => {
             <CustomEmptyMessage message="Your room bookings are currently in a state of nirvana...empty" />
           </View>
         )}
-        ListFooterComponent={renderFooter}
+        ListFooterComponent={() => (
+          <View>
+            {renderFooter()}
+            {isFetchingNextPage && isError && (
+              <View className="items-center py-4">
+                <Text className="mb-3 text-red-500">Failed to load more items</Text>
+                <TouchableOpacity
+                  onPress={() => fetchNextPage()}
+                  className="rounded bg-red-500 px-4 py-2"
+                  activeOpacity={0.7}>
+                  <Text className="font-medium text-white">Retry</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
         onEndReachedThreshold={0.1}
         onEndReached={() => {
           if (hasNextPage) fetchNextPage();

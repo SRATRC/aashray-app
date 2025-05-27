@@ -482,13 +482,6 @@ export default function FoodBookingCancellation() {
     );
   };
 
-  if (isError)
-    return (
-      <Text className="items-center justify-center font-pregular text-lg text-red-500">
-        An error occurred
-      </Text>
-    );
-
   return (
     <View className="mt-3 w-full flex-1">
       <FlashList
@@ -502,7 +495,22 @@ export default function FoodBookingCancellation() {
         showsVerticalScrollIndicator={false}
         renderItem={renderItem}
         ListHeaderComponent={renderHeader}
-        ListFooterComponent={renderFooter}
+        ListFooterComponent={() => (
+          <View>
+            {renderFooter()}
+            {isFetchingNextPage && isError && (
+              <View className="items-center py-4">
+                <Text className="mb-3 text-red-500">Failed to load more items</Text>
+                <TouchableOpacity
+                  onPress={() => fetchNextPage()}
+                  className="rounded bg-red-500 px-4 py-2"
+                  activeOpacity={0.7}>
+                  <Text className="font-medium text-white">Retry</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
         ListEmptyComponent={
           <View className="h-full flex-1 items-center justify-center pt-40">
             <CustomEmptyMessage

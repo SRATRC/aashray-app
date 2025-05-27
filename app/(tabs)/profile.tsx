@@ -6,11 +6,11 @@ import {
   Platform,
   TouchableOpacity,
   Modal,
-  TextInput,
   KeyboardAvoidingView,
   ScrollView,
   TouchableWithoutFeedback,
   Keyboard,
+  RefreshControl,
 } from 'react-native';
 import { colors, icons, images } from '../../constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,15 +20,17 @@ import { FlashList } from '@shopify/flash-list';
 import Toast from 'react-native-toast-message';
 import handleAPICall from '../../utils/HandleApiCall';
 import FormField from '~/components/FormField';
+import { handleUserNavigation } from '~/utils/navigationValidations';
 
 const Profile: React.FC = () => {
-  const { user, removeItem } = useGlobalContext();
+  const { user, removeItem, setUser, setCurrentUser } = useGlobalContext();
   const router: any = useRouter();
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleResetPassword = async () => {
     // Validate inputs
@@ -176,15 +178,55 @@ const Profile: React.FC = () => {
       </TouchableOpacity>
       <Text className="mt-2 font-psemibold text-base">{user.issuedto}</Text>
 
-      <View className="mt-4 flex-row items-center rounded-full bg-secondary-50 px-6 py-3">
-        <Image
-          source={icons.coin || require('../../assets/icons/coin.png')}
-          className="mr-2 h-6 w-6"
-          resizeMode="contain"
-        />
-        <Text className="font-psemibold text-base text-orange-500">
-          {user.credits || 0} Credits
-        </Text>
+      <View className="mt-8 w-full px-6">
+        <View
+          className={`rounded-lg bg-white p-6 ${
+            Platform.OS === 'ios' ? 'shadow-sm shadow-gray-200' : 'shadow-md shadow-gray-300'
+          }`}
+          style={{
+            borderWidth: 1,
+            borderColor: '#E5E7EB',
+          }}>
+          <Text className="mb-5 font-psemibold text-lg text-gray-800">Account Balance</Text>
+
+          <View className="flex-row justify-between">
+            <View className="flex-1 items-center pr-4">
+              <View className="mb-3 rounded-lg bg-gray-50 p-3">
+                <Image source={icons.coin} className="h-5 w-5" resizeMode="contain" />
+              </View>
+              <Text className="font-psemibold text-2xl text-gray-900">
+                {user?.credits?.room || 0}
+              </Text>
+              <Text className="font-pmedium text-sm text-gray-600">Room Credits</Text>
+            </View>
+
+            <View className="mx-2 w-px bg-gray-200" style={{ height: 80 }} />
+
+            <View className="flex-1 items-center pl-4">
+              <View className="mb-3 rounded-lg bg-gray-50 p-3">
+                <Image source={icons.coin} className="h-5 w-5" resizeMode="contain" />
+              </View>
+              <Text className="font-psemibold text-2xl text-gray-900">
+                {user?.credits?.travel || 0}
+              </Text>
+              <Text className="font-pmedium text-sm text-gray-600">Travel Credits</Text>
+            </View>
+          </View>
+
+          <View
+            className="mt-5 pt-4"
+            style={{
+              borderTopWidth: 1,
+              borderTopColor: '#E5E7EB',
+            }}>
+            <View className="flex-row items-center justify-between">
+              <Text className="font-pmedium text-base text-gray-700">Total Available</Text>
+              <Text className="font-psemibold text-lg text-gray-900">
+                {(user?.credits?.room || 0) + (user?.credits?.travel || 0)} Credits
+              </Text>
+            </View>
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -199,6 +241,30 @@ const Profile: React.FC = () => {
           renderItem={renderItem}
           ListHeaderComponent={renderHeader}
           estimatedItemSize={6}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={async () => {
+                setIsRefreshing(true);
+                await handleAPICall(
+                  'GET',
+                  '/profile',
+                  { cardno: user.cardno },
+                  null,
+                  (data: any) => {
+                    setUser((prev: any) => {
+                      const updatedUser = { ...prev, ...data.data };
+                      setCurrentUser(updatedUser);
+                      return updatedUser;
+                    });
+                  },
+                  () => {
+                    setIsRefreshing(false);
+                  }
+                );
+              }}
+            />
+          }
         />
 
         <Modal
