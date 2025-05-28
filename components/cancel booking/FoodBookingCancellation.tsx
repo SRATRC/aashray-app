@@ -511,13 +511,30 @@ export default function FoodBookingCancellation() {
             )}
           </View>
         )}
-        ListEmptyComponent={
+        ListEmptyComponent={() => (
           <View className="h-full flex-1 items-center justify-center pt-40">
-            <CustomEmptyMessage
-              message={"No food bookings?\nYour stomach's inner peace is disturbed."}
-            />
+            {isError ? (
+              <View className="items-center justify-center px-6">
+                <Text className="mb-2 text-center text-lg font-semibold text-gray-800">
+                  Oops! Something went wrong
+                </Text>
+                <Text className="mb-6 text-center text-gray-600">
+                  Unable to load Food Bookings. Please check your connection and try again.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    refetch();
+                  }}
+                  className="rounded-lg bg-secondary px-6 py-3"
+                  activeOpacity={0.7}>
+                  <Text className="font-semibold text-white">Try Again</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <CustomEmptyMessage message={'No upcoming Food Bookings at this moment!'} />
+            )}
           </View>
-        }
+        )}
         keyExtractor={(item) => `${item.date}-${item.mealType}-${item.bookedFor}`}
         onEndReachedThreshold={0.1}
         onEndReached={() => {

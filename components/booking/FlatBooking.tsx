@@ -118,7 +118,7 @@ const FlatBooking = () => {
     }
 
     return guestForm.guests.every((guest: any) => {
-      if (guest.id) return guest.mobno && guest.mobno?.length == 10;
+      if (guest.cardno) return guest.mobno && guest.mobno?.length == 10;
       else
         return guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length == 10;
     });
@@ -183,6 +183,7 @@ const FlatBooking = () => {
           if (selectedChip == CHIPS[0]) {
             if (!isMumukshuFormValid()) {
               Alert.alert('Validation Error', 'Please fill all required fields');
+              setIsSubmitting(false);
               return;
             }
             await handleAPICall(
@@ -204,6 +205,7 @@ const FlatBooking = () => {
           if (selectedChip == CHIPS[1]) {
             if (!isGuestFormValid()) {
               Alert.alert('Validation Error', 'Please fill all required fields');
+              setIsSubmitting(false);
               return;
             }
 
@@ -218,27 +220,32 @@ const FlatBooking = () => {
               async (res: any) => {
                 const updatedGuests = guestForm.guests.map((formGuest) => {
                   const matchingApiGuest = res.guests.find(
-                    (apiGuest: any) => apiGuest.name === formGuest.name
+                    (apiGuest: any) => apiGuest.issuedto === formGuest.name
                   );
-                  return matchingApiGuest ? { ...formGuest, id: matchingApiGuest.id } : formGuest;
+                  return matchingApiGuest ? matchingApiGuest.cardno : formGuest.cardno;
                 });
 
+                // Create the updated form object directly
+                const updatedGuestForm = {
+                  ...guestForm,
+                  guests: updatedGuests,
+                };
+
+                // Update the state
                 await new Promise((resolve) => {
                   setGuestForm((prev) => {
-                    const newForm = {
-                      ...prev,
-                      guests: updatedGuests,
-                    };
+                    const newForm = updatedGuestForm;
                     resolve(newForm);
                     return newForm;
                   });
                 });
 
+                // Use the updated form object directly, not the state
                 await handleAPICall(
                   'POST',
                   '/guest/flat',
                   { cardno: user.cardno },
-                  guestForm,
+                  updatedGuestForm,
                   async (_res: any) => {
                     Alert.alert('Success', 'Booking Successful');
                     setGuestForm(INITIAL_GUEST_FORM);
@@ -258,10 +265,10 @@ const FlatBooking = () => {
         containerStyles="mt-7 min-h-[62px]"
         isLoading={isSubmitting}
         isDisabled={
-          selectedChip === CHIPS[1]
-            ? !isGuestFormValid()
-            : selectedChip === CHIPS[2]
-              ? !isMumukshuFormValid()
+          selectedChip === CHIPS[0]
+            ? !isMumukshuFormValid()
+            : selectedChip === CHIPS[1]
+              ? !isGuestFormValid()
               : false
         }
       />
