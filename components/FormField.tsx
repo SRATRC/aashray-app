@@ -20,6 +20,9 @@ interface FormFieldProps {
   multiline?: boolean;
   numberOfLines?: number;
   isPassword?: boolean;
+  error?: boolean;
+  errorMessage?: string;
+  isLoading?: boolean;
 }
 
 const FormField: React.FC<FormFieldProps> = ({
@@ -40,26 +43,46 @@ const FormField: React.FC<FormFieldProps> = ({
   multiline = false,
   numberOfLines = 1,
   isPassword = false,
+  error = false,
+  errorMessage,
+  isLoading = false,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+
+  // Dynamic container styles based on error state
+  const getContainerStyles = () => {
+    let baseStyles = `w-full flex-row items-center gap-x-2 rounded-2xl px-4 focus:border-2 ${
+      multiline ? 'h-auto py-3' : 'h-16'
+    }`;
+
+    if (error) {
+      baseStyles += ' border-2 border-red-500 bg-red-50';
+    } else if (isLoading) {
+      baseStyles += ' border-2 border-blue-300 bg-blue-50';
+    } else {
+      baseStyles += ' focus:border-secondary';
+      baseStyles += containerStyles
+        ? ` ${containerStyles}`
+        : Platform.OS === 'ios'
+          ? ' bg-white shadow-lg shadow-gray-200'
+          : ' bg-white shadow-2xl shadow-gray-400';
+    }
+
+    return baseStyles;
+  };
 
   return (
     <View className={`gap-y-2 ${otherStyles}`}>
       <Text className="font-pmedium text-base text-gray-600">{text}</Text>
-      <View
-        className={`w-full flex-row items-center gap-x-2 rounded-2xl px-4 focus:border-2 focus:border-secondary ${
-          containerStyles
-            ? containerStyles
-            : Platform.OS === 'ios'
-              ? 'bg-white shadow-lg shadow-gray-200'
-              : 'bg-white shadow-2xl shadow-gray-400'
-        } ${multiline ? 'h-auto py-3' : 'h-16'}`}>
+      <View className={getContainerStyles()}>
         {prefix && <Text className="font-pmedium text-base text-gray-400">{prefix}</Text>}
         <TextInput
-          className={`flex-1 ${inputStyles ? inputStyles : 'font-pregular text-base'}`}
+          className={`flex-1 ${inputStyles ? inputStyles : 'font-pregular text-base'} ${
+            error ? 'text-red-700' : ''
+          }`}
           value={value}
           placeholder={placeholder}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={error ? '#EF4444' : '#9CA3AF'}
           onChangeText={handleChangeText}
           keyboardType={keyboardType}
           maxLength={maxLength}
@@ -73,6 +96,8 @@ const FormField: React.FC<FormFieldProps> = ({
           textAlignVertical={multiline ? 'top' : 'center'}
         />
 
+        {isLoading && <Text className="font-pmedium text-xs text-blue-600">Verifying...</Text>}
+
         {isPassword && (
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
             <Image
@@ -83,9 +108,16 @@ const FormField: React.FC<FormFieldProps> = ({
           </TouchableOpacity>
         )}
       </View>
-      {additionalText && (
+
+      {/* Error message */}
+      {error && errorMessage && (
+        <Text className="ml-2 font-pmedium text-sm text-red-600">{errorMessage}</Text>
+      )}
+
+      {/* Additional text (success state) */}
+      {additionalText && !error && (
         <Text className="font-pmedium text-gray-500">
-          Name: <Text className="font-pregular">{additionalText}</Text>
+          Name: <Text className="font-pregular text-green-600">{additionalText}</Text>
         </Text>
       )}
     </View>

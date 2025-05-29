@@ -49,9 +49,13 @@ const GuestForm: React.FC<GuestFormProps> = ({
               }
               return { ...prevForm, guests: updatedGuests };
             });
+            resolve(res.data);
+          } else {
+            // If no data returned, treat as error
+            reject(new Error('Guest not found'));
           }
-          resolve(res.data);
         },
+        () => {}, // on finally callback
         () => reject(new Error('Failed to fetch guests'))
       );
     });
@@ -66,6 +70,14 @@ const GuestForm: React.FC<GuestFormProps> = ({
     })),
   });
 
+  // Helper function to get API error message
+  const getErrorMessage = (error: any) => {
+    if (error?.message) {
+      return error.message;
+    }
+    return 'Unable to verify this phone number';
+  };
+
   return (
     <View>
       {guestForm.guests.map((guest: any, index: number) => {
@@ -73,9 +85,15 @@ const GuestForm: React.FC<GuestFormProps> = ({
           data,
           isLoading: isVerifyGuestsLoading,
           isError: isVerifyGuestsError,
+          error,
         } = guest.mobno?.length === 10
           ? guestQueries[index]
-          : { data: null, isLoading: false, isError: false };
+          : { data: null, isLoading: false, isError: false, error: null };
+
+        // Only show API errors, not validation errors
+        const shouldShowError = isVerifyGuestsError;
+
+        const errorMessage = shouldShowError ? getErrorMessage(error) : undefined;
 
         return (
           <View key={index} className="mt-8">
@@ -101,6 +119,9 @@ const GuestForm: React.FC<GuestFormProps> = ({
               maxLength={10}
               containerStyles="bg-gray-100"
               additionalText={data?.issuedto}
+              error={shouldShowError}
+              errorMessage={errorMessage}
+              isLoading={isVerifyGuestsLoading}
             />
 
             {!data && !isVerifyGuestsLoading && guest.mobno?.length === 10 && (
