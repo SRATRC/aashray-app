@@ -1,10 +1,10 @@
 import { View, Text, ScrollView, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useState, useEffect } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useState, useCallback } from 'react';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, icons, status } from '../../constants';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { colors } from '../../constants';
+import { useQuery } from '@tanstack/react-query';
 import { prepareMumukshuRequestBody } from '~/utils/preparingRequestBody';
 import PageHeader from '../../components/PageHeader';
 import CustomButton from '../../components/CustomButton';
@@ -15,7 +15,6 @@ import MumukshuTravelBookingDetails from '../../components/booking details cards
 import MumukshuFoodBookingDetails from '../../components/booking details cards/MumukshuFoodBookingDetails';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
-import Toast from 'react-native-toast-message';
 import CustomModal from '~/components/CustomModal';
 import MumukshuEventBookingDetails from '~/components/booking details cards/MumukshuEventBookingDetails';
 
@@ -31,79 +30,55 @@ interface ValidationData {
 const mumukshuBookingConfirmation = () => {
   const router = useRouter();
   const { user, mumukshuData, setMumukshuData } = useGlobalContext();
-  const queryClient = useQueryClient();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showErrorModal, setShowErrorModal] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
 
   const transformedData = prepareMumukshuRequestBody(user, mumukshuData);
 
-  const fetchValidation = async () => {
-    try {
-      return new Promise<ValidationData>((resolve, reject) => {
-        handleAPICall(
-          'POST',
-          '/mumukshu/validate',
-          null,
-          transformedData,
-          (res: any) => {
-            setMumukshuData((prev: any) => ({ ...prev, validationData: res.data }));
-            resolve(res.data);
-          },
-          () => {},
-          (errorDetails: any) => {
-            setErrorMessage(errorDetails.message || 'Validation failed');
-            setShowErrorModal(true);
-            reject(new Error(errorDetails.message || 'Validation failed'));
-          }
-        );
-      });
-    } catch (error: any) {
-      setErrorMessage(error.message || 'Validation failed');
-      setShowErrorModal(true);
-      throw error;
-    }
-  };
+  const fetchValidation = useCallback(async () => {
+    return new Promise<ValidationData>((resolve, reject) => {
+      handleAPICall(
+        'POST',
+        '/mumukshu/validate',
+        null,
+        transformedData,
+        (res: any) => {
+          setMumukshuData((prev: any) => ({ ...prev, validationData: res.data }));
+          resolve(res.data);
+        },
+        () => {},
+        (errorDetails: any) => {
+          reject(new Error(errorDetails.message || 'Validation failed'));
+        }
+      );
+    });
+  }, [transformedData, setMumukshuData]);
 
   const {
     isLoading: isValidationDataLoading,
     isError: isValidationDataError,
     error: validationDataError,
     data: validationData,
+    refetch: refetchValidation,
   } = useQuery<ValidationData, Error>({
-    queryKey: ['mumukshuValidations', user.cardno],
+    queryKey: ['mumukshuConfirmationValidations', user.cardno, JSON.stringify(mumukshuData)],
     queryFn: fetchValidation,
     retry: false,
+    enabled: !!user.cardno,
   });
 
-  // Set error message when validation query fails
-  useEffect(() => {
-    if (validationDataError) {
-      setErrorMessage(validationDataError.message || 'Validation failed');
-      setShowErrorModal(true);
-    }
-  }, [validationDataError]);
+  // Force refetch validation when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (user.cardno) {
+        refetchValidation();
+      }
+    }, [user.cardno, refetchValidation])
+  );
 
-  // Handle closing the error modal
-  const handleCloseErrorModal = () => {
-    // First, reset the modal state
-    setShowErrorModal(false);
-
-    // Reset validation query to clear any cached errors
-    queryClient.resetQueries({ queryKey: ['mumukshuValidations', user.cardno] });
-
-    // Mark this error as already shown, but keep it in state
-    // This way the booking screen knows not to show it again
-    setMumukshuData((prev: any) => ({
-      ...prev,
-      errorAlreadyShown: true,
-      errorMessage: errorMessage || (validationDataError as any)?.message,
-    }));
-
-    // Navigate back
+  const handleCloseValidationModal = useCallback(() => {
     router.back();
-  };
+  }, [router]);
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['top', 'left', 'right']}>
@@ -233,11 +208,6 @@ const mumukshuBookingConfirmation = () => {
                   }
                 };
 
-                const onError = (errorDetails: any) => {
-                  setErrorMessage(errorDetails.message || 'Booking failed');
-                  setShowErrorModal(true);
-                };
-
                 const onFinally = () => {
                   setIsSubmitting(false);
                 };
@@ -248,30 +218,26 @@ const mumukshuBookingConfirmation = () => {
                   null,
                   transformedData,
                   onSuccess,
-                  onFinally,
-                  onError
+                  onFinally
                 );
               } catch (error: any) {
                 setIsSubmitting(false);
-                setErrorMessage(error.message || 'Booking failed');
-                setShowErrorModal(true);
               }
             }}
             containerStyles="mb-8 min-h-[62px]"
             isLoading={isSubmitting}
-            isDisabled={!validationData || isValidationDataError}
+            isDisabled={!validationData}
           />
         </View>
 
-        {/* Show error modal for validation errors and API errors */}
-        <CustomModal
-          visible={
-            showErrorModal || (isValidationDataError && !mumukshuData.dismissedValidationError)
-          }
-          onClose={handleCloseErrorModal}
-          message={errorMessage || 'An error occurred'}
-          btnText={'Okay'}
-        />
+        {validationDataError && (
+          <CustomModal
+            visible={true}
+            onClose={handleCloseValidationModal}
+            message={validationDataError.message || 'An error occurred'}
+            btnText={'Okay'}
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );

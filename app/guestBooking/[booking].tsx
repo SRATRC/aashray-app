@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '../../constants';
@@ -56,6 +56,8 @@ const GuestAddons = () => {
   const { user, guestData, setGuestData } = useGlobalContext();
   const router = useRouter();
 
+  console.log(JSON.stringify(guestData));
+
   const [addonOpen, setAddonOpen] = useState({
     room: false,
     food: false,
@@ -66,6 +68,7 @@ const GuestAddons = () => {
     return (
       guestData.room?.guestGroup?.flatMap((group: any) => group.guests) ||
       guestData.adhyayan?.guestGroup ||
+      guestData.utsav?.guests ||
       []
     );
   }, [guestData.room, guestData.adhyayan]);
@@ -223,12 +226,47 @@ const GuestAddons = () => {
     isError: isValidationDataError,
     error: validationDataError,
     data: validationData,
+    refetch: refetchValidation,
   } = useQuery({
     queryKey: ['guestValidations', user.cardno, JSON.stringify(guestData)],
     queryFn: fetchValidation,
     retry: false,
     enabled: !!user.cardno && Object.keys(guestData).length > 0,
   });
+
+  // Force refetch validation when screen comes into focus and clean up addons
+  useFocusEffect(
+    useCallback(() => {
+      if (user.cardno) {
+        // Clean up addon data when coming back from guest booking confirmation
+        // Only keep the main booking data based on the booking type
+        setGuestData((prev: any) => {
+          // Only proceed if there's existing data
+          if (Object.keys(prev).length === 0) return prev;
+
+          const cleanedData = { ...prev };
+
+          // Remove addon data based on what's NOT the main booking type
+          if (booking !== types.ROOM_DETAILS_TYPE) {
+            delete cleanedData.room;
+          }
+          if (booking !== types.ADHYAYAN_DETAILS_TYPE) {
+            delete cleanedData.adhyayan;
+          }
+          if (booking !== types.EVENT_DETAILS_TYPE) {
+            delete cleanedData.utsav;
+          }
+
+          // Always remove food addon as it's never a main booking type
+          delete cleanedData.food;
+
+          return cleanedData;
+        });
+
+        refetchValidation();
+      }
+    }, [user.cardno, refetchValidation, booking, setGuestData])
+  );
 
   // Room form handling functions
   const addRoomForm = useCallback(() => {

@@ -1,10 +1,10 @@
 import { View, Text, ScrollView, Platform } from 'react-native';
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState, useCallback } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, icons } from '../../constants';
+import { colors } from '../../constants';
 import { prepareSelfRequestBody } from '~/utils/preparingRequestBody';
 import RoomBookingDetails from '../../components/booking details cards/RoomBookingDetails';
 import PageHeader from '../../components/PageHeader';
@@ -15,20 +15,18 @@ import FoodBookingDetails from '../../components/booking details cards/FoodBooki
 import handleAPICall from '../../utils/HandleApiCall';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
-import Toast from 'react-native-toast-message';
 import CustomModal from '~/components/CustomModal';
 import EventBookingDetails from '~/components/booking details cards/EventBookingDetails';
 
 const bookingConfirmation = () => {
   const router = useRouter();
   const { user, data, setData } = useGlobalContext();
-  const queryClient = useQueryClient();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const payload = prepareSelfRequestBody(user, data);
 
-  const fetchValidation = async () => {
+  const fetchValidation = useCallback(async () => {
     return new Promise((resolve, reject) => {
       handleAPICall(
         'POST',
@@ -43,18 +41,33 @@ const bookingConfirmation = () => {
         (errorDetails: any) => reject(new Error(errorDetails.message))
       );
     });
-  };
+  }, [payload, setData]);
 
   const {
     isLoading: isValidationDataLoading,
     isError: isValidationDataError,
     error: validationDataError,
     data: validationData,
+    refetch: refetchValidation,
   }: any = useQuery({
-    queryKey: ['validations', user.cardno],
+    queryKey: ['confirmationValidations', user.cardno, JSON.stringify(data)],
     queryFn: fetchValidation,
     retry: false,
+    enabled: !!user.cardno,
   });
+
+  // Force refetch validation when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (user.cardno) {
+        refetchValidation();
+      }
+    }, [user.cardno, refetchValidation])
+  );
+
+  const handleCloseValidationModal = useCallback(() => {
+    router.back();
+  }, [router]);
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['top', 'right', 'left']}>
@@ -182,11 +195,7 @@ const bookingConfirmation = () => {
         {validationDataError && (
           <CustomModal
             visible={true}
-            onClose={() => {
-              setData((prev: any) => ({ ...prev, dismissedValidationError: true }));
-              queryClient.resetQueries({ queryKey: ['validations', user.cardno] });
-              router.back();
-            }}
+            onClose={handleCloseValidationModal}
             message={validationDataError.message}
             btnText={'Okay'}
           />

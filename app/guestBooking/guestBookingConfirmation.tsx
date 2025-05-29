@@ -1,9 +1,9 @@
 import { View, Text, ScrollView, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useState, useCallback } from 'react';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, icons, status } from '../../constants';
+import { colors } from '../../constants';
 import { useQuery } from '@tanstack/react-query';
 import { prepareGuestRequestBody } from '~/utils/preparingRequestBody';
 import GuestRoomBookingDetails from '../../components/booking details cards/GuestRoomBookingDetails';
@@ -14,7 +14,6 @@ import CustomButton from '../../components/CustomButton';
 import handleAPICall from '../../utils/HandleApiCall';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
-import Toast from 'react-native-toast-message';
 import CustomModal from '~/components/CustomModal';
 
 const guestBookingConfirmation = () => {
@@ -25,7 +24,7 @@ const guestBookingConfirmation = () => {
 
   const transformedData = prepareGuestRequestBody(user, guestData);
 
-  const fetchValidation = async () => {
+  const fetchValidation = useCallback(async () => {
     return new Promise((resolve, reject) => {
       handleAPICall(
         'POST',
@@ -40,18 +39,33 @@ const guestBookingConfirmation = () => {
         (errorDetails: any) => reject(new Error(errorDetails.message))
       );
     });
-  };
+  }, [transformedData, setGuestData]);
 
   const {
     isLoading: isValidationDataLoading,
     isError: isValidationDataError,
     error: validationDataError,
     data: validationData,
+    refetch: refetchValidation,
   }: any = useQuery({
-    queryKey: ['guestValidations', user.cardno],
+    queryKey: ['guestConfirmationValidations', user.cardno, JSON.stringify(guestData)],
     queryFn: fetchValidation,
     retry: false,
+    enabled: !!user.cardno,
   });
+
+  // Force refetch validation when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (user.cardno) {
+        refetchValidation();
+      }
+    }, [user.cardno, refetchValidation])
+  );
+
+  const handleCloseValidationModal = useCallback(() => {
+    router.back();
+  }, [router]);
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['top', 'right', 'left']}>
@@ -172,13 +186,14 @@ const guestBookingConfirmation = () => {
             }}
             containerStyles="mb-8 min-h-[62px]"
             isLoading={isSubmitting}
+            isDisabled={!validationData}
           />
         </View>
 
         {validationDataError && (
           <CustomModal
             visible={true}
-            onClose={() => router.back()}
+            onClose={handleCloseValidationModal}
             message={validationDataError.message}
             btnText={'Okay'}
           />

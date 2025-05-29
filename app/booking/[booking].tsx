@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useState, useMemo, useCallback } from 'react';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,7 +23,6 @@ const BookingDetails = () => {
   const { booking } = useLocalSearchParams();
   const { user, data, setData } = useGlobalContext();
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   // Consolidated state for addons visibility
   const [addonOpen, setAddonOpen] = useState({
@@ -129,17 +128,46 @@ const BookingDetails = () => {
     });
   }, [user, data, setData]);
 
-  const {
-    isLoading: isValidationDataLoading,
-    isError: isValidationDataError,
-    error: validationDataError,
-    data: validationData,
-  } = useQuery({
+  const { error: validationDataError, refetch: refetchValidation } = useQuery({
     queryKey: ['validations', user.cardno, JSON.stringify(data)],
     queryFn: fetchValidation,
     retry: false,
     enabled: !!user.cardno, // Only run when user.cardno is available
   });
+
+  // Force refetch validation when screen comes into focus and clean up addons
+  useFocusEffect(
+    useCallback(() => {
+      if (user.cardno) {
+        // Clean up addon data when coming back from booking confirmation
+        // Only keep the main booking data based on the booking type
+        setData((prev: any) => {
+          const cleanedData = { ...prev };
+
+          // Remove addon data based on what's NOT the main booking type
+          if (booking !== types.ROOM_DETAILS_TYPE) {
+            delete cleanedData.room;
+          }
+          if (booking !== types.TRAVEL_DETAILS_TYPE) {
+            delete cleanedData.travel;
+          }
+          if (booking !== types.ADHYAYAN_DETAILS_TYPE) {
+            delete cleanedData.adhyayan;
+          }
+          if (booking !== types.EVENT_DETAILS_TYPE) {
+            delete cleanedData.utsav;
+          }
+
+          // Always remove food addon as it's never a main booking type
+          delete cleanedData.food;
+
+          return cleanedData;
+        });
+
+        refetchValidation();
+      }
+    }, [user.cardno, refetchValidation, booking, setData])
+  );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -231,10 +259,8 @@ const BookingDetails = () => {
 
   // Close validation error modal
   const handleCloseValidationModal = useCallback(() => {
-    setData((prev: any) => ({ ...prev, dismissedValidationError: true }));
-    queryClient.resetQueries({ queryKey: ['validations', user.cardno] });
     router.back();
-  }, [setData, queryClient, router, user.cardno]);
+  }, [router]);
 
   // Render booking details card based on booking type
   const renderBookingDetails = () => {
@@ -317,7 +343,7 @@ const BookingDetails = () => {
             />
           </View>
 
-          {validationDataError && !data.dismissedValidationError && (
+          {validationDataError && (
             <CustomModal
               visible={true}
               onClose={handleCloseValidationModal}

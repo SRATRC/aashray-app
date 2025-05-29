@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { View, Text, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '../../constants';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { ScrollView } from 'react-native-gesture-handler';
 import { prepareMumukshuRequestBody } from '~/utils/preparingRequestBody';
@@ -16,7 +16,6 @@ import MumukshuRoomAddon from '../../components/booking addons/MumukshuRoomAddon
 import MumukshuFoodAddon from '../../components/booking addons/MumukshuFoodAddon';
 import MumukshuAdhyayanAddon from '../../components/booking addons/MumukshuAdhyayanAddon';
 import MumukshuTravelAddon from '../../components/booking addons/MumukshuTravelAddon';
-import Toast from 'react-native-toast-message';
 import handleAPICall from '~/utils/HandleApiCall';
 import CustomModal from '~/components/CustomModal';
 import MumukshuEventBookingDetails from '~/components/booking details cards/MumukshuEventBookingDetails';
@@ -91,12 +90,14 @@ const MumukshuAddons = () => {
       mumukshuData.food?.startDay ||
       mumukshuData.adhyayan?.adhyayan?.start_date ||
       mumukshuData.travel?.date ||
+      mumukshuData.utsav?.utsav_start ||
       '';
 
     const endDate =
       mumukshuData.room?.endDay ||
       mumukshuData.food?.endDay ||
       mumukshuData.adhyayan?.adhyayan?.end_date ||
+      mumukshuData.utsav?.utsav_end ||
       '';
 
     return { startDate, endDate };
@@ -111,6 +112,7 @@ const MumukshuAddons = () => {
     const fromAdhyayan = mumukshuData.adhyayan?.mumukshuGroup || [];
     const fromTravel =
       mumukshuData.travel?.mumukshuGroup?.flatMap((group: any) => group.mumukshus || []) || [];
+    const fromUtsav = mumukshuData.utsav?.mumukshus || [];
 
     // Use the non-empty array, prioritizing the primary booking type based on the current page
     let result = [];
@@ -121,6 +123,8 @@ const MumukshuAddons = () => {
       result = fromAdhyayan;
     } else if (booking === types.TRAVEL_DETAILS_TYPE && fromTravel.length > 0) {
       result = fromTravel;
+    } else if (booking === types.EVENT_DETAILS_TYPE && fromUtsav.length > 0) {
+      result = fromUtsav;
     } else {
       // Use the first non-empty array
       result =
@@ -132,7 +136,9 @@ const MumukshuAddons = () => {
               ? fromTravel
               : fromFood.length > 0
                 ? fromFood
-                : [];
+                : fromUtsav.length > 0
+                  ? fromUtsav
+                  : [];
     }
 
     return result;
@@ -182,12 +188,15 @@ const MumukshuAddons = () => {
       mumukshuData.food?.startDay ||
       mumukshuData.adhyayan?.adhyayan?.start_date ||
       mumukshuData.travel?.date ||
+      mumukshuData.utsav?.utsav_start ||
       '';
 
     const endDate =
       mumukshuData.room?.endDay ||
       mumukshuData.food?.endDay ||
       mumukshuData.adhyayan?.adhyayan?.end_date ||
+      mumukshuData.travel?.date ||
+      mumukshuData.utsav?.utsav_end ||
       '';
 
     // Update room form with cross-referenced dates
@@ -290,12 +299,50 @@ const MumukshuAddons = () => {
     isError: isValidationDataError,
     error: validationDataError,
     data: validationData,
+    refetch: refetchValidation,
   } = useQuery({
     queryKey: ['mumukshuValidations', user.cardno, JSON.stringify(mumukshuData)],
     queryFn: fetchValidation,
     retry: false,
     enabled: !!user.cardno && Object.keys(mumukshuData).length > 0,
   });
+
+  // Force refetch validation when screen comes into focus and clean up addons
+  useFocusEffect(
+    useCallback(() => {
+      if (user.cardno) {
+        // Clean up addon data when coming back from mumukshu booking confirmation
+        // Only keep the main booking data based on the booking type
+        setMumukshuData((prev: any) => {
+          // Only proceed if there's existing data
+          if (Object.keys(prev).length === 0) return prev;
+
+          const cleanedData = { ...prev };
+
+          // Remove addon data based on what's NOT the main booking type
+          if (booking !== types.ROOM_DETAILS_TYPE) {
+            delete cleanedData.room;
+          }
+          if (booking !== types.ADHYAYAN_DETAILS_TYPE) {
+            delete cleanedData.adhyayan;
+          }
+          if (booking !== types.TRAVEL_DETAILS_TYPE) {
+            delete cleanedData.travel;
+          }
+          if (booking !== types.EVENT_DETAILS_TYPE) {
+            delete cleanedData.utsav;
+          }
+
+          // Always remove food addon as it's never a main booking type
+          delete cleanedData.food;
+
+          return cleanedData;
+        });
+
+        refetchValidation();
+      }
+    }, [user.cardno, refetchValidation, booking, setMumukshuData])
+  );
 
   // Form submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -637,16 +684,8 @@ const MumukshuAddons = () => {
 
   // Handle validation error modal close
   const handleCloseValidationModal = useCallback(() => {
-    // Clean up state by removing only validation-related data
-    // but preserve the primary booking data
-    setMumukshuData((prev: any) => {
-      const { validationData, errorAlreadyShown, errorMessage, ...rest } = prev;
-      return rest;
-    });
-
-    // Navigate back immediately
     router.back();
-  }, [router, setMumukshuData]);
+  }, [router]);
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
@@ -744,7 +783,7 @@ const MumukshuAddons = () => {
             />
           </View>
 
-          {validationDataError && !mumukshuData.errorAlreadyShown && (
+          {validationDataError && (
             <CustomModal
               visible={true}
               onClose={handleCloseValidationModal}

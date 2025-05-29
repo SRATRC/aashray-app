@@ -2,7 +2,7 @@ import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { colors, icons } from '../constants';
 import { useQueries } from '@tanstack/react-query';
 import { useGlobalContext } from '../context/GlobalProvider';
-import React from 'react';
+import React, { useEffect } from 'react';
 import FormField from './FormField';
 import handleAPICall from '../utils/HandleApiCall';
 
@@ -37,23 +37,8 @@ const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
         null,
         (res: any) => {
           if (res.data) {
-            setMumukshuForm((prevForm: any) => {
-              const updatedMumukshus = [...prevForm.mumukshus];
-              const mumukshuIndex = updatedMumukshus.findIndex(
-                (mumukshu) => mumukshu.mobno === mobno
-              );
-              if (mumukshuIndex !== -1) {
-                updatedMumukshus[mumukshuIndex] = {
-                  ...updatedMumukshus[mumukshuIndex],
-                  ...res.data,
-                  mobno: mobno,
-                };
-              }
-              return { ...prevForm, mumukshus: updatedMumukshus };
-            });
             resolve(res.data);
           } else {
-            // If no data returned, treat as error
             reject(new Error('Mumukshu not found'));
           }
         },
@@ -68,10 +53,32 @@ const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
       queryKey: ['verifyMumukshus', mumukshu.mobno],
       queryFn: () => verifyMumukshu(mumukshu.mobno),
       enabled: mumukshu.mobno?.length === 10 && mumukshu.mobno !== '',
-      // staleTime: 1000 * 60 * 30,
       retry: false,
     })),
   });
+
+  // Update form when query data changes
+  useEffect(() => {
+    mumukshuQueries.forEach((query: any, index: number) => {
+      if (query.data && mumukshuForm.mumukshus[index]) {
+        const currentMumukshu = mumukshuForm.mumukshus[index];
+        const shouldUpdate =
+          !currentMumukshu.cardno || currentMumukshu.cardno !== query.data.cardno;
+
+        if (shouldUpdate) {
+          setMumukshuForm((prevForm: any) => {
+            const updatedMumukshus = [...prevForm.mumukshus];
+            updatedMumukshus[index] = {
+              ...updatedMumukshus[index],
+              ...query.data,
+              mobno: mumukshuForm.mumukshus[index].mobno,
+            };
+            return { ...prevForm, mumukshus: updatedMumukshus };
+          });
+        }
+      }
+    });
+  }, [mumukshuQueries.map((q) => q.data), mumukshuForm.mumukshus.length]);
 
   // Helper function to get API error message
   const getErrorMessage = (error: any) => {

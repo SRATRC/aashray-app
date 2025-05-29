@@ -12,9 +12,9 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
-import { colors, icons, status, types } from '../../constants';
+import { icons, status, types } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { useRouter } from 'expo-router';
 import CustomButton from '../CustomButton';
@@ -27,7 +27,6 @@ import GuestForm from '../GuestForm';
 import FormField from '../FormField';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomEmptyMessage from '../CustomEmptyMessage';
-// @ts-ignore
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 
 const CHIPS = ['Self', 'Guest', 'Mumukshus'];
@@ -79,7 +78,6 @@ const INITIAL_MUMUKSHU_FORM = {
 
 const EventBooking = () => {
   const router: any = useRouter();
-  const queryClient = useQueryClient();
 
   useEffect(
     useCallback(() => {
@@ -618,9 +616,6 @@ const EventBooking = () => {
                             await updateMumukshuBooking('utsav', updatedForm);
                             router.push(`/mumukshuBooking/${types.EVENT_DETAILS_TYPE}`);
                           }
-                          // queryClient.invalidateQueries({
-                          //   queryKey: ['utsavBooking', user.cardno],
-                          // });
                           setSelectedItem(null);
                           setSelectedChip('Self');
                           toggleModal();

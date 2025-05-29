@@ -13,7 +13,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { colors, icons, status, types } from '../../constants';
+import { icons, status, types } from '../../constants';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { useRouter, useFocusEffect } from 'expo-router';

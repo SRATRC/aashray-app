@@ -745,30 +745,26 @@ const RoomBooking = () => {
 function transformGuestApiResponse(apiResponse: any) {
   const { startDay, endDay, guests } = apiResponse;
 
-  // Group guests by roomType and floorType
   const groupedGuests = guests.reduce((acc: any, guest: any) => {
-    const { roomType, floorType, name, gender, mobno, type, cardno } = guest;
-
-    // Find existing group with the same roomType and floorType
-    const groupKey = `${roomType}_${floorType}`;
+    const groupKey = `${guest.roomType}_${guest.floorType}`;
     if (!acc[groupKey]) {
       acc[groupKey] = {
-        roomType,
-        floorType,
+        roomType: guest.roomType,
+        floorType: guest.floorType,
         guests: [],
       };
     }
 
-    // Add the guest to the appropriate group
-    acc[groupKey].guests.push({ name, gender, mobno, type, cardno });
+    acc[groupKey].guests.push({
+      issuedto: guest.issuedto || guest.name,
+      cardno: guest.cardno,
+    });
 
     return acc;
   }, {});
 
-  // Convert groupedGuests object into an array
   const guestGroup = Object.values(groupedGuests);
 
-  // Return the final transformed object
   return {
     startDay,
     endDay,

@@ -2,7 +2,7 @@ import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { colors, icons, dropdowns } from '../constants';
 import { useQueries } from '@tanstack/react-query';
 import { useGlobalContext } from '../context/GlobalProvider';
-import React from 'react';
+import React, { useEffect } from 'react';
 import FormField from './FormField';
 import handleAPICall from '../utils/HandleApiCall';
 import CustomSelectBottomSheet from './CustomSelectBottomSheet';
@@ -37,21 +37,8 @@ const GuestForm: React.FC<GuestFormProps> = ({
         null,
         (res: any) => {
           if (res.data) {
-            setGuestForm((prevForm: any) => {
-              const updatedGuests = [...prevForm.guests];
-              const guestIndex = updatedGuests.findIndex((guest) => guest.mobno === mobno);
-              if (guestIndex !== -1) {
-                updatedGuests[guestIndex] = {
-                  ...res.data,
-                  ...updatedGuests[guestIndex],
-                  mobno: updatedGuests[guestIndex].mobno,
-                };
-              }
-              return { ...prevForm, guests: updatedGuests };
-            });
             resolve(res.data);
           } else {
-            // If no data returned, treat as error
             reject(new Error('Guest not found'));
           }
         },
@@ -69,6 +56,28 @@ const GuestForm: React.FC<GuestFormProps> = ({
       retry: false,
     })),
   });
+
+  // Update form when query data changes
+  useEffect(() => {
+    guestQueries.forEach((query: any, index: number) => {
+      if (query.data && guestForm.guests[index]) {
+        const currentGuest = guestForm.guests[index];
+        const shouldUpdate = !currentGuest.cardno || currentGuest.cardno !== query.data.cardno;
+
+        if (shouldUpdate) {
+          setGuestForm((prevForm: any) => {
+            const updatedGuests = [...prevForm.guests];
+            updatedGuests[index] = {
+              ...query.data,
+              ...updatedGuests[index],
+              mobno: updatedGuests[index].mobno,
+            };
+            return { ...prevForm, guests: updatedGuests };
+          });
+        }
+      }
+    });
+  }, [guestQueries.map((q) => q.data), guestForm.guests.length]);
 
   // Helper function to get API error message
   const getErrorMessage = (error: any) => {
