@@ -91,7 +91,7 @@ const Home: React.FC = () => {
             <CustomHomeIcon
               image={icons.contact as ImageSourcePropType}
               title={'Contact Info'}
-              onPress={() => router.push('/bookingConfirmation')}
+              onPress={() => router.push('/contactInfo')}
             />
           </View>
         </View>

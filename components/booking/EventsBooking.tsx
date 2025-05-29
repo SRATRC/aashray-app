@@ -680,11 +680,7 @@ const EventBooking = () => {
                 </TouchableOpacity>
               </View>
             ) : (
-              <View className="items-center justify-center px-6">
-                <Text className="text-center text-lg font-medium text-gray-600">
-                  No upcoming events at this moment!
-                </Text>
-              </View>
+              <CustomEmptyMessage message={'No upcoming Utsavs at this moment!'} />
             )}
           </View>
         )}
