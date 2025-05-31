@@ -13,9 +13,8 @@ import {
   RefreshControl,
   Dimensions,
   StatusBar,
-  Animated,
 } from 'react-native';
-import { colors, icons, images } from '../../constants';
+import { colors, icons } from '../../constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { useRouter } from 'expo-router';
@@ -24,7 +23,7 @@ import Toast from 'react-native-toast-message';
 import handleAPICall from '../../utils/HandleApiCall';
 import FormField from '~/components/FormField';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const Profile: React.FC = () => {
   const { user, removeItem, setUser, setCurrentUser } = useGlobalContext();
@@ -183,7 +182,7 @@ const Profile: React.FC = () => {
     <View className="mb-10 mt-8 flex-col items-center justify-center">
       <TouchableOpacity onPress={openImageModal}>
         <Image
-          source={user.pfp}
+          source={{ uri: user.pfp }}
           className="h-[150] w-[150] rounded-full"
           resizeMode="cover"
           style={{
@@ -396,7 +395,7 @@ const Profile: React.FC = () => {
                     backgroundColor: '#1a1a1a',
                   }}>
                   <Image
-                    source={user.pfp}
+                    source={{ uri: user.pfp }}
                     style={{
                       width: '100%',
                       height: '100%',

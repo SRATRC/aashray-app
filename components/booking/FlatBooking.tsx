@@ -9,6 +9,7 @@ import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomButton from '../CustomButton';
 import GuestForm from '../GuestForm';
 import handleAPICall from '../../utils/HandleApiCall';
+import * as Haptics from 'expo-haptics';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 
@@ -129,10 +130,8 @@ const FlatBooking = () => {
     });
   };
 
-  // Helper function to handle Razorpay payment
   const handleRazorpayPayment = (paymentData: any) => {
     if (paymentData.amount == 0 || user.country != 'India') {
-      // No payment needed or user is not from India
       Alert.alert('Success', 'Booking Successful');
       if (selectedChip === CHIPS[0]) {
         setMumukshuForm(INITIAL_MUMUKSHU_FORM);
@@ -141,7 +140,6 @@ const FlatBooking = () => {
       }
       setIsSubmitting(false);
     } else {
-      // Payment needed - open Razorpay
       const options = {
         key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,
         name: 'Vitraag Vigyaan Aashray',
@@ -160,26 +158,18 @@ const FlatBooking = () => {
 
       RazorpayCheckout.open(options)
         .then((rzrpayData: any) => {
-          // Payment successful
-          Alert.alert('Success', 'Booking and Payment Successful');
           if (selectedChip === CHIPS[0]) {
             setMumukshuForm(INITIAL_MUMUKSHU_FORM);
           } else {
             setGuestForm(INITIAL_GUEST_FORM);
           }
           setIsSubmitting(false);
-          // You can navigate to a success screen if needed
-          // router.replace('/bookingSuccess');
+          router.replace('/bookingConfirmation');
         })
         .catch((error: any) => {
-          // Payment failed
-          Alert.alert(
-            'Payment Failed',
-            'Your booking was successful but payment failed. Please contact support.'
-          );
           setIsSubmitting(false);
-          // You can navigate to a payment failed screen if needed
-          // router.replace('/paymentFailed');
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          router.replace('/paymentFailed');
         });
     }
   };

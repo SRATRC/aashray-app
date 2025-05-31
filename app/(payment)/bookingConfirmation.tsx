@@ -1,14 +1,23 @@
-import { View, Text, Image, TouchableOpacity, Animated, Dimensions } from 'react-native';
+import { useEffect, useRef, useMemo } from 'react';
+import { View, Text, Image, TouchableOpacity, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { icons, images, quotes } from '../../constants';
+import { icons, quotes } from '../../constants';
+import { useQueryClient } from '@tanstack/react-query';
+import { useGlobalContext } from '../../context/GlobalProvider';
 import CustomButton from '../../components/CustomButton';
-import { useEffect, useRef, useMemo } from 'react';
 
 const BookingSuccess = () => {
+  const { user } = useGlobalContext();
   const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
+
+  const queryClient = useQueryClient();
+
+  queryClient.invalidateQueries({
+    queryKey: ['pendingPayments', user.cardno],
+  });
 
   useEffect(() => {
     Animated.parallel([
@@ -33,18 +42,14 @@ const BookingSuccess = () => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <View className="flex-1">
-        {/* Content Section */}
         <Animated.View
           className="flex-1 px-6"
           style={{
             opacity: fadeAnim,
             transform: [{ translateY: slideAnim }],
           }}>
-          {/* Centered Content */}
           <View className="flex-1 justify-center">
-            {/* Header Section */}
             <View className="mb-8 items-center">
-              {/* Success Icon */}
               <View className="mb-6 h-20 w-20 items-center justify-center rounded-full bg-green-600 shadow-lg">
                 <Image
                   source={icons.tick}
@@ -54,7 +59,6 @@ const BookingSuccess = () => {
                 />
               </View>
 
-              {/* Success Message */}
               <Text className="mb-2 font-pbold text-3xl tracking-tight text-gray-900">
                 Booking Confirmed
               </Text>
@@ -64,7 +68,6 @@ const BookingSuccess = () => {
               </Text>
             </View>
 
-            {/* Booking Details Card */}
             <View className="items-center rounded-2xl bg-gray-100 p-8">
               <View className="relative">
                 <View className="mb-4 h-20 w-40 rounded-full bg-gray-200" />
@@ -79,9 +82,7 @@ const BookingSuccess = () => {
             </View>
           </View>
 
-          {/* Bottom Section */}
           <View className="pb-8">
-            {/* Action Button */}
             <CustomButton
               text="View Booking Details"
               handlePress={() => router.replace('/bookings')}
@@ -90,7 +91,6 @@ const BookingSuccess = () => {
               textStyles="text-white tracking-wide"
             />
 
-            {/* Bottom Link */}
             <TouchableOpacity
               onPress={() => router.replace('/')}
               className="items-center py-3"
