@@ -22,7 +22,12 @@ import handleAPICall from '../../utils/HandleApiCall';
 
 const PasswordResetModal = ({ visible, onClose, email }: any) => {
   return (
-    <Modal animationType="fade" transparent={true} visible={visible} onRequestClose={onClose}>
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={visible}
+      onRequestClose={onClose}
+      statusBarTranslucent={true}>
       <View className="flex-1 items-center justify-center bg-black/50">
         <View className="w-[85%] max-w-[400px] items-center rounded-3xl bg-white p-8 shadow-md">
           <View className="mb-5 rounded-full bg-secondary-50 p-5">

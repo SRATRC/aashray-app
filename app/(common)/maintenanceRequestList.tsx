@@ -216,6 +216,7 @@ const maintenanceRequestList = () => {
         animationType="slide"
         visible={isModalVisible}
         presentationStyle="pageSheet"
+        statusBarTranslucent={true}
         onRequestClose={() => setIsModalVisible(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">

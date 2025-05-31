@@ -37,6 +37,7 @@ const QRModal: React.FC<QRModalProps> = React.memo(({ isVisible, onClose, user }
       animationType="slide"
       visible={isVisible}
       presentationStyle="pageSheet"
+      statusBarTranslucent={true}
       onRequestClose={onClose}>
       <PageHeader title={'QR Code'} iconName="times" onPress={onClose} />
       <View className="mt-10 h-full">

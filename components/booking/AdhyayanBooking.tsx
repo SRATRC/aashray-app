@@ -313,6 +313,7 @@ const AdhyayanBookingDirect = () => {
         visible={isModalVisible}
         animationType="fade"
         transparent={true}
+        statusBarTranslucent={true}
         onRequestClose={toggleModal}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

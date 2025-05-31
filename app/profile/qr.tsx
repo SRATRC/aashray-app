@@ -1,10 +1,10 @@
 import { View, ImageBackground, Modal } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import PageHeader from '../../components/PageHeader';
-import { icons, images, colors } from '../../constants';
-import QRCodeStyled from 'react-native-qrcode-styled';
+import { images, colors } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { router } from 'expo-router';
+import React from 'react';
+import QRCodeStyled from 'react-native-qrcode-styled';
+import PageHeader from '../../components/PageHeader';
 
 const QrScreen = () => {
   const { user } = useGlobalContext();
@@ -17,6 +17,7 @@ const QrScreen = () => {
     <Modal
       animationType="slide"
       visible={true}
+      statusBarTranslucent={true}
       presentationStyle="pageSheet"
       onRequestClose={closeModal}>
       <PageHeader title={'QR Code'} />

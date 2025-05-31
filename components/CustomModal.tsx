@@ -19,7 +19,12 @@ const CustomModal: React.FC<CustomModalProps> = ({
   btnOnPress,
 }) => {
   return (
-    <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
+    <Modal
+      transparent
+      animationType="fade"
+      visible={visible}
+      onRequestClose={onClose}
+      statusBarTranslucent={true}>
       <View
         className="flex-1 items-center justify-center px-6"
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}>

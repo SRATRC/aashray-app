@@ -584,6 +584,7 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
         visible={modalVisible}
         transparent={true}
         animationType="none"
+        statusBarTranslucent={true}
         onRequestClose={closeBottomSheet}>
         <StatusBar style="light" />
         <KeyboardAvoidingView

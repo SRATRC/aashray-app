@@ -11,6 +11,9 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   RefreshControl,
+  Dimensions,
+  StatusBar,
+  Animated,
 } from 'react-native';
 import { colors, icons, images } from '../../constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,10 +24,13 @@ import Toast from 'react-native-toast-message';
 import handleAPICall from '../../utils/HandleApiCall';
 import FormField from '~/components/FormField';
 
+const { width, height } = Dimensions.get('window');
+
 const Profile: React.FC = () => {
   const { user, removeItem, setUser, setCurrentUser } = useGlobalContext();
   const router: any = useRouter();
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [imageModalVisible, setImageModalVisible] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -32,7 +38,6 @@ const Profile: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleResetPassword = async () => {
-    // Validate inputs
     if (!currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) {
       Toast.show({
         type: 'error',
@@ -85,12 +90,25 @@ const Profile: React.FC = () => {
     );
   };
 
-  const closeModal = () => {
+  const closePasswordModal = () => {
     setPasswordModalVisible(false);
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
     Keyboard.dismiss();
+  };
+
+  const openImageModal = () => {
+    setImageModalVisible(true);
+  };
+
+  const closeImageModal = () => {
+    setImageModalVisible(false);
+  };
+
+  const openCamera = () => {
+    setImageModalVisible(false);
+    router.push('/camera');
   };
 
   const profileList: any = [
@@ -163,7 +181,7 @@ const Profile: React.FC = () => {
 
   const renderHeader = () => (
     <View className="mb-10 mt-8 flex-col items-center justify-center">
-      <TouchableOpacity onPress={() => router.push('/camera')}>
+      <TouchableOpacity onPress={openImageModal}>
         <Image
           source={user.pfp}
           className="h-[150] w-[150] rounded-full"
@@ -275,10 +293,170 @@ const Profile: React.FC = () => {
         />
 
         <Modal
+          animationType="fade"
+          transparent={false}
+          visible={imageModalVisible}
+          onRequestClose={closeImageModal}
+          statusBarTranslucent={true}>
+          <View className="flex-1" style={{ backgroundColor: '#000000' }}>
+            <View
+              className="absolute left-0 right-0 top-0 z-20"
+              style={{
+                height: Platform.OS === 'ios' ? 120 : 100,
+                backgroundColor: 'rgba(0, 0, 0, 0.6)',
+              }}>
+              <View
+                className="flex-row items-center justify-between px-6"
+                style={{
+                  paddingTop: Platform.OS === 'ios' ? 60 : 45,
+                  marginTop: Platform.OS === 'ios' ? 0 : StatusBar.currentHeight || 0,
+                }}>
+                <TouchableOpacity
+                  onPress={closeImageModal}
+                  className="rounded-full p-3"
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderWidth: 1,
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 4,
+                    elevation: 5,
+                    width: 44,
+                    height: 44,
+                  }}
+                  activeOpacity={0.8}>
+                  <View className="flex-1 items-center justify-center">
+                    <View style={{ position: 'relative', width: 18, height: 18 }}>
+                      <View
+                        style={{
+                          position: 'absolute',
+                          top: 8,
+                          left: 2,
+                          width: 14,
+                          height: 2,
+                          backgroundColor: '#ffffff',
+                          borderRadius: 1,
+                          transform: [{ rotate: '45deg' }],
+                        }}
+                      />
+                      <View
+                        style={{
+                          position: 'absolute',
+                          top: 8,
+                          left: 2,
+                          width: 14,
+                          height: 2,
+                          backgroundColor: '#ffffff',
+                          borderRadius: 1,
+                          transform: [{ rotate: '-45deg' }],
+                        }}
+                      />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={openCamera}
+                  className="rounded-full px-6 py-3"
+                  style={{
+                    backgroundColor: '#FF9500',
+                    borderWidth: 1,
+                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                    shadowColor: '#FF9500',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.4,
+                    shadowRadius: 8,
+                    elevation: 8,
+                  }}
+                  activeOpacity={0.9}>
+                  <Text className="font-psemibold text-base text-white">Edit Photo</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View className="flex-1 items-center justify-center px-4">
+              <View
+                style={{
+                  shadowColor: '#ffffff',
+                  shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 20,
+                  elevation: 10,
+                }}>
+                <View
+                  style={{
+                    width: Math.min(width * 0.85, 350),
+                    height: Math.min(width * 0.85, 350),
+                    borderRadius: Math.min(width * 0.85, 350) / 2,
+                    borderWidth: 4,
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    overflow: 'hidden',
+                    backgroundColor: '#1a1a1a',
+                  }}>
+                  <Image
+                    source={user.pfp}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                    }}
+                    resizeMode="cover"
+                  />
+                </View>
+              </View>
+
+              <View className="mt-8 items-center">
+                <Text
+                  className="text-center font-psemibold text-2xl text-white"
+                  style={{
+                    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+                    textShadowOffset: { width: 0, height: 2 },
+                    textShadowRadius: 4,
+                  }}>
+                  {user.issuedto}
+                </Text>
+                <View
+                  className="mt-2 h-0.5 w-16"
+                  style={{
+                    backgroundColor: '#FF9500',
+                    borderRadius: 2,
+                  }}
+                />
+              </View>
+            </View>
+
+            <View
+              className="absolute bottom-0 left-0 right-0 z-20"
+              style={{
+                height: 100,
+                backgroundColor: 'rgba(0, 0, 0, 0.4)',
+              }}>
+              <View className="flex-1 items-center justify-end pb-8">
+                <Text
+                  className="font-pmedium text-sm text-white/70"
+                  style={{
+                    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+                    textShadowOffset: { width: 0, height: 1 },
+                    textShadowRadius: 2,
+                  }}>
+                  Tap Edit to change your profile photo
+                </Text>
+              </View>
+            </View>
+
+            <TouchableWithoutFeedback onPress={closeImageModal}>
+              <View className="absolute inset-0 z-10" style={{ backgroundColor: 'transparent' }} />
+            </TouchableWithoutFeedback>
+          </View>
+        </Modal>
+
+        <Modal
           animationType="slide"
           transparent={true}
+          statusBarTranslucent={true}
           visible={passwordModalVisible}
-          onRequestClose={closeModal}>
+          onRequestClose={closePasswordModal}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             className="flex-1"
@@ -332,7 +510,7 @@ const Profile: React.FC = () => {
                         <View className="flex-row justify-between">
                           <TouchableOpacity
                             className="mr-2 h-12 flex-1 items-center justify-center rounded-lg border border-gray-300"
-                            onPress={closeModal}>
+                            onPress={closePasswordModal}>
                             <Text className="font-pregular text-gray-700">Cancel</Text>
                           </TouchableOpacity>
 
