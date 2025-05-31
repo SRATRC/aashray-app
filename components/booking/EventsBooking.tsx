@@ -19,7 +19,6 @@ import { useGlobalContext } from '../../context/GlobalProvider';
 import { useRouter } from 'expo-router';
 import CustomButton from '../CustomButton';
 import handleAPICall from '../../utils/HandleApiCall';
-import ExpandableItem from '../ExpandableItem';
 import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
 import CustomChipGroup from '../CustomChipGroup';
@@ -28,15 +27,13 @@ import FormField from '../FormField';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
+import { Ionicons } from '@expo/vector-icons';
 
 const CHIPS = ['Self', 'Guest', 'Mumukshus'];
 const ARRIVAL = [
-  { key: 'car', value: 'Self Car' },
-  { key: 'raj pravas', value: 'Raj Pravas' },
-  { key: 'other', value: 'Other' },
+  { key: 'yes', value: 'Yes' },
+  { key: 'no', value: 'No' },
 ];
-
-var PACKAGES: any = [];
 
 const INITIAL_SELF_FORM = {
   package: null,
@@ -76,7 +73,7 @@ const INITIAL_MUMUKSHU_FORM = {
   ],
 };
 
-const EventBooking = () => {
+const EventBookingDirect = () => {
   const router: any = useRouter();
 
   useEffect(
@@ -88,13 +85,18 @@ const EventBooking = () => {
   const { user, updateBooking, updateGuestBooking, updateMumukshuBooking } = useGlobalContext();
 
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [packages, setPackages] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible);
-    setSelfForm(INITIAL_SELF_FORM);
-    setGuestForm(INITIAL_GUEST_FORM);
-    setMumukshuForm(INITIAL_MUMUKSHU_FORM);
+    if (isModalVisible) {
+      // Only reset when closing the modal
+      setSelfForm(INITIAL_SELF_FORM);
+      setGuestForm(INITIAL_GUEST_FORM);
+      setMumukshuForm(INITIAL_MUMUKSHU_FORM);
+      setPackages([]);
+    }
   };
 
   const [selectedChip, setSelectedChip] = useState('Self');
@@ -258,52 +260,95 @@ const EventBooking = () => {
   });
 
   const renderItem = ({ item }: any) => (
-    <ExpandableItem
-      containerStyles={'mt-3'}
-      visibleContent={
-        <View className="flex basis-11/12">
-          <Text className="font-psemibold text-secondary">
-            {moment(item.utsav_start).format('Do MMMM')} -{' '}
-            {moment(item.utsav_end).format('Do MMMM, YYYY')}
-          </Text>
-          <Text className="font-pmedium text-gray-700">{item.utsav_name}</Text>
-        </View>
-      }>
-      <HorizontalSeparator />
-      <View className="mt-3">
-        <Text className="font-psemibold text-gray-400">Available Packages:</Text>
-        {item.packages.map((packageitem: any) => (
-          <View
-            className="flex-row items-center justify-between font-pregular"
-            key={packageitem.package_id}>
-            <Text className="text-black">{packageitem.package_name}</Text>
-            <Text className="text-black">₹ {packageitem.package_amount}</Text>
+    <View
+      className="mx-1 mb-2 mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg shadow-gray-400"
+      style={{
+        ...(Platform.OS === 'ios' && {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.15,
+          shadowRadius: 12,
+        }),
+        ...(Platform.OS === 'android' && {
+          elevation: 8,
+        }),
+      }}>
+      <View className="px-5 py-4">
+        <View className="mb-2 flex-row items-center justify-between">
+          <View className="rounded-full bg-secondary/10 px-3 py-1">
+            <Text className="font-psemibold text-xs uppercase tracking-wide text-secondary">
+              {moment(item.utsav_start).format('MMM DD')} -{' '}
+              {moment(item.utsav_end).format('MMM DD, YYYY')}
+            </Text>
           </View>
-        ))}
-        <CustomButton
-          text={item.status == status.STATUS_CLOSED ? 'Add to waitlist' : 'Register'}
-          handlePress={() => {
-            PACKAGES = item.packages.map((item: any) => ({
-              key: item.package_id,
-              value: item.package_name,
-            }));
-
-            setSelectedItem(item);
-            setGuestForm((prev) => ({
-              ...prev,
-              adhyayan: item,
-            }));
-            toggleModal();
-          }}
-          containerStyles="mt-3 min-h-[40px]"
-          isLoading={isSubmitting}
-        />
+          {item.status == status.STATUS_CLOSED && (
+            <View className="rounded-full bg-orange-100 px-2 py-1">
+              <Text className="font-pmedium text-xs text-orange-600">Waitlist</Text>
+            </View>
+          )}
+        </View>
+        <Text className="font-psemibold text-lg leading-6 text-gray-800" numberOfLines={2}>
+          {item.utsav_name}
+        </Text>
       </View>
-    </ExpandableItem>
+
+      <View className="px-5 py-4">
+        <View className="mb-4">
+          <View className="mb-3 flex-row items-start">
+            <View className="mr-3 mt-0.5">
+              <Ionicons name="document-text-outline" size={18} color="#6b7280" />
+            </View>
+            <View className="flex-1">
+              <Text className="mb-2 font-pregular text-xs uppercase tracking-wide text-gray-500">
+                Available Packages
+              </Text>
+              <View className="space-y-2">
+                {item.packages.map((packageitem: any, index: number) => (
+                  <View
+                    className="flex-row items-center justify-between rounded-lg bg-gray-50 px-3 py-2"
+                    key={packageitem.package_id}>
+                    <Text className="flex-1 font-pmedium text-gray-800">
+                      {packageitem.package_name}
+                    </Text>
+                    <Text className="ml-2 font-psemibold text-secondary">
+                      ₹{packageitem.package_amount}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View className="border-t border-gray-200 pt-4">
+          <CustomButton
+            text={item.status == status.STATUS_CLOSED ? 'Join Waitlist' : 'Register Now'}
+            handlePress={() => {
+              const packageOptions = item.packages.map((packageItem: any) => ({
+                key: packageItem.package_id,
+                value: packageItem.package_name,
+              }));
+
+              setPackages(packageOptions);
+              setSelectedItem(item);
+              setGuestForm((prev) => ({
+                ...prev,
+                adhyayan: item,
+              }));
+              toggleModal();
+            }}
+            containerStyles="min-h-[48px] rounded-xl"
+            bgcolor={item.status == status.STATUS_CLOSED ? 'bg-orange-500' : 'bg-secondary'}
+            textStyles="font-psemibold text-white text-base"
+            isLoading={isSubmitting}
+          />
+        </View>
+      </View>
+    </View>
   );
 
   const renderSectionHeader = ({ section: { title } }: { section: { title: any } }) => (
-    <Text className="mx-1 mb-2 font-psemibold text-lg">{title}</Text>
+    <Text className="mx-1 mt-2 font-psemibold text-lg">{title}</Text>
   );
 
   const renderFooter = () => (
@@ -373,13 +418,13 @@ const EventBooking = () => {
                               className="mt-7"
                               label="Package"
                               placeholder="Select Package"
-                              options={PACKAGES}
+                              options={packages}
                               selectedValue={selfForm.package}
                               onValueChange={(val: any) =>
                                 setSelfForm({
                                   ...selfForm,
                                   package: val,
-                                  package_name: PACKAGES.find((item: any) => item.key == val)
+                                  package_name: packages.find((item: any) => item.key == val)
                                     ?.value,
                                 })
                               }
@@ -387,8 +432,8 @@ const EventBooking = () => {
 
                             <CustomSelectBottomSheet
                               className="mt-7"
-                              label="How will you arrive?"
-                              placeholder="How will you arrive?"
+                              label="Will you be arriving in your own car?"
+                              placeholder="Select option"
                               options={ARRIVAL}
                               selectedValue={selfForm.arrival}
                               onValueChange={(val: any) =>
@@ -396,7 +441,7 @@ const EventBooking = () => {
                               }
                             />
 
-                            {selfForm.arrival == 'car' && (
+                            {selfForm.arrival == 'yes' && (
                               <View>
                                 <FormField
                                   text="Enter Car Number"
@@ -439,22 +484,22 @@ const EventBooking = () => {
                                   className="mt-7"
                                   label="Package"
                                   placeholder="Select Package"
-                                  options={PACKAGES}
+                                  options={packages}
                                   selectedValue={mumukshuForm.mumukshus[index].package}
                                   onValueChange={(val: any) => {
                                     handleMumukshuFormChange(index, 'package', val);
                                     handleMumukshuFormChange(
                                       index,
                                       'package_name',
-                                      PACKAGES.find((item: any) => item.key == val)?.value
+                                      packages.find((item: any) => item.key == val)?.value
                                     );
                                   }}
                                 />
 
                                 <CustomSelectBottomSheet
                                   className="mt-7"
-                                  label="How will you arrive?"
-                                  placeholder="How will you arrive?"
+                                  label="Will you be arriving in your own car?"
+                                  placeholder="Select option"
                                   options={ARRIVAL}
                                   selectedValue={mumukshuForm.mumukshus[index].arrival}
                                   onValueChange={(val: any) => {
@@ -462,7 +507,7 @@ const EventBooking = () => {
                                   }}
                                 />
 
-                                {mumukshuForm.mumukshus[index].arrival == 'car' && (
+                                {mumukshuForm.mumukshus[index].arrival == 'yes' && (
                                   <FormField
                                     text="Enter Car Number"
                                     value={mumukshuForm.mumukshus[index].carno}
@@ -511,29 +556,29 @@ const EventBooking = () => {
                                 className="mt-7"
                                 label="Package"
                                 placeholder="Select Package"
-                                options={PACKAGES}
+                                options={packages}
                                 selectedValue={guestForm.guests[index].package}
                                 onValueChange={(val: any) => {
                                   handleGuestFormChange(index, 'package', val);
                                   handleGuestFormChange(
                                     index,
                                     'package_name',
-                                    PACKAGES.find((item: any) => item.key == val)?.value
+                                    packages.find((item: any) => item.key == val)?.value
                                   );
                                 }}
                               />
 
                               <CustomSelectBottomSheet
                                 className="mt-7"
-                                label="How will you arrive?"
-                                placeholder="How will you arrive?"
+                                label="Will you be arriving in your own car?"
+                                placeholder="Select option"
                                 options={ARRIVAL}
                                 selectedValue={guestForm.guests[index].arrival}
                                 onValueChange={(val: any) => {
                                   handleGuestFormChange(index, 'arrival', val);
                                 }}
                               />
-                              {guestForm.guests[index].arrival == 'car' && (
+                              {guestForm.guests[index].arrival == 'yes' && (
                                 <View>
                                   <FormField
                                     text="Enter Car Number"
@@ -716,4 +761,4 @@ const EventBooking = () => {
   );
 };
 
-export default EventBooking;
+export default EventBookingDirect;

@@ -3,7 +3,7 @@ export default {
     name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
-    version: '1.0.15',
+    version: '1.0.20',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     userInterfaceStyle: 'automatic',
@@ -26,6 +26,8 @@ export default {
         LSApplicationQueriesSchemes: ['tez', 'phonepe', 'paytmmp'],
         NSCameraUsageDescription:
           'We need your images so that our guruji can view it before meetings.',
+        NSPhotoLibraryUsageDescription:
+          'We need access to your photo library so you can select photos for our guruji to view before meetings.',
         ITSAppUsesNonExemptEncryption: false,
       },
     },
@@ -50,9 +52,6 @@ export default {
         },
       ],
     },
-    // web: {
-    //   favicon: './assets/favicon.png',
-    // },
     // updates: {
     //   enabled: true,
     //   checkAutomatically: 'ON_LOAD',

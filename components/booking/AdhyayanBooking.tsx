@@ -17,9 +17,9 @@ import { icons, status, types } from '../../constants';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import CustomButton from '../CustomButton';
 import handleAPICall from '../../utils/HandleApiCall';
-import ExpandableItem from '../ExpandableItem';
 import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
 import CustomChipGroup from '../CustomChipGroup';
@@ -51,7 +51,7 @@ const INITIAL_MUMUKSHU_FORM = {
   ],
 };
 
-const AdhyayanBooking = () => {
+const AdhyayanBookingDirect = () => {
   const router = useRouter();
   const { user, updateBooking, updateGuestBooking, updateMumukshuBooking } = useGlobalContext();
 
@@ -198,56 +198,106 @@ const AdhyayanBooking = () => {
     });
 
   const renderItem = ({ item }: { item: any }) => (
-    <ExpandableItem
-      containerStyles={'mt-3'}
-      visibleContent={
-        <View className="flex basis-11/12">
-          <Text className="font-psemibold text-secondary">
-            {moment(item.start_date).format('Do MMMM')} -{' '}
-            {moment(item.end_date).format('Do MMMM, YYYY')}
-          </Text>
-          <Text className="font-pmedium text-gray-700">{item.name}</Text>
-        </View>
-      }>
-      <HorizontalSeparator />
-      <View className="mt-3">
-        <View className="flex-row gap-x-2">
-          <Text className="font-psemibold text-gray-400">Swadhyay Karta:</Text>
-          <Text className="font-pregular">{item.speaker}</Text>
-        </View>
-        {item.location && (
-          <View className="flex-row gap-x-2">
-            <Text className="font-psemibold text-gray-400">Location:</Text>
-            <Text className="font-pregular">{item.location}</Text>
+    <View
+      className="mx-1 mb-2 mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg shadow-gray-400"
+      style={{
+        ...(Platform.OS === 'ios' && {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.15,
+          shadowRadius: 12,
+        }),
+        ...(Platform.OS === 'android' && {
+          elevation: 8,
+        }),
+      }}>
+      <View className="px-5 py-4">
+        <View className="mb-2 flex-row items-center justify-between">
+          <View className="rounded-full bg-secondary/10 px-3 py-1">
+            <Text className="font-psemibold text-xs uppercase tracking-wide text-secondary">
+              {moment(item.start_date).format('MMM DD')} -{' '}
+              {moment(item.end_date).format('MMM DD, YYYY')}
+            </Text>
           </View>
-        )}
-        <View className="flex-row gap-x-2">
-          <Text className="font-psemibold text-gray-400">Charges:</Text>
-          <Text className="font-pregular">{item.amount}</Text>
+          {item.status == status.STATUS_CLOSED && (
+            <View className="rounded-full bg-orange-100 px-2 py-1">
+              <Text className="font-pmedium text-xs text-orange-600">Waitlist</Text>
+            </View>
+          )}
         </View>
-        <CustomButton
-          text={item.status == status.STATUS_CLOSED ? 'Add to waitlist' : 'Register'}
-          handlePress={() => {
-            setSelectedItem(item);
-            setGuestForm((prev) => ({
-              ...prev,
-              adhyayan: item,
-            }));
-            setMumukshuForm((prev) => ({
-              ...prev,
-              adhyayan: item,
-            }));
-            toggleModal();
-          }}
-          containerStyles="mt-3 min-h-[40px]"
-          isLoading={isSubmitting}
-        />
+        <Text className="font-psemibold text-lg leading-6 text-gray-800" numberOfLines={2}>
+          {item.name}
+        </Text>
       </View>
-    </ExpandableItem>
+
+      <View className="px-5 py-4">
+        <View className="gap-y-3">
+          <View className="flex-row items-start">
+            <View className="mr-3 mt-0.5">
+              <Ionicons name="person-outline" size={18} color="#6b7280" />
+            </View>
+            <View className="flex-1">
+              <Text className="mb-1 font-pregular text-xs uppercase tracking-wide text-gray-500">
+                Swadhyay Karta
+              </Text>
+              <Text className="font-pmedium text-gray-800">{item.speaker}</Text>
+            </View>
+          </View>
+
+          {item.location && (
+            <View className="flex-row items-start">
+              <View className="mr-3 mt-0.5">
+                <Ionicons name="location-outline" size={18} color="#6b7280" />
+              </View>
+              <View className="flex-1">
+                <Text className="mb-1 font-pregular text-xs uppercase tracking-wide text-gray-500">
+                  Location
+                </Text>
+                <Text className="font-pmedium text-gray-800">{item.location}</Text>
+              </View>
+            </View>
+          )}
+
+          <View className="flex-row items-start">
+            <View className="mr-3 mt-0.5">
+              <Ionicons name="card-outline" size={18} color="#6b7280" />
+            </View>
+            <View className="flex-1">
+              <Text className="mb-1 font-pregular text-xs uppercase tracking-wide text-gray-500">
+                Charges
+              </Text>
+              <Text className="font-psemibold text-gray-800">{item.amount}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View className="mt-5 border-t border-gray-200 pt-4">
+          <CustomButton
+            text={item.status == status.STATUS_CLOSED ? 'Join Waitlist' : 'Register Now'}
+            handlePress={() => {
+              setSelectedItem(item);
+              setGuestForm((prev) => ({
+                ...prev,
+                adhyayan: item,
+              }));
+              setMumukshuForm((prev) => ({
+                ...prev,
+                adhyayan: item,
+              }));
+              toggleModal();
+            }}
+            containerStyles="min-h-[48px] rounded-xl"
+            bgcolor={item.status == status.STATUS_CLOSED ? 'bg-orange-500' : 'bg-secondary'}
+            textStyles="font-psemibold text-white text-base"
+            isLoading={isSubmitting}
+          />
+        </View>
+      </View>
+    </View>
   );
 
   const renderSectionHeader = ({ section: { title } }: { section: { title: any } }) => (
-    <Text className="mx-1 mb-2 font-psemibold text-lg">{title}</Text>
+    <Text className="mx-1 mt-2 font-psemibold text-lg">{title}</Text>
   );
 
   const renderFooter = () => (
@@ -515,4 +565,4 @@ function transformMumukshuData(inputData: any) {
   };
 }
 
-export default AdhyayanBooking;
+export default AdhyayanBookingDirect;
