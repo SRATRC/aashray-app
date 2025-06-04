@@ -17,14 +17,14 @@ const MumukshuEventBookingDetails: React.FC<{ containerStyles: any }> = ({ conta
     <PrimaryAddonBookingCard title={'Raj Utsav Booking'} containerStyles={containerStyles}>
       <View className="item-center flex flex-row gap-x-4 p-4">
         <Image source={icons.events} className="h-10 w-10" resizeMode="contain" />
-        <View className="w-full flex-1 justify-center gap-y-1">
+        <View className="w-full flex-1 justify-center">
           {/* {mumukshuData.validationData?.utsavDetails?.length > 0 && (
             <ScrollView horizontal>
               {mumukshuData.validationData &&
                 Object.keys(mumukshuData.validationData).length > 0 &&
                 mumukshuData.validationData.utsavDetails?.available !== 0 && (
                   <CustomTag
-                    text={`available: ${mumukshuData.validationData.utsavDetails.available}`}
+                    text={`available: ${mumukshuData.validationData.utsavDetails.available || 0}`}
                     textStyles={'text-green-200'}
                     containerStyles={'bg-green-100'}
                   />
@@ -34,9 +34,9 @@ const MumukshuEventBookingDetails: React.FC<{ containerStyles: any }> = ({ conta
                 Object.keys(mumukshuData.validationData).length > 0 &&
                 mumukshuData.validationData.utsavDetails?.waiting !== 0 && (
                   <CustomTag
-                    text={`waiting: ${mumukshuData.validationData.utsavDetails.waiting}`}
+                    text={`waiting: ${mumukshuData.validationData.utsavDetails.waiting || 0}`}
                     textStyles={'text-red-200'}
-                    containerStyles={'bg-red-100'}
+                    containerStyles={'bg-red-100 ml-2'}
                   />
                 )}
             </ScrollView>
@@ -60,7 +60,7 @@ const MumukshuEventBookingDetails: React.FC<{ containerStyles: any }> = ({ conta
         <FontAwesome5 name="map-marker-alt" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Location:</Text>
         <Text className="flex-1 font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
-          {mumukshuData.utsav.utsav.location || 'Research Centre'}
+          {mumukshuData.utsav.utsav.utsav_location || 'Not Available'}
         </Text>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">

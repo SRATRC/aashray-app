@@ -292,17 +292,28 @@ const EventBookingDirect = () => {
         </Text>
       </View>
 
-      <View className="px-5 py-4">
-        <View className="mb-4">
+      <View className="px-5">
+        <View className="mb-4 gap-y-2">
+          <View className="flex-row items-center">
+            <View className="mr-3 mt-0.5">
+              <Ionicons name="location-outline" size={18} color="#6b7280" />
+            </View>
+            <View className="flex-row gap-x-2">
+              <Text className="font-pmedium text-base tracking-wide text-gray-500">Location:</Text>
+              <Text className="font-pregular text-base tracking-wide text-gray-500">
+                {item.utsav_location ? item.utsav_location : 'Not Available'}
+              </Text>
+            </View>
+          </View>
           <View className="mb-3 flex-row items-start">
             <View className="mr-3 mt-0.5">
               <Ionicons name="document-text-outline" size={18} color="#6b7280" />
             </View>
             <View className="flex-1">
-              <Text className="mb-2 font-pregular text-xs uppercase tracking-wide text-gray-500">
+              <Text className="mb-2 font-pmedium text-base tracking-wide text-gray-500">
                 Available Packages
               </Text>
-              <View className="space-y-2">
+              <View className="gap-y-2">
                 {item.packages.map((packageitem: any, index: number) => (
                   <View
                     className="flex-row items-center justify-between rounded-lg bg-gray-50 px-3 py-2"
@@ -320,7 +331,7 @@ const EventBookingDirect = () => {
           </View>
         </View>
 
-        <View className="border-t border-gray-200 pt-4">
+        <View className="mb-4 border-t border-gray-200 pt-4">
           <CustomButton
             text={item.status == status.STATUS_CLOSED ? 'Join Waitlist' : 'Register Now'}
             handlePress={() => {
@@ -381,8 +392,8 @@ const EventBookingDirect = () => {
                   <View className="flex-row gap-x-1">
                     <Text className="font-pregular text-xs text-gray-500">Date:</Text>
                     <Text className="font-pregular text-xs text-secondary">
-                      {moment(selectedItem?.start_date).format('Do MMMM')} -{' '}
-                      {moment(selectedItem?.end_date).format('Do MMMM')}
+                      {moment(selectedItem?.utsav_start).format('Do MMMM')} -{' '}
+                      {moment(selectedItem?.utsav_end).format('Do MMMM')}
                     </Text>
                   </View>
                 </View>

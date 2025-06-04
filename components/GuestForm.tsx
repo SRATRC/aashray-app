@@ -26,7 +26,9 @@ const GuestForm: React.FC<GuestFormProps> = ({
 }) => {
   const { user } = useGlobalContext();
 
-  const verifyGuest = async (mobno: string): Promise<Partial<any> | null> => {
+  const verifyGuest = async (
+    mobno: string
+  ): Promise<{ data?: any; isNewGuest?: boolean; error?: string }> => {
     return new Promise((resolve, reject) => {
       handleAPICall(
         'GET',
@@ -37,13 +39,14 @@ const GuestForm: React.FC<GuestFormProps> = ({
         null,
         (res: any) => {
           if (res.data) {
-            resolve(res.data);
+            resolve({ data: res.data });
           } else {
-            reject(new Error('Guest not found'));
+            // Guest not found - this is a valid scenario for creating new guest
+            resolve({ isNewGuest: true });
           }
         },
         () => {}, // on finally callback
-        () => reject(new Error('Failed to fetch guests'))
+        (errorDetails: any) => reject(new Error(errorDetails?.message))
       );
     });
   };
@@ -60,15 +63,15 @@ const GuestForm: React.FC<GuestFormProps> = ({
   // Update form when query data changes
   useEffect(() => {
     guestQueries.forEach((query: any, index: number) => {
-      if (query.data && guestForm.guests[index]) {
+      if (query.data?.data && guestForm.guests[index]) {
         const currentGuest = guestForm.guests[index];
-        const shouldUpdate = !currentGuest.cardno || currentGuest.cardno !== query.data.cardno;
+        const shouldUpdate = !currentGuest.cardno || currentGuest.cardno !== query.data.data.cardno;
 
         if (shouldUpdate) {
           setGuestForm((prevForm: any) => {
             const updatedGuests = [...prevForm.guests];
             updatedGuests[index] = {
-              ...query.data,
+              ...query.data.data,
               ...updatedGuests[index],
               mobno: updatedGuests[index].mobno,
             };
@@ -99,10 +102,17 @@ const GuestForm: React.FC<GuestFormProps> = ({
           ? guestQueries[index]
           : { data: null, isLoading: false, isError: false, error: null };
 
-        // Only show API errors, not validation errors
+        const guestData = data?.data;
+        const isNewGuest = data?.isNewGuest;
         const shouldShowError = isVerifyGuestsError;
-
         const errorMessage = shouldShowError ? getErrorMessage(error) : undefined;
+
+        // Show additional fields when:
+        // 1. Guest not found (new guest) - isNewGuest is true
+        // 2. No existing guest data and not loading and no API error
+        const shouldShowAdditionalFields =
+          (isNewGuest || (!guestData && !isVerifyGuestsLoading && !isVerifyGuestsError)) &&
+          guest.mobno?.length === 10;
 
         return (
           <View key={index} className="mt-8">
@@ -127,13 +137,22 @@ const GuestForm: React.FC<GuestFormProps> = ({
               placeholder="Enter Guest Phone Number"
               maxLength={10}
               containerStyles="bg-gray-100"
-              additionalText={data?.issuedto}
+              additionalText={guestData?.issuedto}
               error={shouldShowError}
               errorMessage={errorMessage}
               isLoading={isVerifyGuestsLoading}
             />
 
-            {!data && !isVerifyGuestsLoading && guest.mobno?.length === 10 && (
+            {/* Show info message for new guest */}
+            {isNewGuest && (
+              <View className="mt-2 rounded bg-blue-50 p-2">
+                <Text className="text-sm text-blue-700">
+                  Guest not found. Please fill in the details to create a new guest.
+                </Text>
+              </View>
+            )}
+
+            {shouldShowAdditionalFields && (
               <View>
                 <FormField
                   text="Guest Name"

@@ -19,7 +19,9 @@ const STATUS_CASH_PENDING = 'cash pending';
 const STATUS_CASH_COMPLETED = 'cash completed';
 const STATUS_PAYMENT_COMPLETED = 'completed';
 const STATUS_CREDITED = 'credited';
-const STATUS_PAYMENT_PARTIAL_COMPLETED = 'partially paid';
+const STATUS_CAPTURED = 'captured';
+const STATUS_AUTHORIZED = 'authorized';
+const STATUS_FAILED = 'failed';
 const STATUS_ONPREM = 'onprem';
 const STATUS_OFFPREM = 'offprem';
 const STATUS_RESIDENT = 'PR';
@@ -56,7 +58,9 @@ export default {
   STATUS_CASH_COMPLETED,
   STATUS_PAYMENT_COMPLETED,
   STATUS_CREDITED,
-  STATUS_PAYMENT_PARTIAL_COMPLETED,
+  STATUS_CAPTURED,
+  STATUS_AUTHORIZED,
+  STATUS_FAILED,
   STATUS_ONPREM,
   STATUS_OFFPREM,
   STATUS_RESIDENT,

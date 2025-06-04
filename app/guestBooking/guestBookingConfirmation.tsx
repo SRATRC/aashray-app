@@ -161,7 +161,7 @@ const guestBookingConfirmation = () => {
                     .then((rzrpayData: any) => {
                       // handle success
                       setIsSubmitting(false);
-                      router.replace('/booking/bookingConfirmation');
+                      router.replace('/bookingConfirmation');
                     })
                     .catch((error: any) => {
                       // handle failure

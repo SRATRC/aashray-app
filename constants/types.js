@@ -7,23 +7,13 @@ const booking_type_event = 'Raj Utsav';
 
 const SINGLE_DAY_ROOM_TYPE = 'Single Day Room';
 const ROOM_DETAILS_TYPE = 'room';
-const GUEST_ROOM_DETAILS_TYPE = 'guest_room';
+const FLAT_DETAILS_TYPE = 'flat';
 const TRAVEL_DETAILS_TYPE = 'travel';
-const GUEST_TRAVEL_DETAILS_TYPE = 'guest_travel';
 const ADHYAYAN_DETAILS_TYPE = 'adhyayan';
-const GUEST_ADHYAYAN_DETAILS_TYPE = 'guest_adhyayan';
 const EVENT_DETAILS_TYPE = 'utsav';
-const GUEST_EVENT_DETAILS_TYPE = 'guest_utsav';
-const GUEST_BREAKFAST_DETAILS_TYPE = 'guest_breakfast';
-const GUEST_LUNCH_DETAILS_TYPE = 'guest_lunch';
-const GUEST_DINNER_DETAILS_TYPE = 'guest_dinner';
-
-const transaction_type_all = 'All';
-const transaction_type_pending = 'Pending';
-const transaction_type_completed = 'Completed';
-const transaction_type_credited = 'Credited';
-const transaction_type_cancelled = 'Cancelled';
-const transaction_type_admin_cancelled = 'Admin Cancelled';
+const BREAKFAST_DETAILS_TYPE = 'breakfast';
+const LUNCH_DETAILS_TYPE = 'lunch';
+const DINNER_DETAILS_TYPE = 'dinner';
 
 const MAINTENANCE_TYPE_ALL = 'All';
 const MAINTENANCE_TYPE_OPEN = 'Open';
@@ -38,22 +28,13 @@ export default {
   booking_type_event,
   SINGLE_DAY_ROOM_TYPE,
   ROOM_DETAILS_TYPE,
+  FLAT_DETAILS_TYPE,
   TRAVEL_DETAILS_TYPE,
   ADHYAYAN_DETAILS_TYPE,
   EVENT_DETAILS_TYPE,
-  GUEST_ADHYAYAN_DETAILS_TYPE,
-  GUEST_ROOM_DETAILS_TYPE,
-  GUEST_TRAVEL_DETAILS_TYPE,
-  GUEST_EVENT_DETAILS_TYPE,
-  GUEST_BREAKFAST_DETAILS_TYPE,
-  GUEST_LUNCH_DETAILS_TYPE,
-  GUEST_DINNER_DETAILS_TYPE,
-  transaction_type_all,
-  transaction_type_pending,
-  transaction_type_completed,
-  transaction_type_credited,
-  transaction_type_cancelled,
-  transaction_type_admin_cancelled,
+  BREAKFAST_DETAILS_TYPE,
+  LUNCH_DETAILS_TYPE,
+  DINNER_DETAILS_TYPE,
   MAINTENANCE_TYPE_ALL,
   MAINTENANCE_TYPE_OPEN,
   MAINTENANCE_TYPE_CLOSED,

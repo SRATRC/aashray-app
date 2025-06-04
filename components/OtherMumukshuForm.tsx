@@ -43,7 +43,7 @@ const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
           }
         },
         () => {}, // on finally callback
-        () => reject(new Error('Failed to fetch mumukshus'))
+        (errorDetails: any) => reject(new Error(errorDetails?.message))
       );
     });
   };

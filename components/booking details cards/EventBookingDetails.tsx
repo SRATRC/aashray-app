@@ -23,7 +23,7 @@ const EventBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyl
       <View className="item-center flex flex-row gap-x-4 p-4">
         <Image source={icons.events} className="h-10 w-10" resizeMode="contain" />
         <View className="w-full flex-1 justify-center gap-y-1">
-          {/* {data.validationData?.utsavDetails && (
+          {data.validationData?.utsavDetails && (
             <CustomTag
               text={data.validationData?.utsavDetails[0].status}
               textStyles={
@@ -37,7 +37,7 @@ const EventBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyl
                   : 'bg-red-100'
               }
             />
-          )} */}
+          )}
           <Text className="text-md font-pmedium">{formattedDate}</Text>
         </View>
       </View>
@@ -62,7 +62,7 @@ const EventBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyl
         <FontAwesome5 name="map-marker-alt" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Location:</Text>
         <Text className="flex-1 font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
-          {data.utsav.utsav.location || 'Research Centre'}
+          {data.utsav.utsav.utsav_location || 'Not Available'}
         </Text>
       </View>
     </PrimaryAddonBookingCard>

@@ -429,6 +429,8 @@ export default function FoodBookingCancellation() {
     <View className="items-center">
       {(isFetchingNextPage || isLoading) && <ActivityIndicator />}
       {!hasNextPage && data?.pages?.[0]?.length > 0 && <Text>No more bookings at the moment</Text>}
+      {/* Add extra spacing only at the very bottom when items are selected */}
+      {selectedItems.length > 0 && <View style={{ height: 104 }} />}
     </View>
   );
 
@@ -488,7 +490,7 @@ export default function FoodBookingCancellation() {
         className="flex-grow"
         contentContainerStyle={{
           paddingHorizontal: 16,
-          paddingBottom: selectedItems.length > 0 ? 120 : 16,
+          paddingBottom: 16, // Fixed padding - no conditional logic here
         }}
         data={data?.pages?.flat()}
         estimatedItemSize={150}

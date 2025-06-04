@@ -1,4 +1,7 @@
 const orange = '#F1AC09';
+const secondary_50 = '#FFEFDB';
+const secondary_100 = '#FF9001';
+const secondary_200 = '#FF8E01';
 
 const gray_100 = '#FAFAFC';
 const gray_200 = '#E5E7EB';
@@ -15,6 +18,9 @@ const zinc_100 = '#f4f4f5';
 
 export default {
   orange,
+  secondary_50,
+  secondary_100,
+  secondary_200,
   gray_100,
   gray_200,
   gray_400,
@@ -23,5 +29,5 @@ export default {
   black_200,
   white,
   white_100,
-  zinc_100
+  zinc_100,
 };

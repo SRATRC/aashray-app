@@ -3,15 +3,15 @@ import {
   Text,
   TouchableOpacity,
   RefreshControl,
-  Platform,
   ActivityIndicator,
+  Image,
 } from 'react-native';
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useGlobalContext } from '../../context/GlobalProvider';
-import { colors } from '../../constants';
+import { colors, icons } from '../../constants';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import PageHeader from '../../components/PageHeader';
@@ -25,28 +25,138 @@ import * as Haptics from 'expo-haptics';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 
+interface Transaction {
+  bookingid: string;
+  amount: number;
+  category: string;
+  status: string;
+  discount: number;
+  description: string | null;
+  createdAt: string;
+  booked_for: string | null;
+  booked_by: string | null;
+  start_day: string | null;
+  end_day: string | null;
+  name: string | null;
+  booked_for_name: string | null;
+}
+
+interface ApiResponse {
+  message: string;
+  data: Transaction[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    hasMore: boolean;
+  };
+}
+
+const PaymentTimer = ({ createdAt }: { createdAt: string }) => {
+  const [timeRemaining, setTimeRemaining] = useState<{
+    hours: number;
+    minutes: number;
+    seconds: number;
+    isExpired: boolean;
+    isUrgent: boolean;
+  }>({ hours: 0, minutes: 0, seconds: 0, isExpired: false, isUrgent: false });
+
+  useEffect(() => {
+    const calculateTimeRemaining = () => {
+      const created = moment.utc(createdAt);
+      const expiry = created.clone().add(24, 'hours');
+      const now = moment.utc();
+      const diff = expiry.diff(now);
+
+      if (diff <= 0) {
+        setTimeRemaining({ hours: 0, minutes: 0, seconds: 0, isExpired: true, isUrgent: false });
+        return;
+      }
+
+      const duration = moment.duration(diff);
+      const hours = Math.floor(duration.asHours());
+      const minutes = duration.minutes();
+      const seconds = duration.seconds();
+      const isUrgent = diff <= 3 * 60 * 60 * 1000;
+
+      setTimeRemaining({ hours, minutes, seconds, isExpired: false, isUrgent });
+    };
+
+    calculateTimeRemaining();
+    const interval = setInterval(calculateTimeRemaining, 1000);
+
+    return () => clearInterval(interval);
+  }, [createdAt]);
+
+  const getTimerColor = () => {
+    if (timeRemaining.isExpired) return 'text-red-600';
+    if (timeRemaining.isUrgent) return 'text-orange-600';
+    return 'text-green-600';
+  };
+
+  const getTimerBgColor = () => {
+    if (timeRemaining.isExpired) return 'bg-red-50 border-red-200';
+    if (timeRemaining.isUrgent) return 'bg-orange-50 border-orange-200';
+    return 'bg-green-50 border-green-200';
+  };
+
+  const getTimerIcon = () => {
+    if (timeRemaining.isExpired) return 'time';
+    if (timeRemaining.isUrgent) return 'timer';
+    return 'time-outline';
+  };
+
+  const formatTime = () => {
+    if (timeRemaining.isExpired) return 'Expired';
+
+    const { hours, minutes, seconds } = timeRemaining;
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${seconds}s`;
+    } else {
+      return `${seconds}s`;
+    }
+  };
+
+  return (
+    <View className={`flex-row items-center rounded-lg border px-2 py-1 ${getTimerBgColor()}`}>
+      <Ionicons
+        name={getTimerIcon()}
+        size={12}
+        color={timeRemaining.isExpired ? '#DC2626' : timeRemaining.isUrgent ? '#EA580C' : '#059669'}
+        style={{ marginRight: 4 }}
+      />
+      <Text className={`font-pmedium text-xs ${getTimerColor()}`}>{formatTime()}</Text>
+    </View>
+  );
+};
+
 const PendingPayments = () => {
   const { user } = useGlobalContext();
   const router = useRouter();
 
   const queryClient = useQueryClient();
-  const [selectedPayments, setSelectedPayments] = useState<any[]>([]);
+  const [selectedPayments, setSelectedPayments] = useState<Transaction[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch pending payments
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['pendingPayments', user.cardno],
+    queryKey: ['transactions', user.cardno, 'pending,cash pending,failed'],
     queryFn: async () => {
-      return new Promise<any[]>((resolve, reject) => {
+      return new Promise<Transaction[]>((resolve, reject) => {
         handleAPICall(
           'GET',
-          '/profile/pendingPayments',
+          '/profile/transactions',
           {
             cardno: user.cardno,
+            page: 1,
+            page_size: 100,
+            status: 'pending,cash pending,failed',
           },
           null,
-          (res: any) => {
+          (res: ApiResponse) => {
+            // Handle the new API response structure
             resolve(Array.isArray(res.data) ? res.data : []);
           },
           () => {},
@@ -54,10 +164,9 @@ const PendingPayments = () => {
         );
       });
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 30,
   });
 
-  // Process payment mutation
   const processPaymentMutation = useMutation({
     mutationFn: async (paymentIds: string[]) => {
       return new Promise((resolve, reject) => {
@@ -80,7 +189,7 @@ const PendingPayments = () => {
     onSuccess: () => {
       setSelectedPayments([]);
       queryClient.invalidateQueries({
-        queryKey: ['pendingPayments', user.cardno],
+        queryKey: ['transactions', user.cardno, 'pending,cash pending,failed'],
       });
     },
   });
@@ -90,8 +199,7 @@ const PendingPayments = () => {
     refetch().finally(() => setRefreshing(false));
   }, [refetch]);
 
-  // Memoized calculations
-  const pendingPayments = useMemo(() => (data as any[]) || [], [data]);
+  const pendingPayments = useMemo(() => (data as Transaction[]) || [], [data]);
   const totalAmount = useMemo(
     () => selectedPayments.reduce((total, payment) => total + payment.amount, 0),
     [selectedPayments]
@@ -101,7 +209,6 @@ const PendingPayments = () => {
     [pendingPayments.length, selectedPayments.length]
   );
 
-  // Check if payment is allowed based on the condition
   const totalPendingAmount = useMemo(
     () => pendingPayments.reduce((total, payment) => total + payment.amount, 0),
     [pendingPayments]
@@ -111,7 +218,6 @@ const PendingPayments = () => {
     return totalPendingAmount > 0 && user.country === 'India';
   }, [totalPendingAmount, user.country]);
 
-  // Category statistics
   const categoryStats = useMemo(() => {
     const stats = pendingPayments.reduce(
       (acc, item) => {
@@ -132,9 +238,25 @@ const PendingPayments = () => {
     }));
   }, [pendingPayments]);
 
+  const isTransactionExpired = useCallback((createdAt: string) => {
+    const created = moment.utc(createdAt);
+    const expiry = created.clone().add(24, 'hours');
+    return moment.utc().isAfter(expiry);
+  }, []);
+
   const handleSelectPayment = useCallback(
-    (payment: any) => {
+    (payment: Transaction) => {
       if (!isPaymentAllowed) return;
+
+      if (isTransactionExpired(payment.createdAt)) {
+        Toast.show({
+          type: 'error',
+          text1: 'Payment expired',
+          text2: 'This payment window has expired',
+          swipeable: false,
+        });
+        return;
+      }
 
       setSelectedPayments((prev) => {
         const isSelected = prev.some((item) => item.bookingid === payment.bookingid);
@@ -145,15 +267,18 @@ const PendingPayments = () => {
       });
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     },
-    [isPaymentAllowed]
+    [isPaymentAllowed, isTransactionExpired]
   );
 
   const handleSelectAll = useCallback(() => {
     if (!isPaymentAllowed || pendingPayments.length === 0) return;
 
-    setSelectedPayments(allSelected ? [] : [...pendingPayments]);
+    const validPayments = pendingPayments.filter(
+      (payment) => !isTransactionExpired(payment.createdAt)
+    );
+    setSelectedPayments(allSelected ? [] : validPayments);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-  }, [pendingPayments, allSelected, isPaymentAllowed]);
+  }, [pendingPayments, allSelected, isPaymentAllowed, isTransactionExpired]);
 
   const handleProceedToPayment = async () => {
     if (!isPaymentAllowed) {
@@ -175,6 +300,19 @@ const PendingPayments = () => {
         swipeable: false,
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return;
+    }
+
+    const expiredPayments = selectedPayments.filter((payment) =>
+      isTransactionExpired(payment.createdAt)
+    );
+    if (expiredPayments.length > 0) {
+      Toast.show({
+        type: 'error',
+        text1: 'Some payments have expired',
+        text2: 'Please remove expired payments from selection',
+        swipeable: false,
+      });
       return;
     }
 
@@ -245,8 +383,7 @@ const PendingPayments = () => {
     return 'Payment not available';
   };
 
-  // Helper functions for better display
-  const getItemTitle = (item: any) => {
+  const getItemTitle = (item: Transaction) => {
     if (item.name) {
       return item.name;
     }
@@ -254,16 +391,30 @@ const PendingPayments = () => {
     switch (item.category?.toLowerCase()) {
       case 'room':
         return 'Room Booking';
+      case 'flat':
+        return 'Flat Booking';
       case 'adhyayan':
-        return 'Adhyayan Session';
+        return 'Adhyayan Booking';
       case 'utsav':
-        return 'Utsav Event';
+        return 'Utsav Booking';
+      case 'travel':
+        return 'Travel Booking';
+      case 'breakfast':
+        return 'Breakfast Booking';
+      case 'lunch':
+        return 'Lunch Booking';
+      case 'dinner':
+        return 'Dinner Booking';
       default:
-        return 'Booking';
+        return 'Miscellaneous Booking';
     }
   };
 
-  const getDateRange = (startDay: string, endDay: string) => {
+  const getDateRange = (startDay: string | null, endDay: string | null) => {
+    if (!startDay || !endDay) {
+      return 'Date not specified';
+    }
+
     const start = moment(startDay);
     const end = moment(endDay);
 
@@ -274,7 +425,11 @@ const PendingPayments = () => {
     }
   };
 
-  const getDuration = (startDay: string, endDay: string) => {
+  const getDuration = (startDay: string | null, endDay: string | null) => {
+    if (!startDay || !endDay) {
+      return 'Duration not specified';
+    }
+
     const start = moment(startDay);
     const end = moment(endDay);
     const days = end.diff(start, 'days') + 1;
@@ -289,155 +444,187 @@ const PendingPayments = () => {
   const getCategoryIcon = (category: string) => {
     switch (category?.toLowerCase()) {
       case 'room':
-        return 'bed-outline';
+        return icons.room;
+      case 'flat':
+        return icons.room;
       case 'adhyayan':
-        return 'book-outline';
+        return icons.adhyayan;
       case 'utsav':
-        return 'calendar-outline';
+        return icons.events;
+      case 'travel':
+        return icons.travel;
+      case 'breakfast':
+      case 'lunch':
+      case 'dinner':
+        return icons.food;
       default:
-        return 'bookmark-outline';
+        return icons.room;
     }
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category?.toLowerCase()) {
-      case 'room':
-        return { bg: 'bg-secondary-50', text: 'text-gray-700', border: 'border-secondary-50' };
-      case 'adhyayan':
-        return { bg: 'bg-secondary-50', text: 'text-gray-700', border: 'border-secondary-50' };
-      case 'utsav':
-        return { bg: 'bg-secondary-50', text: 'text-gray-700', border: 'border-secondary-50' };
-      default:
-        return { bg: 'bg-secondary-50', text: 'text-gray-700', border: 'border-secondary-50' };
-    }
-  };
-
-  const isUpcoming = (startDay: string) => {
-    return moment(startDay).isAfter(moment(), 'day');
   };
 
   const renderItem = useCallback(
-    ({ item }: { item: any }) => {
+    ({ item }: { item: Transaction }) => {
       const isSelected = selectedPayments.some((payment) => payment.bookingid === item.bookingid);
-      const categoryColors = getCategoryColor(item.category);
-      const upcoming = isUpcoming(item.start_day);
+      const isExpired = isTransactionExpired(item.createdAt);
+      const categoryColors = {
+        bg: 'bg-secondary-50',
+        text: 'text-gray-700',
+        border: 'border-secondary-50',
+      };
 
       return (
         <TouchableOpacity
           onPress={() => handleSelectPayment(item)}
-          activeOpacity={isPaymentAllowed ? 0.6 : 1}
-          disabled={!isPaymentAllowed}
+          activeOpacity={isPaymentAllowed && !isExpired ? 0.6 : 1}
+          disabled={!isPaymentAllowed || isExpired}
           className={`mb-3 rounded-xl border ${
-            isSelected && isPaymentAllowed
+            isSelected && isPaymentAllowed && !isExpired
               ? 'border-secondary bg-secondary-50'
-              : 'border-gray-200 bg-white'
-          } ${!isPaymentAllowed ? 'opacity-50' : ''}`}
+              : isExpired
+                ? 'border-red-200 bg-red-50'
+                : 'border-gray-200 bg-white'
+          } ${!isPaymentAllowed || isExpired ? 'opacity-75' : ''}`}
           style={{
             shadowColor: '#000',
             shadowOffset: {
               width: 0,
-              height: isSelected && isPaymentAllowed ? 3 : 1,
+              height: isSelected && isPaymentAllowed && !isExpired ? 3 : 1,
             },
-            shadowOpacity: isSelected && isPaymentAllowed ? 0.08 : 0.04,
-            shadowRadius: isSelected && isPaymentAllowed ? 6 : 3,
-            elevation: isSelected && isPaymentAllowed ? 3 : 1,
+            shadowOpacity: isSelected && isPaymentAllowed && !isExpired ? 0.08 : 0.04,
+            shadowRadius: isSelected && isPaymentAllowed && !isExpired ? 6 : 3,
+            elevation: isSelected && isPaymentAllowed && !isExpired ? 3 : 1,
           }}>
-          {/* Status indicator */}
-          {upcoming && (
-            <View className="absolute -right-1 -top-1 z-10">
-              <View className="rounded-full border border-secondary bg-secondary-50 px-2 py-0.5">
-                <Text className="font-pregular text-xs text-primary">Upcoming</Text>
-              </View>
-            </View>
-          )}
+          <View className="absolute -right-1 -top-1 z-10">
+            <PaymentTimer createdAt={item.createdAt} />
+          </View>
 
           <View className="p-4">
-            {/* Header with icon and title */}
             <View className="mb-3 flex-row items-start justify-between">
               <View className="flex-1 flex-row items-start">
                 <View
-                  className={`mr-3 rounded-lg p-2 ${categoryColors.bg} ${categoryColors.border} border`}>
-                  <Ionicons
-                    name={getCategoryIcon(item.category) as any}
-                    size={18}
-                    color={!isPaymentAllowed ? '#9CA3AF' : '#4B5563'}
+                  className={`mr-3 rounded-full ${categoryColors.bg} ${categoryColors.border} border`}>
+                  <Image
+                    source={getCategoryIcon(item.category)}
+                    className="h-10 w-10"
+                    resizeMode="contain"
                   />
                 </View>
                 <View className="flex-1">
                   <Text
-                    className={`font-psemibold text-sm leading-tight ${!isPaymentAllowed ? 'text-gray-400' : 'text-gray-900'}`}
+                    className={`font-psemibold text-sm leading-tight ${
+                      !isPaymentAllowed || isExpired ? 'text-gray-400' : 'text-gray-900'
+                    }`}
                     numberOfLines={2}>
                     {getItemTitle(item)}
                   </Text>
                   <Text
-                    className={`mt-1 font-pbold text-lg ${!isPaymentAllowed ? 'text-gray-400' : 'text-gray-900'}`}>
+                    className={`mt-1 font-pbold text-lg ${
+                      !isPaymentAllowed || isExpired ? 'text-gray-400' : 'text-gray-900'
+                    }`}>
                     ₹ {item.amount.toLocaleString()}
                   </Text>
                 </View>
               </View>
 
-              {/* Selection indicator */}
               <View className="ml-2">
                 <View
                   className={`h-6 w-6 items-center justify-center rounded-full border-2 ${
-                    isSelected && isPaymentAllowed
+                    isSelected && isPaymentAllowed && !isExpired
                       ? 'border-secondary bg-secondary'
-                      : !isPaymentAllowed
+                      : !isPaymentAllowed || isExpired
                         ? 'border-gray-300 bg-gray-100'
                         : 'border-gray-300 bg-white'
                   }`}>
-                  {isSelected && isPaymentAllowed && (
+                  {isSelected && isPaymentAllowed && !isExpired && (
                     <Ionicons name="checkmark" size={14} color="#161622" />
                   )}
                 </View>
               </View>
             </View>
 
-            {/* Divider */}
             <View className="mb-3 h-px bg-gray-200" />
 
-            {/* Details section */}
             <View className="gap-y-2">
-              {/* Date and duration */}
-              <View className="flex-row items-center">
-                <Ionicons
-                  name="time-outline"
-                  size={14}
-                  color={!isPaymentAllowed ? '#9CA3AF' : '#6B7280'}
-                  style={{ marginRight: 6 }}
-                />
-                <Text
-                  className={`font-pregular text-xs ${!isPaymentAllowed ? 'text-gray-400' : 'text-gray-600'}`}>
-                  {getDateRange(item.start_day, item.end_day)}
-                </Text>
-                <Text
-                  className={`ml-2 font-pregular text-xs ${!isPaymentAllowed ? 'text-gray-400' : 'text-gray-500'}`}>
-                  • {getDuration(item.start_day, item.end_day)}
-                </Text>
-              </View>
-
-              {/* Booked by information */}
-              {item.booked_by_name && (
+              {(item.start_day || item.end_day) && (
                 <View className="flex-row items-center">
                   <Ionicons
-                    name="person-outline"
+                    name="time-outline"
                     size={14}
-                    color={!isPaymentAllowed ? '#9CA3AF' : '#6B7280'}
+                    color={!isPaymentAllowed || isExpired ? '#9CA3AF' : '#6B7280'}
                     style={{ marginRight: 6 }}
                   />
                   <Text
-                    className={`font-pregular text-xs ${!isPaymentAllowed ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Booked by {item.booked_by_name}
+                    className={`font-pregular text-xs ${
+                      !isPaymentAllowed || isExpired ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                    {getDateRange(item.start_day, item.end_day)}
+                  </Text>
+                  <Text
+                    className={`ml-2 font-pregular text-xs ${
+                      !isPaymentAllowed || isExpired ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
+                    • {getDuration(item.start_day, item.end_day)}
                   </Text>
                 </View>
               )}
 
-              {/* Category badge */}
+              {item.booked_for_name && (
+                <View className="flex-row items-center">
+                  <Ionicons
+                    name="person-outline"
+                    size={14}
+                    color={!isPaymentAllowed || isExpired ? '#9CA3AF' : '#6B7280'}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text
+                    className={`font-pregular text-xs ${
+                      !isPaymentAllowed || isExpired ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                    Booked for {item.booked_for_name}
+                  </Text>
+                </View>
+              )}
+
+              {item.status === 'cash pending' && (
+                <View className="flex-row items-center">
+                  <Ionicons
+                    name="cash-outline"
+                    size={14}
+                    color={!isPaymentAllowed || isExpired ? '#9CA3AF' : '#F59E0B'}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text
+                    className={`font-pregular text-xs ${
+                      !isPaymentAllowed || isExpired ? 'text-gray-400' : 'text-amber-600'
+                    }`}>
+                    Cash payment pending
+                  </Text>
+                </View>
+              )}
+
+              {isExpired && (
+                <View className="flex-row items-center">
+                  <Ionicons
+                    name="alert-circle-outline"
+                    size={14}
+                    color="#DC2626"
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text className="font-pregular text-xs text-red-600">Payment window expired</Text>
+                </View>
+              )}
+
               <View className="flex-row items-center justify-between pt-1">
                 <View
-                  className={`rounded-full border px-2 py-1 ${!isPaymentAllowed ? 'border-gray-200 bg-gray-100' : `${categoryColors.bg} ${categoryColors.border}`}`}>
+                  className={`rounded-full border px-2 py-1 ${
+                    !isPaymentAllowed || isExpired
+                      ? 'border-gray-200 bg-gray-100'
+                      : `${categoryColors.bg} ${categoryColors.border}`
+                  }`}>
                   <Text
-                    className={`font-pmedium text-xs capitalize ${!isPaymentAllowed ? 'text-gray-400' : categoryColors.text}`}>
+                    className={`font-pmedium text-xs capitalize ${
+                      !isPaymentAllowed || isExpired ? 'text-gray-400' : categoryColors.text
+                    }`}>
                     {item.category}
                   </Text>
                 </View>
@@ -447,11 +634,16 @@ const PendingPayments = () => {
         </TouchableOpacity>
       );
     },
-    [selectedPayments, handleSelectPayment, isPaymentAllowed]
+    [selectedPayments, handleSelectPayment, isPaymentAllowed, isTransactionExpired]
   );
 
   const SummaryCard = useCallback(() => {
     if (!pendingPayments.length) return null;
+
+    const validPayments = pendingPayments.filter(
+      (payment) => !isTransactionExpired(payment.createdAt)
+    );
+    const expiredCount = pendingPayments.length - validPayments.length;
 
     return (
       <View className="mb-5 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
@@ -470,6 +662,11 @@ const PendingPayments = () => {
             <Text className="font-pbold text-xl text-gray-900">
               ₹ {totalPendingAmount.toLocaleString()}
             </Text>
+            {expiredCount > 0 && (
+              <Text className="font-pregular text-xs text-red-600">
+                {expiredCount} expired payment{expiredCount > 1 ? 's' : ''}
+              </Text>
+            )}
           </View>
 
           <View className="flex-row gap-x-1.5">
@@ -487,10 +684,14 @@ const PendingPayments = () => {
         </View>
       </View>
     );
-  }, [pendingPayments.length, totalPendingAmount, categoryStats]);
+  }, [pendingPayments.length, totalPendingAmount, categoryStats, isTransactionExpired]);
 
   const ListHeader = useCallback(() => {
     if (!pendingPayments.length) return null;
+
+    const validPayments = pendingPayments.filter(
+      (payment) => !isTransactionExpired(payment.createdAt)
+    );
 
     return (
       <View className="mb-2">
@@ -515,8 +716,10 @@ const PendingPayments = () => {
         <TouchableOpacity
           onPress={handleSelectAll}
           activeOpacity={isPaymentAllowed ? 0.6 : 1}
-          disabled={!isPaymentAllowed}
-          className={`mb-4 flex-row items-center rounded-xl bg-gray-50 p-3 ${!isPaymentAllowed ? 'opacity-50' : ''}`}>
+          disabled={!isPaymentAllowed || validPayments.length === 0}
+          className={`mb-4 flex-row items-center rounded-xl bg-gray-50 p-3 ${
+            !isPaymentAllowed || validPayments.length === 0 ? 'opacity-50' : ''
+          }`}>
           <View
             className={`mr-3 h-6 w-6 items-center justify-center rounded-full border-2 ${
               allSelected && isPaymentAllowed
@@ -530,8 +733,10 @@ const PendingPayments = () => {
             )}
           </View>
           <Text
-            className={`font-pmedium text-sm ${!isPaymentAllowed ? 'text-gray-400' : 'text-gray-900'}`}>
-            {allSelected ? 'Deselect All' : 'Select All'} ({pendingPayments.length} items)
+            className={`font-pmedium text-sm ${
+              !isPaymentAllowed || validPayments.length === 0 ? 'text-gray-400' : 'text-gray-900'
+            }`}>
+            {allSelected ? 'Deselect All' : 'Select All'} ({validPayments.length} valid items)
           </Text>
         </TouchableOpacity>
       </View>
@@ -543,6 +748,7 @@ const PendingPayments = () => {
     isPaymentAllowed,
     getPaymentDisabledMessage,
     SummaryCard,
+    isTransactionExpired,
   ]);
 
   if (isLoading) {
@@ -587,19 +793,11 @@ const PendingPayments = () => {
             <CustomEmptyMessage message={`Look at you,\nfinancially responsible superstar!`} />
           </View>
         }
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={['#F1AC09']}
-            tintColor="#F1AC09"
-          />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         keyExtractor={(item) => item.bookingid}
         extraData={[selectedPayments, isPaymentAllowed]}
       />
 
-      {/* Enhanced bottom payment bar */}
       {selectedPayments.length > 0 && isPaymentAllowed && (
         <View className="absolute bottom-0 left-0 right-0">
           <View className="border-t border-gray-200 bg-white p-4 shadow-lg">

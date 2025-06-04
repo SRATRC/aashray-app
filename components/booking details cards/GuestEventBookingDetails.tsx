@@ -60,7 +60,7 @@ const GuestEventBookingDetails: React.FC<{ containerStyles: any }> = ({ containe
         <FontAwesome5 name="map-marker-alt" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Location:</Text>
         <Text className="flex-1 font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
-          {guestData.utsav.utsav.location || 'Research Centre'}
+          {guestData.utsav.utsav.utsav_location || 'Not Available'}
         </Text>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
