@@ -17,6 +17,8 @@ import handleAPICall from '../../utils/HandleApiCall';
 import RazorpayCheckout from 'react-native-razorpay';
 import CustomModal from '~/components/CustomModal';
 import EventBookingDetails from '~/components/booking details cards/EventBookingDetails';
+import Toast from 'react-native-toast-message';
+import * as Haptics from 'expo-haptics';
 
 const bookingConfirmation = () => {
   const router = useRouter();
@@ -167,14 +169,19 @@ const bookingConfirmation = () => {
                     theme: { color: colors.orange },
                   };
                   RazorpayCheckout.open(options)
-                    .then((rzrpayData: any) => {
-                      // handle success
+                    .then((_rzrpayData: any) => {
                       setIsSubmitting(false);
+                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                      Toast.show({
+                        type: 'success',
+                        text1: 'Payment successful',
+                        swipeable: false,
+                      });
                       router.replace('/bookingConfirmation');
                     })
-                    .catch((error: any) => {
-                      // handle failure
+                    .catch((_error: any) => {
                       setIsSubmitting(false);
+                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
                       router.replace('/paymentFailed');
                     });
                 }

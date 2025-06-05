@@ -12,6 +12,7 @@ import handleAPICall from '../../utils/HandleApiCall';
 import * as Haptics from 'expo-haptics';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
+import Toast from 'react-native-toast-message';
 
 const CHIPS = ['Mumukshus', 'Guest'];
 const INITIAL_MUMUKSHU_FORM = {
@@ -157,16 +158,22 @@ const FlatBooking = () => {
       };
 
       RazorpayCheckout.open(options)
-        .then((rzrpayData: any) => {
+        .then((_rzrpayData: any) => {
           if (selectedChip === CHIPS[0]) {
             setMumukshuForm(INITIAL_MUMUKSHU_FORM);
           } else {
             setGuestForm(INITIAL_GUEST_FORM);
           }
           setIsSubmitting(false);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          Toast.show({
+            type: 'success',
+            text1: 'Payment successful',
+            swipeable: false,
+          });
           router.replace('/bookingConfirmation');
         })
-        .catch((error: any) => {
+        .catch((_error: any) => {
           setIsSubmitting(false);
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           router.replace('/paymentFailed');

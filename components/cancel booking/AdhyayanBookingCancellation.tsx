@@ -14,10 +14,10 @@ import { FlashList } from '@shopify/flash-list';
 import CustomButton from '../CustomButton';
 import handleAPICall from '../../utils/HandleApiCall';
 import ExpandableItem from '../ExpandableItem';
-import CustomTag from '../CustomTag';
-import moment from 'moment';
+import BookingStatusDisplay from '../BookingStatusDisplay';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomEmptyMessage from '../CustomEmptyMessage';
+import moment from 'moment';
 
 const AdhyayanBookingCancellation = () => {
   const { user } = useGlobalContext();
@@ -135,60 +135,11 @@ const AdhyayanBookingCancellation = () => {
         <View className="flex flex-row items-center gap-x-4">
           <Image source={icons.adhyayan} className="h-10 w-10 items-center" resizeMode="contain" />
           <View className="flex-col gap-y-2">
-            <View className="flex flex-row">
-              <CustomTag
-                text={item.status}
-                textStyles={
-                  item.status == status.STATUS_CANCELLED ||
-                  item.status == status.STATUS_ADMIN_CANCELLED
-                    ? 'text-red-200'
-                    : item.status == status.STATUS_CONFIRMED
-                      ? 'text-green-200'
-                      : 'text-secondary-200'
-                }
-                containerStyles={
-                  item.status == status.STATUS_CANCELLED ||
-                  item.status == status.STATUS_ADMIN_CANCELLED
-                    ? 'bg-red-100'
-                    : item.status == status.STATUS_CONFIRMED
-                      ? 'bg-green-100'
-                      : 'bg-secondary-50'
-                }
-              />
-              {item.transaction_status && (
-                <CustomTag
-                  text={
-                    item.transaction_status == status.STATUS_CANCELLED ||
-                    item.transaction_status == status.STATUS_ADMIN_CANCELLED
-                      ? 'Payment Cancelled'
-                      : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
-                          item.transaction_status == status.STATUS_CASH_PENDING
-                        ? 'Payment Due'
-                        : item.transaction_status == status.STATUS_CREDITED
-                          ? 'Credited'
-                          : 'Paid'
-                  }
-                  textStyles={
-                    item.transaction_status == status.STATUS_CANCELLED ||
-                    item.transaction_status == status.STATUS_ADMIN_CANCELLED
-                      ? 'text-red-200'
-                      : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
-                          item.transaction_status == status.STATUS_CASH_PENDING
-                        ? 'text-secondary-200'
-                        : 'text-green-200'
-                  }
-                  containerStyles={`${
-                    item.transaction_status == status.STATUS_CANCELLED ||
-                    item.transaction_status == status.STATUS_ADMIN_CANCELLED
-                      ? 'bg-red-100'
-                      : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
-                          item.transaction_status == status.STATUS_CASH_PENDING
-                        ? 'bg-secondary-50'
-                        : 'bg-green-100'
-                  } mx-1`}
-                />
-              )}
-            </View>
+            <BookingStatusDisplay
+              bookingStatus={item.status}
+              transactionStatus={item.transaction_status}
+            />
+
             <View className="flex-col">
               <Text className="font-pmedium text-gray-700">{item.shibir_name}</Text>
               <Text className="font-pmedium text-secondary-100">
@@ -252,7 +203,7 @@ const AdhyayanBookingCancellation = () => {
     <View className="mt-3 w-full flex-1">
       <FlashList
         className="flex-grow-1"
-        contentContainerStyle={{ paddingHorizontal: 16 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8 }}
         showsVerticalScrollIndicator={false}
         data={data?.pages?.flatMap((page: any) => page) || []}
         estimatedItemSize={109}

@@ -124,7 +124,6 @@ export default function FoodBookingCancellation() {
         lastPage?.length ? pages.length + 1 : undefined,
     });
 
-  // Fetching guest list for filters
   const fetchGuests = async () => {
     return new Promise((resolve, reject) => {
       handleAPICall(
@@ -144,7 +143,6 @@ export default function FoodBookingCancellation() {
     staleTime: 1000 * 60 * 60 * 2,
   });
 
-  // Mutation to cancel booking
   const cancelBookingMutation = useMutation({
     mutationFn: () => {
       return new Promise((resolve, reject) => {
@@ -184,7 +182,6 @@ export default function FoodBookingCancellation() {
     }
   };
 
-  // Select all function - only cancellable items
   const handleSelectAll = () => {
     const allItems = data?.pages?.flat() || [];
     const cancellableItems = allItems.filter((item: any) => canCancelMeal(item.date));
@@ -197,13 +194,11 @@ export default function FoodBookingCancellation() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   };
 
-  // Deselect all function
   const handleDeselectAll = () => {
     setSelectedItems([]);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
-  // Check if all cancellable items are selected
   const allItems = data?.pages?.flat() || [];
   const cancellableItems = allItems.filter((item: any) => canCancelMeal(item.date));
   const isAllSelected =
@@ -343,7 +338,6 @@ export default function FoodBookingCancellation() {
       <Text className="font-pregular text-black">Filter By:</Text>
       <ScrollView className="flex w-full" horizontal showsHorizontalScrollIndicator={false}>
         <View className="flex w-full flex-row items-center gap-x-2">
-          {/* Date Filter */}
           <View className="flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 p-2">
             <TouchableOpacity onPress={() => setDatePickerVisibility(true)}>
               <Text className={`${filter.date ? 'text-black' : 'text-gray-400'} font-pregular`}>
@@ -371,7 +365,6 @@ export default function FoodBookingCancellation() {
             onCancel={() => setDatePickerVisibility(false)}
           />
 
-          {/* Meal Type Filter */}
           <View className="flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 p-2">
             <TouchableOpacity onPress={() => handlePresentModalPress('meal')}>
               <Text className={`${filter.meal ? 'text-black' : 'text-gray-400'} font-pregular`}>
@@ -386,7 +379,6 @@ export default function FoodBookingCancellation() {
             )}
           </View>
 
-          {/* Spice Level Filter */}
           <View className="flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 p-2">
             <TouchableOpacity onPress={() => handlePresentModalPress('spice')}>
               <Text className={`${filter.spice ? 'text-black' : 'text-gray-400'} font-pregular`}>
@@ -402,7 +394,6 @@ export default function FoodBookingCancellation() {
             )}
           </View>
 
-          {/* Booked For Filter */}
           {guestList && (
             <View className="flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 p-2">
               <TouchableOpacity onPress={() => handlePresentModalPress('bookedFor')}>
@@ -429,12 +420,10 @@ export default function FoodBookingCancellation() {
     <View className="items-center">
       {(isFetchingNextPage || isLoading) && <ActivityIndicator />}
       {!hasNextPage && data?.pages?.[0]?.length > 0 && <Text>No more bookings at the moment</Text>}
-      {/* Add extra spacing only at the very bottom when items are selected */}
       {selectedItems.length > 0 && <View style={{ height: 104 }} />}
     </View>
   );
 
-  // Action buttons component
   const renderActionButtons = () => {
     if (selectedItems.length === 0) return null;
 
@@ -445,7 +434,6 @@ export default function FoodBookingCancellation() {
           className={`flex-row gap-x-3 rounded-2xl bg-white p-4 ${
             Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
           }`}>
-          {/* Selection info and Select/Deselect All button */}
           <View className="flex-1">
             <Text className="font-pmedium text-sm text-gray-600">
               {selectedItems.length} of {cancellableItems.length} selected
@@ -461,7 +449,6 @@ export default function FoodBookingCancellation() {
             )}
           </View>
 
-          {/* Cancel Bookings button */}
           <TouchableOpacity
             onPress={() => cancelBookingMutation.mutate()}
             disabled={cancelBookingMutation.isPending}
@@ -490,7 +477,8 @@ export default function FoodBookingCancellation() {
         className="flex-grow"
         contentContainerStyle={{
           paddingHorizontal: 16,
-          paddingBottom: 16, // Fixed padding - no conditional logic here
+          paddingBottom: 16,
+          paddingTop: 8,
         }}
         data={data?.pages?.flat()}
         estimatedItemSize={150}
@@ -547,7 +535,6 @@ export default function FoodBookingCancellation() {
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
       />
 
-      {/* Action Buttons */}
       {renderActionButtons()}
 
       <BottomSheetFilter

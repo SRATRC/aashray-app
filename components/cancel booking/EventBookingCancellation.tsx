@@ -14,10 +14,10 @@ import { FlashList } from '@shopify/flash-list';
 import CustomButton from '../CustomButton';
 import handleAPICall from '../../utils/HandleApiCall';
 import ExpandableItem from '../ExpandableItem';
-import CustomTag from '../CustomTag';
-import moment from 'moment';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomEmptyMessage from '../CustomEmptyMessage';
+import BookingStatusDisplay from '../BookingStatusDisplay';
+import moment from 'moment';
 
 const EventBookingCancellation = () => {
   const { user } = useGlobalContext();
@@ -127,58 +127,10 @@ const EventBookingCancellation = () => {
         <View className="flex flex-row items-center gap-x-4">
           <Image source={icons.events} className="h-10 w-10 items-center" resizeMode="contain" />
           <View className="flex-col gap-y-2">
-            <View className="flex flex-row">
-              <CustomTag
-                text={item.status}
-                textStyles={
-                  item.status == status.STATUS_CANCELLED ||
-                  item.status == status.STATUS_ADMIN_CANCELLED
-                    ? 'text-red-200'
-                    : item.status == status.STATUS_WAITING
-                      ? 'text-secondary-200'
-                      : 'text-green-200'
-                }
-                containerStyles={
-                  item.status == status.STATUS_CANCELLED ||
-                  item.status == status.STATUS_ADMIN_CANCELLED
-                    ? 'bg-red-100'
-                    : item.status == status.STATUS_WAITING
-                      ? 'bg-secondary-50'
-                      : 'bg-green-100'
-                }
-              />
-              <CustomTag
-                text={
-                  item.transaction_status == status.STATUS_CANCELLED ||
-                  item.transaction_status == status.STATUS_ADMIN_CANCELLED
-                    ? 'Payment Cancelled'
-                    : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
-                        item.transaction_status == status.STATUS_CASH_PENDING
-                      ? 'Payment Due'
-                      : item.transaction_status == status.STATUS_CREDITED
-                        ? 'Credited'
-                        : 'Paid'
-                }
-                textStyles={
-                  item.transaction_status == status.STATUS_CANCELLED ||
-                  item.transaction_status == status.STATUS_ADMIN_CANCELLED
-                    ? 'text-red-200'
-                    : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
-                        item.transaction_status == status.STATUS_CASH_PENDING
-                      ? 'text-secondary-200'
-                      : 'text-green-200'
-                }
-                containerStyles={`${
-                  item.transaction_status == status.STATUS_CANCELLED ||
-                  item.transaction_status == status.STATUS_ADMIN_CANCELLED
-                    ? 'bg-red-100'
-                    : item.transaction_status == status.STATUS_PAYMENT_PENDING ||
-                        item.transaction_status == status.STATUS_CASH_PENDING
-                      ? 'bg-secondary-50'
-                      : 'bg-green-100'
-                } mx-1`}
-              />
-            </View>
+            <BookingStatusDisplay
+              bookingStatus={item.status}
+              transactionStatus={item.transaction_status}
+            />
             <Text className="font-pmedium">{item.utsav_name}</Text>
             {item.bookedBy && user.cardno == item.bookedBy && (
               <Text className="font-pmedium">
@@ -232,7 +184,7 @@ const EventBookingCancellation = () => {
     <View className="mt-3 w-full flex-1">
       <FlashList
         className="flex-grow-1"
-        contentContainerStyle={{ paddingHorizontal: 16 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8 }}
         showsVerticalScrollIndicator={false}
         data={data?.pages?.flatMap((page: any) => page) || []}
         estimatedItemSize={113}

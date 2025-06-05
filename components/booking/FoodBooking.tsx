@@ -425,14 +425,19 @@ const FoodBooking = () => {
                           theme: { color: colors.orange },
                         };
                         RazorpayCheckout.open(options)
-                          .then((rzrpayData: any) => {
-                            // handle success
+                          .then((_rzrpayData: any) => {
                             setIsSubmitting(false);
+                            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                            Toast.show({
+                              type: 'success',
+                              text1: 'Payment successful',
+                              swipeable: false,
+                            });
                             router.replace('/bookingConfirmation');
                           })
-                          .catch((error: any) => {
-                            // handle failure
+                          .catch((_error: any) => {
                             setIsSubmitting(false);
+                            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
                             router.replace('/paymentFailed');
                           });
                       }

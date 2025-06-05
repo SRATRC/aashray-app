@@ -5,7 +5,6 @@ import {
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
-  ScrollView,
 } from 'react-native';
 import { useState, useCallback, useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,115 +16,23 @@ import { Ionicons } from '@expo/vector-icons';
 import PageHeader from '../../components/PageHeader';
 import CustomEmptyMessage from '../../components/CustomEmptyMessage';
 import handleAPICall from '../../utils/HandleApiCall';
-import CustomErrorMessage from '~/components/CustomErrorMessage';
-import CustomSelectBottomSheet from '../../components/CustomSelectBottomSheet';
 import moment from 'moment';
 
 const Transactions = () => {
   const { user } = useGlobalContext();
-  // State to manage both status and category filters
-  const [filters, setFilters] = useState({ status: 'all', category: 'all' });
+  const [selectedChip, setSelectedChip] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
 
-  // Define options for status filters - formatted for CustomSelectBottomSheet
-  const statusOptions = useMemo(
-    () => [
-      {
-        key: 'all',
-        value: 'All Transactions',
-      },
-      {
-        key: 'completed',
-        value: 'Completed',
-      },
-      {
-        key: 'pending',
-        value: 'Pending',
-      },
-      {
-        key: 'cancelled',
-        value: 'Cancelled',
-      },
-      {
-        key: 'failed',
-        value: 'Failed',
-      },
-      {
-        key: 'authorized',
-        value: 'Authorized',
-      },
-      {
-        key: 'credited',
-        value: 'Credited',
-      },
-    ],
-    []
-  );
-
-  // Define options for category filters - formatted for CustomSelectBottomSheet
-  const categoryOptions = useMemo(
-    () => [
-      {
-        key: 'all',
-        value: 'All Categories',
-      },
-      {
-        key: 'room',
-        value: 'Room Booking',
-      },
-      {
-        key: 'flat',
-        value: 'Flat Booking',
-      },
-      {
-        key: 'travel',
-        value: 'Travel',
-      },
-      {
-        key: 'adhyayan',
-        value: 'Adhyayan',
-      },
-      {
-        key: 'event',
-        value: 'Event',
-      },
-      {
-        key: 'breakfast',
-        value: 'Breakfast',
-      },
-      {
-        key: 'lunch',
-        value: 'Lunch',
-      },
-      {
-        key: 'dinner',
-        value: 'Dinner',
-      },
-    ],
-    []
-  );
-
   const fetchTransactions = async ({ pageParam = 1 }) => {
-    // Construct parameters based on current filters
-    const params = {
-      cardno: user.cardno,
-      page: pageParam,
-    };
-
-    // Only add status to params if it's not 'all'
-    if (filters.status !== 'all') {
-      params.status = filters.status;
-    }
-    // Only add category to params if it's not 'all'
-    if (filters.category !== 'all') {
-      params.category = filters.category;
-    }
-
     return new Promise((resolve, reject) => {
       handleAPICall(
         'GET',
         '/profile/transactions',
-        params, // Pass the constructed params object
+        {
+          cardno: user.cardno,
+          page: pageParam,
+          status: selectedChip,
+        },
         null,
         (res: any) => {
           resolve(Array.isArray(res.data) ? res.data : []);
@@ -138,9 +45,7 @@ const Transactions = () => {
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch }: any =
     useInfiniteQuery({
-      // Update queryKey to include both status and category filters
-      // This ensures data is refetched when filters change
-      queryKey: ['transactions', user.cardno, filters.status, filters.category],
+      queryKey: ['transactions', user.cardno, selectedChip],
       queryFn: fetchTransactions,
       initialPageParam: 1,
       staleTime: 1000 * 60 * 30,
@@ -152,286 +57,24 @@ const Transactions = () => {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    // refetch will automatically use the current filters from the queryKey
     refetch().finally(() => setRefreshing(false));
   }, [refetch]);
-
-  // Handler for changing filter values - updated for bottom sheet
-  const handleStatusChange = useCallback((value) => {
-    setFilters((prev) => ({ ...prev, status: value }));
-  }, []);
-
-  const handleCategoryChange = useCallback((value) => {
-    setFilters((prev) => ({ ...prev, category: value }));
-  }, []);
-
-  // Get display text for filter buttons
-  const getStatusDisplayText = useCallback(() => {
-    const option = statusOptions.find((opt) => opt.key === filters.status);
-    return option ? option.value : 'All Transactions';
-  }, [filters.status, statusOptions]);
-
-  const getCategoryDisplayText = useCallback(() => {
-    const option = categoryOptions.find((opt) => opt.key === filters.category);
-    return option ? option.value : 'All Categories';
-  }, [filters.category, categoryOptions]);
-
-  // Beautiful Filter Card Component - FIXED FOR BEAUTY!
-  const BeautifulFilterCard = ({ title, icon, isActive, displayText, children }) => {
-    return (
-      <View style={{ flex: 1 }}>
-        <View
-          // Combined Tailwind and inline styles for precise control
-          className={`
-            overflow-hidden rounded-2xl
-            ${isActive ? 'border-amber-500 bg-amber-50' : 'border-gray-200 bg-white'}
-            border-2
-          `}
-          style={{
-            // Custom shadow for a more pronounced and beautiful effect when active
-            shadowColor: isActive ? '#F1AC09' : '#000', // Active shadow color is amber, inactive is black
-            shadowOffset: { width: 0, height: isActive ? 6 : 3 }, // More vertical lift for active state
-            shadowOpacity: isActive ? 0.25 : 0.08, // Stronger opacity for active shadow
-            shadowRadius: isActive ? 12 : 6, // Larger radius for active shadow
-            elevation: isActive ? 10 : 4, // Increased elevation for Android
-            position: 'relative', // Essential for the absolute overlay
-          }}>
-          {/* Icon Header */}
-          <View className="flex-row items-center px-4 pb-2 pt-4">
-            <View
-              className={`
-                h-9 w-9 rounded-full
-                ${isActive ? 'bg-amber-500' : 'bg-gray-500'}
-                mr-3 items-center justify-center
-              `}>
-              <Ionicons name={icon} size={20} color="#FFFFFF" />
-            </View>
-            <View className="flex-1">
-              <Text
-                className={`
-                  text-xs font-semibold uppercase tracking-wide
-                  ${isActive ? 'text-amber-700' : 'text-gray-600'}
-                  mb-0.5
-                `}
-                numberOfLines={1}>
-                {title}
-              </Text>
-              <Text
-                className={`
-                  text-base font-extrabold
-                  ${isActive ? 'text-gray-900' : 'text-gray-800'}
-                `}
-                numberOfLines={1}>
-                {displayText}
-              </Text>
-            </View>
-            <Ionicons
-              name="chevron-down" // Changed from 'chevron-down-circle' for a cleaner, modern look
-              size={22}
-              color={isActive ? '#F1AC09' : '#9CA3AF'}
-            />
-          </View>
-
-          {/* Invisible overlay for CustomSelectBottomSheet
-              This View with opacity: 0 allows the CustomSelectBottomSheet's internal
-              TouchableOpacity to be rendered directly over the card visuals,
-              making the entire card area clickable.
-          */}
-          <View
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0, // Cover the entire card area
-              opacity: 0, // Makes it invisible but interactive
-            }}>
-            {children}
-          </View>
-        </View>
-      </View>
-    );
-  };
 
   const renderItem = ({ item }: { item: any }) => <TransactionItem item={item} />;
 
   return (
-    <SafeAreaView className="h-full bg-gray-50" edges={['top']}>
+    <SafeAreaView className="h-full" edges={['top']}>
+      <PageHeader title="Transaction History" />
       <FlashList
         className="flex-grow"
         contentContainerStyle={{
           paddingHorizontal: 16,
-          paddingTop: 12,
           paddingBottom: 20,
         }}
         data={data?.pages?.flatMap((page: any) => page) || []}
         estimatedItemSize={140}
         showsVerticalScrollIndicator={false}
         renderItem={renderItem}
-        ListHeaderComponent={
-          <View className="mb-4 flex-col">
-            <View className="-mx-4 bg-white">
-              <PageHeader title="Transaction History" />
-            </View>
-            {isError && <CustomErrorMessage />}
-
-            {/* Modern Professional Filter Interface */}
-            <View
-              style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: 12,
-                padding: 16,
-                marginTop: 8,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.04,
-                shadowRadius: 6,
-                elevation: 2,
-                borderWidth: 1,
-                borderColor: '#F3F4F6',
-              }}>
-              {/* Filter Header */}
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginBottom: 16,
-                }}>
-                <Ionicons name="funnel-outline" size={18} color="#F1AC09" />
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '600',
-                    color: '#1F2937',
-                    marginLeft: 8,
-                    flex: 1,
-                  }}>
-                  Filter Transactions
-                </Text>
-
-                {/* Clear Filters Button */}
-                {(filters.status !== 'all' || filters.category !== 'all') && (
-                  <TouchableOpacity
-                    onPress={() => setFilters({ status: 'all', category: 'all' })}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      paddingHorizontal: 8,
-                      paddingVertical: 4,
-                      borderRadius: 6,
-                      backgroundColor: '#FEF2F2',
-                    }}
-                    activeOpacity={0.7}>
-                    <Ionicons name="refresh-outline" size={14} color="#EF4444" />
-                    <Text
-                      style={{
-                        fontSize: 12,
-                        color: '#EF4444',
-                        marginLeft: 4,
-                        fontWeight: '500',
-                      }}>
-                      Clear
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              {/* Beautiful Filter Cards Row */}
-              <View
-                style={{
-                  flexDirection: 'row',
-                  gap: 12,
-                }}>
-                {/* Status Filter Card */}
-                <BeautifulFilterCard
-                  title="Status"
-                  icon="pulse"
-                  isActive={filters.status !== 'all'}
-                  displayText={getStatusDisplayText()}>
-                  <CustomSelectBottomSheet
-                    options={statusOptions}
-                    selectedValue={filters.status}
-                    onValueChange={handleStatusChange}
-                    placeholder="All Transactions"
-                    label="Transaction Status"
-                    saveKeyInsteadOfValue={true}
-                    searchable={false}
-                  />
-                </BeautifulFilterCard>
-
-                {/* Category Filter Card */}
-                <BeautifulFilterCard
-                  title="Category"
-                  icon="apps"
-                  isActive={filters.category !== 'all'}
-                  displayText={getCategoryDisplayText()}>
-                  <CustomSelectBottomSheet
-                    options={categoryOptions}
-                    selectedValue={filters.category}
-                    onValueChange={handleCategoryChange}
-                    placeholder="All Categories"
-                    label="Transaction Category"
-                    saveKeyInsteadOfValue={true}
-                    searchable={false}
-                  />
-                </BeautifulFilterCard>
-              </View>
-
-              {/* Active Filters Summary */}
-              {(filters.status !== 'all' || filters.category !== 'all') && (
-                <View
-                  style={{
-                    marginTop: 16,
-                    paddingTop: 16,
-                    borderTopWidth: 1,
-                    borderTopColor: '#F3F4F6',
-                  }}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                    }}>
-                    <View
-                      style={{
-                        backgroundColor: '#F1AC09',
-                        width: 6,
-                        height: 6,
-                        borderRadius: 3,
-                        marginRight: 8,
-                      }}
-                    />
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        color: '#6B7280',
-                        flex: 1,
-                      }}>
-                      Active filters:{' '}
-                      <Text style={{ fontWeight: '600', color: '#F1AC09' }}>
-                        {[
-                          filters.status !== 'all' ? getStatusDisplayText() : null,
-                          filters.category !== 'all' ? getCategoryDisplayText() : null,
-                        ]
-                          .filter(Boolean)
-                          .join(' • ')}
-                      </Text>
-                    </Text>
-                  </View>
-                </View>
-              )}
-            </View>
-          </View>
-        }
-        ListFooterComponent={
-          <View className="items-center pt-4">
-            {(isFetchingNextPage || isLoading) && (
-              <ActivityIndicator size="small" color="#6B7280" />
-            )}
-            {!hasNextPage && data?.pages?.[0]?.length > 0 && (
-              <Text className="text-sm text-gray-500">No more transactions</Text>
-            )}
-          </View>
-        }
         ListEmptyComponent={() => (
           <View className="h-full flex-1 items-center justify-center pt-40">
             {isError ? (
@@ -440,7 +83,7 @@ const Transactions = () => {
                   Oops! Something went wrong
                 </Text>
                 <Text className="mb-6 text-center text-gray-600">
-                  Unable to load content. Please check your connection and try again.
+                  Unable to load transactions. Please check your connection and try again.
                 </Text>
                 <TouchableOpacity
                   onPress={() => {
@@ -452,13 +95,18 @@ const Transactions = () => {
                 </TouchableOpacity>
               </View>
             ) : (
-              <CustomEmptyMessage
-                message="You don't have any transactions yet"
-                containerClassName="py-12 items-center justify-center"
-              />
+              <CustomEmptyMessage message={'No transactions at this moment!'} />
             )}
           </View>
         )}
+        ListFooterComponent={
+          <View className="items-center pt-4">
+            {(isFetchingNextPage || isLoading) && <ActivityIndicator size="small" />}
+            {!hasNextPage && data?.pages?.[0]?.length > 0 && (
+              <Text className="text-sm text-gray-500">No more transactions</Text>
+            )}
+          </View>
+        }
         onEndReachedThreshold={0.1}
         onEndReached={() => hasNextPage && fetchNextPage()}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -479,7 +127,6 @@ const TransactionItem = ({ item }: { item: any }) => {
       breakfast: icons.food,
       lunch: icons.food,
       dinner: icons.food,
-      miscellaneous: icons.miscellaneousTransaction,
     };
     return categoryIconMap[item.category] || icons.miscellaneousTransaction;
   }, [item.category]);
@@ -505,16 +152,14 @@ const TransactionItem = ({ item }: { item: any }) => {
 
   const getCategoryName = useMemo(() => {
     const categoryNameMap: Record<string, string> = {
-      room: 'Room Booking',
-      flat: 'Flat Booking',
+      room: 'Room',
+      flat: 'Flat',
       travel: 'Travel',
       adhyayan: 'Adhyayan',
-      utsav: 'Event',
-      event: 'Event',
+      utsav: 'Utsav',
       breakfast: 'Breakfast',
       lunch: 'Lunch',
       dinner: 'Dinner',
-      miscellaneous: 'Miscellaneous',
     };
     return categoryNameMap[item.category] || 'Transaction';
   }, [item.category]);
@@ -565,7 +210,7 @@ const TransactionItem = ({ item }: { item: any }) => {
 
   return (
     <TouchableOpacity
-      activeOpacity={1}
+      activeOpacity={0.6}
       className="mb-3 rounded-xl border border-gray-200 bg-white"
       style={{
         shadowColor: '#000',
@@ -575,6 +220,7 @@ const TransactionItem = ({ item }: { item: any }) => {
         elevation: 1,
       }}>
       <View className="p-4">
+        {/* Header Section */}
         <View className="mb-3 flex-row items-start justify-between">
           <View className="flex-1 flex-row items-start">
             <View
@@ -602,9 +248,12 @@ const TransactionItem = ({ item }: { item: any }) => {
           </View>
         </View>
 
+        {/* Divider */}
         <View className="mb-3 h-px bg-gray-200" />
 
+        {/* Details Section */}
         <View className="gap-y-2">
+          {/* Date and Duration */}
           {formatDateRange && (
             <View className="flex-row items-center">
               <Ionicons name="time-outline" size={14} color="#6B7280" style={{ marginRight: 6 }} />
@@ -615,6 +264,7 @@ const TransactionItem = ({ item }: { item: any }) => {
             </View>
           )}
 
+          {/* Booked For */}
           {item.booked_for_name && (
             <View className="flex-row items-center">
               <Ionicons
@@ -629,6 +279,7 @@ const TransactionItem = ({ item }: { item: any }) => {
             </View>
           )}
 
+          {/* Transaction Date */}
           <View className="flex-row items-center">
             <Ionicons
               name="calendar-outline"
@@ -641,6 +292,7 @@ const TransactionItem = ({ item }: { item: any }) => {
             </Text>
           </View>
 
+          {/* Description */}
           {item.description && (
             <View className="flex-row items-start">
               <Ionicons
@@ -653,6 +305,7 @@ const TransactionItem = ({ item }: { item: any }) => {
             </View>
           )}
 
+          {/* Discount Information */}
           {item.discount > 0 && (
             <View className="flex-row items-center">
               <Ionicons
@@ -670,6 +323,7 @@ const TransactionItem = ({ item }: { item: any }) => {
             </View>
           )}
 
+          {/* Bottom Row with Category */}
           <View className="flex-row items-center justify-between pt-1">
             <View
               className={`rounded-full border px-2 py-1 ${categoryColors.bg} ${categoryColors.border}`}>
@@ -677,6 +331,11 @@ const TransactionItem = ({ item }: { item: any }) => {
                 {item.category}
               </Text>
             </View>
+
+            {/* Booking ID (if needed for debugging) */}
+            {/* <Text className="font-pregular text-xs text-gray-400">
+              #{item.bookingid?.slice(-8)}
+            </Text> */}
           </View>
         </View>
       </View>

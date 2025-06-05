@@ -204,10 +204,6 @@ const PendingPayments = () => {
     () => selectedPayments.reduce((total, payment) => total + payment.amount, 0),
     [selectedPayments]
   );
-  const allSelected = useMemo(
-    () => pendingPayments.length > 0 && selectedPayments.length === pendingPayments.length,
-    [pendingPayments.length, selectedPayments.length]
-  );
 
   const totalPendingAmount = useMemo(
     () => pendingPayments.reduce((total, payment) => total + payment.amount, 0),
@@ -243,6 +239,15 @@ const PendingPayments = () => {
     const expiry = created.clone().add(24, 'hours');
     return moment.utc().isAfter(expiry);
   }, []);
+
+  const validPayments = useMemo(() => {
+    return pendingPayments.filter((payment) => !isTransactionExpired(payment.createdAt));
+  }, [pendingPayments, isTransactionExpired]);
+
+  const allSelected = useMemo(
+    () => validPayments.length > 0 && selectedPayments.length === validPayments.length,
+    [selectedPayments, validPayments]
+  );
 
   const handleSelectPayment = useCallback(
     (payment: Transaction) => {
@@ -355,7 +360,7 @@ const PendingPayments = () => {
             });
             router.replace('/bookingConfirmation');
           })
-          .catch((error: any) => {
+          .catch((_error: any) => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
             router.replace('/paymentFailed');
           });
@@ -481,7 +486,7 @@ const PendingPayments = () => {
             isSelected && isPaymentAllowed && !isExpired
               ? 'border-secondary bg-secondary-50'
               : isExpired
-                ? 'border-red-200 bg-red-50'
+                ? 'border-red-200'
                 : 'border-gray-200 bg-white'
           } ${!isPaymentAllowed || isExpired ? 'opacity-75' : ''}`}
           style={{
@@ -536,7 +541,7 @@ const PendingPayments = () => {
                         : 'border-gray-300 bg-white'
                   }`}>
                   {isSelected && isPaymentAllowed && !isExpired && (
-                    <Ionicons name="checkmark" size={14} color="#161622" />
+                    <Ionicons name="checkmark" size={14} color="#fff" />
                   )}
                 </View>
               </View>
@@ -646,7 +651,7 @@ const PendingPayments = () => {
     const expiredCount = pendingPayments.length - validPayments.length;
 
     return (
-      <View className="mb-5 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <View className="mb-5 rounded-xl border border-gray-200 bg-white p-4">
         <View className="mb-3 flex-row items-center justify-between">
           <Text className="font-psemibold text-base text-gray-900">Payment Summary</Text>
           <View className="rounded-full bg-secondary-50 px-2.5 py-1">
@@ -717,7 +722,7 @@ const PendingPayments = () => {
           onPress={handleSelectAll}
           activeOpacity={isPaymentAllowed ? 0.6 : 1}
           disabled={!isPaymentAllowed || validPayments.length === 0}
-          className={`mb-4 flex-row items-center rounded-xl bg-gray-50 p-3 ${
+          className={`mb-4 flex-row items-center rounded-xl p-3 ${
             !isPaymentAllowed || validPayments.length === 0 ? 'opacity-50' : ''
           }`}>
           <View
@@ -728,9 +733,7 @@ const PendingPayments = () => {
                   ? 'border-gray-300 bg-gray-100'
                   : 'border-gray-400 bg-white'
             }`}>
-            {allSelected && isPaymentAllowed && (
-              <Ionicons name="checkmark" size={14} color="#161622" />
-            )}
+            {allSelected && isPaymentAllowed && <Ionicons name="checkmark" size={14} />}
           </View>
           <Text
             className={`font-pmedium text-sm ${
@@ -753,7 +756,7 @@ const PendingPayments = () => {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="h-full bg-gray-50">
+      <SafeAreaView className="h-full bg-gray-50" edges={['top']}>
         <PageHeader title="Pending Payments" />
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#F1AC09" />
@@ -765,7 +768,7 @@ const PendingPayments = () => {
 
   if (isError) {
     return (
-      <SafeAreaView className="h-full bg-gray-50">
+      <SafeAreaView className="h-full bg-gray-50" edges={['top']}>
         <PageHeader title="Pending Payments" />
         <CustomErrorMessage />
       </SafeAreaView>
@@ -773,7 +776,7 @@ const PendingPayments = () => {
   }
 
   return (
-    <SafeAreaView className="h-full bg-gray-50">
+    <SafeAreaView className="h-full" edges={['top']}>
       <PageHeader title="Pending Payments" />
 
       <FlashList
@@ -800,7 +803,7 @@ const PendingPayments = () => {
 
       {selectedPayments.length > 0 && isPaymentAllowed && (
         <View className="absolute bottom-0 left-0 right-0">
-          <View className="border-t border-gray-200 bg-white p-4 shadow-lg">
+          <View className="rounded-t-xl border-t border-gray-200 bg-white p-4 shadow-lg">
             <View className="mb-3 flex-row items-center justify-between">
               <View>
                 <Text className="font-pregular text-xs text-gray-600">

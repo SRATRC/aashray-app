@@ -15,9 +15,9 @@ import CustomButton from '../CustomButton';
 import handleAPICall from '../../utils/HandleApiCall';
 import ExpandableItem from '../ExpandableItem';
 import HorizontalSeparator from '../HorizontalSeparator';
-import moment from 'moment';
-import CustomTag from '../CustomTag';
 import CustomEmptyMessage from '../CustomEmptyMessage';
+import BookingStatusDisplay from '../BookingStatusDisplay';
+import moment from 'moment';
 
 const RoomBookingCancellation: React.FC = () => {
   const { user } = useGlobalContext();
@@ -122,60 +122,10 @@ const RoomBookingCancellation: React.FC = () => {
         <View className="flex flex-row items-center gap-x-4">
           <Image source={icons.room} className="h-10 w-10" resizeMode="contain" />
           <View className="flex-col gap-y-2">
-            <View className="flex flex-row">
-              <CustomTag
-                text={item.status}
-                textStyles={
-                  item.status === status.STATUS_CANCELLED ||
-                  item.status === status.STATUS_ADMIN_CANCELLED
-                    ? 'text-red-200'
-                    : item.status === status.STATUS_WAITING
-                      ? 'text-secondary-200'
-                      : 'text-green-200'
-                }
-                containerStyles={
-                  item.status === status.STATUS_CANCELLED ||
-                  item.status === status.STATUS_ADMIN_CANCELLED
-                    ? 'bg-red-100'
-                    : item.status === status.STATUS_WAITING
-                      ? 'bg-secondary-50'
-                      : 'bg-green-100'
-                }
-              />
-              {item.transaction_status && (
-                <CustomTag
-                  text={
-                    item.transaction_status === status.STATUS_CANCELLED ||
-                    item.transaction_status === status.STATUS_ADMIN_CANCELLED
-                      ? 'Payment Cancelled'
-                      : item.transaction_status === status.STATUS_PAYMENT_PENDING ||
-                          item.transaction_status === status.STATUS_CASH_PENDING
-                        ? 'Payment Due'
-                        : item.transaction_status === status.STATUS_CREDITED
-                          ? 'Credited'
-                          : 'Paid'
-                  }
-                  textStyles={
-                    item.transaction_status === status.STATUS_CANCELLED ||
-                    item.transaction_status === status.STATUS_ADMIN_CANCELLED
-                      ? 'text-red-200'
-                      : item.transaction_status === status.STATUS_PAYMENT_PENDING ||
-                          item.transaction_status === status.STATUS_CASH_PENDING
-                        ? 'text-secondary-200'
-                        : 'text-green-200'
-                  }
-                  containerStyles={`${
-                    item.transaction_status === status.STATUS_CANCELLED ||
-                    item.transaction_status === status.STATUS_ADMIN_CANCELLED
-                      ? 'bg-red-100'
-                      : item.transaction_status === status.STATUS_PAYMENT_PENDING ||
-                          item.transaction_status === status.STATUS_CASH_PENDING
-                        ? 'bg-secondary-50'
-                        : 'bg-green-100'
-                  } mx-1`}
-                />
-              )}
-            </View>
+            <BookingStatusDisplay
+              bookingStatus={item.status}
+              transactionStatus={item.transaction_status}
+            />
             <Text className="font-pmedium">
               {moment(item.checkin).format('Do MMMM')} -{' '}
               {moment(item.checkout).format('Do MMMM, YYYY')}
@@ -212,17 +162,20 @@ const RoomBookingCancellation: React.FC = () => {
           </Text>
         </View>
       )}
-      {(item.transaction_status === status.STATUS_CASH_COMPLETED ||
-        item.transaction_status === status.STATUS_PAYMENT_COMPLETED ||
-        (['ac', 'nac'].includes(item.roomtype) &&
-          moment(item.checkin).diff(moment(), 'hours') <= 20 &&
-          moment(item.checkin).isAfter(moment()))) && (
-        <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
-          <Image source={icons.roomNumber} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Room Number:</Text>
-          <Text className="font-pmedium text-black">{item.roomno}</Text>
-        </View>
-      )}
+
+      <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
+        <Image source={icons.roomNumber} className="h-4 w-4" resizeMode="contain" />
+        <Text className="font-pregular text-gray-400">
+          {item.roomtype == 'flat' ? 'Flat Number:' : 'Room Number:'}
+        </Text>
+        <Text className="font-pmedium text-black">
+          {item.transaction_status === status.STATUS_CASH_COMPLETED ||
+          item.transaction_status === status.STATUS_PAYMENT_COMPLETED ||
+          item.roomtype == 'flat'
+            ? item.roomno
+            : 'Will be shared later'}
+        </Text>
+      </View>
 
       <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
         <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
@@ -258,7 +211,7 @@ const RoomBookingCancellation: React.FC = () => {
     <View className="mt-3 w-full flex-1">
       <FlashList
         className="flex-grow-1"
-        contentContainerStyle={{ paddingHorizontal: 16 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8 }}
         showsVerticalScrollIndicator={false}
         data={data?.pages?.flatMap((page: any) => page) || []}
         estimatedItemSize={99}

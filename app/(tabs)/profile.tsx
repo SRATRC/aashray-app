@@ -11,19 +11,18 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   RefreshControl,
-  Dimensions,
   StatusBar,
 } from 'react-native';
-import { colors, icons } from '../../constants';
+import { icons } from '../../constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
+import { Feather } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import handleAPICall from '../../utils/HandleApiCall';
 import FormField from '~/components/FormField';
-
-const { width } = Dimensions.get('window');
+import CustomModal from '~/components/CustomModal';
 
 const Profile: React.FC = () => {
   const { user, removeItem, setUser, setCurrentUser } = useGlobalContext();
@@ -35,6 +34,7 @@ const Profile: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [creditsInfoModalVisible, setCreditsInfoModalVisible] = useState(false);
 
   const handleResetPassword = async () => {
     if (!currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) {
@@ -180,74 +180,140 @@ const Profile: React.FC = () => {
 
   const renderHeader = () => (
     <View className="mb-10 mt-8 flex-col items-center justify-center">
-      <TouchableOpacity onPress={openImageModal}>
-        <Image
-          source={{ uri: user.pfp }}
-          className="h-[150] w-[150] rounded-full"
-          resizeMode="cover"
+      <View style={{ position: 'relative' }}>
+        <TouchableOpacity onPress={openImageModal}>
+          <Image
+            source={{ uri: user.pfp }}
+            className="h-[150] w-[150] rounded-full border-2 border-secondary"
+            resizeMode="cover"
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={openCamera}
           style={{
+            position: 'absolute',
+            bottom: 5,
+            right: 5,
+            backgroundColor: '#FF9500',
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            justifyContent: 'center',
+            alignItems: 'center',
             borderWidth: 2,
-            borderColor: colors.orange,
-            borderRadius: 100,
-            width: 150,
-            height: 150,
+            borderColor: '#FFFFFF',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 4,
+            elevation: 5,
           }}
-        />
-      </TouchableOpacity>
+          activeOpacity={0.8}>
+          <Feather name="edit-2" size={14} color="white" />
+        </TouchableOpacity>
+      </View>
+
       <Text className="mt-2 font-psemibold text-base">{user.issuedto}</Text>
 
       <View className="mt-6 w-full px-6">
         <View
-          className={`rounded-xl bg-white p-4 ${
+          className={`rounded-xl bg-white p-5 ${
             Platform.OS === 'ios' ? 'shadow-sm shadow-gray-200' : 'shadow-md shadow-gray-300'
           }`}
           style={{
             borderWidth: 1,
             borderColor: '#E5E7EB',
           }}>
-          <Text className="mb-3 font-psemibold text-base text-gray-800">Account Balance</Text>
+          <View className="mb-4 flex-row items-center justify-between">
+            <Text className="font-psemibold text-lg text-gray-800">Account Balance</Text>
+            <TouchableOpacity
+              onPress={() => setCreditsInfoModalVisible(true)}
+              className="rounded-full bg-gray-100 p-2"
+              activeOpacity={0.7}>
+              <Feather name="help-circle" size={18} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
 
-          <View className="flex-row items-center justify-between">
-            <View className="flex-1 items-center">
-              <View className="mb-2 flex-row items-center">
-                <View className="mr-2 rounded-md bg-gray-50 p-1.5">
-                  <Image source={icons.coin} className="h-4 w-4" resizeMode="contain" />
-                </View>
-                <View>
-                  <Text className="font-psemibold text-lg text-gray-900">
-                    {user?.credits?.room || 0}
-                  </Text>
-                  <Text className="-mt-1 font-pmedium text-xs text-gray-600">Room</Text>
+          <View className="flex-row flex-wrap">
+            <View className="mb-4 w-1/2 pr-2">
+              <View className="rounded-lg bg-gray-50 p-4">
+                <View className="mb-2 flex-row items-center">
+                  <View className="mr-3 rounded-md bg-white p-2">
+                    <Image source={icons.coin} className="h-5 w-5" resizeMode="contain" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="font-pmedium text-xs text-gray-600">Room</Text>
+                    <Text className="font-psemibold text-xl text-gray-900">
+                      {user?.credits?.room || 0}
+                    </Text>
+                  </View>
                 </View>
               </View>
             </View>
 
-            <View className="mx-3 h-8 w-px bg-gray-200" />
-
-            <View className="flex-1 items-center">
-              <View className="mb-2 flex-row items-center">
-                <View className="mr-2 rounded-md bg-gray-50 p-1.5">
-                  <Image source={icons.coin} className="h-4 w-4" resizeMode="contain" />
+            <View className="mb-4 w-1/2 pl-2">
+              <View className="rounded-lg bg-gray-50 p-4">
+                <View className="mb-2 flex-row items-center">
+                  <View className="mr-3 rounded-md bg-white p-2">
+                    <Image source={icons.coin} className="h-5 w-5" resizeMode="contain" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="font-pmedium text-xs text-gray-600">Travel</Text>
+                    <Text className="font-psemibold text-xl text-gray-900">
+                      {user?.credits?.travel || 0}
+                    </Text>
+                  </View>
                 </View>
-                <View>
-                  <Text className="font-psemibold text-lg text-gray-900">
-                    {user?.credits?.travel || 0}
-                  </Text>
-                  <Text className="-mt-1 font-pmedium text-xs text-gray-600">Travel</Text>
+              </View>
+            </View>
+
+            <View className="w-1/2 pr-2">
+              <View className="rounded-lg bg-gray-50 p-4">
+                <View className="mb-2 flex-row items-center">
+                  <View className="mr-3 rounded-md bg-white p-2">
+                    <Image source={icons.coin} className="h-5 w-5" resizeMode="contain" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="font-pmedium text-xs text-gray-600">Utsav</Text>
+                    <Text className="font-psemibold text-xl text-gray-900">
+                      {user?.credits?.utsav || 0}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            <View className="w-1/2 pl-2">
+              <View className="rounded-lg bg-gray-50 p-4">
+                <View className="mb-2 flex-row items-center">
+                  <View className="mr-3 rounded-md bg-white p-2">
+                    <Image source={icons.coin} className="h-5 w-5" resizeMode="contain" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="font-pmedium text-xs text-gray-600">Food</Text>
+                    <Text className="font-psemibold text-xl text-gray-900">
+                      {user?.credits?.food || 0}
+                    </Text>
+                  </View>
                 </View>
               </View>
             </View>
           </View>
 
           <View
-            className="mt-3 flex-row items-center justify-between pt-3"
+            className="mt-4 flex-row items-center justify-between rounded-lg bg-secondary-50 p-4"
             style={{
-              borderTopWidth: 1,
-              borderTopColor: '#E5E7EB',
+              borderWidth: 1,
+              borderColor: '#FED7AA',
             }}>
             <Text className="font-pmedium text-sm text-gray-700">Total Available</Text>
-            <Text className="font-psemibold text-base text-gray-900">
-              {(user?.credits?.room || 0) + (user?.credits?.travel || 0)} Credits
+            <Text className="font-psemibold text-lg text-gray-900">
+              {(user?.credits?.room || 0) +
+                (user?.credits?.travel || 0) +
+                (user?.credits?.utsav || 0) +
+                (user?.credits?.food || 0)}{' '}
+              Credits
             </Text>
           </View>
         </View>
@@ -297,12 +363,13 @@ const Profile: React.FC = () => {
           visible={imageModalVisible}
           onRequestClose={closeImageModal}
           statusBarTranslucent={true}>
-          <View className="flex-1" style={{ backgroundColor: '#000000' }}>
+          <View className="flex-1 bg-black">
             <View
-              className="absolute left-0 right-0 top-0 z-20"
+              className="absolute left-0 right-0 top-0"
               style={{
                 height: Platform.OS === 'ios' ? 120 : 100,
                 backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                zIndex: 20,
               }}>
               <View
                 className="flex-row items-center justify-between px-6"
@@ -376,43 +443,14 @@ const Profile: React.FC = () => {
             </View>
 
             <View className="flex-1 items-center justify-center px-4">
-              <View
-                style={{
-                  shadowColor: '#ffffff',
-                  shadowOffset: { width: 0, height: 0 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 20,
-                  elevation: 10,
-                }}>
-                <View
-                  style={{
-                    width: Math.min(width * 0.85, 350),
-                    height: Math.min(width * 0.85, 350),
-                    borderRadius: Math.min(width * 0.85, 350) / 2,
-                    borderWidth: 4,
-                    borderColor: 'rgba(255, 255, 255, 0.1)',
-                    overflow: 'hidden',
-                    backgroundColor: '#1a1a1a',
-                  }}>
-                  <Image
-                    source={{ uri: user.pfp }}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                    }}
-                    resizeMode="cover"
-                  />
-                </View>
-              </View>
+              <Image
+                className="h-[250px] w-[250px] rounded-full border-2 border-secondary"
+                source={{ uri: user.pfp }}
+                resizeMode="cover"
+              />
 
               <View className="mt-8 items-center">
-                <Text
-                  className="text-center font-psemibold text-2xl text-white"
-                  style={{
-                    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-                    textShadowOffset: { width: 0, height: 2 },
-                    textShadowRadius: 4,
-                  }}>
+                <Text className="text-center font-psemibold text-2xl text-white">
                   {user.issuedto}
                 </Text>
                 <View
@@ -425,27 +463,8 @@ const Profile: React.FC = () => {
               </View>
             </View>
 
-            <View
-              className="absolute bottom-0 left-0 right-0 z-20"
-              style={{
-                height: 100,
-                backgroundColor: 'rgba(0, 0, 0, 0.4)',
-              }}>
-              <View className="flex-1 items-center justify-end pb-8">
-                <Text
-                  className="font-pmedium text-sm text-white/70"
-                  style={{
-                    textShadowColor: 'rgba(0, 0, 0, 0.8)',
-                    textShadowOffset: { width: 0, height: 1 },
-                    textShadowRadius: 2,
-                  }}>
-                  Tap Edit to change your profile photo
-                </Text>
-              </View>
-            </View>
-
             <TouchableWithoutFeedback onPress={closeImageModal}>
-              <View className="absolute inset-0 z-10" style={{ backgroundColor: 'transparent' }} />
+              <View className="absolute inset-0" style={{ backgroundColor: 'transparent' }} />
             </TouchableWithoutFeedback>
           </View>
         </Modal>
@@ -530,6 +549,39 @@ const Profile: React.FC = () => {
             </TouchableWithoutFeedback>
           </KeyboardAvoidingView>
         </Modal>
+
+        <CustomModal
+          visible={creditsInfoModalVisible}
+          onClose={() => setCreditsInfoModalVisible(false)}
+          title="About Credits"
+          btnText="Got it"
+          scrollable={true}
+          showCloseButton={true}>
+          <>
+            <View className="mb-4">
+              <Text className="mb-2 font-psemibold text-base text-gray-800">Credit Value</Text>
+              <Text className="font-pregular text-sm leading-5 text-gray-600">1 Credit = ₹1</Text>
+            </View>
+            <View className="mb-4">
+              <Text className="mb-2 font-psemibold text-base text-gray-800">
+                How to get Credits?
+              </Text>
+              <Text className="font-pregular text-sm leading-5 text-gray-600">
+                You can earn credits only when a booking is canceled after the payment for that
+                booking has been completed.
+              </Text>
+            </View>
+            <View>
+              <Text className="mb-2 font-psemibold text-base text-gray-800">How to Use?</Text>
+              <Text className="font-pregular text-sm leading-5 text-gray-600">
+                When you make a booking for a Room, Travel, Utsav, or Guest Food, any available
+                credits in your account will be automatically applied at checkout for respective
+                booking. These credits cannot be cashed out and can only be used to reduce the cost
+                of your bookings.
+              </Text>
+            </View>
+          </>
+        </CustomModal>
       </View>
     </SafeAreaView>
   );
