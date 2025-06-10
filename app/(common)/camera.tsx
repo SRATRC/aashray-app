@@ -1,4 +1,3 @@
-import { CameraView, useCameraPermissions } from 'expo-camera';
 import {
   Text,
   TouchableOpacity,
@@ -9,13 +8,15 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useState, useRef, useEffect } from 'react';
-import * as ImagePicker from 'expo-image-picker';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { MaterialIcons, Ionicons, AntDesign } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { handleUserNavigation } from '../../utils/navigationValidations';
+import { invalidateCachedImage } from '~/utils/imageCache';
+import { useRouter } from 'expo-router';
 import CustomButton from '../../components/CustomButton';
 import handleAPICall from '~/utils/HandleApiCall';
+import * as ImagePicker from 'expo-image-picker';
 
 const CameraScreen: React.FC = () => {
   const { setUser, setCurrentUser, user } = useGlobalContext();
@@ -97,6 +98,42 @@ const CameraScreen: React.FC = () => {
     }
   };
 
+  const handleSaveImage = async () => {
+    setIsSubmitting(true);
+
+    const onSuccess = async (data: any) => {
+      try {
+        // Invalidate the old cached image BEFORE updating the user context
+        if (user?.pfp) {
+          await invalidateCachedImage(user.pfp);
+        }
+
+        // Update the user context with the new profile picture URL
+        setUser((prev: any) => {
+          const updatedUser = { ...prev, pfp: data.data };
+          setCurrentUser(updatedUser);
+          handleUserNavigation(updatedUser, router);
+          return updatedUser;
+        });
+      } catch (error) {
+        console.error('Error updating profile picture:', error);
+      }
+    };
+
+    const onFinally = () => {
+      setIsSubmitting(false);
+    };
+
+    await handleAPICall(
+      'POST',
+      '/profile/upload',
+      { cardno: user.cardno },
+      { image: capturedImage },
+      onSuccess,
+      onFinally
+    );
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-black">
       <StatusBar barStyle="light-content" />
@@ -126,31 +163,7 @@ const CameraScreen: React.FC = () => {
               />
               <CustomButton
                 text="Save"
-                handlePress={async () => {
-                  setIsSubmitting(true);
-
-                  const onSuccess = async (data: any) => {
-                    setUser((prev: any) => {
-                      const updatedUser = { ...prev, pfp: data.data };
-                      setCurrentUser(updatedUser);
-                      handleUserNavigation(updatedUser, router);
-                      return updatedUser;
-                    });
-                  };
-
-                  const onFinally = () => {
-                    setIsSubmitting(false);
-                  };
-
-                  await handleAPICall(
-                    'POST',
-                    '/profile/upload',
-                    { cardno: user.cardno },
-                    { image: capturedImage },
-                    onSuccess,
-                    onFinally
-                  );
-                }}
+                handlePress={handleSaveImage}
                 containerStyles="flex-1 py-3 mb-3"
                 isLoading={isSubmitting}
               />

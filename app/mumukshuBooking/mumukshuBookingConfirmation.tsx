@@ -22,10 +22,10 @@ import * as Haptics from 'expo-haptics';
 
 // Define validation data type
 interface ValidationData {
-  roomDetails?: Array<{ charge: number }>;
-  travelDetails?: { charge: number };
-  adhyayanDetails?: Array<{ charge: number }>;
-  utsavDetails?: Array<{ charge: number }>;
+  roomDetails?: Array<{ charge: number; availableCredits?: number }>;
+  travelDetails?: { charge: number; availableCredits?: number };
+  adhyayanDetails?: Array<{ charge: number; availableCredits?: number }>;
+  utsavDetails?: Array<{ charge: number; availableCredits?: number }>;
   totalCharge: number;
 }
 
@@ -95,76 +95,247 @@ const mumukshuBookingConfirmation = () => {
 
         {validationData && validationData.totalCharge > 0 && (
           <View className="mt-4 w-full px-4">
-            <Text className="mb-4 font-psemibold text-xl text-secondary">Charges</Text>
+            <Text className="mb-3 font-psemibold text-xl text-secondary">Charges</Text>
+
+            {/* Main payment card */}
             <View
-              className={`rounded-2xl bg-white p-4 ${
+              className={`rounded-2xl bg-white ${
                 Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
               }`}>
-              <View className="flex-col gap-y-2">
-                {validationData.roomDetails &&
-                  validationData.roomDetails.length > 0 &&
-                  validationData.roomDetails.reduce(
-                    (total: number, room: { charge: number }) => total + room.charge,
-                    0
-                  ) > 0 && (
-                    <View className="flex-row items-center justify-between">
-                      <Text className="font-pregular text-base text-gray-500">Room Charge</Text>
-                      <Text className="font-pregular text-base text-black">
-                        ₹{' '}
-                        {validationData.roomDetails.reduce(
-                          (total: number, room: { charge: number }) => total + room.charge,
-                          0
-                        )}
-                      </Text>
+              {/* Line items section */}
+              <View className="p-4">
+                <View className="flex-col gap-y-3">
+                  {validationData.roomDetails &&
+                    validationData.roomDetails.length > 0 &&
+                    (() => {
+                      const totalCharge = validationData.roomDetails.reduce(
+                        (total: number, room: { charge: number }) => total + room.charge,
+                        0
+                      );
+                      const totalCredits = validationData.roomDetails.reduce(
+                        (total: number, room: { charge: number; availableCredits?: number }) =>
+                          total + (room.availableCredits || 0),
+                        0
+                      );
+
+                      if (totalCharge > 0) {
+                        return (
+                          <View className="border-b border-gray-100 pb-3">
+                            <View className="flex-row items-center justify-between">
+                              <Text className="font-pregular text-base text-gray-700">
+                                Room Charge
+                              </Text>
+                              <View className="items-end">
+                                <Text
+                                  className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
+                                  ₹{totalCharge.toLocaleString('en-IN')}
+                                </Text>
+                                {totalCredits > 0 && (
+                                  <>
+                                    <Text className="font-pregular text-xs text-green-600">
+                                      −₹{totalCredits.toLocaleString('en-IN')} credit
+                                    </Text>
+                                    <Text className="mt-0.5 font-pmedium text-base text-black">
+                                      ₹
+                                      {Math.max(0, totalCharge - totalCredits).toLocaleString(
+                                        'en-IN'
+                                      )}
+                                    </Text>
+                                  </>
+                                )}
+                              </View>
+                            </View>
+                          </View>
+                        );
+                      }
+                      return null;
+                    })()}
+
+                  {validationData.travelDetails && validationData.travelDetails.charge > 0 && (
+                    <View className="border-b border-gray-100 pb-3">
+                      <View className="flex-row items-center justify-between">
+                        <Text className="font-pregular text-base text-gray-700">Travel Charge</Text>
+                        <View className="items-end">
+                          <Text
+                            className={`font-${validationData.travelDetails.availableCredits ? 'pregular' : 'pregular'} text-base text-${validationData.travelDetails.availableCredits ? 'gray-400 line-through' : 'black'}`}>
+                            ₹{validationData.travelDetails.charge.toLocaleString('en-IN')}
+                          </Text>
+                          {validationData.travelDetails.availableCredits &&
+                            validationData.travelDetails.availableCredits > 0 && (
+                              <>
+                                <Text className="font-pregular text-xs text-green-600">
+                                  −₹
+                                  {validationData.travelDetails.availableCredits.toLocaleString(
+                                    'en-IN'
+                                  )}{' '}
+                                  credit
+                                </Text>
+                                <Text className="mt-0.5 font-pmedium text-base text-black">
+                                  ₹
+                                  {Math.max(
+                                    0,
+                                    validationData.travelDetails.charge -
+                                      validationData.travelDetails.availableCredits
+                                  ).toLocaleString('en-IN')}
+                                </Text>
+                              </>
+                            )}
+                        </View>
+                      </View>
                     </View>
                   )}
-                {validationData.travelDetails && validationData.travelDetails.charge > 0 && (
-                  <View className="flex-row items-center justify-between">
-                    <Text className="font-pregular text-base text-gray-500">Travel Charge</Text>
-                    <Text className="font-pregular text-base text-black">
-                      ₹ {validationData.travelDetails.charge}
-                    </Text>
+
+                  {validationData.adhyayanDetails &&
+                    validationData.adhyayanDetails.length > 0 &&
+                    (() => {
+                      const totalCharge = validationData.adhyayanDetails.reduce(
+                        (total: number, shibir: { charge: number }) => total + shibir.charge,
+                        0
+                      );
+                      const totalCredits = validationData.adhyayanDetails.reduce(
+                        (total: number, shibir: { charge: number; availableCredits?: number }) =>
+                          total + (shibir.availableCredits || 0),
+                        0
+                      );
+
+                      if (totalCharge > 0) {
+                        return (
+                          <View className="border-b border-gray-100 pb-3">
+                            <View className="flex-row items-center justify-between">
+                              <Text className="font-pregular text-base text-gray-700">
+                                Adhyayan Charge
+                              </Text>
+                              <View className="items-end">
+                                <Text
+                                  className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
+                                  ₹{totalCharge.toLocaleString('en-IN')}
+                                </Text>
+                                {totalCredits > 0 && (
+                                  <>
+                                    <Text className="font-pregular text-xs text-green-600">
+                                      −₹{totalCredits.toLocaleString('en-IN')} credit
+                                    </Text>
+                                    <Text className="mt-0.5 font-pmedium text-base text-black">
+                                      ₹
+                                      {Math.max(0, totalCharge - totalCredits).toLocaleString(
+                                        'en-IN'
+                                      )}
+                                    </Text>
+                                  </>
+                                )}
+                              </View>
+                            </View>
+                          </View>
+                        );
+                      }
+                      return null;
+                    })()}
+
+                  {validationData.utsavDetails &&
+                    validationData.utsavDetails.length > 0 &&
+                    (() => {
+                      const totalCharge = validationData.utsavDetails.reduce(
+                        (total: number, utsav: { charge: number }) => total + utsav.charge,
+                        0
+                      );
+                      const totalCredits = validationData.utsavDetails.reduce(
+                        (total: number, utsav: { charge: number; availableCredits?: number }) =>
+                          total + (utsav.availableCredits || 0),
+                        0
+                      );
+
+                      if (totalCharge > 0) {
+                        return (
+                          <View className="border-b border-gray-100 pb-3">
+                            <View className="flex-row items-center justify-between">
+                              <Text className="font-pregular text-base text-gray-700">
+                                Utsav Charge
+                              </Text>
+                              <View className="items-end">
+                                <Text
+                                  className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
+                                  ₹{totalCharge.toLocaleString('en-IN')}
+                                </Text>
+                                {totalCredits > 0 && (
+                                  <>
+                                    <Text className="font-pregular text-xs text-green-600">
+                                      −₹{totalCredits.toLocaleString('en-IN')} credit
+                                    </Text>
+                                    <Text className="mt-0.5 font-pmedium text-base text-black">
+                                      ₹
+                                      {Math.max(0, totalCharge - totalCredits).toLocaleString(
+                                        'en-IN'
+                                      )}
+                                    </Text>
+                                  </>
+                                )}
+                              </View>
+                            </View>
+                          </View>
+                        );
+                      }
+                      return null;
+                    })()}
+
+                  {/* Total section */}
+                  <View className="pt-2">
+                    {(() => {
+                      const totalCredits =
+                        (validationData.roomDetails?.reduce(
+                          (sum: number, item: { availableCredits?: number }) =>
+                            sum + (item.availableCredits || 0),
+                          0
+                        ) || 0) +
+                        (validationData.travelDetails?.availableCredits || 0) +
+                        (validationData.adhyayanDetails?.reduce(
+                          (sum: number, item: { availableCredits?: number }) =>
+                            sum + (item.availableCredits || 0),
+                          0
+                        ) || 0) +
+                        (validationData.utsavDetails?.reduce(
+                          (sum: number, item: { availableCredits?: number }) =>
+                            sum + (item.availableCredits || 0),
+                          0
+                        ) || 0);
+
+                      return (
+                        <>
+                          {totalCredits > 0 && (
+                            <>
+                              <View className="mb-1 flex-row items-center justify-between">
+                                <Text className="font-pregular text-sm text-gray-500">
+                                  Subtotal
+                                </Text>
+                                <Text className="font-pregular text-sm text-gray-500">
+                                  ₹{validationData.totalCharge.toLocaleString('en-IN')}
+                                </Text>
+                              </View>
+                              <View className="mb-2 flex-row items-center justify-between">
+                                <Text className="font-pregular text-sm text-green-600">
+                                  Total Credits Applied
+                                </Text>
+                                <Text className="font-pregular text-sm text-green-600">
+                                  −₹{totalCredits.toLocaleString('en-IN')}
+                                </Text>
+                              </View>
+                            </>
+                          )}
+                          <View className="flex-row items-center justify-between">
+                            <Text className="font-psemibold text-xl text-gray-800">
+                              Total Charge
+                            </Text>
+                            <Text className="font-psemibold text-xl text-secondary">
+                              ₹
+                              {Math.max(
+                                0,
+                                validationData.totalCharge - totalCredits
+                              ).toLocaleString('en-IN')}
+                            </Text>
+                          </View>
+                        </>
+                      );
+                    })()}
                   </View>
-                )}
-                {validationData.adhyayanDetails &&
-                  validationData.adhyayanDetails.length > 0 &&
-                  validationData.adhyayanDetails.reduce(
-                    (total: number, shibir: { charge: number }) => total + shibir.charge,
-                    0
-                  ) > 0 && (
-                    <View className="flex-row items-center justify-between">
-                      <Text className="font-pregular text-base text-gray-500">Adhyayan Charge</Text>
-                      <Text className="font-pregular text-base text-black">
-                        ₹{' '}
-                        {validationData.adhyayanDetails.reduce(
-                          (total: number, shibir: { charge: number }) => total + shibir.charge,
-                          0
-                        )}
-                      </Text>
-                    </View>
-                  )}
-                {validationData.utsavDetails &&
-                  validationData.utsavDetails.length > 0 &&
-                  validationData.utsavDetails.reduce(
-                    (total: number, utsav: { charge: number }) => total + utsav.charge,
-                    0
-                  ) > 0 && (
-                    <View className="flex-row items-center justify-between">
-                      <Text className="font-pregular text-base text-gray-500">Utsav Charge</Text>
-                      <Text className="font-pregular text-base text-black">
-                        ₹{' '}
-                        {validationData.utsavDetails.reduce(
-                          (total: number, utsav: { charge: number }) => total + utsav.charge,
-                          0
-                        )}
-                      </Text>
-                    </View>
-                  )}
-                <View className="mt-2 flex-row items-center justify-between border-t border-gray-200 pt-4">
-                  <Text className="font-psemibold text-xl text-gray-800">Total Charge</Text>
-                  <Text className="font-psemibold text-xl text-secondary">
-                    ₹ {validationData.totalCharge}
-                  </Text>
                 </View>
               </View>
             </View>

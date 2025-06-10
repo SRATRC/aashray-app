@@ -65,6 +65,13 @@ const EventBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyl
           {data.utsav.utsav.utsav_location || 'Not Available'}
         </Text>
       </View>
+      <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
+        <FontAwesome5 name="map-marker-alt" size={14} color={colors.gray_400} />
+        <Text className="font-pregular text-gray-400">Volunteer:</Text>
+        <Text className="flex-1 font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
+          {data.utsav.utsav.volunteer || 'Unable to Volunteer'}
+        </Text>
+      </View>
     </PrimaryAddonBookingCard>
   );
 };

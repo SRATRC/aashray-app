@@ -27,7 +27,7 @@ const departments: DepartmentContact[] = [
     name: 'Room & Adhyayan Inquiries',
     description: 'Accommodation and study space booking',
     icon: 'hotel',
-    contactPeople: [{ name: 'Research Centre Office', phone: '9920108012' }],
+    contactPeople: [{ name: 'Research Centre Office', phone: '7875432613' }],
   },
   {
     id: '2',
@@ -65,7 +65,7 @@ const departments: DepartmentContact[] = [
     name: 'Technical Support',
     description: 'WiFi and technical assistance',
     icon: 'wifi',
-    contactPeople: [{ name: 'Research Centre Office', phone: '9920108012' }],
+    contactPeople: [{ name: 'Research Centre Office', phone: '7875432613' }],
   },
   {
     id: '7',
@@ -100,25 +100,6 @@ const departments: DepartmentContact[] = [
 ];
 
 const ContactInfoScreen = () => {
-  const handlePhonePress = (phoneNumber: string, contactName: string) => {
-    Alert.alert(
-      'Call Contact',
-      `Would you like to call ${contactName}?`,
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Call',
-          style: 'default',
-          onPress: () => Linking.openURL(`tel:${phoneNumber}`),
-        },
-      ],
-      { cancelable: true }
-    );
-  };
-
   const handleLongPress = async (phoneNumber: string) => {
     await Clipboard.setStringAsync(phoneNumber);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -164,7 +145,7 @@ const ContactInfoScreen = () => {
                 {dept.contactPeople.map((person, contactIndex) => (
                   <TouchableOpacity
                     key={contactIndex}
-                    onPress={() => handlePhonePress(person.phone, person.name)}
+                    onPress={() => Linking.openURL(`tel:${person.phone}`)}
                     onLongPress={() => handleLongPress(person.phone)}
                     style={[
                       styles.contactPersonRow,

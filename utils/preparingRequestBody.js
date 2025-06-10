@@ -41,6 +41,7 @@ export const prepareSelfRequestBody = (user, data) => {
         utsavid: data.utsav.utsav.utsav_id,
         packageid: data.utsav.package,
         arrival: data.utsav.arrival,
+        volunteer: data.utsav.volunteer,
         carno: data.utsav.carno || '',
         other: data.utsav.other || '',
       },
@@ -156,6 +157,7 @@ export const prepareGuestRequestBody = (user, input) => {
                 cardno: guest.cardno,
                 packageid: guest.package,
                 arrival: guest.arrival,
+                volunteer: guest.volunteer,
                 carno: guest.carno,
                 other: guest.other,
               };
@@ -326,6 +328,7 @@ export const prepareMumukshuRequestBody = (user, input) => {
                 cardno: mumukshu.cardno,
                 packageid: mumukshu.package,
                 arrival: mumukshu.arrival,
+                volunteer: mumukshu.volunteer,
                 carno: mumukshu.carno,
                 other: mumukshu.other,
               };

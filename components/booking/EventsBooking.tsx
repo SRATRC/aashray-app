@@ -34,12 +34,21 @@ const ARRIVAL = [
   { key: 'yes', value: 'Yes' },
   { key: 'no', value: 'No' },
 ];
+const VOLUNTEER = [
+  { key: 'admin', value: 'Admin' },
+  { key: 'logistics', value: 'Logistics' },
+  { key: 'kitchen', value: 'Kitchen' },
+  { key: 'vv', value: 'VV Bhavan' },
+  { key: 'samadhi', value: 'Samadhi Sthal' },
+  { key: 'none', value: 'Unable to Volunteer' },
+];
 
 const INITIAL_SELF_FORM = {
   package: null,
   package_name: '',
   arrival: null,
   carno: '',
+  volunteer: null,
   other: null,
 };
 
@@ -54,6 +63,7 @@ const INITIAL_GUEST_FORM = {
       package_name: '',
       arrival: null,
       carno: '',
+      volunteer: null,
       other: null,
     },
   ],
@@ -68,6 +78,7 @@ const INITIAL_MUMUKSHU_FORM = {
       package_name: '',
       arrival: null,
       carno: '',
+      volunteer: null,
       other: null,
     },
   ],
@@ -130,6 +141,7 @@ const EventBookingDirect = () => {
           package_name: '',
           arrival: null,
           carno: '',
+          volunteer: null,
           other: null,
         },
       ],
@@ -188,6 +200,7 @@ const EventBookingDirect = () => {
           package_name: '',
           arrival: null,
           carno: '',
+          volunteer: null,
           other: null,
         },
       ],
@@ -472,6 +485,18 @@ const EventBookingDirect = () => {
                               </View>
                             )}
 
+                            <CustomSelectBottomSheet
+                              className="mt-7"
+                              label="Would you like to volunteer?"
+                              placeholder="Select option"
+                              options={VOLUNTEER}
+                              selectedValue={selfForm.volunteer}
+                              onValueChange={(val: any) =>
+                                setSelfForm({ ...selfForm, volunteer: val })
+                              }
+                              saveKeyInsteadOfValue={false}
+                            />
+
                             <FormField
                               text="Any other details?"
                               value={selfForm.other}
@@ -535,6 +560,18 @@ const EventBookingDirect = () => {
                                     autoComplete={'off'}
                                   />
                                 )}
+
+                                <CustomSelectBottomSheet
+                                  className="mt-7"
+                                  label="Would you like to volunteer?"
+                                  placeholder="Select option"
+                                  options={VOLUNTEER}
+                                  selectedValue={mumukshuForm.mumukshus[index].volunteer}
+                                  onValueChange={(val: any) =>
+                                    handleMumukshuFormChange(index, 'volunteer', val)
+                                  }
+                                  saveKeyInsteadOfValue={false}
+                                />
 
                                 <FormField
                                   text="Any other details?"
@@ -607,6 +644,18 @@ const EventBookingDirect = () => {
                                   />
                                 </View>
                               )}
+
+                              <CustomSelectBottomSheet
+                                className="mt-7"
+                                label="Would you like to volunteer?"
+                                placeholder="Select option"
+                                options={VOLUNTEER}
+                                selectedValue={guestForm.guests[index].volunteer}
+                                onValueChange={(val: any) =>
+                                  handleGuestFormChange(index, 'volunteer', val)
+                                }
+                                saveKeyInsteadOfValue={false}
+                              />
 
                               <FormField
                                 text="Any other details?"
