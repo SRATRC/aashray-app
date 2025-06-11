@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Animated } from 'react-native';
 import { icons, images, quotes, status } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { useRouter } from 'expo-router';
@@ -40,6 +41,17 @@ const Home: React.FC = () => {
   const { user } = useGlobalContext();
   const router: any = useRouter();
 
+  // Fade-in animation setup
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   if (!user || !user.issuedto) {
     return (
       <SafeAreaView className="h-full items-center justify-center bg-white">
@@ -50,89 +62,92 @@ const Home: React.FC = () => {
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-        <View className=" flex-row items-center justify-start px-4">
-          <Image
-            source={images.sratrcLogo as ImageSourcePropType}
-            className="h-[60px] w-[150px] px-4"
-            resizeMode="contain"
-          />
-        </View>
+      {/* Fade-in wrapper */}
+      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+        <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+          <View className=" flex-row items-center justify-start px-4">
+            <Image
+              source={images.sratrcLogo as ImageSourcePropType}
+              className="h-[60px] w-[150px] px-4"
+              resizeMode="contain"
+            />
+          </View>
 
-        {/* Banner */}
-        <QuotesBanner user={user} images={images} />
+          {/* Banner */}
+          <QuotesBanner user={user} images={images} />
 
-        {/* Services */}
-        <View className="mt-7 w-full">
-          <Text className="px-4 font-pmedium text-lg text-black">Quick Access</Text>
-          <View className="mt-3 flex-row flex-wrap gap-y-4 px-4">
-            {user.res_status !== status.STATUS_RESIDENT && (
+          {/* Services */}
+          <View className="mt-7 w-full">
+            <Text className="px-4 font-pmedium text-lg text-black">Quick Access</Text>
+            <View className="mt-3 flex-row flex-wrap gap-y-4 px-4">
+              {user.res_status !== status.STATUS_RESIDENT && (
+                <CustomHomeIcon
+                  image={icons.wifiHome as ImageSourcePropType}
+                  title={'Wifi'}
+                  onPress={() => router.push('/wifi')}
+                />
+              )}
               <CustomHomeIcon
-                image={icons.wifiHome as ImageSourcePropType}
-                title={'Wifi'}
-                onPress={() => router.push('/wifi')}
+                image={icons.menuHome as ImageSourcePropType}
+                title={'Menu'}
+                onPress={() => router.push('/menu')}
               />
-            )}
-            <CustomHomeIcon
-              image={icons.menuHome as ImageSourcePropType}
-              title={'Menu'}
-              onPress={() => router.push('/menu')}
-            />
-            <CustomHomeIcon
-              image={icons.maintenanceHome as ImageSourcePropType}
-              title={'Maintenance'}
-              onPress={() => router.push('/maintenanceRequestList')}
-            />
-            <CustomHomeIcon
-              image={icons.pendingPayment as ImageSourcePropType}
-              title={'Pending Payments'}
-              onPress={() => router.push('/pendingPayments')}
-            />
-            <CustomHomeIcon
-              image={icons.contact as ImageSourcePropType}
-              title={'Contact Info'}
-              onPress={() => router.push('/contactInfo')}
-            />
+              <CustomHomeIcon
+                image={icons.maintenanceHome as ImageSourcePropType}
+                title={'Maintenance'}
+                onPress={() => router.push('/maintenanceRequestList')}
+              />
+              <CustomHomeIcon
+                image={icons.pendingPayment as ImageSourcePropType}
+                title={'Pending Payments'}
+                onPress={() => router.push('/pendingPayments')}
+              />
+              <CustomHomeIcon
+                image={icons.contact as ImageSourcePropType}
+                title={'Contact Info'}
+                onPress={() => router.push('/contactInfo')}
+              />
+            </View>
           </View>
-        </View>
 
-        {/* Socials */}
-        <View className="mt-7 w-full">
-          <Text className="px-4 font-pmedium text-lg text-black">Checkout Our Social Media!</Text>
-          <View className="mb-6 mt-3 flex-row flex-wrap gap-y-4 px-4">
-            <CustomHomeIcon
-              image={icons.satshrut as ImageSourcePropType}
-              title={'Satshrut'}
-              onPress={() => Linking.openURL('https://satshrut.vitraagvigyaan.org/')}
-            />
-            <CustomHomeIcon
-              image={icons.smilestones as ImageSourcePropType}
-              title={'Smilestones'}
-              onPress={() => Linking.openURL('https://smilestones.vitraagvigyaan.org/')}
-            />
-            <CustomHomeIcon
-              image={icons.vvYt as ImageSourcePropType}
-              title={'Youtube'}
-              onPress={() => Linking.openURL('https://youtube.com/@vitraagvigyaan')}
-            />
-            <CustomHomeIcon
-              image={icons.vvInsta as ImageSourcePropType}
-              title={'VV Insta'}
-              onPress={() => Linking.openURL('https://www.instagram.com/vitraag.vigyaan/')}
-            />
-            <CustomHomeIcon
-              image={icons.rcGlobalInsta as ImageSourcePropType}
-              title={'RC Global'}
-              onPress={() => Linking.openURL('https://www.instagram.com/researchcentre_global/')}
-            />
-            <CustomHomeIcon
-              image={icons.sparshInsta as ImageSourcePropType}
-              title={'Sparsh'}
-              onPress={() => Linking.openURL('https://www.instagram.com/sparsh.international/')}
-            />
+          {/* Socials */}
+          <View className="mt-7 w-full">
+            <Text className="px-4 font-pmedium text-lg text-black">Checkout Our Social Media!</Text>
+            <View className="mb-6 mt-3 flex-row flex-wrap gap-y-4 px-4">
+              <CustomHomeIcon
+                image={icons.satshrut as ImageSourcePropType}
+                title={'Satshrut'}
+                onPress={() => Linking.openURL('https://satshrut.vitraagvigyaan.org/')}
+              />
+              <CustomHomeIcon
+                image={icons.smilestones as ImageSourcePropType}
+                title={'Smilestones'}
+                onPress={() => Linking.openURL('https://smilestones.vitraagvigyaan.org/')}
+              />
+              <CustomHomeIcon
+                image={icons.vvYt as ImageSourcePropType}
+                title={'Youtube'}
+                onPress={() => Linking.openURL('https://youtube.com/@vitraagvigyaan')}
+              />
+              <CustomHomeIcon
+                image={icons.vvInsta as ImageSourcePropType}
+                title={'VV Insta'}
+                onPress={() => Linking.openURL('https://www.instagram.com/vitraag.vigyaan/')}
+              />
+              <CustomHomeIcon
+                image={icons.rcGlobalInsta as ImageSourcePropType}
+                title={'RC Global'}
+                onPress={() => Linking.openURL('https://www.instagram.com/researchcentre_global/')}
+              />
+              <CustomHomeIcon
+                image={icons.sparshInsta as ImageSourcePropType}
+                title={'Sparsh'}
+                onPress={() => Linking.openURL('https://www.instagram.com/sparsh.international/')}
+              />
+            </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </Animated.View>
     </SafeAreaView>
   );
 };

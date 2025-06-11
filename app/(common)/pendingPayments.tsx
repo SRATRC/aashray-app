@@ -18,6 +18,7 @@ import PageHeader from '../../components/PageHeader';
 import CustomEmptyMessage from '../../components/CustomEmptyMessage';
 import CustomErrorMessage from '../../components/CustomErrorMessage';
 import CustomButton from '../../components/CustomButton';
+import CustomModal from '../../components/CustomModal';
 import handleAPICall from '../../utils/HandleApiCall';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
@@ -140,6 +141,7 @@ const PendingPayments = () => {
   const [selectedPayments, setSelectedPayments] = useState<Transaction[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showInternationalWarning, setShowInternationalWarning] = useState(false);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['transactions', user.cardno, 'pending,cash pending,failed'],
@@ -205,40 +207,61 @@ const PendingPayments = () => {
     [selectedPayments]
   );
 
-  const totalPendingAmount = useMemo(
-    () => pendingPayments.reduce((total, payment) => total + payment.amount, 0),
-    [pendingPayments]
-  );
+  const isTransactionExpired = useCallback((createdAt: string) => {
+    const created = moment.utc(createdAt);
+    const expiry = created.clone().add(24, 'hours');
+    return moment.utc().isAfter(expiry);
+  }, []);
+
+  // Calculate total of non-expired payments
+  const totalNonExpiredAmount = useMemo(() => {
+    return pendingPayments
+      .filter((payment) => !isTransactionExpired(payment.createdAt))
+      .reduce((total, payment) => total + payment.amount, 0);
+  }, [pendingPayments, isTransactionExpired]);
+
+  // Calculate total of expired payments
+  const totalExpiredAmount = useMemo(() => {
+    return pendingPayments
+      .filter((payment) => isTransactionExpired(payment.createdAt))
+      .reduce((total, payment) => total + payment.amount, 0);
+  }, [pendingPayments, isTransactionExpired]);
 
   const isPaymentAllowed = useMemo(() => {
-    return totalPendingAmount > 0 && user.country === 'India';
-  }, [totalPendingAmount, user.country]);
+    return totalNonExpiredAmount > 0;
+  }, [totalNonExpiredAmount]);
+
+  const isInternationalUser = useMemo(() => {
+    return user.country !== 'India';
+  }, [user.country]);
 
   const categoryStats = useMemo(() => {
     const stats = pendingPayments.reduce(
       (acc, item) => {
         const category = item.category || 'other';
         if (!acc[category]) {
-          acc[category] = { count: 0, amount: 0 };
+          acc[category] = { count: 0, amount: 0, expiredCount: 0, expiredAmount: 0 };
         }
         acc[category].count += 1;
         acc[category].amount += item.amount;
+
+        if (isTransactionExpired(item.createdAt)) {
+          acc[category].expiredCount += 1;
+          acc[category].expiredAmount += item.amount;
+        }
         return acc;
       },
-      {} as Record<string, { count: number; amount: number }>
+      {} as Record<
+        string,
+        { count: number; amount: number; expiredCount: number; expiredAmount: number }
+      >
     );
 
     return Object.entries(stats).map(([category, data]) => ({
       category,
       ...data,
     }));
-  }, [pendingPayments]);
-
-  const isTransactionExpired = useCallback((createdAt: string) => {
-    const created = moment.utc(createdAt);
-    const expiry = created.clone().add(24, 'hours');
-    return moment.utc().isAfter(expiry);
-  }, []);
+  }, [pendingPayments, isTransactionExpired]);
 
   const validPayments = useMemo(() => {
     return pendingPayments.filter((payment) => !isTransactionExpired(payment.createdAt));
@@ -285,42 +308,8 @@ const PendingPayments = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   }, [pendingPayments, allSelected, isPaymentAllowed, isTransactionExpired]);
 
-  const handleProceedToPayment = async () => {
-    if (!isPaymentAllowed) {
-      Toast.show({
-        type: 'error',
-        text1: 'Payment not available',
-        text2: getPaymentDisabledMessage(),
-        swipeable: false,
-      });
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      return;
-    }
-
-    if (selectedPayments.length === 0) {
-      Toast.show({
-        type: 'error',
-        text1: 'No payments selected',
-        text2: 'Please select at least one payment to proceed',
-        swipeable: false,
-      });
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      return;
-    }
-
-    const expiredPayments = selectedPayments.filter((payment) =>
-      isTransactionExpired(payment.createdAt)
-    );
-    if (expiredPayments.length > 0) {
-      Toast.show({
-        type: 'error',
-        text1: 'Some payments have expired',
-        text2: 'Please remove expired payments from selection',
-        swipeable: false,
-      });
-      return;
-    }
-
+  const proceedWithPayment = async () => {
+    setShowInternationalWarning(false);
     setIsSubmitting(true);
     try {
       const paymentIds = selectedPayments.map((payment) => payment.bookingid);
@@ -378,14 +367,50 @@ const PendingPayments = () => {
     }
   };
 
-  const getPaymentDisabledMessage = () => {
-    if (totalPendingAmount === 0) {
-      return 'No payments required';
+  const handleProceedToPayment = async () => {
+    if (!isPaymentAllowed) {
+      Toast.show({
+        type: 'error',
+        text1: 'Payment not available',
+        text2: 'No payments required',
+        swipeable: false,
+      });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return;
     }
-    if (user.country !== 'India') {
-      return 'Payment only available for users in India';
+
+    if (selectedPayments.length === 0) {
+      Toast.show({
+        type: 'error',
+        text1: 'No payments selected',
+        text2: 'Please select at least one payment to proceed',
+        swipeable: false,
+      });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return;
     }
-    return 'Payment not available';
+
+    const expiredPayments = selectedPayments.filter((payment) =>
+      isTransactionExpired(payment.createdAt)
+    );
+    if (expiredPayments.length > 0) {
+      Toast.show({
+        type: 'error',
+        text1: 'Some payments have expired',
+        text2: 'Please remove expired payments from selection',
+        swipeable: false,
+      });
+      return;
+    }
+
+    // Show warning for international users
+    if (isInternationalUser) {
+      setShowInternationalWarning(true);
+      return;
+    }
+
+    // Proceed directly for Indian users
+    await proceedWithPayment();
   };
 
   const getItemTitle = (item: Transaction) => {
@@ -471,6 +496,7 @@ const PendingPayments = () => {
     ({ item }: { item: Transaction }) => {
       const isSelected = selectedPayments.some((payment) => payment.bookingid === item.bookingid);
       const isExpired = isTransactionExpired(item.createdAt);
+
       const categoryColors = {
         bg: 'bg-secondary-50',
         text: 'text-gray-700',
@@ -480,25 +506,26 @@ const PendingPayments = () => {
       return (
         <TouchableOpacity
           onPress={() => handleSelectPayment(item)}
-          activeOpacity={isPaymentAllowed && !isExpired ? 0.6 : 1}
-          disabled={!isPaymentAllowed || isExpired}
+          activeOpacity={!isExpired ? 0.6 : 1}
+          disabled={isExpired}
           className={`mb-3 rounded-xl border ${
-            isSelected && isPaymentAllowed && !isExpired
+            isSelected && !isExpired
               ? 'border-secondary bg-secondary-50'
               : isExpired
-                ? 'border-red-200'
+                ? 'border-gray-200 bg-gray-50/70' // Subtle gray background
                 : 'border-gray-200 bg-white'
-          } ${!isPaymentAllowed || isExpired ? 'opacity-75' : ''}`}
+          }`}
           style={{
             shadowColor: '#000',
             shadowOffset: {
               width: 0,
-              height: isSelected && isPaymentAllowed && !isExpired ? 3 : 1,
+              height: isSelected && !isExpired ? 3 : 0,
             },
-            shadowOpacity: isSelected && isPaymentAllowed && !isExpired ? 0.08 : 0.04,
-            shadowRadius: isSelected && isPaymentAllowed && !isExpired ? 6 : 3,
-            elevation: isSelected && isPaymentAllowed && !isExpired ? 3 : 1,
+            shadowOpacity: isSelected && !isExpired ? 0.08 : 0,
+            shadowRadius: isSelected && !isExpired ? 6 : 0,
+            elevation: isSelected && !isExpired ? 3 : 0,
           }}>
+          {/* Timer badge */}
           <View className="absolute -right-1 -top-1 z-10">
             <PaymentTimer createdAt={item.createdAt} />
           </View>
@@ -507,47 +534,58 @@ const PendingPayments = () => {
             <View className="mb-3 flex-row items-start justify-between">
               <View className="flex-1 flex-row items-start">
                 <View
-                  className={`mr-3 rounded-full ${categoryColors.bg} ${categoryColors.border} border`}>
+                  className={`mr-3 rounded-full ${
+                    isExpired
+                      ? 'border-gray-200 bg-gray-100'
+                      : `${categoryColors.bg} ${categoryColors.border} border`
+                  }`}>
                   <Image
                     source={getCategoryIcon(item.category)}
                     className="h-10 w-10"
                     resizeMode="contain"
+                    style={{ opacity: isExpired ? 0.5 : 1 }}
                   />
                 </View>
                 <View className="flex-1">
                   <Text
                     className={`font-psemibold text-sm leading-tight ${
-                      !isPaymentAllowed || isExpired ? 'text-gray-400' : 'text-gray-900'
+                      isExpired ? 'text-gray-500' : 'text-gray-900'
                     }`}
                     numberOfLines={2}>
                     {getItemTitle(item)}
                   </Text>
-                  <Text
-                    className={`mt-1 font-pbold text-lg ${
-                      !isPaymentAllowed || isExpired ? 'text-gray-400' : 'text-gray-900'
-                    }`}>
-                    ₹ {item.amount.toLocaleString()}
-                  </Text>
+                  <View className="mt-1 flex-row items-baseline">
+                    <Text
+                      className={`font-pbold text-lg ${
+                        isExpired ? 'text-gray-400' : 'text-gray-900'
+                      }`}>
+                      ₹ {item.amount.toLocaleString()}
+                    </Text>
+                    {isExpired && (
+                      <Text className="ml-2 font-pregular text-xs text-red-500">Expired</Text>
+                    )}
+                  </View>
                 </View>
               </View>
 
               <View className="ml-2">
                 <View
-                  className={`h-6 w-6 items-center justify-center rounded-full border-2 ${
-                    isSelected && isPaymentAllowed && !isExpired
-                      ? 'border-secondary bg-secondary'
-                      : !isPaymentAllowed || isExpired
-                        ? 'border-gray-300 bg-gray-100'
-                        : 'border-gray-300 bg-white'
+                  className={`h-6 w-6 items-center justify-center rounded-full ${
+                    isSelected && !isExpired
+                      ? 'border-2 border-secondary bg-secondary'
+                      : isExpired
+                        ? 'border border-gray-300 bg-gray-100' // Thinner border, filled background
+                        : 'border-2 border-gray-300 bg-white'
                   }`}>
-                  {isSelected && isPaymentAllowed && !isExpired && (
-                    <Ionicons name="checkmark" size={14} color="#fff" />
+                  {isSelected && !isExpired && <Ionicons name="checkmark" size={14} color="#fff" />}
+                  {isExpired && (
+                    <View className="h-2 w-2 rounded-full bg-gray-400" /> // Subtle dot indicator
                   )}
                 </View>
               </View>
             </View>
 
-            <View className="mb-3 h-px bg-gray-200" />
+            <View className={`mb-3 h-px ${isExpired ? 'bg-gray-200/70' : 'bg-gray-200'}`} />
 
             <View className="gap-y-2">
               {(item.start_day || item.end_day) && (
@@ -555,18 +593,18 @@ const PendingPayments = () => {
                   <Ionicons
                     name="time-outline"
                     size={14}
-                    color={!isPaymentAllowed || isExpired ? '#9CA3AF' : '#6B7280'}
+                    color={isExpired ? '#9CA3AF' : '#6B7280'}
                     style={{ marginRight: 6 }}
                   />
                   <Text
                     className={`font-pregular text-xs ${
-                      !isPaymentAllowed || isExpired ? 'text-gray-400' : 'text-gray-600'
+                      isExpired ? 'text-gray-400' : 'text-gray-600'
                     }`}>
                     {getDateRange(item.start_day, item.end_day)}
                   </Text>
                   <Text
                     className={`ml-2 font-pregular text-xs ${
-                      !isPaymentAllowed || isExpired ? 'text-gray-400' : 'text-gray-500'
+                      isExpired ? 'text-gray-400' : 'text-gray-500'
                     }`}>
                     • {getDuration(item.start_day, item.end_day)}
                   </Text>
@@ -578,12 +616,12 @@ const PendingPayments = () => {
                   <Ionicons
                     name="person-outline"
                     size={14}
-                    color={!isPaymentAllowed || isExpired ? '#9CA3AF' : '#6B7280'}
+                    color={isExpired ? '#9CA3AF' : '#6B7280'}
                     style={{ marginRight: 6 }}
                   />
                   <Text
                     className={`font-pregular text-xs ${
-                      !isPaymentAllowed || isExpired ? 'text-gray-400' : 'text-gray-600'
+                      isExpired ? 'text-gray-400' : 'text-gray-600'
                     }`}>
                     Booked for {item.booked_for_name}
                   </Text>
@@ -595,40 +633,28 @@ const PendingPayments = () => {
                   <Ionicons
                     name="cash-outline"
                     size={14}
-                    color={!isPaymentAllowed || isExpired ? '#9CA3AF' : '#F59E0B'}
+                    color={isExpired ? '#9CA3AF' : '#F59E0B'}
                     style={{ marginRight: 6 }}
                   />
                   <Text
                     className={`font-pregular text-xs ${
-                      !isPaymentAllowed || isExpired ? 'text-gray-400' : 'text-amber-600'
+                      isExpired ? 'text-gray-400' : 'text-amber-600'
                     }`}>
                     Cash payment pending
                   </Text>
                 </View>
               )}
 
-              {isExpired && (
-                <View className="flex-row items-center">
-                  <Ionicons
-                    name="alert-circle-outline"
-                    size={14}
-                    color="#DC2626"
-                    style={{ marginRight: 6 }}
-                  />
-                  <Text className="font-pregular text-xs text-red-600">Payment window expired</Text>
-                </View>
-              )}
-
               <View className="flex-row items-center justify-between pt-1">
                 <View
                   className={`rounded-full border px-2 py-1 ${
-                    !isPaymentAllowed || isExpired
+                    isExpired
                       ? 'border-gray-200 bg-gray-100'
                       : `${categoryColors.bg} ${categoryColors.border}`
                   }`}>
                   <Text
                     className={`font-pmedium text-xs capitalize ${
-                      !isPaymentAllowed || isExpired ? 'text-gray-400' : categoryColors.text
+                      isExpired ? 'text-gray-400' : categoryColors.text
                     }`}>
                     {item.category}
                   </Text>
@@ -639,7 +665,7 @@ const PendingPayments = () => {
         </TouchableOpacity>
       );
     },
-    [selectedPayments, handleSelectPayment, isPaymentAllowed, isTransactionExpired]
+    [selectedPayments, handleSelectPayment, isTransactionExpired]
   );
 
   const SummaryCard = useCallback(() => {
@@ -656,22 +682,20 @@ const PendingPayments = () => {
           <Text className="font-psemibold text-base text-gray-900">Payment Summary</Text>
           <View className="rounded-full bg-secondary-50 px-2.5 py-1">
             <Text className="font-pmedium text-xs text-primary">
-              {pendingPayments.length} items
+              {pendingPayments.length} total items
             </Text>
           </View>
         </View>
 
-        <View className="flex-row items-end justify-between">
+        <View className="mb-3 flex-row items-end justify-between">
           <View>
-            <Text className="mb-1 font-pregular text-xs text-gray-600">Total Amount</Text>
+            <Text className="mb-1 font-pregular text-xs text-gray-600">Payable Amount</Text>
             <Text className="font-pbold text-xl text-gray-900">
-              ₹ {totalPendingAmount.toLocaleString()}
+              ₹ {totalNonExpiredAmount.toLocaleString()}
             </Text>
-            {expiredCount > 0 && (
-              <Text className="font-pregular text-xs text-red-600">
-                {expiredCount} expired payment{expiredCount > 1 ? 's' : ''}
-              </Text>
-            )}
+            <Text className="font-pregular text-xs text-green-600">
+              {validPayments.length} active payment{validPayments.length !== 1 ? 's' : ''}
+            </Text>
           </View>
 
           <View className="flex-row gap-x-1.5">
@@ -681,15 +705,40 @@ const PendingPayments = () => {
                 className="rounded-lg border border-gray-200 bg-gray-100 px-2 py-1">
                 <Text
                   className={`font-pmedium text-xs ${index === 0 ? 'text-gray-800' : 'text-gray-700'} capitalize`}>
-                  {stat.category} ({stat.count})
+                  {stat.category} ({stat.count - stat.expiredCount})
                 </Text>
               </View>
             ))}
           </View>
         </View>
+
+        {expiredCount > 0 && (
+          <View className="mt-2 rounded-lg bg-red-50 p-2.5">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-1 flex-row items-center">
+                <MaterialIcons
+                  name="info-outline"
+                  size={16}
+                  color="#DC2626"
+                  style={{ marginRight: 6 }}
+                />
+                <Text className="font-pregular text-xs text-red-700">
+                  {expiredCount} expired payment{expiredCount > 1 ? 's' : ''} worth ₹{' '}
+                  {totalExpiredAmount.toLocaleString()}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
       </View>
     );
-  }, [pendingPayments.length, totalPendingAmount, categoryStats, isTransactionExpired]);
+  }, [
+    pendingPayments.length,
+    totalNonExpiredAmount,
+    totalExpiredAmount,
+    categoryStats,
+    isTransactionExpired,
+  ]);
 
   const ListHeader = useCallback(() => {
     if (!pendingPayments.length) return null;
@@ -702,18 +751,24 @@ const PendingPayments = () => {
       <View className="mb-2">
         <SummaryCard />
 
-        {!isPaymentAllowed && (
-          <View className="mb-4 rounded-xl border border-gray-300 bg-gray-50 p-4">
-            <View className="flex-row items-center">
+        {isInternationalUser && (
+          <View className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4">
+            <View className="flex-row items-start">
               <MaterialIcons
                 name="info-outline"
                 size={18}
-                color="#6B7280"
-                style={{ marginRight: 8 }}
+                color="#D97706"
+                style={{ marginRight: 8, marginTop: 2 }}
               />
-              <Text className="flex-1 font-pmedium text-xs text-gray-700">
-                {getPaymentDisabledMessage()}
-              </Text>
+              <View className="flex-1">
+                <Text className="mb-1 font-psemibold text-xs text-amber-800">
+                  International Payment Notice
+                </Text>
+                <Text className="font-pregular text-xs text-amber-700">
+                  You are attempting to make a payment from {user.country}. Unfortunately, we do not
+                  accept payments from outside India.
+                </Text>
+              </View>
             </View>
           </View>
         )}
@@ -749,7 +804,8 @@ const PendingPayments = () => {
     allSelected,
     handleSelectAll,
     isPaymentAllowed,
-    getPaymentDisabledMessage,
+    isInternationalUser,
+    user.country,
     SummaryCard,
     isTransactionExpired,
   ]);
@@ -815,7 +871,9 @@ const PendingPayments = () => {
                 </Text>
               </View>
               <View className="rounded-lg border border-secondary bg-secondary-50 px-3 py-1.5">
-                <Text className="font-pmedium text-xs text-gray-800">Ready to pay</Text>
+                <Text className="font-pmedium text-xs text-gray-800">
+                  {isInternationalUser ? 'International Payment' : 'Ready to pay'}
+                </Text>
               </View>
             </View>
             <CustomButton
@@ -828,6 +886,50 @@ const PendingPayments = () => {
           </View>
         </View>
       )}
+
+      <CustomModal
+        visible={showInternationalWarning}
+        onClose={() => setShowInternationalWarning(false)}
+        title="Warning"
+        showActionButton={false}>
+        <View>
+          <View className="mb-4">
+            <View className="mb-4 items-center">
+              <View className="mb-3 h-16 w-16 items-center justify-center rounded-full bg-amber-100">
+                <Ionicons name="warning" size={32} color="#F59E0B" />
+              </View>
+            </View>
+
+            <Text className="mb-3 text-center font-pregular text-sm text-gray-700">
+              You are attempting to make a payment from{' '}
+              <Text className="font-psemibold">{user.country}</Text>.
+            </Text>
+
+            <View className="rounded-lg bg-amber-50 p-3">
+              <Text className="mb-2 font-pmedium text-xs text-amber-900">
+                Important Information:
+              </Text>
+              <Text className="mb-1 font-pregular text-xs text-amber-800">
+                We currently do not support international payments. If you intend to pay using an
+                Indian bank account, you may proceed with the payment.
+              </Text>
+            </View>
+
+            <Text className="mt-3 text-center font-pregular text-xs text-gray-600">
+              Please confirm that you understand these terms before continuing.
+            </Text>
+          </View>
+
+          <View className="gap-y-3">
+            <CustomButton
+              text="I Understand, Proceed"
+              handlePress={proceedWithPayment}
+              containerStyles="min-h-[44px]"
+              textStyles="font-psemibold text-sm text-white"
+            />
+          </View>
+        </View>
+      </CustomModal>
     </SafeAreaView>
   );
 };

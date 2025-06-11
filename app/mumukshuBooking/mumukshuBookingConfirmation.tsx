@@ -96,13 +96,10 @@ const mumukshuBookingConfirmation = () => {
         {validationData && validationData.totalCharge > 0 && (
           <View className="mt-4 w-full px-4">
             <Text className="mb-3 font-psemibold text-xl text-secondary">Charges</Text>
-
-            {/* Main payment card */}
             <View
               className={`rounded-2xl bg-white ${
                 Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
               }`}>
-              {/* Line items section */}
               <View className="p-4">
                 <View className="flex-col gap-y-3">
                   {validationData.roomDetails &&
@@ -120,7 +117,7 @@ const mumukshuBookingConfirmation = () => {
 
                       if (totalCharge > 0) {
                         return (
-                          <View className="border-b border-gray-100 pb-3">
+                          <View className="border-b border-gray-200 pb-3">
                             <View className="flex-row items-center justify-between">
                               <Text className="font-pregular text-base text-gray-700">
                                 Room Charge
@@ -152,7 +149,7 @@ const mumukshuBookingConfirmation = () => {
                     })()}
 
                   {validationData.travelDetails && validationData.travelDetails.charge > 0 && (
-                    <View className="border-b border-gray-100 pb-3">
+                    <View className="border-b border-gray-200 pb-3">
                       <View className="flex-row items-center justify-between">
                         <Text className="font-pregular text-base text-gray-700">Travel Charge</Text>
                         <View className="items-end">
@@ -200,7 +197,7 @@ const mumukshuBookingConfirmation = () => {
 
                       if (totalCharge > 0) {
                         return (
-                          <View className="border-b border-gray-100 pb-3">
+                          <View className="border-b border-gray-200 pb-3">
                             <View className="flex-row items-center justify-between">
                               <Text className="font-pregular text-base text-gray-700">
                                 Adhyayan Charge
@@ -246,7 +243,7 @@ const mumukshuBookingConfirmation = () => {
 
                       if (totalCharge > 0) {
                         return (
-                          <View className="border-b border-gray-100 pb-3">
+                          <View className="border-b border-gray-200 pb-3">
                             <View className="flex-row items-center justify-between">
                               <Text className="font-pregular text-base text-gray-700">
                                 Utsav Charge

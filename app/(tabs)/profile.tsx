@@ -12,6 +12,7 @@ import {
   Keyboard,
   RefreshControl,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import { icons } from '../../constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,6 +25,7 @@ import handleAPICall from '../../utils/HandleApiCall';
 import getCachedImageUri, { invalidateCachedImage } from '../../utils/imageCache';
 import FormField from '~/components/FormField';
 import CustomModal from '~/components/CustomModal';
+import * as Haptics from 'expo-haptics';
 
 const Profile: React.FC = () => {
   const { user, removeItem, setUser, setCurrentUser } = useGlobalContext();
@@ -35,6 +37,7 @@ const Profile: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLogoutLoading, setIsLogoutLoading] = useState(false); // Add logout loading state
   const [creditsInfoModalVisible, setCreditsInfoModalVisible] = useState(false);
   const [cachedImageUri, setCachedImageUri] = useState('');
   const [previousPfpUrl, setPreviousPfpUrl] = useState('');
@@ -72,6 +75,7 @@ const Profile: React.FC = () => {
 
   const handleResetPassword = async () => {
     if (!currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Toast.show({
         type: 'error',
         text1: 'All fields are required',
@@ -81,6 +85,7 @@ const Profile: React.FC = () => {
     }
 
     if (newPassword !== confirmPassword) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Toast.show({
         type: 'error',
         text1: 'Passwords do not match',
@@ -93,6 +98,7 @@ const Profile: React.FC = () => {
     setIsLoading(true);
 
     const onSuccess = () => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setIsLoading(false);
       setPasswordModalVisible(false);
       // Clear inputs
@@ -196,7 +202,11 @@ const Profile: React.FC = () => {
       name: 'Logout',
       icon: icons.logout,
       onPress: async () => {
+        if (isLogoutLoading) return; // Prevent multiple clicks
+
         try {
+          setIsLogoutLoading(true); // Set loading state
+
           const onSuccess = async (_data: any) => {
             removeItem('user');
             router.replace('/sign-in');
@@ -208,9 +218,12 @@ const Profile: React.FC = () => {
             { cardno: user.cardno },
             null,
             onSuccess,
-            () => {}
+            () => {
+              setIsLogoutLoading(false); // Reset loading state on error
+            }
           );
         } catch (error: any) {
+          setIsLogoutLoading(false); // Reset loading state on catch
           Toast.show({
             type: 'error',
             text1: 'An error occurred!',
@@ -222,21 +235,40 @@ const Profile: React.FC = () => {
     },
   ];
 
-  const renderItem = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      className={`mb-5 rounded-2xl p-4 ${
-        Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-      } mx-4 flex flex-row items-center justify-between bg-white`}
-      onPress={item.onPress}>
-      <View className="flex-row items-center gap-x-4">
-        <Image source={item.icon} className="h-6 w-6" resizeMode="contain" />
-        <Text className="font-pregular text-base">{item.name}</Text>
-      </View>
-      <View className="rounded-lg bg-secondary-50 p-2">
-        <Image source={icons.yellowArrowRight} className="h-3 w-3" resizeMode="contain" />
-      </View>
-    </TouchableOpacity>
-  );
+  const renderItem = ({ item }: { item: any }) => {
+    const isLogoutItem = item.name === 'Logout';
+    const isDisabled = isLogoutItem && isLogoutLoading;
+
+    return (
+      <TouchableOpacity
+        className={`mb-5 rounded-2xl p-4 ${
+          Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
+        } mx-4 flex flex-row items-center justify-between bg-white ${
+          isDisabled ? 'opacity-50' : ''
+        }`}
+        onPress={item.onPress}
+        disabled={isDisabled}>
+        <View className="flex-row items-center gap-x-4">
+          <Image
+            source={item.icon}
+            className="h-6 w-6"
+            resizeMode="contain"
+            style={isDisabled ? { tintColor: '#9CA3AF' } : {}}
+          />
+          <Text className={`font-pregular text-base ${isDisabled ? 'text-gray-400' : ''}`}>
+            {item.name}
+          </Text>
+        </View>
+        {isLogoutItem && isLogoutLoading ? (
+          <ActivityIndicator size="small" color="#FF9500" />
+        ) : (
+          <View className="rounded-lg bg-secondary-50 p-2">
+            <Image source={icons.yellowArrowRight} className="h-3 w-3" resizeMode="contain" />
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   const renderHeader = () => (
     <View className="mb-10 mt-8 flex-col items-center justify-center">

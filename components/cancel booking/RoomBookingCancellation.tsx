@@ -7,7 +7,7 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
-import { useInfiniteQuery, useMutation, useQueryClient, InfiniteData } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { icons, status } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';

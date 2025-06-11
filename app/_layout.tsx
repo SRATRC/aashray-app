@@ -86,7 +86,8 @@ const RootLayout = () => {
           <GestureHandlerRootView>
             <BottomSheetModalProvider>
               <StatusBar style="dark" />
-              <Stack>
+              {/* Root stack with fade animation for page transitions */}
+              <Stack screenOptions={{ animation: 'fade' }}>
                 <Stack.Screen name="index" options={{ headerShown: false }} />
                 <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                 <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
