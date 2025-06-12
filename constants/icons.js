@@ -68,6 +68,7 @@ import pendingPayment from '../assets/icons/pending-payment.png';
 import tick from '../assets/icons/tick.png';
 import contact from '../assets/icons/contact.png';
 import miscellaneousTransaction from '../assets/icons/miscellaneous_transactions.png';
+import support from '../assets/icons/support.png';
 
 export default {
   play,
@@ -140,4 +141,5 @@ export default {
   tick,
   contact,
   miscellaneousTransaction,
+  support,
 };

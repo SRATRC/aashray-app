@@ -107,6 +107,11 @@ const Home: React.FC = () => {
                 title={'Contact Info'}
                 onPress={() => router.push('/contactInfo')}
               />
+              <CustomHomeIcon
+                image={icons.support as ImageSourcePropType}
+                title={'Support'}
+                onPress={() => router.push('/support')}
+              />
             </View>
           </View>
 

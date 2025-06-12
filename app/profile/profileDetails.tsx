@@ -59,6 +59,21 @@ const fetchCities = (country: any, state: any) => {
   });
 };
 
+const fetchCentres = () => {
+  return new Promise((resolve, reject) => {
+    handleAPICall(
+      'GET',
+      '/location/centres',
+      null,
+      null,
+      (res: any) => {
+        resolve(Array.isArray(res.data) ? res.data : []);
+      },
+      () => reject(new Error('Failed to fetch centres'))
+    );
+  });
+};
+
 const profileDetails = () => {
   const { user, setUser, setCurrentUser } = useGlobalContext();
   const router = useRouter();
@@ -112,6 +127,16 @@ const profileDetails = () => {
     queryKey: ['cities', selectedCountry, selectedState],
     queryFn: () => fetchCities(selectedCountry, selectedState),
     enabled: !!selectedState,
+    staleTime: 1000 * 60 * 30,
+  });
+
+  const {
+    data: centres,
+    isLoading: isCentresLoading,
+    isError: isCentresError,
+  }: any = useQuery({
+    queryKey: ['centres'],
+    queryFn: fetchCentres,
     staleTime: 1000 * 60 * 30,
   });
 
@@ -242,16 +267,21 @@ const profileDetails = () => {
               onValueChange={(val: any) => setForm({ ...form, gender: val })}
             />
 
-            <FormField
-              text="Center"
-              value={form.center}
-              handleChangeText={(e: any) => setForm({ ...form, center: e.trim() })}
-              otherStyles="mt-7"
-              inputStyles="font-pmedium text-base"
-              keyboardType="default"
-              placeholder="Enter Your Center"
-              maxLength={100}
-              containerStyles={'bg-gray-100'}
+            <CustomSelectBottomSheet
+              className="mt-7"
+              label="Centre"
+              placeholder="Select Centre"
+              options={centres}
+              selectedValue={form.center}
+              onValueChange={(val: any) => {
+                setForm({ ...form, center: val });
+              }}
+              searchable={true}
+              searchPlaceholder="Search Centres..."
+              noResultsText="No Centres Found"
+              isLoading={isCentresLoading}
+              onRetry={fetchCentres}
+              saveKeyInsteadOfValue={false}
             />
 
             <FormField
