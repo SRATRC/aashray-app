@@ -27,6 +27,7 @@ const INITIAL_MUMUKSHU_FORM = {
       luggage: [],
       adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
       type: dropdowns.BOOKING_TYPE_LIST[0].value,
+      total_people: null,
       special_request: '',
       arrival_time: '',
     },
@@ -66,6 +67,7 @@ const TravelBooking = () => {
     luggage: [],
     adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
     type: dropdowns.BOOKING_TYPE_LIST[0].value,
+    total_people: null,
     special_request: '',
   });
 
@@ -85,6 +87,10 @@ const TravelBooking = () => {
             (loc.value.toLowerCase().includes('railway') ||
               loc.value.toLowerCase().includes('airport'))
         ));
+
+    if (travelForm.type == dropdowns.BOOKING_TYPE_LIST[1].value && !travelForm.total_people) {
+      return false;
+    }
 
     const requiresSpecialRequest = travelForm.pickup === 'Other' || travelForm.drop === 'Other';
 
@@ -121,6 +127,7 @@ const TravelBooking = () => {
           luggage: [],
           adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
           type: dropdowns.BOOKING_TYPE_LIST[0].value,
+          total_people: null,
           special_request: '',
           arrival_time: '',
         },
@@ -163,6 +170,10 @@ const TravelBooking = () => {
                 (loc.key.toLowerCase().includes('railway') ||
                   loc.key.toLowerCase().includes('airport'))
             ));
+
+        if (mumukshu.type == dropdowns.BOOKING_TYPE_LIST[1].value && !mumukshu.total_people) {
+          return false;
+        }
 
         const requiresSpecialRequest = mumukshu.pickup === 'Other' || mumukshu.drop === 'Other';
 
@@ -220,6 +231,19 @@ const TravelBooking = () => {
             onValueChange={(val: any) => setTravelForm({ ...travelForm, type: val })}
             saveKeyInsteadOfValue={false}
           />
+
+          {travelForm.type == dropdowns.BOOKING_TYPE_LIST[1].value && (
+            <FormField
+              text="Total People"
+              value={travelForm.total_people}
+              handleChangeText={(e: any) => setTravelForm({ ...travelForm, total_people: e })}
+              otherStyles="mt-7"
+              containerStyles="bg-gray-100"
+              keyboardType="number-pad"
+              placeholder="please specify total people here..."
+              inputStyles={'font-pmedium text-black text-lg'}
+            />
+          )}
 
           <CustomSelectBottomSheet
             className="mt-7"
@@ -320,7 +344,7 @@ const TravelBooking = () => {
             containerStyles="bg-gray-100"
             keyboardType="default"
             placeholder="please specify your request here..."
-            inputStyles={'font-pmedium text-gray-400 text-lg'}
+            inputStyles={'font-pmedium text-black text-lg'}
           />
         </View>
       )}
@@ -344,6 +368,21 @@ const TravelBooking = () => {
                   onValueChange={(val: any) => handleMumukshuFormChange(index, 'type', val)}
                   saveKeyInsteadOfValue={false}
                 />
+
+                {mumukshuForm.mumukshus[index].type == dropdowns.BOOKING_TYPE_LIST[1].value && (
+                  <FormField
+                    text="Total People"
+                    value={mumukshuForm.mumukshus[index].total_people}
+                    handleChangeText={(e: any) =>
+                      handleMumukshuFormChange(index, 'total_people', e)
+                    }
+                    otherStyles="mt-7"
+                    containerStyles="bg-gray-100"
+                    keyboardType="number-pad"
+                    placeholder="please specify total people here..."
+                    inputStyles={'font-pmedium text-black text-lg'}
+                  />
+                )}
 
                 <CustomSelectBottomSheet
                   className="mt-7"
@@ -450,7 +489,7 @@ const TravelBooking = () => {
                   containerStyles="bg-gray-100"
                   keyboardType="default"
                   placeholder="please specify your request here..."
-                  inputStyles={'font-pmedium text-gray-400 text-lg'}
+                  inputStyles={'font-pmedium text-black text-lg'}
                 />
               </>
             )}

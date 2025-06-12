@@ -42,6 +42,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           luggage: [],
           adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
           type: dropdowns.BOOKING_TYPE_LIST[0].value,
+          total_people: null,
           special_request: '',
         });
         setData((prev: any) => {
@@ -92,6 +93,19 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         onValueChange={(val: any) => setTravelForm({ ...travelForm, type: val })}
         saveKeyInsteadOfValue={false}
       />
+
+      {travelForm.type == dropdowns.BOOKING_TYPE_LIST[1].value && (
+        <FormField
+          text="Total People"
+          value={travelForm.total_people}
+          handleChangeText={(e: any) => setTravelForm({ ...travelForm, total_people: e })}
+          otherStyles="mt-7"
+          containerStyles="bg-gray-100"
+          keyboardType="number-pad"
+          placeholder="please specify total people here..."
+          inputStyles={'font-pmedium text-black text-lg'}
+        />
+      )}
 
       <CustomSelectBottomSheet
         className="mt-7"

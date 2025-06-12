@@ -65,6 +65,7 @@ const createInitialTravelForm = (existingData: any = null) => ({
       adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
       arrival_time: '',
       special_request: '',
+      total_people: null,
       mumukshus: [],
       mumukshuIndices: [],
     },
@@ -484,6 +485,7 @@ const MumukshuAddons = () => {
           luggage: [],
           adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
           type: dropdowns.BOOKING_TYPE_LIST[0].value,
+          total_people: null,
           special_request: '',
           mumukshus: [],
           mumukshuIndices: [],
@@ -571,7 +573,8 @@ const MumukshuAddons = () => {
         (group.pickup === 'Other' && group.special_request.trim() === '') ||
         (group.drop === 'Other' && group.special_request.trim() === '') ||
         (group.pickup == 'Research Centre' && group.drop == 'Research Centre') ||
-        (group.pickup != 'Research Centre' && group.drop != 'Research Centre')
+        (group.pickup != 'Research Centre' && group.drop != 'Research Centre') ||
+        (group.type == dropdowns.BOOKING_TYPE_LIST[1].value && !group.total_people)
     );
     return !hasEmptyFields && travelForm.date;
   }, [travelForm]);

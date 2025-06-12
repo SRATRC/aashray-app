@@ -29,17 +29,6 @@ const MumukshuTravelBookingDetail: React.FC<{ containerStyles: any }> = ({ conta
 
       <HorizontalSeparator otherStyles={'mb-4'} />
 
-      {/* <View className="flex px-6 pb-4 flex-row gap-x-2">
-        <Image source={icons.marker} className="w-4 h-4" resizeMode="contain" />
-        <Text className="text-gray-400 font-pregular">
-          {mumukshuData.travel.pickup == 'RC' ? 'Drop Point' : 'Pickup Point'}
-        </Text>
-        <Text className="text-black font-pmedium flex-1" numberOfLines={1}>
-          {mumukshuData.travel.pickup == 'RC'
-            ? `${mumukshuData.travel.drop}`
-            : `${mumukshuData.travel.pickup}`}
-        </Text>
-      </View> */}
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
         <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Booked For:</Text>

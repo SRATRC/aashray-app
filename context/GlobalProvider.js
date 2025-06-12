@@ -42,7 +42,7 @@ const GlobalProvider = ({ children }) => {
   }, [settings]);
 
   useEffect(() => {
-    let isMounted = true; // track if component is mounted
+    let isMounted = true;
     getStorage()
       .then((res) => {
         if (isMounted) {
@@ -62,26 +62,8 @@ const GlobalProvider = ({ children }) => {
         if (isMounted) setLoading(false);
       });
 
-    getStorage();
-    // .then((res) => {
-    //   if (isMounted) {
-    //     if (res) {
-    //       log(res);
-    //       // setSettings(res.settings);
-    //     } else {
-    //       setSettings({});
-    //     }
-    //   }
-    // })
-    // .catch((error) => {
-    //   console.log(error);
-    // })
-    // .finally(() => {
-    //   if (isMounted) setLoading(false);
-    // });
-
     return () => {
-      isMounted = false; // cleanup on unmount
+      isMounted = false;
     };
   }, []);
 

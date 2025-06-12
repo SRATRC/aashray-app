@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '../../constants';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { prepareSelfRequestBody } from '~/utils/preparingRequestBody';
 import CustomButton from '../../components/CustomButton';
 import PageHeader from '../../components/PageHeader';
@@ -66,6 +66,7 @@ const BookingDetails = () => {
       adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
       type: dropdowns.BOOKING_TYPE_LIST[0].value,
       arrival_time: '',
+      total_people: null,
       luggage: [],
       special_request: '',
     },
@@ -195,6 +196,8 @@ const BookingDetails = () => {
       return false;
     if (pickup === 'Research Centre' && drop === 'Research Centre') return false;
     if (pickup !== 'Research Centre' && drop !== 'Research Centre') return false;
+    if (forms.travel.type == dropdowns.BOOKING_TYPE_LIST[1].value && !forms.travel.total_people)
+      return false;
     return true;
   }, [forms.travel]);
 

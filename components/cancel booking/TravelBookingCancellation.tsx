@@ -156,7 +156,7 @@ const TravelBookingCancellation = () => {
       containerStyles={'mt-3'}>
       <HorizontalSeparator />
       <View className="mt-3">
-        {item.drop_point == 'RC' ? (
+        {item.drop_point == 'Research Centre' ? (
           <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
             <Image source={icons.marker} className="h-4 w-4" resizeMode="contain" />
             <Text className="font-pregular text-gray-400">Pickup Point:</Text>

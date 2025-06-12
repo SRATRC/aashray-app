@@ -24,6 +24,7 @@ export const prepareSelfRequestBody = (user, data) => {
         luggage: data.travel?.luggage.length > 0 ? data.travel?.luggage.join(', ') : '',
         leaving_post_adhyayan: data.travel?.adhyayan == 'No' ? 0 : 1,
         type: data.travel?.type,
+        total_people: data.travel?.total_people,
         special_request: data.travel?.special_request,
       },
     };
@@ -85,6 +86,7 @@ export const prepareSelfRequestBody = (user, data) => {
         luggage: data.travel?.luggage.length > 0 ? data.travel?.luggage.join(', ') : '',
         leaving_post_adhyayan: data.travel?.adhyayan == 'No' ? 0 : 1,
         type: data.travel?.type,
+        total_people: data.travel?.total_people,
         comments: data.travel?.special_request,
       },
     });
@@ -235,6 +237,7 @@ export const prepareMumukshuRequestBody = (user, input) => {
       if (group.floorType && group.floorType !== 'n') transformed.floorType = group.floorType;
       if (group.mumukshus) {
         transformed.mumukshus = group.mumukshus.map((mumukshu) => mumukshu.cardno);
+        transformed.total_people = group.mumukshus.total_people;
 
         if (!group.arrival_time) {
           const mumukshuWithArrivalTime = group.mumukshus.find((m) => m.arrival_time);

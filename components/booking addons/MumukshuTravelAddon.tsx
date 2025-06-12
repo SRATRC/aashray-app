@@ -144,6 +144,19 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             saveKeyInsteadOfValue={false}
           />
 
+          {assignment.type == dropdowns.BOOKING_TYPE_LIST[1].value && (
+            <FormField
+              text="Total People"
+              value={assignment.total_people}
+              handleChangeText={(e: any) => updateTravelForm(index, 'total_people', e)}
+              otherStyles="mt-7"
+              containerStyles="bg-gray-100"
+              keyboardType="number-pad"
+              placeholder="please specify total people here..."
+              inputStyles={'font-pmedium text-black text-lg'}
+            />
+          )}
+
           <CustomSelectBottomSheet
             className="mt-5"
             label="Pickup Location"

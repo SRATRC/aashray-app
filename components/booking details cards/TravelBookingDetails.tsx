@@ -45,10 +45,12 @@ const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerSt
       <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
         <Image source={icons.marker} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">
-          {data.travel.pickup == 'RC' ? 'Drop Point' : 'Pickup Point'}
+          {data.travel.pickup == 'Research Centre' ? 'Drop Point' : 'Pickup Point'}
         </Text>
         <Text className="flex-1 font-pmedium text-black" numberOfLines={1}>
-          {data.travel.pickup == 'RC' ? `${data.travel.drop}` : `${data.travel.pickup}`}
+          {data.travel.pickup == 'Research Centre'
+            ? `${data.travel.drop}`
+            : `${data.travel.pickup}`}
         </Text>
       </View>
       <View className="mb-4 flex flex-row items-center gap-x-2 px-6">

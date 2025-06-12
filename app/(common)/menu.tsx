@@ -1,13 +1,13 @@
 import { Text, View, ActivityIndicator } from 'react-native';
 import { Agenda, AgendaSchedule } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, icons, images } from '../../constants/index';
+import { colors, images } from '../../constants/index';
 import { useQuery } from '@tanstack/react-query';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import handleAPICall from '../../utils/HandleApiCall';
 import PageHeader from '../../components/PageHeader';
-import moment from 'moment';
 import CustomEmptyMessage from '~/components/CustomEmptyMessage';
+import moment from 'moment';
 
 const getFirstAndLastDate = (menuData: any) => {
   if (!menuData || Object.keys(menuData).length === 0) {
@@ -50,6 +50,7 @@ const Menu = () => {
     queryFn: fetchMenu,
     staleTime: 1000 * 60 * 60 * 24 * 3,
     retry: false,
+    enabled: !!user?.cardno,
   });
 
   const renderItem = (reservation: any) => (
