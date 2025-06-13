@@ -38,7 +38,7 @@ const VOLUNTEER = [
   { key: 'admin', value: 'Admin' },
   { key: 'logistics', value: 'Logistics' },
   { key: 'kitchen', value: 'Kitchen' },
-  { key: 'vv', value: 'VV Bhavan' },
+  { key: 'vv', value: 'Vitraag Vigyaan Bhavan' },
   { key: 'samadhi', value: 'Samadhi Sthal' },
   { key: 'none', value: 'Unable to Volunteer' },
 ];

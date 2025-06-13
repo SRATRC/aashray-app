@@ -45,6 +45,23 @@ const LOCATION_LIST = [
   { key: 'other', value: 'Other' },
 ];
 
+const EVENT_LOCATION_LIST = [
+  { key: 'rc', value: 'Research Centre' },
+  { key: 'dadar', value: 'Dadar (Pritam Hotel)' },
+  { key: 'amar mahar', value: 'Amar Mahal' },
+  { key: 'airoli', value: 'Airoli' },
+  { key: 'borivali', value: 'Borivali' },
+  { key: 'mulund', value: 'Mulund' },
+  { key: 'vile parle', value: 'Vile Parle (Sahara Star)' },
+  { key: 'airport t1', value: 'Airport Terminal 1' },
+  { key: 'airport t2', value: 'Airport Terminal 2' },
+  { key: 'bandra railway station', value: 'Railway Station (Bandra Terminus)' },
+  { key: 'kurla railway station', value: 'Railway Station (Kurla Terminus)' },
+  { key: 'csmt railway station', value: 'Railway Station (CSMT)' },
+  { key: 'mumbai central rrailway station', value: 'Railway Station (Mumbai Central)' },
+  { key: 'other', value: 'Other' },
+];
+
 const LUGGAGE_LIST = [
   { key: 'cabin1', value: '1 Cabin Bag' },
   { key: 'cabin2', value: '2 Cabin Bags' },
@@ -78,6 +95,7 @@ export default {
   SPICE_LIST,
   HIGHTEA_LIST,
   LOCATION_LIST,
+  EVENT_LOCATION_LIST,
   LUGGAGE_LIST,
   BOOKING_TYPE_LIST,
   TRAVEL_ADHYAYAN_ASK_LIST,

@@ -10,8 +10,8 @@ import moment from 'moment';
 const MumukshuEventBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const { mumukshuData } = useGlobalContext();
 
-  const formattedStartDate = moment(mumukshuData.utsav.utsav.start_date).format('Do MMMM');
-  const formattedEndDate = moment(mumukshuData.utsav.utsav.end_date).format('Do MMMM, YYYY');
+  const formattedStartDate = moment(mumukshuData.utsav.utsav.utsav_start).format('Do MMMM');
+  const formattedEndDate = moment(mumukshuData.utsav.utsav.utsav_end).format('Do MMMM, YYYY');
 
   return (
     <PrimaryAddonBookingCard title={'Raj Utsav Booking'} containerStyles={containerStyles}>

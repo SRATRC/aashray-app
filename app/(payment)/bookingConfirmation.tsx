@@ -50,7 +50,7 @@ const BookingSuccess = () => {
           }}>
           <View className="flex-1 justify-center">
             <View className="mb-8 items-center">
-              <View className="mb-6 h-20 w-20 items-center justify-center rounded-full bg-green-600 shadow-lg">
+              <View className="mb-6 h-20 w-20 items-center justify-center rounded-full bg-green-600 shadow-lg shadow-gray-400">
                 <Image
                   source={icons.tick}
                   tintColor={'white'}
@@ -60,11 +60,11 @@ const BookingSuccess = () => {
               </View>
 
               <Text className="mb-2 font-pbold text-3xl tracking-tight text-gray-900">
-                Booking Confirmed
+                Request Received
               </Text>
 
               <Text className="px-8 text-center text-base leading-6 text-gray-600">
-                Your reservation has been successfully processed
+                Your request has been successfully received
               </Text>
             </View>
 
@@ -84,7 +84,7 @@ const BookingSuccess = () => {
 
           <View className="pb-8">
             <CustomButton
-              text="View Booking Details"
+              text="View Request Details"
               handlePress={() => router.replace('/bookings')}
               containerStyles="min-h-[56px] shadow-sm mb-4"
               bgcolor="bg-gray-900"

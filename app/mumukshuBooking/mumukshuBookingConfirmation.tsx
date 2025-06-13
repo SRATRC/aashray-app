@@ -15,7 +15,7 @@ import MumukshuTravelBookingDetails from '../../components/booking details cards
 import MumukshuFoodBookingDetails from '../../components/booking details cards/MumukshuFoodBookingDetails';
 import MumukshuEventBookingDetails from '~/components/booking details cards/MumukshuEventBookingDetails';
 // @ts-ignore
-import RazorpayCheckout from 'react-native-razorpay';
+// import RazorpayCheckout from 'react-native-razorpay';
 import CustomModal from '~/components/CustomModal';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
@@ -364,22 +364,22 @@ const mumukshuBookingConfirmation = () => {
                       },
                       theme: { color: colors.orange },
                     };
-                    RazorpayCheckout.open(options)
-                      .then((_rzrpayData: any) => {
-                        setIsSubmitting(false);
-                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                        Toast.show({
-                          type: 'success',
-                          text1: 'Payment successful',
-                          swipeable: false,
-                        });
-                        router.replace('/bookingConfirmation');
-                      })
-                      .catch((_error: any) => {
-                        setIsSubmitting(false);
-                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-                        router.replace('/paymentFailed');
-                      });
+                    // RazorpayCheckout.open(options)
+                    //   .then((_rzrpayData: any) => {
+                    //     setIsSubmitting(false);
+                    //     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    //     Toast.show({
+                    //       type: 'success',
+                    //       text1: 'Payment successful',
+                    //       swipeable: false,
+                    //     });
+                    //     router.replace('/bookingConfirmation');
+                    //   })
+                    //   .catch((_error: any) => {
+                    //     setIsSubmitting(false);
+                    //     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                    //     router.replace('/paymentFailed');
+                    //   });
                   }
                 };
 

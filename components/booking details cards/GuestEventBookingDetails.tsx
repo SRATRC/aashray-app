@@ -10,8 +10,8 @@ import moment from 'moment';
 const GuestEventBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const { guestData } = useGlobalContext();
 
-  const formattedStartDate = moment(guestData.utsav.utsav.start_date).format('Do MMMM');
-  const formattedEndDate = moment(guestData.utsav.utsav.end_date).format('Do MMMM, YYYY');
+  const formattedStartDate = moment(guestData.utsav.utsav.utsav_start).format('Do MMMM');
+  const formattedEndDate = moment(guestData.utsav.utsav.utsav_end).format('Do MMMM, YYYY');
 
   return (
     <PrimaryAddonBookingCard title={'Raj Utsav Booking'} containerStyles={containerStyles}>

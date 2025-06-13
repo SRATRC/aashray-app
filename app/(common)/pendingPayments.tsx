@@ -24,7 +24,7 @@ import moment from 'moment';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
 // @ts-ignore
-import RazorpayCheckout from 'react-native-razorpay';
+// import RazorpayCheckout from 'react-native-razorpay';
 
 interface Transaction {
   bookingid: string;
@@ -339,20 +339,20 @@ const PendingPayments = () => {
           theme: { color: colors.orange },
         };
 
-        RazorpayCheckout.open(options)
-          .then((_rzrpayData: any) => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            Toast.show({
-              type: 'success',
-              text1: 'Payment successful',
-              swipeable: false,
-            });
-            router.replace('/bookingConfirmation');
-          })
-          .catch((_error: any) => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-            router.replace('/paymentFailed');
-          });
+        // RazorpayCheckout.open(options)
+        //   .then((_rzrpayData: any) => {
+        //     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        //     Toast.show({
+        //       type: 'success',
+        //       text1: 'Payment successful',
+        //       swipeable: false,
+        //     });
+        //     router.replace('/bookingConfirmation');
+        //   })
+        //   .catch((_error: any) => {
+        //     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        //     router.replace('/paymentFailed');
+        //   });
       }
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { icons, colors, dropdowns } from '../../constants';
+import { useQuery } from '@tanstack/react-query';
+import { useGlobalContext } from '../../context/GlobalProvider';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import HorizontalSeparator from '../HorizontalSeparator';
@@ -8,6 +10,7 @@ import FormDisplayField from '../FormDisplayField';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
 import moment from 'moment';
+import handleAPICall from '../../utils/HandleApiCall';
 
 interface MumukshuTravelAddonProps {
   travelForm: any;
@@ -34,10 +37,61 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
   setDatePickerVisibility,
   onToggle,
 }) => {
+  const { user } = useGlobalContext();
   const [activeMumukshuIndex, setActiveMumukshuIndex] = useState(null);
 
   const [tempTravelDate, setTempTravelDate] = useState(
     travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()
+  );
+
+  const fetchUtsavs = async ({ pageParam = 1 }) => {
+    return new Promise((resolve, reject) => {
+      handleAPICall(
+        'GET',
+        '/utsav/upcoming',
+        {
+          cardno: user.cardno,
+          page: pageParam,
+        },
+        null,
+        (res: any) => {
+          resolve(Array.isArray(res.data) ? res.data : []);
+        },
+        () => reject(new Error('Failed to fetch utsavs'))
+      );
+    });
+  };
+
+  const { data: utsavData } = useQuery({
+    queryKey: ['utsavs', user.cardno],
+    queryFn: () => fetchUtsavs({ pageParam: 1 }),
+    staleTime: 1000 * 60 * 30,
+    enabled: !!travelForm.date,
+  });
+
+  const isUtsavDate = useCallback(
+    (selectedDate: string) => {
+      if (!utsavData || !selectedDate) return false;
+
+      const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
+
+      return utsavData.some((monthData: any) =>
+        monthData.data.some(
+          (utsav: any) => formattedDate === utsav.utsav_start || formattedDate === utsav.utsav_end
+        )
+      );
+    },
+    [utsavData]
+  );
+
+  const getLocationOptions = useCallback(
+    (selectedDate: string) => {
+      if (isUtsavDate(selectedDate)) {
+        return dropdowns.EVENT_LOCATION_LIST;
+      }
+      return dropdowns.LOCATION_LIST;
+    },
+    [isUtsavDate]
   );
 
   const getAvailableMumukshus = (currentGroupIndex: number) => {
@@ -161,7 +215,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             className="mt-5"
             label="Pickup Location"
             placeholder="Select Pickup Location"
-            options={dropdowns.LOCATION_LIST}
+            options={getLocationOptions(travelForm.date)}
             selectedValue={assignment.pickup}
             onValueChange={(val: any) => updateTravelForm(index, 'pickup', val)}
             saveKeyInsteadOfValue={false}
@@ -171,7 +225,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             className="mt-5"
             label="Drop Location"
             placeholder="Select Drop Location"
-            options={dropdowns.LOCATION_LIST}
+            options={getLocationOptions(travelForm.date)}
             selectedValue={assignment.drop}
             onValueChange={(val: any) => updateTravelForm(index, 'drop', val)}
             saveKeyInsteadOfValue={false}
