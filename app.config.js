@@ -3,7 +3,7 @@ export default {
     name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
-    version: '1.0.30',
+    version: '1.0.31',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     userInterfaceStyle: 'automatic',
