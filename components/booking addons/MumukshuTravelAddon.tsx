@@ -72,10 +72,9 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
   const isUtsavDate = useCallback(
     (selectedDate: string) => {
       if (!utsavData || !selectedDate) return false;
-
       const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
-
-      return utsavData.some((monthData: any) =>
+      const monthDataArray = utsavData.pages?.[0] || [];
+      return monthDataArray.some((monthData: any) =>
         monthData.data.some(
           (utsav: any) => formattedDate === utsav.utsav_start || formattedDate === utsav.utsav_end
         )
