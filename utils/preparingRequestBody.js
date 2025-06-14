@@ -237,7 +237,6 @@ export const prepareMumukshuRequestBody = (user, input) => {
       if (group.floorType && group.floorType !== 'n') transformed.floorType = group.floorType;
       if (group.mumukshus) {
         transformed.mumukshus = group.mumukshus.map((mumukshu) => mumukshu.cardno);
-        transformed.total_people = group.mumukshus.total_people;
 
         if (!group.arrival_time) {
           const mumukshuWithArrivalTime = group.mumukshus.find((m) => m.arrival_time);
@@ -264,6 +263,11 @@ export const prepareMumukshuRequestBody = (user, input) => {
           if (mumukshuWithSpecialRequest)
             transformed.comments = mumukshuWithSpecialRequest.special_request;
         }
+        if (!group.total_people) {
+          const mumukshuWithTotalPeople = group.mumukshus.find((m) => m.total_people);
+          if (mumukshuWithTotalPeople)
+            transformed.total_people = mumukshuWithTotalPeople.total_people;
+        }
       }
       if (group.pickup) transformed.pickup_point = group.pickup;
       if (group.drop) transformed.drop_point = group.drop;
@@ -280,6 +284,8 @@ export const prepareMumukshuRequestBody = (user, input) => {
       if (group.meals) transformed.meals = group.meals;
       if (group.spicy !== undefined) transformed.spicy = group.spicy;
       if (group.hightea) transformed.high_tea = group.hightea;
+      if (group.total_people) transformed.total_people = group.total_people;
+
       return transformed;
     });
 

@@ -593,11 +593,17 @@ function transformMumukshuData(inputData: any) {
   const { date, mumukshus } = inputData;
 
   const groupedMumukshus = mumukshus.reduce((acc: any, mumukshu: any, index: any) => {
-    const key = `${mumukshu.pickup}-${mumukshu.drop}`;
+    const key = `${mumukshu.pickup}-${mumukshu.drop}-${mumukshu.type}-${mumukshu.total_people || 'none'}`;
     if (!acc[key]) {
       acc[key] = {
         pickup: mumukshu.pickup,
         drop: mumukshu.drop,
+        type: mumukshu.type,
+        arrival_time: mumukshu.arrival_time,
+        luggage: mumukshu.luggage,
+        adhyayan: mumukshu.adhyayan,
+        special_request: mumukshu.special_request,
+        total_people: mumukshu.total_people,
         mumukshus: [],
       };
     }
