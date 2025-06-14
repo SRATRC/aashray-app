@@ -87,6 +87,12 @@ const GUEST_TYPE_LIST = [
   { key: 'family', value: 'Family' },
 ];
 
+const ID_TYPE_LIST = [
+  { key: 'AADHAR', value: 'Aadhaar Card' },
+  { key: 'PAN', value: 'PAN Card' },
+  { key: 'PASSPORT', value: 'Passport' },
+];
+
 export default {
   GENDER_LIST,
   ROOM_TYPE_LIST,
@@ -100,4 +106,5 @@ export default {
   BOOKING_TYPE_LIST,
   TRAVEL_ADHYAYAN_ASK_LIST,
   GUEST_TYPE_LIST,
+  ID_TYPE_LIST,
 };

@@ -1,4 +1,3 @@
-import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { Stack } from 'expo-router';
 
@@ -7,6 +6,7 @@ const OnboardingLayout = () => {
     <>
       <Stack>
         <Stack.Screen name="imageCapture" options={{ headerShown: false }} />
+        <Stack.Screen name="completeProfile" options={{ headerShown: false }} />
       </Stack>
     </>
   );

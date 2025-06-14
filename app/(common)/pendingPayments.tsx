@@ -207,8 +207,13 @@ const PendingPayments = () => {
     [selectedPayments]
   );
 
-  const isTransactionExpired = useCallback((createdAt: string) => {
-    const created = moment.utc(createdAt);
+  const isTransactionExpired = useCallback((transaction: Transaction) => {
+    // Cash pending payments never expire
+    if (transaction.status === 'cash pending') {
+      return false;
+    }
+
+    const created = moment.utc(transaction.createdAt);
     const expiry = created.clone().add(24, 'hours');
     return moment.utc().isAfter(expiry);
   }, []);
@@ -216,14 +221,14 @@ const PendingPayments = () => {
   // Calculate total of non-expired payments
   const totalNonExpiredAmount = useMemo(() => {
     return pendingPayments
-      .filter((payment) => !isTransactionExpired(payment.createdAt))
+      .filter((payment) => !isTransactionExpired(payment))
       .reduce((total, payment) => total + payment.amount, 0);
   }, [pendingPayments, isTransactionExpired]);
 
   // Calculate total of expired payments
   const totalExpiredAmount = useMemo(() => {
     return pendingPayments
-      .filter((payment) => isTransactionExpired(payment.createdAt))
+      .filter((payment) => isTransactionExpired(payment))
       .reduce((total, payment) => total + payment.amount, 0);
   }, [pendingPayments, isTransactionExpired]);
 
@@ -245,7 +250,7 @@ const PendingPayments = () => {
         acc[category].count += 1;
         acc[category].amount += item.amount;
 
-        if (isTransactionExpired(item.createdAt)) {
+        if (isTransactionExpired(item)) {
           acc[category].expiredCount += 1;
           acc[category].expiredAmount += item.amount;
         }
@@ -264,7 +269,7 @@ const PendingPayments = () => {
   }, [pendingPayments, isTransactionExpired]);
 
   const validPayments = useMemo(() => {
-    return pendingPayments.filter((payment) => !isTransactionExpired(payment.createdAt));
+    return pendingPayments.filter((payment) => !isTransactionExpired(payment));
   }, [pendingPayments, isTransactionExpired]);
 
   const allSelected = useMemo(
@@ -276,7 +281,7 @@ const PendingPayments = () => {
     (payment: Transaction) => {
       if (!isPaymentAllowed) return;
 
-      if (isTransactionExpired(payment.createdAt)) {
+      if (isTransactionExpired(payment)) {
         Toast.show({
           type: 'error',
           text1: 'Payment expired',
@@ -301,9 +306,7 @@ const PendingPayments = () => {
   const handleSelectAll = useCallback(() => {
     if (!isPaymentAllowed || pendingPayments.length === 0) return;
 
-    const validPayments = pendingPayments.filter(
-      (payment) => !isTransactionExpired(payment.createdAt)
-    );
+    const validPayments = pendingPayments.filter((payment) => !isTransactionExpired(payment));
     setSelectedPayments(allSelected ? [] : validPayments);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   }, [pendingPayments, allSelected, isPaymentAllowed, isTransactionExpired]);
@@ -390,9 +393,7 @@ const PendingPayments = () => {
       return;
     }
 
-    const expiredPayments = selectedPayments.filter((payment) =>
-      isTransactionExpired(payment.createdAt)
-    );
+    const expiredPayments = selectedPayments.filter((payment) => isTransactionExpired(payment));
     if (expiredPayments.length > 0) {
       Toast.show({
         type: 'error',
@@ -495,7 +496,8 @@ const PendingPayments = () => {
   const renderItem = useCallback(
     ({ item }: { item: Transaction }) => {
       const isSelected = selectedPayments.some((payment) => payment.bookingid === item.bookingid);
-      const isExpired = isTransactionExpired(item.createdAt);
+      const isExpired = isTransactionExpired(item);
+      const isCashPending = item.status === 'cash pending';
 
       const categoryColors = {
         bg: 'bg-secondary-50',
@@ -525,10 +527,12 @@ const PendingPayments = () => {
             shadowRadius: isSelected && !isExpired ? 6 : 0,
             elevation: isSelected && !isExpired ? 3 : 0,
           }}>
-          {/* Timer badge */}
-          <View className="absolute -right-1 -top-1 z-10">
-            <PaymentTimer createdAt={item.createdAt} />
-          </View>
+          {/* Timer badge - Only show for non-cash pending payments */}
+          {!isCashPending && (
+            <View className="absolute -right-1 -top-1 z-10">
+              <PaymentTimer createdAt={item.createdAt} />
+            </View>
+          )}
 
           <View className="p-4">
             <View className="mb-3 flex-row items-start justify-between">
@@ -628,7 +632,7 @@ const PendingPayments = () => {
                 </View>
               )}
 
-              {item.status === 'cash pending' && (
+              {isCashPending && (
                 <View className="flex-row items-center">
                   <Ionicons
                     name="cash-outline"
@@ -671,9 +675,7 @@ const PendingPayments = () => {
   const SummaryCard = useCallback(() => {
     if (!pendingPayments.length) return null;
 
-    const validPayments = pendingPayments.filter(
-      (payment) => !isTransactionExpired(payment.createdAt)
-    );
+    const validPayments = pendingPayments.filter((payment) => !isTransactionExpired(payment));
     const expiredCount = pendingPayments.length - validPayments.length;
 
     return (
@@ -743,9 +745,7 @@ const PendingPayments = () => {
   const ListHeader = useCallback(() => {
     if (!pendingPayments.length) return null;
 
-    const validPayments = pendingPayments.filter(
-      (payment) => !isTransactionExpired(payment.createdAt)
-    );
+    const validPayments = pendingPayments.filter((payment) => !isTransactionExpired(payment));
 
     return (
       <View className="mb-2">

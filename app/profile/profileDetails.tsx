@@ -11,8 +11,8 @@ import FormDisplayField from '../../components/FormDisplayField';
 import CustomButton from '../../components/CustomButton';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import handleAPICall from '../../utils/HandleApiCall';
-import moment from 'moment';
 import CustomSelectBottomSheet from '~/components/CustomSelectBottomSheet';
+import moment from 'moment';
 
 const fetchCountries = () => {
   return new Promise((resolve, reject) => {
@@ -80,17 +80,19 @@ const profileDetails = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const initialFormState = {
-    issuedto: user.issuedto,
-    gender: user.gender,
-    dob: user.dob,
-    address: user.address,
-    mobno: user.mobno,
-    email: user.email,
-    country: user.country,
-    state: user.state,
-    city: user.city,
-    pin: user.pin,
-    center: user.center,
+    issuedto: user.issuedto || '',
+    gender: user.gender || '',
+    dob: user.dob || '',
+    idType: user?.idType || '',
+    idNo: user?.idNo || '',
+    address: user.address || '',
+    mobno: user.mobno || '',
+    email: user.email || '',
+    country: user.country || '',
+    state: user.state || '',
+    city: user.city || '',
+    pin: user.pin || '',
+    center: user.center || '',
   };
 
   const [form, setForm] = useState(initialFormState);
@@ -149,6 +151,8 @@ const profileDetails = () => {
       form.issuedto &&
       form.gender &&
       form.dob &&
+      form.idType &&
+      form.idNo &&
       form.address &&
       form.mobno &&
       form.email &&
@@ -181,6 +185,8 @@ const profileDetails = () => {
         gender: form.gender,
         dob: form.dob,
         address: form.address,
+        idType: form.idType,
+        idNo: form.idNo,
         mobno: form.mobno,
         email: form.email,
         country: form.country,
@@ -232,6 +238,28 @@ const profileDetails = () => {
               keyboardType="email-address"
               placeholder="Enter Your Email ID"
               maxLength={100}
+              containerStyles={'bg-gray-100'}
+            />
+
+            <CustomSelectBottomSheet
+              className="mt-7"
+              label="Select Government ID Type"
+              placeholder="Select Government ID Type"
+              options={dropdowns.ID_TYPE_LIST}
+              selectedValue={form.idType}
+              onValueChange={(val: any) => {
+                setForm({ ...form, idType: val });
+              }}
+            />
+
+            <FormField
+              text="Enter ID Number"
+              value={form.idNo}
+              handleChangeText={(e: any) => setForm({ ...form, idNo: e.trim() })}
+              otherStyles="mt-7"
+              inputStyles="font-pmedium text-base"
+              keyboardType="default"
+              placeholder="Enter Your ID Number"
               containerStyles={'bg-gray-100'}
             />
 
