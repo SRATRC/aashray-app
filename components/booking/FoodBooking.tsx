@@ -10,6 +10,7 @@ import CustomChipGroup from '../CustomChipGroup';
 import CustomModal from '../CustomModal';
 import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
+import { FontAwesome } from '@expo/vector-icons';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
@@ -55,6 +56,15 @@ const FoodBooking = () => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
+
+  const BookingNote = () => (
+    <View className="m-4 mb-2 flex-row items-center gap-x-2 rounded-lg border border-amber-300 bg-amber-50 p-4">
+      <FontAwesome name="info-circle" size={16} color="#b45309" />
+      <Text className="font-pregular text-amber-800">
+        Bookings must be made before 11 AM of the previous day for upcoming meals.
+      </Text>
+    </View>
+  );
 
   const [selectedChip, setSelectedChip] = useState('Self');
   const handleChipClick = (chip: any) => {
@@ -181,6 +191,7 @@ const FoodBooking = () => {
 
   return (
     <View className="flex-1 items-center justify-center">
+      <BookingNote />
       <CustomCalender
         type={'period'}
         startDay={foodForm.startDay}

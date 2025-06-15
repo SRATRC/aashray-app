@@ -42,6 +42,17 @@ const Profile: React.FC = () => {
   const [cachedImageUri, setCachedImageUri] = useState('');
   const [previousPfpUrl, setPreviousPfpUrl] = useState('');
 
+  const formatNameWithMehta = (name: string) => {
+    if (!name) return '';
+    const nameParts = name.trim().split(' ');
+    if (nameParts.length === 1) {
+      return `${nameParts[0]} mehta`;
+    }
+    const lastIndex = nameParts.length - 1;
+    nameParts.splice(lastIndex, 0, 'mehta');
+    return nameParts.join(' ');
+  };
+
   useEffect(() => {
     const loadCachedImage = async () => {
       if (user?.pfp) {
@@ -312,7 +323,7 @@ const Profile: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <Text className="mt-2 font-psemibold text-base">{user.issuedto}</Text>
+      <Text className="mt-2 font-psemibold text-base">{formatNameWithMehta(user.issuedto)}</Text>
 
       <View className="mt-6 w-full px-4">
         <View
@@ -579,7 +590,7 @@ const Profile: React.FC = () => {
 
               <View className="mt-8 items-center">
                 <Text className="text-center font-psemibold text-2xl text-white">
-                  {user.issuedto}
+                  {formatNameWithMehta(user.issuedto)}
                 </Text>
                 <View
                   className="mt-2 h-0.5 w-16"

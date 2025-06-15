@@ -713,16 +713,16 @@ const MumukshuAddons = () => {
           )}
 
           {booking === types.EVENT_DETAILS_TYPE && (
-            <View className="mx-4 mb-2 mt-4 rounded-lg border-2 border-yellow-200 bg-yellow-50 p-4">
+            <View className="mx-4 mb-2 mt-4 rounded-lg border-2 border-amber-300 bg-amber-50 p-4">
               <View className="flex-row items-start">
                 <View className="mr-3 mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-yellow-500">
                   <Text className="font-pbold text-xs text-white">i</Text>
                 </View>
                 <View className="flex-1">
-                  <Text className="mb-2 font-psemibold text-base text-yellow-900">
+                  <Text className="mb-2 font-psemibold text-base text-amber-800">
                     IMPORTANT NOTICE
                   </Text>
-                  <Text className="font-pregular text-sm leading-5 text-yellow-800">
+                  <Text className="font-pregular text-sm leading-5 text-amber-800">
                     Room and food bookings that overlap with event dates will be automatically split
                     into separate bookings, excluding event days. Travel bookings remain available
                     during the event period.

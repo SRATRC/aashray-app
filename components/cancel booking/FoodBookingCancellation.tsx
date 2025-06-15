@@ -39,6 +39,15 @@ export default function FoodBookingCancellation() {
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const CancellationNote = () => (
+    <View className="mb-2 flex-row items-center gap-x-2 rounded-lg border border-amber-300 bg-amber-50 p-4">
+      <FontAwesome name="info-circle" size={16} color="#b45309" />
+      <Text className="font-pregular text-amber-800">
+        Bookings can be cancelled before 11 PM of each day for the next day's meals.
+      </Text>
+    </View>
+  );
+
   const [filter, setFilter] = useState<any>({
     date: null,
     meal: null,
@@ -57,7 +66,7 @@ export default function FoodBookingCancellation() {
   const canCancelMeal = (mealDate: string) => {
     const now = moment();
     const mealMoment = moment(mealDate);
-    const cutoffTime = mealMoment.clone().subtract(1, 'day').hour(11).minute(0).second(0);
+    const cutoffTime = mealMoment.clone().subtract(1, 'day').hour(23).minute(0).second(0);
 
     return now.isBefore(cutoffTime);
   };
@@ -334,85 +343,90 @@ export default function FoodBookingCancellation() {
   };
 
   const renderHeader = () => (
-    <View className="mb-2 gap-y-1">
-      <Text className="font-pregular text-black">Filter By:</Text>
-      <ScrollView className="flex w-full" horizontal showsHorizontalScrollIndicator={false}>
-        <View className="flex w-full flex-row items-center gap-x-2">
-          <View className="flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 p-2">
-            <TouchableOpacity onPress={() => setDatePickerVisibility(true)}>
-              <Text className={`${filter.date ? 'text-black' : 'text-gray-400'} font-pregular`}>
-                {filter.date ? moment(filter.date).format('Do MMMM YYYY') : 'Date'}
-              </Text>
-            </TouchableOpacity>
-
-            {filter.date && (
-              <TouchableOpacity onPress={() => setFilter((prev: any) => ({ ...prev, date: null }))}>
-                <Image source={icons.cross} className="h-2.5 w-2.5" resizeMode="contain" />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <DateTimePickerModal
-            isVisible={datePickerVisibility}
-            mode="date"
-            onConfirm={(date) => {
-              setFilter((prev: any) => ({
-                ...prev,
-                date: moment(date).format('YYYY-MM-DD'),
-              }));
-              setDatePickerVisibility(false);
-            }}
-            onCancel={() => setDatePickerVisibility(false)}
-          />
-
-          <View className="flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 p-2">
-            <TouchableOpacity onPress={() => handlePresentModalPress('meal')}>
-              <Text className={`${filter.meal ? 'text-black' : 'text-gray-400'} font-pregular`}>
-                {filter.meal ? filter.meal.value : 'Meal Type'}
-              </Text>
-            </TouchableOpacity>
-
-            {filter.meal && (
-              <TouchableOpacity onPress={() => setFilter((prev: any) => ({ ...prev, meal: null }))}>
-                <Image source={icons.cross} className="h-2.5 w-2.5" resizeMode="contain" />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <View className="flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 p-2">
-            <TouchableOpacity onPress={() => handlePresentModalPress('spice')}>
-              <Text className={`${filter.spice ? 'text-black' : 'text-gray-400'} font-pregular`}>
-                {filter.spice ? filter.spice.value : 'Spice Level'}
-              </Text>
-            </TouchableOpacity>
-
-            {filter.spice && (
-              <TouchableOpacity
-                onPress={() => setFilter((prev: any) => ({ ...prev, spice: null }))}>
-                <Image source={icons.cross} className="h-2.5 w-2.5" resizeMode="contain" />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {guestList && (
+    <View>
+      <CancellationNote />
+      <View className="mb-2 gap-y-1">
+        <Text className="font-pregular text-black">Filter By:</Text>
+        <ScrollView className="flex w-full" horizontal showsHorizontalScrollIndicator={false}>
+          <View className="flex w-full flex-row items-center gap-x-2">
             <View className="flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 p-2">
-              <TouchableOpacity onPress={() => handlePresentModalPress('bookedFor')}>
-                <Text
-                  className={`${filter.bookedFor ? 'text-black' : 'text-gray-400'} font-pregular`}>
-                  {filter.bookedFor ? filter.bookedFor.value : 'Booked For'}
+              <TouchableOpacity onPress={() => setDatePickerVisibility(true)}>
+                <Text className={`${filter.date ? 'text-black' : 'text-gray-400'} font-pregular`}>
+                  {filter.date ? moment(filter.date).format('Do MMMM YYYY') : 'Date'}
                 </Text>
               </TouchableOpacity>
 
-              {filter.bookedFor && (
+              {filter.date && (
                 <TouchableOpacity
-                  onPress={() => setFilter((prev: any) => ({ ...prev, bookedFor: null }))}>
+                  onPress={() => setFilter((prev: any) => ({ ...prev, date: null }))}>
                   <Image source={icons.cross} className="h-2.5 w-2.5" resizeMode="contain" />
                 </TouchableOpacity>
               )}
             </View>
-          )}
-        </View>
-      </ScrollView>
+
+            <DateTimePickerModal
+              isVisible={datePickerVisibility}
+              mode="date"
+              onConfirm={(date) => {
+                setFilter((prev: any) => ({
+                  ...prev,
+                  date: moment(date).format('YYYY-MM-DD'),
+                }));
+                setDatePickerVisibility(false);
+              }}
+              onCancel={() => setDatePickerVisibility(false)}
+            />
+
+            <View className="flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 p-2">
+              <TouchableOpacity onPress={() => handlePresentModalPress('meal')}>
+                <Text className={`${filter.meal ? 'text-black' : 'text-gray-400'} font-pregular`}>
+                  {filter.meal ? filter.meal.value : 'Meal Type'}
+                </Text>
+              </TouchableOpacity>
+
+              {filter.meal && (
+                <TouchableOpacity
+                  onPress={() => setFilter((prev: any) => ({ ...prev, meal: null }))}>
+                  <Image source={icons.cross} className="h-2.5 w-2.5" resizeMode="contain" />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <View className="flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 p-2">
+              <TouchableOpacity onPress={() => handlePresentModalPress('spice')}>
+                <Text className={`${filter.spice ? 'text-black' : 'text-gray-400'} font-pregular`}>
+                  {filter.spice ? filter.spice.value : 'Spice Level'}
+                </Text>
+              </TouchableOpacity>
+
+              {filter.spice && (
+                <TouchableOpacity
+                  onPress={() => setFilter((prev: any) => ({ ...prev, spice: null }))}>
+                  <Image source={icons.cross} className="h-2.5 w-2.5" resizeMode="contain" />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {guestList && (
+              <View className="flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 p-2">
+                <TouchableOpacity onPress={() => handlePresentModalPress('bookedFor')}>
+                  <Text
+                    className={`${filter.bookedFor ? 'text-black' : 'text-gray-400'} font-pregular`}>
+                    {filter.bookedFor ? filter.bookedFor.value : 'Booked For'}
+                  </Text>
+                </TouchableOpacity>
+
+                {filter.bookedFor && (
+                  <TouchableOpacity
+                    onPress={() => setFilter((prev: any) => ({ ...prev, bookedFor: null }))}>
+                    <Image source={icons.cross} className="h-2.5 w-2.5" resizeMode="contain" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </View>
     </View>
   );
 

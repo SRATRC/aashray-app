@@ -219,7 +219,7 @@ const AdhyayanBookingDirect = () => {
               {moment(item.end_date).format('MMM DD, YYYY')}
             </Text>
           </View>
-          {item.status == status.STATUS_CLOSED && (
+          {(item.status == status.STATUS_CLOSED || item.available_seats == 0) && (
             <View className="rounded-full bg-orange-100 px-2 py-1">
               <Text className="font-pmedium text-xs text-orange-600">Waitlist</Text>
             </View>
@@ -273,7 +273,11 @@ const AdhyayanBookingDirect = () => {
 
         <View className="mt-5 border-t border-gray-200 pt-4">
           <CustomButton
-            text={item.status == status.STATUS_CLOSED ? 'Join Waitlist' : 'Register Now'}
+            text={
+              item.status == status.STATUS_CLOSED || item.available_seats == 0
+                ? 'Join Waitlist'
+                : 'Register Now'
+            }
             handlePress={() => {
               setSelectedItem(item);
               setGuestForm((prev) => ({
@@ -287,7 +291,11 @@ const AdhyayanBookingDirect = () => {
               toggleModal();
             }}
             containerStyles="min-h-[48px] rounded-xl"
-            bgcolor={item.status == status.STATUS_CLOSED ? 'bg-orange-500' : 'bg-secondary'}
+            bgcolor={
+              item.status == status.STATUS_CLOSED || item.available_seats == 0
+                ? 'bg-orange-500'
+                : 'bg-secondary'
+            }
             textStyles="font-psemibold text-white text-base"
             isLoading={isSubmitting}
           />

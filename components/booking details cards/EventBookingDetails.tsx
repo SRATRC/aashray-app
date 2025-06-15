@@ -69,7 +69,7 @@ const EventBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyl
         <MaterialIcons name="volunteer-activism" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Volunteer:</Text>
         <Text className="flex-1 font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
-          {data.utsav.utsav.volunteer || 'Unable to Volunteer'}
+          {data.utsav.volunteer || 'Unable to Volunteer'}
         </Text>
       </View>
     </PrimaryAddonBookingCard>
