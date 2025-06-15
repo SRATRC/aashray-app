@@ -176,7 +176,7 @@ const EventBookingDirect = () => {
         return (
           guest.name &&
           guest.gender &&
-          guest.guestType &&
+          guest.type &&
           guest.mobno &&
           guest.mobno?.length == 10 &&
           guest.package &&

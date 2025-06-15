@@ -1,6 +1,7 @@
-import { View, Text, Image } from 'react-native';
+import { View, Text, Image, ScrollView } from 'react-native';
 import { icons, status } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
+import { countStatusesForField } from '~/utils/BookingValidationStatusCounter';
 import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
 import CustomTag from '../CustomTag';
@@ -12,25 +13,28 @@ const RoomBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyle
   const formattedStartDate = moment(data.room.startDay).format('Do MMMM');
   const formattedEndDate = moment(data.room.endDay).format('Do MMMM, YYYY');
 
+  const validationData = data?.validationData
+    ? countStatusesForField(data?.validationData, 'roomDetails')
+    : {};
+
   return (
     <PrimaryAddonBookingCard containerStyles={containerStyles} title="Raj Sharan Booking">
       <View className="flex flex-row items-center gap-x-4 p-4">
         <Image source={icons.room} className="h-10 w-10" resizeMode="contain" />
         <View className="w-full flex-1 justify-center gap-y-1">
-          {data.validationData?.roomDetails?.status && (
-            <CustomTag
-              text={data.validationData?.roomDetails?.status}
-              textStyles={
-                data.validationData?.roomDetails?.status == status.STATUS_AVAILABLE
-                  ? 'text-green-200'
-                  : 'text-red-200'
-              }
-              containerStyles={
-                data.validationData?.roomDetails?.status == status.STATUS_AVAILABLE
-                  ? 'bg-green-100'
-                  : 'bg-red-100'
-              }
-            />
+          {validationData && Object.keys(validationData).length > 0 && (
+            <ScrollView horizontal>
+              {Object.entries(validationData).map(([key, value]) => (
+                <CustomTag
+                  key={key}
+                  text={`${key}: ${value}`}
+                  textStyles={key == status.STATUS_AVAILABLE ? 'text-green-200' : 'text-red-200'}
+                  containerStyles={`${
+                    key == status.STATUS_AVAILABLE ? 'bg-green-100' : 'bg-red-100'
+                  } mx-1`}
+                />
+              ))}
+            </ScrollView>
           )}
           <Text className="text-md font-pmedium">
             {`${formattedStartDate} - ${formattedEndDate}`}

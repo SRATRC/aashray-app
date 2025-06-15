@@ -92,38 +92,51 @@ const bookingConfirmation = () => {
               }`}>
               <View className="p-4">
                 <View className="flex-col gap-y-3">
-                  {validationData.roomDetails?.charge !== undefined && (
-                    <View className="border-b border-gray-200 pb-3">
-                      <View className="flex-row items-center justify-between">
-                        <Text className="font-pregular text-base text-gray-700">Room Charge</Text>
-                        <View className="items-end">
-                          <Text
-                            className={`font-${validationData.roomDetails.availableCredits > 0 ? 'pregular' : 'pregular'} text-base text-${validationData.roomDetails.availableCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
-                            ₹{validationData.roomDetails.charge.toLocaleString('en-IN')}
-                          </Text>
-                          {validationData.roomDetails.availableCredits > 0 && (
-                            <>
-                              <Text className="font-pregular text-xs text-green-600">
-                                −₹
-                                {validationData.roomDetails.availableCredits.toLocaleString(
-                                  'en-IN'
-                                )}{' '}
-                                credit
+                  {validationData.roomDetails &&
+                    validationData.roomDetails.length > 0 &&
+                    (() => {
+                      const totalCharge = validationData.roomDetails.reduce(
+                        (total: number, room: { charge: number }) => total + room.charge,
+                        0
+                      );
+                      const totalCredits = validationData.roomDetails.reduce(
+                        (total: number, room: { charge: number; availableCredits?: number }) =>
+                          total + (room.availableCredits || 0),
+                        0
+                      );
+
+                      if (totalCharge > 0) {
+                        return (
+                          <View className="border-b border-gray-200 pb-3">
+                            <View className="flex-row items-center justify-between">
+                              <Text className="font-pregular text-base text-gray-700">
+                                Room Charge
                               </Text>
-                              <Text className="mt-0.5 font-pmedium text-base text-black">
-                                ₹
-                                {Math.max(
-                                  0,
-                                  validationData.roomDetails.charge -
-                                    validationData.roomDetails.availableCredits
-                                ).toLocaleString('en-IN')}
-                              </Text>
-                            </>
-                          )}
-                        </View>
-                      </View>
-                    </View>
-                  )}
+                              <View className="items-end">
+                                <Text
+                                  className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
+                                  ₹{totalCharge.toLocaleString('en-IN')}
+                                </Text>
+                                {totalCredits > 0 && (
+                                  <>
+                                    <Text className="font-pregular text-xs text-green-600">
+                                      −₹{totalCredits.toLocaleString('en-IN')} credit
+                                    </Text>
+                                    <Text className="mt-0.5 font-pmedium text-base text-black">
+                                      ₹
+                                      {Math.max(0, totalCharge - totalCredits).toLocaleString(
+                                        'en-IN'
+                                      )}
+                                    </Text>
+                                  </>
+                                )}
+                              </View>
+                            </View>
+                          </View>
+                        );
+                      }
+                      return null;
+                    })()}
 
                   {validationData.travelDetails?.charge > 0 && (
                     <View className="border-b border-gray-200 pb-3">
