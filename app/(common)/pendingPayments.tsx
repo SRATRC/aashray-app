@@ -442,12 +442,12 @@ const PendingPayments = () => {
   };
 
   const getDateRange = (startDay: string | null, endDay: string | null) => {
-    if (!startDay || !endDay) {
+    if (!startDay) {
       return 'Date not specified';
     }
 
     const start = moment(startDay);
-    const end = moment(endDay);
+    const end = moment(endDay ? endDay : startDay);
 
     if (start.isSame(end, 'day')) {
       return start.format('DD MMM YYYY');
@@ -457,12 +457,12 @@ const PendingPayments = () => {
   };
 
   const getDuration = (startDay: string | null, endDay: string | null) => {
-    if (!startDay || !endDay) {
+    if (!startDay) {
       return 'Duration not specified';
     }
 
     const start = moment(startDay);
-    const end = moment(endDay);
+    const end = moment(endDay ? endDay : startDay);
     const days = end.diff(start, 'days') + 1;
 
     if (days === 1) {
@@ -606,12 +606,14 @@ const PendingPayments = () => {
                     }`}>
                     {getDateRange(item.start_day, item.end_day)}
                   </Text>
-                  <Text
-                    className={`ml-2 font-pregular text-xs ${
-                      isExpired ? 'text-gray-400' : 'text-gray-500'
-                    }`}>
-                    • {getDuration(item.start_day, item.end_day)}
-                  </Text>
+                  {item.start_day && item.end_day && (
+                    <Text
+                      className={`ml-2 font-pregular text-xs ${
+                        isExpired ? 'text-gray-400' : 'text-gray-500'
+                      }`}>
+                      • {getDuration(item.start_day, item.end_day)}
+                    </Text>
+                  )}
                 </View>
               )}
 
@@ -853,7 +855,7 @@ const PendingPayments = () => {
           </View>
         }
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        keyExtractor={(item) => item.bookingid}
+        keyExtractor={(item) => `${item.bookingid}-${item.category}-${item.createdAt}`}
         extraData={[selectedPayments, isPaymentAllowed]}
       />
 

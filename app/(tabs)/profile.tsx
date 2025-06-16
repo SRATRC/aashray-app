@@ -46,10 +46,10 @@ const Profile: React.FC = () => {
     if (!name) return '';
     const nameParts = name.trim().split(' ');
     if (nameParts.length === 1) {
-      return `${nameParts[0]} mehta`;
+      return `${nameParts[0]} Mehta`;
     }
     const lastIndex = nameParts.length - 1;
-    nameParts.splice(lastIndex, 0, 'mehta');
+    nameParts.splice(lastIndex, 0, 'Mehta');
     return nameParts.join(' ');
   };
 
