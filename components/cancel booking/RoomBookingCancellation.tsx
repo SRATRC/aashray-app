@@ -236,7 +236,9 @@ const RoomBookingCancellation: React.FC = () => {
                 </TouchableOpacity>
               </View>
             ) : (
-              <CustomEmptyMessage message={'No upcoming Room Bookings at this moment!'} />
+              <CustomEmptyMessage
+                message={'Your room bookings are currently in a state of nirvana...empty'}
+              />
             )}
           </View>
         )}

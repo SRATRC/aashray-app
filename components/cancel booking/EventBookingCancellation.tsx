@@ -209,7 +209,9 @@ const EventBookingCancellation = () => {
                 </TouchableOpacity>
               </View>
             ) : (
-              <CustomEmptyMessage message={'No upcoming Events at this moment!'} />
+              <CustomEmptyMessage
+                message={"No spiritual gatherings? Your soul's RSVP is missing."}
+              />
             )}
           </View>
         )}

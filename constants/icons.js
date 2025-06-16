@@ -69,6 +69,7 @@ import tick from '../assets/icons/tick.png';
 import contact from '../assets/icons/contact.png';
 import miscellaneousTransaction from '../assets/icons/miscellaneous_transactions.png';
 import support from '../assets/icons/support.png';
+import rcLinkedin from '../assets/icons/rc-linkedin.png';
 
 export default {
   play,
@@ -142,4 +143,5 @@ export default {
   contact,
   miscellaneousTransaction,
   support,
+  rcLinkedin,
 };

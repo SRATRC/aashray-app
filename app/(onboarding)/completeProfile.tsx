@@ -145,6 +145,8 @@ const CompleteProfile = () => {
       form.address &&
       form.mobno &&
       form.email &&
+      form.idType &&
+      form.idNo &&
       form.country &&
       form.state &&
       form.city &&

@@ -245,7 +245,7 @@ const TravelBookingCancellation = () => {
                 </TouchableOpacity>
               </View>
             ) : (
-              <CustomEmptyMessage message={'No upcoming Travel Bookings at this moment!'} />
+              <CustomEmptyMessage message={'Empty itinerary? Your Research Centre calls.'} />
             )}
           </View>
         )}

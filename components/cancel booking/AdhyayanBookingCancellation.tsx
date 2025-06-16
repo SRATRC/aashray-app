@@ -228,7 +228,7 @@ const AdhyayanBookingCancellation = () => {
                 </TouchableOpacity>
               </View>
             ) : (
-              <CustomEmptyMessage message={'No upcoming Adhyayans at this moment!'} />
+              <CustomEmptyMessage message={'Zero adhyayans. Impressive...ly empty.'} />
             )}
           </View>
         )}

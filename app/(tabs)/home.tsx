@@ -145,6 +145,13 @@ const Home: React.FC = () => {
                 onPress={() => Linking.openURL('https://www.instagram.com/researchcentre_global/')}
               />
               <CustomHomeIcon
+                image={icons.rcLinkedin as ImageSourcePropType}
+                title={'LinkedIn'}
+                onPress={() =>
+                  Linking.openURL('https://www.linkedin.com/company/researchcentre-global/')
+                }
+              />
+              <CustomHomeIcon
                 image={icons.sparshInsta as ImageSourcePropType}
                 title={'Sparsh'}
                 onPress={() => Linking.openURL('https://www.instagram.com/sparsh.international/')}

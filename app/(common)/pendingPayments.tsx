@@ -170,7 +170,7 @@ const PendingPayments = () => {
   });
 
   const processPaymentMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (paymentIds: string[]) => {
       return new Promise((resolve, reject) => {
         handleAPICall(
           'POST',
@@ -178,7 +178,7 @@ const PendingPayments = () => {
           null,
           {
             cardno: user.cardno,
-            data: data,
+            bookingids: paymentIds,
           },
           (res: any) => {
             resolve(res);
@@ -315,13 +315,8 @@ const PendingPayments = () => {
     setShowInternationalWarning(false);
     setIsSubmitting(true);
     try {
-      const paymentData = selectedPayments.map((payment) => {
-        return {
-          bookingid: payment.bookingid,
-          category: payment.category,
-        };
-      });
-      const result = (await processPaymentMutation.mutateAsync(paymentData)) as any;
+      const paymentIds = selectedPayments.map((payment) => payment.bookingid);
+      const result = (await processPaymentMutation.mutateAsync(paymentIds)) as any;
 
       if (result.data?.amount === 0) {
         Toast.show({

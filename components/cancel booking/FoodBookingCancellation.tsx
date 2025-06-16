@@ -535,7 +535,9 @@ export default function FoodBookingCancellation() {
                 </TouchableOpacity>
               </View>
             ) : (
-              <CustomEmptyMessage message={'No upcoming Food Bookings at this moment!'} />
+              <CustomEmptyMessage
+                message={"No food bookings?\nYour stomach's inner peace is disturbed."}
+              />
             )}
           </View>
         )}
