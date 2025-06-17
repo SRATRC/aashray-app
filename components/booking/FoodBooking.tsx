@@ -414,11 +414,7 @@ const FoodBooking = () => {
                     },
                     (data: any) => {
                       if (data.data.amount == 0 || user.country != 'India') {
-                        Toast.show({
-                          type: 'success',
-                          text1: 'Food Booking Successful 🎉',
-                        });
-                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        router.replace('/bookingConfirmation');
                       } else {
                         var options = {
                           key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
@@ -444,7 +440,7 @@ const FoodBooking = () => {
                               text1: 'Payment successful',
                               swipeable: false,
                             });
-                            router.replace('/bookingConfirmation');
+                            router.replace('/paymentConfirmation');
                           })
                           .catch((_error: any) => {
                             setIsSubmitting(false);

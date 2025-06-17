@@ -373,7 +373,7 @@ const mumukshuBookingConfirmation = () => {
                           text1: 'Payment successful',
                           swipeable: false,
                         });
-                        router.replace('/bookingConfirmation');
+                        router.replace('/paymentConfirmation');
                       })
                       .catch((_error: any) => {
                         setIsSubmitting(false);

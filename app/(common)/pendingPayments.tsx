@@ -170,15 +170,15 @@ const PendingPayments = () => {
   });
 
   const processPaymentMutation = useMutation({
-    mutationFn: async (paymentIds: string[]) => {
+    mutationFn: async (data: any) => {
       return new Promise((resolve, reject) => {
         handleAPICall(
           'POST',
-          '/razorpay/pay',
+          '/razorpay/payv2',
           null,
           {
             cardno: user.cardno,
-            bookingids: paymentIds,
+            data: data,
           },
           (res: any) => {
             resolve(res);
@@ -315,8 +315,13 @@ const PendingPayments = () => {
     setShowInternationalWarning(false);
     setIsSubmitting(true);
     try {
-      const paymentIds = selectedPayments.map((payment) => payment.bookingid);
-      const result = (await processPaymentMutation.mutateAsync(paymentIds)) as any;
+      const paymentData = selectedPayments.map((payment) => {
+        return {
+          bookingid: payment.bookingid,
+          category: payment.category,
+        };
+      });
+      const result = (await processPaymentMutation.mutateAsync(paymentData)) as any;
 
       if (result.data?.amount === 0) {
         Toast.show({
@@ -350,7 +355,7 @@ const PendingPayments = () => {
               text1: 'Payment successful',
               swipeable: false,
             });
-            router.replace('/bookingConfirmation');
+            router.replace('/paymentConfirmation');
           })
           .catch((_error: any) => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

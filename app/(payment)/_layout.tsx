@@ -6,6 +6,7 @@ const PaymentsLayout = () => {
     <>
       <Stack>
         <Stack.Screen name="bookingConfirmation" options={{ headerShown: false }} />
+        <Stack.Screen name="paymentConfirmation" options={{ headerShown: false }} />
         <Stack.Screen name="paymentFailed" options={{ headerShown: false }} />
       </Stack>
     </>
