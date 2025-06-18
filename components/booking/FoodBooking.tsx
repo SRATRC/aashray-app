@@ -413,7 +413,7 @@ const FoodBooking = () => {
                       },
                     },
                     (data: any) => {
-                      if (data.data.amount == 0 || user.country != 'India') {
+                      if (data.data.amount == 0) {
                         router.replace('/bookingConfirmation');
                       } else {
                         var options = {

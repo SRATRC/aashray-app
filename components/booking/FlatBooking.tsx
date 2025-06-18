@@ -132,7 +132,7 @@ const FlatBooking = () => {
   };
 
   const handleRazorpayPayment = (paymentData: any) => {
-    if (paymentData.amount == 0 || user.country != 'India') {
+    if (paymentData.amount == 0) {
       Alert.alert('Success', 'Booking Successful');
       if (selectedChip === CHIPS[0]) {
         setMumukshuForm(INITIAL_MUMUKSHU_FORM);

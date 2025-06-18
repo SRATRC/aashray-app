@@ -27,7 +27,7 @@ const ImageCaptureOnboarding: React.FC = () => {
         "Want Guruji to recognize you at a glance? Upload your picture and make sure he never has to say, 'Remind me who you are again!'",
       btnText: 'Upload My Picture',
       action: () => {
-        router.replace('/camera');
+        router.push('/camera');
       },
     },
   ];

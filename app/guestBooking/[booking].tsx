@@ -535,9 +535,8 @@ const GuestAddons = () => {
                     IMPORTANT NOTICE
                   </Text>
                   <Text className="font-pregular text-sm leading-5 text-amber-800">
-                    Room and food bookings that overlap with event dates will be automatically split
-                    into separate bookings, excluding event days. Travel bookings remain available
-                    during the event period.
+                    For Early Arrival or Late Departure during events please book your stay, food
+                    and travel through add-ons below.
                   </Text>
                 </View>
               </View>

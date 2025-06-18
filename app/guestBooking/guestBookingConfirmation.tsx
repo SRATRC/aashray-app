@@ -270,65 +270,127 @@ const guestBookingConfirmation = () => {
         )}
 
         <View className="mt-6 w-full px-4">
-          <CustomButton
-            text={validationData && validationData.totalCharge > 0 ? 'Proceed to Payment' : 'Book'}
-            handlePress={async () => {
-              setIsSubmitting(true);
-              const onSuccess = (data: any) => {
-                if (data.data?.amount == 0 || user.country != 'India')
-                  router.replace('/bookingConfirmation');
-                else {
-                  var options = {
-                    key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
-                    name: 'Vitraag Vigyaan Aashray',
-                    image: 'https://vitraagvigyaan.org/img/logo.png',
-                    description: 'Payment for Vitraag Vigyaan Aashray',
-                    amount: `${data.data.amount}`,
-                    currency: 'INR',
-                    order_id: `${data.data.id}`,
-                    prefill: {
-                      email: `${user.email}`,
-                      contact: `${user.mobno}`,
-                      name: `${user.issuedto}`,
-                    },
-                    theme: { color: colors.orange },
+          {validationData && validationData.totalCharge > 0 ? (
+            <View className="mb-8 flex-row gap-x-4">
+              <CustomButton
+                text="Pay Now"
+                handlePress={async () => {
+                  setIsSubmitting(true);
+                  const onSuccess = (data: any) => {
+                    if (data.data?.amount == 0) router.replace('/bookingConfirmation');
+                    else {
+                      var options = {
+                        key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
+                        name: 'Vitraag Vigyaan Aashray',
+                        image: 'https://vitraagvigyaan.org/img/logo.png',
+                        description: 'Payment for Vitraag Vigyaan Aashray',
+                        amount: `${data.data.amount}`,
+                        currency: 'INR',
+                        order_id: `${data.data.id}`,
+                        prefill: {
+                          email: `${user.email}`,
+                          contact: `${user.mobno}`,
+                          name: `${user.issuedto}`,
+                        },
+                        theme: { color: colors.orange },
+                      };
+                      RazorpayCheckout.open(options)
+                        .then((_rzrpayData: any) => {
+                          setIsSubmitting(false);
+                          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                          Toast.show({
+                            type: 'success',
+                            text1: 'Payment successful',
+                            swipeable: false,
+                          });
+                          router.replace('/paymentConfirmation');
+                        })
+                        .catch((_error: any) => {
+                          setIsSubmitting(false);
+                          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                          router.replace('/paymentFailed');
+                        });
+                    }
                   };
-                  RazorpayCheckout.open(options)
-                    .then((_rzrpayData: any) => {
-                      setIsSubmitting(false);
-                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                      Toast.show({
-                        type: 'success',
-                        text1: 'Payment successful',
-                        swipeable: false,
-                      });
-                      router.replace('/paymentConfirmation');
-                    })
-                    .catch((_error: any) => {
-                      setIsSubmitting(false);
-                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-                      router.replace('/paymentFailed');
+
+                  const onFinally = () => {
+                    setIsSubmitting(false);
+                  };
+
+                  await handleAPICall(
+                    'POST',
+                    '/guest/booking',
+                    null,
+                    transformedData,
+                    onSuccess,
+                    onFinally
+                  );
+                }}
+                containerStyles="flex-1 min-h-[62px]"
+                isLoading={isSubmitting}
+                isDisabled={!validationData}
+                variant="solid"
+              />
+              <CustomButton
+                text="Pay Later"
+                handlePress={async () => {
+                  setIsSubmitting(true);
+                  const onSuccess = () => {
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    Toast.show({
+                      type: 'success',
+                      text1: 'Booking confirmed',
+                      swipeable: false,
                     });
-                }
-              };
+                    router.replace('/bookingConfirmation');
+                  };
 
-              const onFinally = () => {
-                setIsSubmitting(false);
-              };
+                  const onFinally = () => {
+                    setIsSubmitting(false);
+                  };
 
-              await handleAPICall(
-                'POST',
-                '/guest/booking',
-                null,
-                transformedData,
-                onSuccess,
-                onFinally
-              );
-            }}
-            containerStyles="mb-8 min-h-[62px]"
-            isLoading={isSubmitting}
-            isDisabled={!validationData}
-          />
+                  await handleAPICall(
+                    'POST',
+                    '/guest/booking',
+                    null,
+                    transformedData,
+                    onSuccess,
+                    onFinally
+                  );
+                }}
+                containerStyles="flex-1 min-h-[62px]"
+                isLoading={isSubmitting}
+                isDisabled={!validationData}
+                variant="outline"
+              />
+            </View>
+          ) : (
+            <CustomButton
+              text="Book"
+              handlePress={async () => {
+                setIsSubmitting(true);
+                const onSuccess = () => {
+                  router.replace('/bookingConfirmation');
+                };
+
+                const onFinally = () => {
+                  setIsSubmitting(false);
+                };
+
+                await handleAPICall(
+                  'POST',
+                  '/guest/booking',
+                  null,
+                  transformedData,
+                  onSuccess,
+                  onFinally
+                );
+              }}
+              containerStyles="mb-8 min-h-[62px]"
+              isLoading={isSubmitting}
+              isDisabled={!validationData}
+            />
+          )}
         </View>
 
         {validationDataError && (

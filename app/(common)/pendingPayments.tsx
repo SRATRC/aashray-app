@@ -355,6 +355,9 @@ const PendingPayments = () => {
               text1: 'Payment successful',
               swipeable: false,
             });
+            queryClient.invalidateQueries({
+              queryKey: ['transactions', user.cardno, 'pending,cash pending,failed'],
+            });
             router.replace('/paymentConfirmation');
           })
           .catch((_error: any) => {
@@ -921,10 +924,6 @@ const PendingPayments = () => {
                 Indian bank account, you may proceed with the payment.
               </Text>
             </View>
-
-            <Text className="mt-3 text-center font-pregular text-xs text-gray-600">
-              Please confirm that you understand these terms before continuing.
-            </Text>
           </View>
 
           <View className="gap-y-3">
