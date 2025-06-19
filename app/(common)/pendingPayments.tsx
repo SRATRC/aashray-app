@@ -167,6 +167,7 @@ const PendingPayments = () => {
       });
     },
     staleTime: 1000 * 60 * 30,
+    refetchOnMount: 'always',
   });
 
   const processPaymentMutation = useMutation({
@@ -192,6 +193,8 @@ const PendingPayments = () => {
       setSelectedPayments([]);
       queryClient.invalidateQueries({
         queryKey: ['transactions', user.cardno, 'pending,cash pending,failed'],
+        refetchType: 'all',
+        exact: true,
       });
     },
   });
@@ -357,6 +360,8 @@ const PendingPayments = () => {
             });
             queryClient.invalidateQueries({
               queryKey: ['transactions', user.cardno, 'pending,cash pending,failed'],
+              refetchType: 'all',
+              exact: true,
             });
             router.replace('/paymentConfirmation');
           })

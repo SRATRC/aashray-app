@@ -65,7 +65,7 @@ const departments: DepartmentContact[] = [
     name: 'Technical Support',
     description: 'WiFi and technical assistance',
     icon: 'wifi',
-    contactPeople: [{ name: 'Research Centre Office', phone: '7875432613' }],
+    contactPeople: [{ name: 'Research Centre Office', phone: '9373532700' }],
   },
   {
     id: '7',
@@ -73,18 +73,19 @@ const departments: DepartmentContact[] = [
     description: 'Facility maintenance and repairs',
     icon: 'build',
     contactPeople: [
-      { name: 'Niket Dhami', phone: '9036477655' },
+      { name: 'Bikram Thappa', phone: '9004866057' },
       { name: 'Monica Gupta', phone: '9765240614' },
+      { name: 'Hanumanta Kapre', phone: '9158755524' },
     ],
   },
   {
     id: '8',
     name: 'Smilestones',
-    description: 'Special programs and activities',
+    description: 'Converting milestone to a smilestone',
     icon: 'celebration',
     contactPeople: [
-      { name: 'Anjal Jain', phone: '9036477655' },
-      { name: 'Natasha Jain', phone: '9765240614' },
+      { name: 'Anjal Jain', phone: '9892936357' },
+      { name: 'Natasha Jain', phone: '9820994054' },
     ],
   },
   {

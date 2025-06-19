@@ -6,6 +6,7 @@ import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../../constants';
 import { prepareSelfRequestBody } from '~/utils/preparingRequestBody';
+import { Ionicons } from '@expo/vector-icons';
 import RoomBookingDetails from '../../components/booking details cards/RoomBookingDetails';
 import PageHeader from '../../components/PageHeader';
 import TravelBookingDetails from '../../components/booking details cards/TravelBookingDetails';
@@ -17,7 +18,6 @@ import handleAPICall from '../../utils/HandleApiCall';
 import RazorpayCheckout from 'react-native-razorpay';
 import CustomModal from '~/components/CustomModal';
 import EventBookingDetails from '~/components/booking details cards/EventBookingDetails';
-import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
 
 const bookingConfirmation = () => {
@@ -25,6 +25,7 @@ const bookingConfirmation = () => {
   const { user, data, setData } = useGlobalContext();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPayLaterModal, setShowPayLaterModal] = useState(false);
 
   const payload = prepareSelfRequestBody(user, data);
 
@@ -70,6 +71,21 @@ const bookingConfirmation = () => {
   const handleCloseValidationModal = useCallback(() => {
     router.back();
   }, [router]);
+
+  const handlePayLater = async () => {
+    setShowPayLaterModal(false);
+    setIsSubmitting(true);
+    const onSuccess = () => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.replace('/bookingConfirmation');
+    };
+
+    const onFinally = () => {
+      setIsSubmitting(false);
+    };
+
+    await handleAPICall('POST', '/unified/booking', null, payload, onSuccess, onFinally);
+  };
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['top', 'right', 'left']}>
@@ -340,11 +356,6 @@ const bookingConfirmation = () => {
                       .then((_rzrpayData: any) => {
                         setIsSubmitting(false);
                         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                        Toast.show({
-                          type: 'success',
-                          text1: 'Payment successful',
-                          swipeable: false,
-                        });
                         router.replace('/paymentConfirmation');
                       })
                       .catch((_error: any) => {
@@ -367,39 +378,15 @@ const bookingConfirmation = () => {
                     onFinally
                   );
                 }}
-                containerStyles="flex-1 min-h-[62px]"
+                containerStyles="flex-1 min-h-[52px]"
                 isLoading={isSubmitting}
                 isDisabled={!validationData}
                 variant="solid"
               />
               <CustomButton
                 text="Pay Later"
-                handlePress={async () => {
-                  setIsSubmitting(true);
-                  const onSuccess = () => {
-                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                    Toast.show({
-                      type: 'success',
-                      text1: 'Booking confirmed',
-                      swipeable: false,
-                    });
-                    router.replace('/bookingConfirmation');
-                  };
-
-                  const onFinally = () => {
-                    setIsSubmitting(false);
-                  };
-
-                  await handleAPICall(
-                    'POST',
-                    '/unified/booking',
-                    null,
-                    payload,
-                    onSuccess,
-                    onFinally
-                  );
-                }}
-                containerStyles="flex-1 min-h-[62px]"
+                handlePress={() => setShowPayLaterModal(true)}
+                containerStyles="flex-1 min-h-[52px]"
                 isLoading={isSubmitting}
                 isDisabled={!validationData}
                 variant="outline"
@@ -427,7 +414,7 @@ const bookingConfirmation = () => {
                   onFinally
                 );
               }}
-              containerStyles="mb-8 min-h-[62px]"
+              containerStyles="mb-8 min-h-[52px]"
               isLoading={isSubmitting}
               isDisabled={!validationData}
             />
@@ -442,6 +429,47 @@ const bookingConfirmation = () => {
             btnText={'Okay'}
           />
         )}
+
+        <CustomModal
+          visible={showPayLaterModal}
+          onClose={() => setShowPayLaterModal(false)}
+          title="Pay Later Notice"
+          showActionButton={false}>
+          <View>
+            <View className="mb-4">
+              <View className="mb-4 items-center">
+                <View className="mb-3 h-16 w-16 items-center justify-center rounded-full bg-amber-100">
+                  <Ionicons name="time-outline" size={32} color="#F59E0B" />
+                </View>
+              </View>
+
+              <Text className="mb-3 text-center font-pregular text-sm text-gray-700">
+                You are choosing to pay later for this booking.
+              </Text>
+
+              <View className="rounded-lg bg-amber-50 p-3">
+                <Text className="mb-2 font-pmedium text-xs text-amber-900">
+                  Important Information:
+                </Text>
+                <Text className="mb-1 font-pregular text-xs text-amber-800">
+                  Your booking will be temporary and you must complete the payment within 24 hours.
+                  After 24 hours, the booking will be automatically cancelled if payment is not
+                  received.
+                </Text>
+              </View>
+            </View>
+
+            <View className="gap-y-3">
+              <CustomButton
+                text="I Understand, Proceed"
+                handlePress={handlePayLater}
+                containerStyles="min-h-[44px]"
+                textStyles="font-psemibold text-sm text-white"
+                isLoading={isSubmitting}
+              />
+            </View>
+          </View>
+        </CustomModal>
       </ScrollView>
     </SafeAreaView>
   );
