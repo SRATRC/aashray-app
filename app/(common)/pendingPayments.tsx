@@ -847,7 +847,7 @@ const PendingPayments = () => {
   }
 
   return (
-    <SafeAreaView className="h-full" edges={['top']}>
+    <SafeAreaView className="h-full" edges={['top', 'bottom']}>
       <PageHeader title="Pending Payments" />
 
       <FlashList

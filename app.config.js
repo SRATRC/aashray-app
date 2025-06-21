@@ -3,7 +3,7 @@ export default {
     name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
-    version: '1.1.5',
+    version: '1.1.6',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     userInterfaceStyle: 'automatic',
@@ -33,7 +33,7 @@ export default {
     },
     android: {
       package: 'org.vitraagvigyaan.aashray',
-      edgeToEdgeEnabled: true,
+      edgeToEdgeEnabled: false,
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
         monochromeImage: './assets/images/adaptive-icon.png',

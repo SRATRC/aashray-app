@@ -56,7 +56,7 @@ const GuestAddons = () => {
   const { user, guestData, setGuestData } = useGlobalContext();
   const router = useRouter();
 
-  console.log(JSON.stringify(guestData));
+  console.log('GUEST DATA: ', JSON.stringify(guestData));
 
   const [addonOpen, setAddonOpen] = useState({
     room: false,
@@ -71,7 +71,7 @@ const GuestAddons = () => {
       guestData.utsav?.guests ||
       []
     );
-  }, [guestData.room, guestData.adhyayan]);
+  }, [guestData.room, guestData.adhyayan, guestData.utsav]);
 
   // Create dropdown options for guests
   const guest_dropdown = useMemo(() => {
@@ -88,12 +88,14 @@ const GuestAddons = () => {
       guestData.room?.startDay ||
       guestData.food?.startDay ||
       guestData.adhyayan?.adhyayan?.start_date ||
+      guestData.utsav?.utsav?.start_date ||
       '';
 
     const endDate =
       guestData.room?.endDay ||
       guestData.food?.endDay ||
       guestData.adhyayan?.adhyayan?.end_date ||
+      guestData.utsav?.utsav?.end_date ||
       '';
 
     return { startDate, endDate };
@@ -135,12 +137,14 @@ const GuestAddons = () => {
       guestData.room?.startDay ||
       guestData.food?.startDay ||
       guestData.adhyayan?.adhyayan?.start_date ||
+      guestData.utsav?.utsav?.start_date ||
       '';
 
     const endDate =
       guestData.room?.endDay ||
       guestData.food?.endDay ||
       guestData.adhyayan?.adhyayan?.end_date ||
+      guestData.utsav?.utsav?.end_date ||
       '';
 
     // Update room form with cross-referenced dates

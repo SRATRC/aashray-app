@@ -58,7 +58,7 @@ const INITIAL_GUEST_FORM = {
       name: '',
       gender: '',
       mobno: '',
-      guestType: '',
+      type: '',
       package: null,
       package_name: '',
       arrival: null,
@@ -136,7 +136,7 @@ const EventBookingDirect = () => {
           name: '',
           gender: '',
           mobno: '',
-          guestType: '',
+          type: '',
           package: null,
           package_name: '',
           arrival: null,
@@ -247,7 +247,7 @@ const EventBookingDirect = () => {
         (res: any) => {
           resolve(Array.isArray(res.data) ? res.data : []);
         },
-        () => reject(new Error('Failed to fetch adhyayans'))
+        () => reject(new Error('Failed to fetch utsavs'))
       );
     });
   };
@@ -357,7 +357,7 @@ const EventBookingDirect = () => {
               setSelectedItem(item);
               setGuestForm((prev) => ({
                 ...prev,
-                adhyayan: item,
+                utsav: item,
               }));
               toggleModal();
             }}
@@ -699,13 +699,37 @@ const EventBookingDirect = () => {
                               return;
                             }
 
-                            const updatedForm = {
-                              ...guestForm,
-                              utsav: selectedItem,
-                            };
+                            if (guestForm.guests.filter((guest: any) => !guest.cardno).length > 0) {
+                              await handleAPICall(
+                                'POST',
+                                '/guest',
+                                null,
+                                {
+                                  cardno: user.cardno,
+                                  guests: guestForm.guests,
+                                },
+                                async (res: any) => {
+                                  guestForm.guests = res.guests;
 
-                            await updateGuestBooking('utsav', updatedForm);
-                            router.push(`/guestBooking/${types.EVENT_DETAILS_TYPE}`);
+                                  await updateGuestBooking('utsav', guestForm);
+                                  setGuestForm(INITIAL_GUEST_FORM);
+
+                                  if (selectedItem.utsav_location !== 'Research Centre')
+                                    router.push('/guestBooking/bookingConfirmation');
+                                  else router.push(`/guestBooking/${types.EVENT_DETAILS_TYPE}`);
+                                },
+                                () => {
+                                  setIsSubmitting(false);
+                                }
+                              );
+                            } else {
+                              await updateGuestBooking('utsav', guestForm);
+                              setGuestForm(INITIAL_GUEST_FORM);
+                              if (selectedItem.utsav_location !== 'Research Centre')
+                                router.push('/guestBooking/guestBookingConfirmation');
+                              else router.push(`/guestBooking/${types.EVENT_DETAILS_TYPE}`);
+                              setIsSubmitting(false);
+                            }
                           }
                           if (selectedChip == CHIPS[2]) {
                             if (!isMumukshuFormValid()) {

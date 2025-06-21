@@ -80,7 +80,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
         }
       }
     });
-  }, [guestQueries.map((q) => q.data), guestForm.guests.length]);
+  }, [guestQueries.map((q: any) => q.data), guestForm.guests.length]);
 
   // Helper function to get API error message
   const getErrorMessage = (error: any) => {

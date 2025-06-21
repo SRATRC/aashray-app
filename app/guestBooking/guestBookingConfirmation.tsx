@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Platform } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../../constants';
@@ -17,6 +17,7 @@ import handleAPICall from '../../utils/HandleApiCall';
 import RazorpayCheckout from 'react-native-razorpay';
 import CustomModal from '~/components/CustomModal';
 import * as Haptics from 'expo-haptics';
+import GuestEventBookingDetails from '~/components/booking details cards/GuestEventBookingDetails';
 
 const guestBookingConfirmation = () => {
   const router = useRouter();
@@ -25,7 +26,9 @@ const guestBookingConfirmation = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPayLaterModal, setShowPayLaterModal] = useState(false);
 
+  console.log('CONFIRM GUEST DATA: ', JSON.stringify(guestData));
   const transformedData = prepareGuestRequestBody(user, guestData);
+  console.log('CONFIRM TRANSFORMED DATA: ', JSON.stringify(transformedData));
 
   const fetchValidation = useCallback(async () => {
     return new Promise((resolve, reject) => {
@@ -85,6 +88,10 @@ const guestBookingConfirmation = () => {
     await handleAPICall('POST', '/guest/booking', null, transformedData, onSuccess, onFinally);
   };
 
+  useEffect(() => {
+    console.log('VALIDATION DATA: ', validationData);
+  }, [validationData]);
+
   return (
     <SafeAreaView className="h-full bg-white" edges={['top', 'right', 'left']}>
       <ScrollView alwaysBounceVertical={false} showsVerticalScrollIndicator={false}>
@@ -93,6 +100,7 @@ const guestBookingConfirmation = () => {
         {guestData.room && <GuestRoomBookingDetails containerStyles={'mt-2'} />}
         {guestData.adhyayan && <GuestAdhyayanBookingDetails containerStyles={'mt-2'} />}
         {guestData.food && <GuestFoodBookingDetails containerStyles={'mt-2'} />}
+        {guestData.utsav && <GuestEventBookingDetails containerStyles={'mt-2'} />}
 
         {validationData && validationData.totalCharge > 0 && (
           <View className="mt-4 w-full px-4">
@@ -107,11 +115,12 @@ const guestBookingConfirmation = () => {
                     validationData.roomDetails.length > 0 &&
                     (() => {
                       const totalCharge = validationData.roomDetails.reduce(
-                        (total: any, room: any) => total + room.charge,
+                        (total: number, room: { charge: number }) => total + room.charge,
                         0
                       );
                       const totalCredits = validationData.roomDetails.reduce(
-                        (total: any, room: any) => total + (room.availableCredits || 0),
+                        (total: number, room: { charge: number; availableCredits?: number }) =>
+                          total + (room.availableCredits || 0),
                         0
                       );
 
@@ -227,6 +236,47 @@ const guestBookingConfirmation = () => {
                       return null;
                     })()}
 
+                  {validationData.utsavDetails &&
+                    validationData.utsavDetails.length > 0 &&
+                    (() => {
+                      const totalCharge = validationData.utsavDetails.reduce(
+                        (total: any, utsav: any) => total + utsav.charge,
+                        0
+                      );
+                      const totalCredits = validationData.utsavDetails.reduce(
+                        (total: any, utsav: any) => total + (utsav.availableCredits || 0),
+                        0
+                      );
+                      return (
+                        <View className="border-b border-gray-200 pb-3">
+                          <View className="flex-row items-center justify-between">
+                            <Text className="font-pregular text-base text-gray-700">
+                              Utsav Charge
+                            </Text>
+                            <View className="items-end">
+                              <Text
+                                className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
+                                ₹{totalCharge.toLocaleString('en-IN')}
+                              </Text>
+                              {totalCredits > 0 && (
+                                <>
+                                  <Text className="font-pregular text-xs text-green-600">
+                                    −₹{totalCredits.toLocaleString('en-IN')} credit
+                                  </Text>
+                                  <Text className="mt-0.5 font-pmedium text-base text-black">
+                                    ₹
+                                    {Math.max(0, totalCharge - totalCredits).toLocaleString(
+                                      'en-IN'
+                                    )}
+                                  </Text>
+                                </>
+                              )}
+                            </View>
+                          </View>
+                        </View>
+                      );
+                    })()}
+
                   {/* Total section */}
                   <View className="pt-2">
                     {(() => {
@@ -237,6 +287,10 @@ const guestBookingConfirmation = () => {
                         ) || 0) +
                         (validationData.foodDetails?.availableCredits || 0) +
                         (validationData.adhyayanDetails?.reduce(
+                          (sum: any, item: any) => sum + (item.availableCredits || 0),
+                          0
+                        ) || 0) +
+                        (validationData.utsavDetails?.reduce(
                           (sum: any, item: any) => sum + (item.availableCredits || 0),
                           0
                         ) || 0);
