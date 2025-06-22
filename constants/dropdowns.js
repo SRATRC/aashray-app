@@ -47,11 +47,10 @@ const LOCATION_LIST = [
 
 const EVENT_LOCATION_LIST = [
   { key: 'rc', value: 'Research Centre' },
-  { key: 'dadar', value: 'Dadar (Pritam Hotel)' },
+  { key: 'dadar', value: 'Dadar (Pritam Da Dhaba)' },
   { key: 'amar mahar', value: 'Amar Mahal' },
-  { key: 'airoli', value: 'Airoli' },
-  { key: 'borivali', value: 'Borivali' },
-  { key: 'mulund', value: 'Mulund' },
+  { key: 'borivali', value: 'Borivali (Indraprasth Shopping Centre)' },
+  { key: 'mulund', value: 'Mulund (Sarvoday Nagar)' },
   { key: 'vile parle', value: 'Vile Parle (Sahara Star)' },
   { key: 'airport t1', value: 'Airport Terminal 1' },
   { key: 'airport t2', value: 'Airport Terminal 2' },
