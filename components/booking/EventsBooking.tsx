@@ -6,11 +6,13 @@ import {
   TouchableOpacity,
   Modal,
   Image,
-  FlatList,
+  ScrollView,
   KeyboardAvoidingView,
   Platform,
   Alert,
   RefreshControl,
+  Keyboard,
+  StatusBar,
 } from 'react-native';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
@@ -392,206 +394,135 @@ const EventBookingDirect = () => {
         transparent={true}
         statusBarTranslucent={true}
         onRequestClose={toggleModal}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1 }}>
-          <View className="flex-1 items-center justify-center bg-black/50">
-            <View className="max-h-[80%] w-[80%] max-w-[300px] rounded-lg bg-white p-5">
-              <View className="mb-2 flex-row justify-between">
-                <View className="flex-col gap-y-1">
-                  <Text className="font-pmedium text-sm text-black">
-                    {selectedItem?.utsav_name}
-                  </Text>
-                  <View className="flex-row gap-x-1">
-                    <Text className="font-pregular text-xs text-gray-500">Date:</Text>
-                    <Text className="font-pregular text-xs text-secondary">
-                      {moment(selectedItem?.utsav_start).format('Do MMMM')} -{' '}
-                      {moment(selectedItem?.utsav_end).format('Do MMMM')}
-                    </Text>
+        <TouchableOpacity activeOpacity={1} style={{ flex: 1 }} onPress={() => Keyboard.dismiss()}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={{ flex: 1 }}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : StatusBar.currentHeight || 0}>
+            <View className="flex-1 items-center justify-center bg-black/50 px-4">
+              <View
+                className="w-full max-w-[300px] rounded-lg bg-white"
+                style={{
+                  maxHeight: '80%',
+                  marginBottom: Platform.OS === 'ios' ? 20 : 0,
+                }}>
+                <View className="p-5">
+                  {/* Header Section - Keep this fixed */}
+                  <View className="mb-2 flex-row justify-between">
+                    <View className="flex-1 flex-col gap-y-1 pr-2">
+                      <Text className="font-pmedium text-sm text-black">
+                        {selectedItem?.utsav_name}
+                      </Text>
+                      <View className="flex-row gap-x-1">
+                        <Text className="font-pregular text-xs text-gray-500">Date:</Text>
+                        <Text className="font-pregular text-xs text-secondary">
+                          {moment(selectedItem?.utsav_start).format('Do MMMM')} -{' '}
+                          {moment(selectedItem?.utsav_end).format('Do MMMM')}
+                        </Text>
+                      </View>
+                    </View>
+                    <TouchableOpacity onPress={toggleModal}>
+                      <Image
+                        source={icons.remove}
+                        tintColor={'black'}
+                        className="h-4 w-4"
+                        resizeMode="contain"
+                      />
+                    </TouchableOpacity>
                   </View>
+
+                  <HorizontalSeparator otherStyles={'w-full mb-2'} />
                 </View>
-                <TouchableOpacity onPress={toggleModal}>
-                  <Image
-                    source={icons.remove}
-                    tintColor={'black'}
-                    className="h-4 w-4"
-                    resizeMode="contain"
-                  />
-                </TouchableOpacity>
-              </View>
 
-              <HorizontalSeparator otherStyles={'w-full'} />
+                {/* ScrollView instead of FlatList for better keyboard handling */}
+                <ScrollView
+                  className="px-5"
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                  contentContainerStyle={{ paddingBottom: 20 }}
+                  bounces={false}>
+                  {/* Book For Section */}
+                  <View className="mt-2 flex-col">
+                    <Text className="font-pregular text-base text-black">Book For</Text>
+                    <CustomChipGroup
+                      chips={CHIPS}
+                      selectedChip={selectedChip}
+                      handleChipPress={handleChipClick}
+                      containerStyles={'mt-1'}
+                      chipContainerStyles={'py-1'}
+                      textStyles={'text-sm'}
+                    />
 
-              <FlatList
-                data={[{ key: 'bookFor' }, { key: 'guestForm' }, { key: 'confirmButton' }]}
-                renderItem={({ item }): any => {
-                  if (item.key === 'bookFor') {
-                    return (
-                      <View className="mt-2 flex-col">
-                        <Text className="font-pregular text-base text-black">Book For</Text>
-                        <CustomChipGroup
-                          chips={CHIPS}
-                          selectedChip={selectedChip}
-                          handleChipPress={handleChipClick}
-                          containerStyles={'mt-1'}
-                          chipContainerStyles={'py-1'}
-                          textStyles={'text-sm'}
+                    {/* Self Form */}
+                    {selectedChip == CHIPS[0] && (
+                      <View>
+                        <CustomSelectBottomSheet
+                          className="mt-7"
+                          label="Package"
+                          placeholder="Select Package"
+                          options={packages}
+                          selectedValue={selfForm.package}
+                          onValueChange={(val: any) =>
+                            setSelfForm({
+                              ...selfForm,
+                              package: val,
+                              package_name: packages.find((item: any) => item.key == val)?.value,
+                            })
+                          }
                         />
-                        {selectedChip == CHIPS[0] && (
+
+                        <CustomSelectBottomSheet
+                          className="mt-7"
+                          label="Will you be arriving in your own car?"
+                          placeholder="Select option"
+                          options={ARRIVAL}
+                          selectedValue={selfForm.arrival}
+                          onValueChange={(val: any) => setSelfForm({ ...selfForm, arrival: val })}
+                        />
+
+                        {selfForm.arrival == 'yes' && (
                           <View>
-                            <CustomSelectBottomSheet
-                              className="mt-7"
-                              label="Package"
-                              placeholder="Select Package"
-                              options={packages}
-                              selectedValue={selfForm.package}
-                              onValueChange={(val: any) =>
-                                setSelfForm({
-                                  ...selfForm,
-                                  package: val,
-                                  package_name: packages.find((item: any) => item.key == val)
-                                    ?.value,
-                                })
-                              }
-                            />
-
-                            <CustomSelectBottomSheet
-                              className="mt-7"
-                              label="Will you be arriving in your own car?"
-                              placeholder="Select option"
-                              options={ARRIVAL}
-                              selectedValue={selfForm.arrival}
-                              onValueChange={(val: any) =>
-                                setSelfForm({ ...selfForm, arrival: val })
-                              }
-                            />
-
-                            {selfForm.arrival == 'yes' && (
-                              <View>
-                                <FormField
-                                  text="Enter Car Number"
-                                  value={selfForm.carno}
-                                  handleChangeText={(e: any) =>
-                                    setSelfForm({ ...selfForm, carno: e })
-                                  }
-                                  otherStyles="mt-7"
-                                  inputStyles="font-pmedium text-base"
-                                  containerStyles="bg-gray-100"
-                                  placeholder="XX-XXX-XXXX"
-                                  maxLength={10}
-                                  autoCapitalize={'characters'}
-                                  autoComplete={'off'}
-                                />
-                              </View>
-                            )}
-
-                            <CustomSelectBottomSheet
-                              className="mt-7"
-                              label="Would you like to volunteer?"
-                              placeholder="Select option"
-                              options={VOLUNTEER}
-                              selectedValue={selfForm.volunteer}
-                              onValueChange={(val: any) =>
-                                setSelfForm({ ...selfForm, volunteer: val })
-                              }
-                              saveKeyInsteadOfValue={false}
-                            />
-
                             <FormField
-                              text="Any other details?"
-                              value={selfForm.other}
-                              handleChangeText={(e: any) => setSelfForm({ ...selfForm, other: e })}
+                              text="Enter Car Number"
+                              value={selfForm.carno}
+                              handleChangeText={(e: any) => setSelfForm({ ...selfForm, carno: e })}
                               otherStyles="mt-7"
                               inputStyles="font-pmedium text-base"
                               containerStyles="bg-gray-100"
-                              placeholder="Enter details here..."
+                              placeholder="XX-XXX-XXXX"
+                              maxLength={10}
+                              autoCapitalize={'characters'}
+                              autoComplete={'off'}
                             />
                           </View>
                         )}
-                        {selectedChip == CHIPS[2] && (
-                          <OtherMumukshuForm
-                            mumukshuForm={mumukshuForm}
-                            setMumukshuForm={setMumukshuForm}
-                            handleMumukshuFormChange={handleMumukshuFormChange}
-                            addMumukshuForm={addMumukshuForm}
-                            removeMumukshuForm={removeMumukshuForm}>
-                            {(index: any) => (
-                              <View>
-                                <CustomSelectBottomSheet
-                                  className="mt-7"
-                                  label="Package"
-                                  placeholder="Select Package"
-                                  options={packages}
-                                  selectedValue={mumukshuForm.mumukshus[index].package}
-                                  onValueChange={(val: any) => {
-                                    handleMumukshuFormChange(index, 'package', val);
-                                    handleMumukshuFormChange(
-                                      index,
-                                      'package_name',
-                                      packages.find((item: any) => item.key == val)?.value
-                                    );
-                                  }}
-                                />
 
-                                <CustomSelectBottomSheet
-                                  className="mt-7"
-                                  label="Will you be arriving in your own car?"
-                                  placeholder="Select option"
-                                  options={ARRIVAL}
-                                  selectedValue={mumukshuForm.mumukshus[index].arrival}
-                                  onValueChange={(val: any) => {
-                                    handleMumukshuFormChange(index, 'arrival', val);
-                                  }}
-                                />
+                        <CustomSelectBottomSheet
+                          className="mt-7"
+                          label="Would you like to volunteer?"
+                          placeholder="Select option"
+                          options={VOLUNTEER}
+                          selectedValue={selfForm.volunteer}
+                          onValueChange={(val: any) => setSelfForm({ ...selfForm, volunteer: val })}
+                          saveKeyInsteadOfValue={false}
+                        />
 
-                                {mumukshuForm.mumukshus[index].arrival == 'yes' && (
-                                  <FormField
-                                    text="Enter Car Number"
-                                    value={mumukshuForm.mumukshus[index].carno}
-                                    handleChangeText={(e: any) =>
-                                      handleMumukshuFormChange(index, 'carno', e)
-                                    }
-                                    otherStyles="mt-7"
-                                    inputStyles="font-pmedium text-base"
-                                    containerStyles="bg-gray-100"
-                                    placeholder="XX-XXX-XXXX"
-                                    maxLength={10}
-                                    autoCapitalize={'characters'}
-                                    autoComplete={'off'}
-                                  />
-                                )}
-
-                                <CustomSelectBottomSheet
-                                  className="mt-7"
-                                  label="Would you like to volunteer?"
-                                  placeholder="Select option"
-                                  options={VOLUNTEER}
-                                  selectedValue={mumukshuForm.mumukshus[index].volunteer}
-                                  onValueChange={(val: any) =>
-                                    handleMumukshuFormChange(index, 'volunteer', val)
-                                  }
-                                  saveKeyInsteadOfValue={false}
-                                />
-
-                                <FormField
-                                  text="Any other details?"
-                                  value={mumukshuForm.mumukshus[index].other}
-                                  handleChangeText={(e: any) =>
-                                    handleMumukshuFormChange(index, 'other', e)
-                                  }
-                                  otherStyles="mt-7"
-                                  inputStyles="font-pmedium text-base"
-                                  containerStyles="bg-gray-100"
-                                  placeholder="Enter details here..."
-                                />
-                              </View>
-                            )}
-                          </OtherMumukshuForm>
-                        )}
+                        <FormField
+                          text="Any other details?"
+                          value={selfForm.other}
+                          handleChangeText={(e: any) => setSelfForm({ ...selfForm, other: e })}
+                          otherStyles="mt-7 mb-4"
+                          inputStyles="font-pmedium text-base"
+                          containerStyles="bg-gray-100"
+                          placeholder="Enter details here..."
+                          multiline={true}
+                          numberOfLines={3}
+                        />
                       </View>
-                    );
-                  } else if (item.key === 'guestForm' && selectedChip == CHIPS[1]) {
-                    return (
+                    )}
+
+                    {/* Guest Form */}
+                    {selectedChip == CHIPS[1] && (
                       <View>
                         <GuestForm
                           guestForm={guestForm}
@@ -663,117 +594,220 @@ const EventBookingDirect = () => {
                                 handleChangeText={(e: any) =>
                                   handleGuestFormChange(index, 'other', e)
                                 }
-                                otherStyles="mt-7"
+                                otherStyles="mt-7 mb-4"
                                 inputStyles="font-pmedium text-bases"
                                 containerStyles="bg-gray-100"
                                 placeholder="Enter details here..."
+                                multiline={true}
+                                numberOfLines={3}
                               />
                             </View>
                           )}
                         </GuestForm>
                       </View>
-                    );
-                  } else if (item.key === 'confirmButton') {
-                    return (
-                      <CustomButton
-                        handlePress={async () => {
-                          setIsSubmitting(true);
-                          if (selectedChip == CHIPS[0]) {
-                            if (!isSelfFormValid()) {
-                              Alert.alert('Validation Error', 'Please fill all required fields');
-                              setIsSubmitting(false);
-                              return;
-                            }
+                    )}
 
-                            const updatedForm = {
-                              ...selfForm,
-                              utsav: selectedItem,
-                            };
-                            await updateBooking('utsav', updatedForm);
-                            router.push(`/booking/${types.EVENT_DETAILS_TYPE}`);
-                          }
-                          if (selectedChip == CHIPS[1]) {
-                            if (!isGuestFormValid()) {
-                              Alert.alert('Validation Error', 'Please fill all required fields');
-                              setIsSubmitting(false);
-                              return;
-                            }
+                    {/* Mumukshu Form */}
+                    {selectedChip == CHIPS[2] && (
+                      <OtherMumukshuForm
+                        mumukshuForm={mumukshuForm}
+                        setMumukshuForm={setMumukshuForm}
+                        handleMumukshuFormChange={handleMumukshuFormChange}
+                        addMumukshuForm={addMumukshuForm}
+                        removeMumukshuForm={removeMumukshuForm}>
+                        {(index: any) => (
+                          <View>
+                            <CustomSelectBottomSheet
+                              className="mt-7"
+                              label="Package"
+                              placeholder="Select Package"
+                              options={packages}
+                              selectedValue={mumukshuForm.mumukshus[index].package}
+                              onValueChange={(val: any) => {
+                                handleMumukshuFormChange(index, 'package', val);
+                                handleMumukshuFormChange(
+                                  index,
+                                  'package_name',
+                                  packages.find((item: any) => item.key == val)?.value
+                                );
+                              }}
+                            />
 
-                            if (guestForm.guests.filter((guest: any) => !guest.cardno).length > 0) {
-                              await handleAPICall(
-                                'POST',
-                                '/guest',
-                                null,
-                                {
-                                  cardno: user.cardno,
-                                  guests: guestForm.guests,
-                                },
-                                async (res: any) => {
-                                  guestForm.guests = res.guests;
+                            <CustomSelectBottomSheet
+                              className="mt-7"
+                              label="Will you be arriving in your own car?"
+                              placeholder="Select option"
+                              options={ARRIVAL}
+                              selectedValue={mumukshuForm.mumukshus[index].arrival}
+                              onValueChange={(val: any) => {
+                                handleMumukshuFormChange(index, 'arrival', val);
+                              }}
+                            />
 
-                                  await updateGuestBooking('utsav', guestForm);
-                                  setGuestForm(INITIAL_GUEST_FORM);
-
-                                  if (selectedItem.utsav_location !== 'Research Centre')
-                                    router.push('/guestBooking/bookingConfirmation');
-                                  else router.push(`/guestBooking/${types.EVENT_DETAILS_TYPE}`);
-                                },
-                                () => {
-                                  setIsSubmitting(false);
+                            {mumukshuForm.mumukshus[index].arrival == 'yes' && (
+                              <FormField
+                                text="Enter Car Number"
+                                value={mumukshuForm.mumukshus[index].carno}
+                                handleChangeText={(e: any) =>
+                                  handleMumukshuFormChange(index, 'carno', e)
                                 }
+                                otherStyles="mt-7"
+                                inputStyles="font-pmedium text-base"
+                                containerStyles="bg-gray-100"
+                                placeholder="XX-XXX-XXXX"
+                                maxLength={10}
+                                autoCapitalize={'characters'}
+                                autoComplete={'off'}
+                              />
+                            )}
+
+                            <CustomSelectBottomSheet
+                              className="mt-7"
+                              label="Would you like to volunteer?"
+                              placeholder="Select option"
+                              options={VOLUNTEER}
+                              selectedValue={mumukshuForm.mumukshus[index].volunteer}
+                              onValueChange={(val: any) =>
+                                handleMumukshuFormChange(index, 'volunteer', val)
+                              }
+                              saveKeyInsteadOfValue={false}
+                            />
+
+                            <FormField
+                              text="Any other details?"
+                              value={mumukshuForm.mumukshus[index].other}
+                              handleChangeText={(e: any) =>
+                                handleMumukshuFormChange(index, 'other', e)
+                              }
+                              otherStyles="mt-7 mb-4"
+                              inputStyles="font-pmedium text-base"
+                              containerStyles="bg-gray-100"
+                              placeholder="Enter details here..."
+                              multiline={true}
+                              numberOfLines={3}
+                            />
+                          </View>
+                        )}
+                      </OtherMumukshuForm>
+                    )}
+                  </View>
+
+                  <CustomButton
+                    handlePress={async () => {
+                      Keyboard.dismiss();
+                      setIsSubmitting(true);
+                      if (selectedChip == CHIPS[0]) {
+                        if (!isSelfFormValid()) {
+                          Alert.alert('Validation Error', 'Please fill all required fields');
+                          setIsSubmitting(false);
+                          return;
+                        }
+
+                        const updatedForm = {
+                          ...selfForm,
+                          utsav: selectedItem,
+                        };
+                        await updateBooking('utsav', updatedForm);
+                        router.push(`/booking/${types.EVENT_DETAILS_TYPE}`);
+                      }
+                      if (selectedChip == CHIPS[1]) {
+                        if (!isGuestFormValid()) {
+                          Alert.alert('Validation Error', 'Please fill all required fields');
+                          setIsSubmitting(false);
+                          return;
+                        }
+
+                        if (guestForm.guests.filter((guest: any) => !guest.cardno).length > 0) {
+                          await handleAPICall(
+                            'POST',
+                            '/guest',
+                            null,
+                            {
+                              cardno: user.cardno,
+                              guests: guestForm.guests,
+                            },
+                            async (res: any) => {
+                              const mergedGuests = guestForm.guests.map(
+                                (guest: any, idx: number) => ({
+                                  ...guest,
+                                  ...(res.guests?.[idx] || {}),
+                                })
                               );
-                            } else {
+
+                              setGuestForm((prev) => ({
+                                ...prev,
+                                guests: mergedGuests,
+                              }));
+
+                              console.log(
+                                'SETTING Guest Form Data: ',
+                                JSON.stringify({ ...guestForm, guests: mergedGuests })
+                              );
+
+                              await updateGuestBooking('utsav', {
+                                ...guestForm,
+                                guests: mergedGuests,
+                              });
+
                               await updateGuestBooking('utsav', guestForm);
                               setGuestForm(INITIAL_GUEST_FORM);
+
                               if (selectedItem.utsav_location !== 'Research Centre')
-                                router.push('/guestBooking/guestBookingConfirmation');
+                                router.push('/guestBooking/bookingConfirmation');
                               else router.push(`/guestBooking/${types.EVENT_DETAILS_TYPE}`);
+                            },
+                            () => {
                               setIsSubmitting(false);
                             }
-                          }
-                          if (selectedChip == CHIPS[2]) {
-                            if (!isMumukshuFormValid()) {
-                              Alert.alert('Validation Error', 'Please fill all required fields');
-                              setIsSubmitting(false);
-                              return;
-                            }
-
-                            const updatedForm = {
-                              ...mumukshuForm,
-                              utsav: selectedItem,
-                            };
-
-                            await updateMumukshuBooking('utsav', updatedForm);
-                            router.push(`/mumukshuBooking/${types.EVENT_DETAILS_TYPE}`);
-                          }
-                          setSelectedItem(null);
-                          setSelectedChip('Self');
-                          toggleModal();
-                        }}
-                        text={'Confirm'}
-                        bgcolor="bg-secondary"
-                        containerStyles="mt-4 p-2"
-                        textStyles={'text-sm text-white'}
-                        isDisabled={
-                          selectedChip === CHIPS[0]
-                            ? !isSelfFormValid()
-                            : selectedChip === CHIPS[1]
-                              ? !isGuestFormValid()
-                              : selectedChip === CHIPS[2]
-                                ? !isMumukshuFormValid()
-                                : false
+                          );
+                        } else {
+                          await updateGuestBooking('utsav', guestForm);
+                          setGuestForm(INITIAL_GUEST_FORM);
+                          if (selectedItem.utsav_location !== 'Research Centre')
+                            router.push('/guestBooking/guestBookingConfirmation');
+                          else router.push(`/guestBooking/${types.EVENT_DETAILS_TYPE}`);
+                          setIsSubmitting(false);
                         }
-                        isLoading={isSubmitting}
-                      />
-                    );
-                  }
-                }}
-                keyExtractor={(item) => item.key}
-                showsVerticalScrollIndicator={false}
-              />
+                      }
+                      if (selectedChip == CHIPS[2]) {
+                        if (!isMumukshuFormValid()) {
+                          Alert.alert('Validation Error', 'Please fill all required fields');
+                          setIsSubmitting(false);
+                          return;
+                        }
+
+                        const updatedForm = {
+                          ...mumukshuForm,
+                          utsav: selectedItem,
+                        };
+
+                        await updateMumukshuBooking('utsav', updatedForm);
+                        router.push(`/mumukshuBooking/${types.EVENT_DETAILS_TYPE}`);
+                      }
+                      setSelectedItem(null);
+                      setSelectedChip('Self');
+                      toggleModal();
+                    }}
+                    text={'Confirm'}
+                    bgcolor="bg-secondary"
+                    containerStyles="mt-4 mb-2 p-2"
+                    textStyles={'text-sm text-white'}
+                    isDisabled={
+                      selectedChip === CHIPS[0]
+                        ? !isSelfFormValid()
+                        : selectedChip === CHIPS[1]
+                          ? !isGuestFormValid()
+                          : selectedChip === CHIPS[2]
+                            ? !isMumukshuFormValid()
+                            : false
+                    }
+                    isLoading={isSubmitting}
+                  />
+                </ScrollView>
+              </View>
             </View>
-          </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </TouchableOpacity>
       </Modal>
 
       <SectionList
