@@ -12,7 +12,6 @@ import {
   Alert,
   RefreshControl,
   Keyboard,
-  StatusBar,
 } from 'react-native';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
@@ -394,20 +393,25 @@ const EventBookingDirect = () => {
         transparent={true}
         statusBarTranslucent={true}
         onRequestClose={toggleModal}>
-        <TouchableOpacity activeOpacity={1} style={{ flex: 1 }} onPress={() => Keyboard.dismiss()}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={{ flex: 1 }}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : StatusBar.currentHeight || 0}>
-            <View className="flex-1 items-center justify-center bg-black/50 px-4">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
+          <View className="flex-1 bg-black/50">
+            <TouchableOpacity
+              activeOpacity={1}
+              style={{ position: 'absolute', width: '100%', height: '100%' }}
+              onPress={toggleModal}
+            />
+
+            <View className="flex-1 items-center justify-center px-4" pointerEvents="box-none">
               <View
                 className="w-full max-w-[300px] rounded-lg bg-white"
                 style={{
                   maxHeight: '80%',
                   marginBottom: Platform.OS === 'ios' ? 20 : 0,
                 }}>
-                <View className="p-5">
-                  {/* Header Section - Keep this fixed */}
+                <View className="p-5 pb-0">
                   <View className="mb-2 flex-row justify-between">
                     <View className="flex-1 flex-col gap-y-1 pr-2">
                       <Text className="font-pmedium text-sm text-black">
@@ -430,18 +434,17 @@ const EventBookingDirect = () => {
                       />
                     </TouchableOpacity>
                   </View>
-
                   <HorizontalSeparator otherStyles={'w-full mb-2'} />
                 </View>
 
-                {/* ScrollView instead of FlatList for better keyboard handling */}
                 <ScrollView
                   className="px-5"
                   showsVerticalScrollIndicator={false}
                   keyboardShouldPersistTaps="handled"
-                  contentContainerStyle={{ paddingBottom: 20 }}
+                  contentContainerStyle={{
+                    paddingBottom: 20,
+                  }}
                   bounces={false}>
-                  {/* Book For Section */}
                   <View className="mt-2 flex-col">
                     <Text className="font-pregular text-base text-black">Book For</Text>
                     <CustomChipGroup
@@ -806,8 +809,8 @@ const EventBookingDirect = () => {
                 </ScrollView>
               </View>
             </View>
-          </KeyboardAvoidingView>
-        </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       <SectionList
