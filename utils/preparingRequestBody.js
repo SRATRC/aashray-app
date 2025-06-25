@@ -25,7 +25,7 @@ export const prepareSelfRequestBody = (user, data) => {
         leaving_post_adhyayan: data.travel?.adhyayan == 'No' ? 0 : 1,
         type: data.travel?.type,
         total_people: data.travel?.total_people,
-        special_request: data.travel?.special_request,
+        comments: data.travel?.special_request,
       },
     };
   } else if (data.primary === 'adhyayan') {

@@ -249,9 +249,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
                 text="Flight/Train Time"
                 value={
                   travelForm.mumukshuGroup[index].arrival_time
-                    ? moment(travelForm.mumukshuGroup[index].arrival_time).format(
-                        'Do MMMM YYYY, h:mm a'
-                      )
+                    ? moment(travelForm.mumukshuGroup[index].arrival_time).format('h:mm a')
                     : 'Flight/Train Time'
                 }
                 otherStyles="mt-5"
@@ -264,7 +262,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
               />
               <DateTimePickerModal
                 isVisible={isDatePickerVisible.travel_time && activeMumukshuIndex === index}
-                mode="datetime"
+                mode="time"
                 date={
                   travelForm.mumukshuGroup[index].arrival_time
                     ? moment(travelForm.mumukshuGroup[index].arrival_time).toDate()
@@ -316,7 +314,10 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             otherStyles="mt-7"
             containerStyles="bg-gray-100"
             keyboardType="default"
-            placeholder="please specify your request here..."
+            placeholder="Please specify a location if 'Other' is selected, or provide any additional requests here..."
+            multiline={true}
+            numberOfLines={2}
+            inputStyles={'font-pmedium text-black text-lg'}
           />
         </View>
       ))}

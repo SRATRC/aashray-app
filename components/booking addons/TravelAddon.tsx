@@ -201,7 +201,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
             text="Flight/Train Time"
             value={
               travelForm.arrival_time
-                ? moment(travelForm.arrival_time).format('Do MMMM YYYY, h:mm a')
+                ? moment(travelForm.arrival_time).format('h:mm a')
                 : 'Flight/Train Time'
             }
             otherStyles="mt-5"
@@ -211,7 +211,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           />
           <DateTimePickerModal
             isVisible={isDatePickerVisible.travel_time}
-            mode="datetime"
+            mode="time"
             date={travelForm.arrival_time ? moment(travelForm.arrival_time).toDate() : new Date()}
             onConfirm={(date: Date) => {
               setTravelForm({
@@ -263,7 +263,10 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         otherStyles="mt-7"
         containerStyles="bg-gray-100"
         keyboardType="default"
-        placeholder="please specify your request here..."
+        placeholder="Please specify a location if 'Other' is selected, or provide any additional requests here..."
+        multiline={true}
+        numberOfLines={2}
+        inputStyles={'font-pmedium text-black text-lg'}
       />
     </AddonItem>
   );

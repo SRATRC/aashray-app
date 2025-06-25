@@ -1,10 +1,11 @@
 import { View, Text, Image } from 'react-native';
-import { icons, status } from '../../constants';
+import { colors, icons, status } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
 import CustomTag from '../CustomTag';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
+import { Ionicons } from '@expo/vector-icons';
 
 const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerStyles }) => {
   const { data } = useGlobalContext();
@@ -67,13 +68,22 @@ const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerSt
           {data.travel.special_request ? data.travel.special_request : 'None'}
         </Text>
       </View>
-      {data.travel.charge && (
+      {data.travel.arrival_time && (
+        <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
+          <Ionicons name="time" size={16} color={colors.gray_400} />
+          <Text className="font-pregular text-gray-400">Arrival Time:</Text>
+          <Text className="font-pmedium text-black">
+            {moment(data.travel.arrival_time).format('hh:mm A')}
+          </Text>
+        </View>
+      )}
+      {/* {data.travel.charge && (
         <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
           <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
           <Text className="font-pregular text-gray-400">Charges:</Text>
           <Text className="font-pmedium text-black">₹ {data.travel.charge}</Text>
         </View>
-      )}
+      )} */}
     </PrimaryAddonBookingCard>
   );
 };

@@ -3,6 +3,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { types, dropdowns, status } from '../../constants';
 import { useRouter } from 'expo-router';
 import { useGlobalContext } from '../../context/GlobalProvider';
+import { useQuery } from '@tanstack/react-query';
 import CustomButton from '../CustomButton';
 import CustomCalender from '../CustomCalender';
 import FormField from '../FormField';
@@ -13,7 +14,6 @@ import FormDisplayField from '../FormDisplayField';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import moment from 'moment';
-import { useQuery } from '@tanstack/react-query';
 import handleAPICall from '../../utils/HandleApiCall';
 
 let CHIPS = ['Self', 'Mumukshus'];
@@ -336,7 +336,7 @@ const TravelBooking = () => {
                 text="Flight/Train Time"
                 value={
                   travelForm.arrival_time
-                    ? moment(travelForm.arrival_time).format('Do MMMM YYYY, h:mm a')
+                    ? moment(travelForm.arrival_time).format('h:mm a')
                     : 'Flight/Train Time'
                 }
                 otherStyles="mt-5"
@@ -346,7 +346,7 @@ const TravelBooking = () => {
               />
               <DateTimePickerModal
                 isVisible={isDatePickerVisible}
-                mode="datetime"
+                mode="time"
                 date={
                   travelForm.arrival_time ? moment(travelForm.arrival_time).toDate() : new Date()
                 }
@@ -395,8 +395,10 @@ const TravelBooking = () => {
             otherStyles="mt-7"
             containerStyles="bg-gray-100"
             keyboardType="default"
-            placeholder="please specify your request here..."
             inputStyles={'font-pmedium text-black text-lg'}
+            placeholder="Please specify a location if 'Other' is selected, or provide any additional requests here..."
+            multiline={true}
+            numberOfLines={2}
           />
         </View>
       )}
@@ -490,7 +492,7 @@ const TravelBooking = () => {
                     />
                     <DateTimePickerModal
                       isVisible={isDatePickerVisible && activeMumukshuIndex === index}
-                      mode="datetime"
+                      mode="time"
                       date={
                         mumukshuForm.mumukshus[index].arrival_time
                           ? moment(mumukshuForm.mumukshus[index].arrival_time).toDate()
@@ -540,8 +542,10 @@ const TravelBooking = () => {
                   otherStyles="mt-7"
                   containerStyles="bg-gray-100"
                   keyboardType="default"
-                  placeholder="please specify your request here..."
                   inputStyles={'font-pmedium text-black text-lg'}
+                  placeholder="Please specify a location if 'Other' is selected, or provide any additional requests here..."
+                  multiline={true}
+                  numberOfLines={2}
                 />
               </>
             )}
