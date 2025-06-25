@@ -1,24 +1,25 @@
 import '../global.css';
+import { useEffect, useRef } from 'react';
+import { View } from 'react-native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { useEffect } from 'react';
+import { Stack, useRouter } from 'expo-router';
 import { SystemBars } from 'react-native-edge-to-edge';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NotificationProvider } from '../context/NotificationContext';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import GlobalProvider from '../context/GlobalProvider';
+import { handleUserNavigation } from '../utils/navigationValidations';
+import GlobalProvider, { useGlobalContext } from '../context/GlobalProvider';
 import Toast from 'react-native-toast-message';
 import * as Sentry from '@sentry/react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 
-// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes (formerly cacheTime)
+      gcTime: 1000 * 60 * 30, // 30 minutes
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
@@ -38,12 +39,55 @@ Notifications.setNotificationHandler({
 
 Sentry.init({
   dsn: 'https://788f18c3ef141608ef9be5d1f5e38db9@o4505325938278400.ingest.us.sentry.io/4507877656952832',
-
   // uncomment the line below to enable Spotlight (https://spotlightjs.com)
   // enableSpotlight: __DEV__,
 });
 
 SplashScreen.preventAutoHideAsync();
+
+// Component that handles initial routing
+const AppNavigator = () => {
+  const { loading, user } = useGlobalContext();
+  const router = useRouter();
+  const hasNavigated = useRef(false);
+
+  useEffect(() => {
+    if (!loading && !hasNavigated.current) {
+      hasNavigated.current = true;
+
+      (async () => {
+        try {
+          await handleUserNavigation(user, router);
+        } catch (error) {
+          console.error('Navigation error:', error);
+          router.replace('/(auth)/sign-in');
+        } finally {
+          // Hide splash screen after navigation
+          setTimeout(() => {
+            SplashScreen.hideAsync();
+          }, 200);
+        }
+      })();
+    }
+  }, [loading, user, router]);
+
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+      }}>
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(onboarding)" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="(common)" />
+      <Stack.Screen name="(payment)" />
+      <Stack.Screen name="profile" />
+      <Stack.Screen name="booking" />
+      <Stack.Screen name="guestBooking" />
+      <Stack.Screen name="mumukshuBooking" />
+    </Stack>
+  );
+};
 
 const RootLayout = () => {
   const [fontsLoaded, error] = useFonts({
@@ -60,11 +104,7 @@ const RootLayout = () => {
 
   useEffect(() => {
     if (error) throw error;
-
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded, error]);
+  }, [error]);
 
   if (!fontsLoaded && !error) {
     return null;
@@ -74,27 +114,29 @@ const RootLayout = () => {
     <NotificationProvider>
       <QueryClientProvider client={queryClient}>
         <GlobalProvider>
-          <GestureHandlerRootView>
-            <BottomSheetModalProvider>
-              <SystemBars style="dark" />
-              <Stack>
-                <Stack.Screen name="index" options={{ headerShown: false }} />
-                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="(common)" options={{ headerShown: false }} />
-                <Stack.Screen name="(payment)" options={{ headerShown: false }} />
-                <Stack.Screen name="profile" options={{ headerShown: false }} />
-                <Stack.Screen name="booking" options={{ headerShown: false }} />
-                <Stack.Screen name="guestBooking" options={{ headerShown: false }} />
-                <Stack.Screen name="mumukshuBooking" options={{ headerShown: false }} />
-              </Stack>
-              <Toast />
-            </BottomSheetModalProvider>
-          </GestureHandlerRootView>
+          <RootLayoutContent />
         </GlobalProvider>
       </QueryClientProvider>
     </NotificationProvider>
+  );
+};
+
+// Separate component to access GlobalContext
+const RootLayoutContent = () => {
+  const { loading } = useGlobalContext();
+
+  if (loading) {
+    return <View style={{ flex: 1, backgroundColor: '#ffffff' }}></View>;
+  }
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <BottomSheetModalProvider>
+        <SystemBars style="dark" />
+        <AppNavigator />
+        <Toast />
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
   );
 };
 

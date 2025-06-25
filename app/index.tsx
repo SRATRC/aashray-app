@@ -1,11 +1,9 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGlobalContext } from '../context/GlobalProvider';
 import { handleUserNavigation } from '../utils/navigationValidations';
-
-import 'react-native-reanimated';
+import { View } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
 
 export default function Index() {
   const { loading, user } = useGlobalContext();
@@ -15,15 +13,10 @@ export default function Index() {
     if (!loading) {
       (async () => {
         await handleUserNavigation(user, router);
+        await SplashScreen.hideAsync();
       })();
     }
-  }, [loading]);
+  }, [loading, user, router]);
 
-  return (
-    <SafeAreaView>
-      <View className="h-full items-center justify-center">
-        <ActivityIndicator />
-      </View>
-    </SafeAreaView>
-  );
+  return <View style={{ flex: 1 }} />;
 }
