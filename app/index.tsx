@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGlobalContext } from '../context/GlobalProvider';
@@ -22,7 +21,6 @@ export default function Index() {
 
   return (
     <SafeAreaView>
-      <StatusBar style="dark" />
       <View className="h-full items-center justify-center">
         <ActivityIndicator />
       </View>

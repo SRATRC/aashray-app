@@ -7,7 +7,7 @@ import {
   Image,
 } from 'react-native';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useGlobalContext } from '../../context/GlobalProvider';
@@ -136,6 +136,7 @@ const PaymentTimer = ({ createdAt }: { createdAt: string }) => {
 const PendingPayments = () => {
   const { user } = useGlobalContext();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const queryClient = useQueryClient();
   const [selectedPayments, setSelectedPayments] = useState<Transaction[]>([]);
@@ -847,7 +848,7 @@ const PendingPayments = () => {
   }
 
   return (
-    <SafeAreaView className="h-full" edges={['top', 'bottom']}>
+    <SafeAreaView className="h-full">
       <PageHeader title="Pending Payments" />
 
       <FlashList
@@ -855,7 +856,7 @@ const PendingPayments = () => {
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 12,
-          paddingBottom: selectedPayments.length > 0 && isPaymentAllowed ? 90 : 20,
+          paddingBottom: selectedPayments.length > 0 && isPaymentAllowed ? 90 + insets.bottom : 20,
         }}
         data={pendingPayments}
         estimatedItemSize={120}
@@ -873,7 +874,7 @@ const PendingPayments = () => {
       />
 
       {selectedPayments.length > 0 && isPaymentAllowed && (
-        <View className="absolute bottom-0 left-0 right-0">
+        <View className="absolute left-0 right-0" style={{ bottom: insets.bottom }}>
           <View className="rounded-t-xl border-t border-gray-200 bg-white p-4 shadow-lg">
             <View className="mb-3 flex-row items-center justify-between">
               <View>

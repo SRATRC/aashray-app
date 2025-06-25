@@ -33,7 +33,7 @@ export default {
     },
     android: {
       package: 'org.vitraagvigyaan.aashray',
-      edgeToEdgeEnabled: false,
+      edgeToEdgeEnabled: true,
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
         monochromeImage: './assets/images/adaptive-icon.png',
@@ -118,9 +118,12 @@ export default {
         },
       ],
       [
-        'expo-web-browser',
+        'react-native-edge-to-edge',
         {
-          experimentalLauncherActivity: true,
+          android: {
+            parentTheme: 'Default',
+            enforceNavigationBarContrast: false,
+          },
         },
       ],
     ],

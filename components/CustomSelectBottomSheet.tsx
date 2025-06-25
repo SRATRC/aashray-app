@@ -15,7 +15,6 @@ import {
   Platform,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { StatusBar } from 'expo-status-bar';
 import { colors } from '../constants';
 import AntDesign from '@expo/vector-icons/AntDesign';
 // @ts-ignore
@@ -586,7 +585,6 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
         animationType="none"
         statusBarTranslucent={true}
         onRequestClose={closeBottomSheet}>
-        <StatusBar style="light" />
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={{ flex: 1 }}>

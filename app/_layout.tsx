@@ -1,9 +1,8 @@
 import '../global.css';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { StatusBar } from 'expo-status-bar';
+import { SystemBars } from 'react-native-edge-to-edge';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NotificationProvider } from '../context/NotificationContext';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
@@ -11,9 +10,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GlobalProvider from '../context/GlobalProvider';
 import Toast from 'react-native-toast-message';
 import * as Sentry from '@sentry/react-native';
+import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
-import * as NavigationBar from 'expo-navigation-bar';
-import { Platform } from 'react-native';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -68,13 +66,6 @@ const RootLayout = () => {
     }
   }, [fontsLoaded, error]);
 
-  useEffect(() => {
-    if (Platform.OS === 'android') {
-      NavigationBar.setBackgroundColorAsync('#FFFCF5');
-      NavigationBar.setButtonStyleAsync('dark');
-    }
-  }, []);
-
   if (!fontsLoaded && !error) {
     return null;
   }
@@ -85,7 +76,7 @@ const RootLayout = () => {
         <GlobalProvider>
           <GestureHandlerRootView>
             <BottomSheetModalProvider>
-              <StatusBar style="dark" />
+              <SystemBars style="dark" />
               <Stack>
                 <Stack.Screen name="index" options={{ headerShown: false }} />
                 <Stack.Screen name="(auth)" options={{ headerShown: false }} />
