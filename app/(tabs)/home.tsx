@@ -14,6 +14,7 @@ import { icons, images, quotes, status } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { useRouter } from 'expo-router';
 import CustomHomeIcon from '../../components/CustomHomeIcon';
+import { Platform } from 'react-native';
 
 const QuotesBanner = ({ user, images }: any) => {
   const randomQuote = useMemo(() => {
@@ -64,8 +65,11 @@ const Home: React.FC = () => {
   }
 
   return (
-    <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+    <SafeAreaView className="h-full bg-white" edges={['top']}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        className="flex-1"
+        style={{ paddingBottom: Platform.OS === 'ios' ? 90 : 0 }}>
         <View className=" flex-row items-center justify-start px-4">
           <Image
             source={images.sratrcLogo as ImageSourcePropType}

@@ -97,7 +97,7 @@ const Bookings: React.FC = () => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}>
-        <View className="flex-1">
+        <View className="flex-1" style={{ paddingBottom: Platform.OS === 'ios' ? 80 : 0 }}>
           <BookingCategories setRefreshHandler={setRefreshHandler} />
         </View>
       </KeyboardAvoidingView>

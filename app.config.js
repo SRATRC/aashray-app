@@ -3,7 +3,7 @@ export default {
     name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
-    version: '1.1.7',
+    version: '1.1.8',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     userInterfaceStyle: 'automatic',
@@ -121,7 +121,7 @@ export default {
         'react-native-edge-to-edge',
         {
           android: {
-            parentTheme: 'Default',
+            parentTheme: 'Material2',
             enforceNavigationBarContrast: false,
           },
         },

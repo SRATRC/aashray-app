@@ -358,37 +358,6 @@ const Profile: React.FC = () => {
               <View
                 className="rounded-xl bg-gradient-to-br p-4"
                 style={{
-                  backgroundColor: '#FFF7ED',
-                  borderWidth: 1,
-                  borderColor: '#FED7AA',
-                }}>
-                <View className="mb-2 flex-row items-center justify-between">
-                  <View
-                    className="rounded-lg bg-white p-2.5"
-                    style={{
-                      shadowColor: '#FF9500',
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 3,
-                      elevation: 2,
-                    }}>
-                    <Image source={icons.coin} className="h-5 w-5" resizeMode="contain" />
-                  </View>
-                  <View className="rounded-full bg-orange-100 px-2 py-0.5">
-                    <Text className="font-pmedium text-[10px] text-orange-600">ROOM</Text>
-                  </View>
-                </View>
-                <Text className="mt-1 font-psemibold text-2xl text-gray-900">
-                  {user?.credits?.room || 0}
-                </Text>
-                <Text className="font-pregular text-xs text-gray-500">credits</Text>
-              </View>
-            </View>
-
-            <View className="mb-3 w-1/2 px-2">
-              <View
-                className="rounded-xl bg-gradient-to-br p-4"
-                style={{
                   backgroundColor: '#F0F9FF',
                   borderWidth: 1,
                   borderColor: '#BAE6FD',
@@ -411,37 +380,6 @@ const Profile: React.FC = () => {
                 </View>
                 <Text className="mt-1 font-psemibold text-2xl text-gray-900">
                   {user?.credits?.travel || 0}
-                </Text>
-                <Text className="font-pregular text-xs text-gray-500">credits</Text>
-              </View>
-            </View>
-
-            <View className="mb-3 w-1/2 px-2">
-              <View
-                className="rounded-xl bg-gradient-to-br p-4"
-                style={{
-                  backgroundColor: '#F0FDF4',
-                  borderWidth: 1,
-                  borderColor: '#BBF7D0',
-                }}>
-                <View className="mb-2 flex-row items-center justify-between">
-                  <View
-                    className="rounded-lg bg-white p-2.5"
-                    style={{
-                      shadowColor: '#10B981',
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 3,
-                      elevation: 2,
-                    }}>
-                    <Image source={icons.coin} className="h-5 w-5" resizeMode="contain" />
-                  </View>
-                  <View className="rounded-full bg-green-100 px-2 py-0.5">
-                    <Text className="font-pmedium text-[10px] text-green-600">UTSAV</Text>
-                  </View>
-                </View>
-                <Text className="mt-1 font-psemibold text-2xl text-gray-900">
-                  {user?.credits?.utsav || 0}
                 </Text>
                 <Text className="font-pregular text-xs text-gray-500">credits</Text>
               </View>
@@ -477,6 +415,37 @@ const Profile: React.FC = () => {
                 <Text className="font-pregular text-xs text-gray-500">credits</Text>
               </View>
             </View>
+
+            <View className="mb-3 w-full px-2">
+              <View
+                className="rounded-xl bg-gradient-to-br p-4"
+                style={{
+                  backgroundColor: '#FFF7ED',
+                  borderWidth: 1,
+                  borderColor: '#FED7AA',
+                }}>
+                <View className="mb-2 flex-row items-center justify-between">
+                  <View
+                    className="rounded-lg bg-white p-2.5"
+                    style={{
+                      shadowColor: '#FF9500',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 3,
+                      elevation: 2,
+                    }}>
+                    <Image source={icons.coin} className="h-5 w-5" resizeMode="contain" />
+                  </View>
+                  <View className="rounded-full bg-orange-100 px-2 py-0.5">
+                    <Text className="font-pmedium text-[10px] text-orange-600">ROOM / FLAT</Text>
+                  </View>
+                </View>
+                <Text className="mt-1 font-psemibold text-2xl text-gray-900">
+                  {user?.credits?.room || 0}
+                </Text>
+                <Text className="font-pregular text-xs text-gray-500">credits</Text>
+              </View>
+            </View>
           </View>
         </View>
       </View>
@@ -484,10 +453,11 @@ const Profile: React.FC = () => {
   );
 
   return (
-    <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
+    <SafeAreaView className="h-full bg-white" edges={['top']}>
       <View className="h-full w-full">
         <FlashList
           className="h-full py-2"
+          contentContainerStyle={{ paddingBottom: Platform.OS === 'ios' ? 80 : 0 }}
           showsVerticalScrollIndicator={false}
           data={profileList}
           renderItem={renderItem}
@@ -713,7 +683,7 @@ const Profile: React.FC = () => {
             <View>
               <Text className="mb-2 font-psemibold text-base text-gray-800">How to Use?</Text>
               <Text className="font-pregular text-sm leading-5 text-gray-600">
-                When you make a booking for a Room, Travel, Utsav, or Guest Food, any available
+                When you make a booking for a Room / Flat, Travel and Guest Food, any available
                 credits in your account will be automatically applied at checkout.
               </Text>
             </View>

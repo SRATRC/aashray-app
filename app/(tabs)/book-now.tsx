@@ -54,7 +54,7 @@ const BookingCategoriesInternal = () => {
   }
 
   return (
-    <View className="my-6 w-full px-4">
+    <View className="my-6 w-full px-4" style={{ paddingBottom: Platform.OS === 'ios' ? 80 : 0 }}>
       <Text className="font-psemibold text-2xl">{`${selectedChip} Booking`}</Text>
 
       <CustomChipGroup
