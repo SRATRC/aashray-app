@@ -1,6 +1,6 @@
 import { View, Text, Image, ScrollView } from 'react-native';
-import { colors, icons, status } from '../../constants';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { colors, icons, status } from '@/constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { FontAwesome5, FontAwesome } from '@expo/vector-icons';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import HorizontalSeparator from '../HorizontalSeparator';

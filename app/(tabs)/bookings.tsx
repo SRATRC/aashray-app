@@ -1,14 +1,14 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { types } from '../../constants';
+import { types } from '@/constants';
 import { useQueryClient } from '@tanstack/react-query';
-import CustomChipGroup from '../../components/CustomChipGroup';
-import RoomBookingCancellation from '../../components/cancel booking/RoomBookingCancellation';
-import FoodBookingCancellation from '../../components/cancel booking/FoodBookingCancellation';
-import TravelBookingCancellation from '../../components/cancel booking/TravelBookingCancellation';
-import AdhyayanBookingCancellation from '../../components/cancel booking/AdhyayanBookingCancellation';
-import EventBookingCancellation from '../../components/cancel booking/EventBookingCancellation';
+import CustomChipGroup from '@/components/CustomChipGroup';
+import RoomBookingCancellation from '@/components/cancel booking/RoomBookingCancellation';
+import FoodBookingCancellation from '@/components/cancel booking/FoodBookingCancellation';
+import TravelBookingCancellation from '@/components/cancel booking/TravelBookingCancellation';
+import AdhyayanBookingCancellation from '@/components/cancel booking/AdhyayanBookingCancellation';
+import EventBookingCancellation from '@/components/cancel booking/EventBookingCancellation';
 
 const CHIPS = [
   types.booking_type_adhyayan,

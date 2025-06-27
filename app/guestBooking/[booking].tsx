@@ -1,21 +1,21 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { dropdowns, types } from '../../constants';
+import { dropdowns, types } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
-import { prepareGuestRequestBody } from '~/utils/preparingRequestBody';
-import CustomButton from '../../components/CustomButton';
-import PageHeader from '../../components/PageHeader';
-import GuestRoomBookingDetails from '../../components/booking details cards/GuestRoomBookingDetails';
-import GuestAdhyayanBookingDetails from '../../components/booking details cards/GuestAdhyayanBookingDetails';
-import GuestRoomAddon from '../../components/booking addons/GuestRoomAddon';
-import GuestFoodAddon from '../../components/booking addons/GuestFoodAddon';
-import GuestAdhyayanAddon from '../../components/booking addons/GuestAdhyayanAddon';
-import handleAPICall from '~/utils/HandleApiCall';
-import CustomModal from '~/components/CustomModal';
-import GuestEventBookingDetails from '~/components/booking details cards/GuestEventBookingDetails';
+import { prepareGuestRequestBody } from '@/utils/preparingRequestBody';
+import CustomButton from '@/components/CustomButton';
+import PageHeader from '@/components/PageHeader';
+import GuestRoomBookingDetails from '@/components/booking details cards/GuestRoomBookingDetails';
+import GuestAdhyayanBookingDetails from '@/components/booking details cards/GuestAdhyayanBookingDetails';
+import GuestRoomAddon from '@/components/booking addons/GuestRoomAddon';
+import GuestFoodAddon from '@/components/booking addons/GuestFoodAddon';
+import GuestAdhyayanAddon from '@/components/booking addons/GuestAdhyayanAddon';
+import handleAPICall from '@/utils/HandleApiCall';
+import CustomModal from '@/components/CustomModal';
+import GuestEventBookingDetails from '@/components/booking details cards/GuestEventBookingDetails';
 
 // Define initial form structures
 const createInitialRoomForm = (existingData: any = null) => ({

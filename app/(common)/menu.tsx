@@ -10,12 +10,12 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import handleAPICall from '../../utils/HandleApiCall';
-import PageHeader from '~/components/PageHeader';
-import CustomEmptyMessage from '~/components/CustomEmptyMessage';
+import handleAPICall from '@/utils/HandleApiCall';
+import PageHeader from '@/components/PageHeader';
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
 
 const { width } = Dimensions.get('window');
 

@@ -1,8 +1,8 @@
 import { View, Text } from 'react-native';
 import React, { useState, useCallback, useEffect } from 'react';
-import { types, dropdowns, status } from '../../constants';
+import { types, dropdowns, status } from '@/constants';
 import { useRouter } from 'expo-router';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { useQuery } from '@tanstack/react-query';
 import CustomButton from '../CustomButton';
 import CustomCalender from '../CustomCalender';
@@ -14,7 +14,7 @@ import FormDisplayField from '../FormDisplayField';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import moment from 'moment';
-import handleAPICall from '../../utils/HandleApiCall';
+import handleAPICall from '@/utils/HandleApiCall';
 
 let CHIPS = ['Self', 'Mumukshus'];
 

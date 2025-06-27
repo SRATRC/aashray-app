@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
-import { colors, icons, dropdowns } from '../../constants';
+import { colors, icons, dropdowns } from '@/constants';
 import moment from 'moment';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import AddonItem from '../AddonItem';

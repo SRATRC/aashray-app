@@ -8,11 +8,11 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { icons, status } from '../../constants';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { icons, status } from '@/constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { FlashList } from '@shopify/flash-list';
 import CustomButton from '../CustomButton';
-import handleAPICall from '../../utils/HandleApiCall';
+import handleAPICall from '@/utils/HandleApiCall';
 import ExpandableItem from '../ExpandableItem';
 import BookingStatusDisplay from '../BookingStatusDisplay';
 import HorizontalSeparator from '../HorizontalSeparator';

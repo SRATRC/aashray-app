@@ -12,7 +12,7 @@ import {
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { useGlobalContext } from '../context/GlobalProvider';
-import { colors } from '~/constants';
+import { colors } from '@/constants';
 // @ts-ignore
 import QRCodeStyled from 'react-native-qrcode-styled';
 import * as Haptics from 'expo-haptics';

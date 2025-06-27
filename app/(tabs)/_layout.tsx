@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Image, Platform } from 'react-native';
 import { Tabs } from 'expo-router';
-import { icons } from '../../constants';
-import { QrModal } from '~/components/QrModal';
-import { HapticTab } from '~/components/HapticTab';
-import BlurTabBarBackground from '~/components/TabBarBackground';
+import { icons } from '@/constants';
+import { QrModal } from '@/components/QrModal';
+import { HapticTab } from '@/components/HapticTab';
+import BlurTabBarBackground from '@/components/TabBarBackground';
 
 interface TabIconProps {
   icon: any;

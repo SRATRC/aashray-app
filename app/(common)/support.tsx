@@ -3,12 +3,12 @@ import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { useGlobalContext } from '../../context/GlobalProvider';
-import PageHeader from '../../components/PageHeader';
-import FormField from '../../components/FormField';
-import CustomButton from '../../components/CustomButton';
-import CustomSelectBottomSheet from '../../components/CustomSelectBottomSheet';
-import handleAPICall from '../../utils/HandleApiCall';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import PageHeader from '@/components/PageHeader';
+import FormField from '@/components/FormField';
+import CustomButton from '@/components/CustomButton';
+import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
+import handleAPICall from '@/utils/HandleApiCall';
 
 const SERVICE_LIST = [
   { key: 'booking', value: 'Booking Related Issues' },

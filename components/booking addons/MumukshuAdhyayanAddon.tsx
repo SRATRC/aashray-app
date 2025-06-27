@@ -1,8 +1,8 @@
 import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
-import { icons } from '../../constants';
+import { icons } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
-import { useGlobalContext } from '../../context/GlobalProvider';
-import handleAPICall from '../../utils/HandleApiCall';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import handleAPICall from '@/utils/HandleApiCall';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';

@@ -1,23 +1,23 @@
 import { View, Text, ScrollView, Platform } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useState, useCallback } from 'react';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '../../constants';
+import { colors } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
-import { prepareMumukshuRequestBody } from '~/utils/preparingRequestBody';
+import { prepareMumukshuRequestBody } from '@/utils/preparingRequestBody';
 import { Ionicons } from '@expo/vector-icons';
-import PageHeader from '../../components/PageHeader';
-import CustomButton from '../../components/CustomButton';
-import handleAPICall from '../../utils/HandleApiCall';
-import MumukshuAdhyayanBookingDetails from '../../components/booking details cards/MumukshuAdhyayanBookingDetails';
-import MumukshuRoomBookingDetails from '../../components/booking details cards/MumukshuRoomBookingDetails';
-import MumukshuTravelBookingDetails from '../../components/booking details cards/MumukshuTravelBookingDetails';
-import MumukshuFoodBookingDetails from '../../components/booking details cards/MumukshuFoodBookingDetails';
-import MumukshuEventBookingDetails from '~/components/booking details cards/MumukshuEventBookingDetails';
+import PageHeader from '@/components/PageHeader';
+import CustomButton from '@/components/CustomButton';
+import handleAPICall from '@/utils/HandleApiCall';
+import MumukshuAdhyayanBookingDetails from '@/components/booking details cards/MumukshuAdhyayanBookingDetails';
+import MumukshuRoomBookingDetails from '@/components/booking details cards/MumukshuRoomBookingDetails';
+import MumukshuTravelBookingDetails from '@/components/booking details cards/MumukshuTravelBookingDetails';
+import MumukshuFoodBookingDetails from '@/components/booking details cards/MumukshuFoodBookingDetails';
+import MumukshuEventBookingDetails from '@/components/booking details cards/MumukshuEventBookingDetails';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
-import CustomModal from '~/components/CustomModal';
+import CustomModal from '@/components/CustomModal';
 import * as Haptics from 'expo-haptics';
 
 // Define validation data type

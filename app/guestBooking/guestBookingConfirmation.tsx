@@ -1,23 +1,23 @@
 import { View, Text, ScrollView, Platform } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useState, useCallback, useEffect } from 'react';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '../../constants';
+import { colors } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
-import { prepareGuestRequestBody } from '~/utils/preparingRequestBody';
+import { prepareGuestRequestBody } from '@/utils/preparingRequestBody';
 import { Ionicons } from '@expo/vector-icons';
-import GuestRoomBookingDetails from '../../components/booking details cards/GuestRoomBookingDetails';
-import GuestAdhyayanBookingDetails from '../../components/booking details cards/GuestAdhyayanBookingDetails';
-import GuestFoodBookingDetails from '../../components/booking details cards/GuestFoodBookingDetails';
-import PageHeader from '../../components/PageHeader';
-import CustomButton from '../../components/CustomButton';
-import handleAPICall from '../../utils/HandleApiCall';
+import GuestRoomBookingDetails from '@/components/booking details cards/GuestRoomBookingDetails';
+import GuestAdhyayanBookingDetails from '@/components/booking details cards/GuestAdhyayanBookingDetails';
+import GuestFoodBookingDetails from '@/components/booking details cards/GuestFoodBookingDetails';
+import PageHeader from '@/components/PageHeader';
+import CustomButton from '@/components/CustomButton';
+import handleAPICall from '@/utils/HandleApiCall';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
-import CustomModal from '~/components/CustomModal';
+import CustomModal from '@/components/CustomModal';
 import * as Haptics from 'expo-haptics';
-import GuestEventBookingDetails from '~/components/booking details cards/GuestEventBookingDetails';
+import GuestEventBookingDetails from '@/components/booking details cards/GuestEventBookingDetails';
 
 const guestBookingConfirmation = () => {
   const router = useRouter();

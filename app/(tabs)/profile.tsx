@@ -14,17 +14,17 @@ import {
   StatusBar,
   ActivityIndicator,
 } from 'react-native';
-import { icons } from '../../constants';
+import { icons } from '@/constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { Feather } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
-import handleAPICall from '../../utils/HandleApiCall';
-import getCachedImageUri, { invalidateCachedImage } from '../../utils/imageCache';
-import FormField from '~/components/FormField';
-import CustomModal from '~/components/CustomModal';
+import handleAPICall from '@/utils/HandleApiCall';
+import getCachedImageUri, { invalidateCachedImage } from '@/utils/imageCache';
+import FormField from '@/components/FormField';
+import CustomModal from '@/components/CustomModal';
 import * as Haptics from 'expo-haptics';
 
 const Profile: React.FC = () => {

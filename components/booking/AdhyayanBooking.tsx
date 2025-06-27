@@ -13,13 +13,13 @@ import {
   RefreshControl,
 } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { icons, status, types } from '../../constants';
+import { icons, status, types } from '@/constants';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import CustomButton from '../CustomButton';
-import handleAPICall from '../../utils/HandleApiCall';
+import handleAPICall from '@/utils/HandleApiCall';
 import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
 import CustomChipGroup from '../CustomChipGroup';

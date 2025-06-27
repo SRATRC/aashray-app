@@ -10,14 +10,14 @@ import {
 } from 'react-native';
 import { useState, useCallback, useRef } from 'react';
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { icons } from '../../constants';
+import { icons } from '@/constants';
 import { FlashList } from '@shopify/flash-list';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { useBottomSheetModal } from '@gorhom/bottom-sheet';
 import { FontAwesome } from '@expo/vector-icons';
 import Animated from 'react-native-reanimated';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import handleAPICall from '../../utils/HandleApiCall';
+import handleAPICall from '@/utils/HandleApiCall';
 import CustomTag from '../CustomTag';
 import moment from 'moment';
 import * as Haptics from 'expo-haptics';

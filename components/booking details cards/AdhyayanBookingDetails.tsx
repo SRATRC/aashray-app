@@ -1,6 +1,6 @@
 import { View, Text, Image } from 'react-native';
-import { icons, status } from '../../constants';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { icons, status } from '@/constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomTag from '../CustomTag';
 import moment from 'moment';

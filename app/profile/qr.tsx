@@ -1,10 +1,10 @@
 import { View, ImageBackground, Modal } from 'react-native';
-import { images, colors } from '../../constants';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { images, colors } from '@/constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { router } from 'expo-router';
 import React from 'react';
 import QRCodeStyled from 'react-native-qrcode-styled';
-import PageHeader from '../../components/PageHeader';
+import PageHeader from '@/components/PageHeader';
 
 const QrScreen = () => {
   const { user } = useGlobalContext();
@@ -47,7 +47,7 @@ const QrScreen = () => {
                 color: colors.orange,
               }}
               logo={{
-                href: require('../../assets/images/logo.png'),
+                href: require('@/assets/images/logo.png'),
                 padding: 4,
               }}
             />

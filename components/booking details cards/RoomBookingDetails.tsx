@@ -1,7 +1,7 @@
 import { View, Text, Image, ScrollView } from 'react-native';
-import { icons, status } from '../../constants';
-import { useGlobalContext } from '../../context/GlobalProvider';
-import { countStatusesForField } from '~/utils/BookingValidationStatusCounter';
+import { icons, status } from '@/constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import { countStatusesForField } from '@/utils/BookingValidationStatusCounter';
 import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
 import CustomTag from '../CustomTag';

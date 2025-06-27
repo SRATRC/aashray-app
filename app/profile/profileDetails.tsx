@@ -2,16 +2,16 @@ import { View, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { dropdowns, icons } from '../../constants';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { dropdowns, icons } from '@/constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { useRouter } from 'expo-router';
-import PageHeader from '../../components/PageHeader';
-import FormField from '../../components/FormField';
-import FormDisplayField from '../../components/FormDisplayField';
-import CustomButton from '../../components/CustomButton';
+import PageHeader from '@/components/PageHeader';
+import FormField from '@/components/FormField';
+import FormDisplayField from '@/components/FormDisplayField';
+import CustomButton from '@/components/CustomButton';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import handleAPICall from '../../utils/HandleApiCall';
-import CustomSelectBottomSheet from '~/components/CustomSelectBottomSheet';
+import handleAPICall from '@/utils/HandleApiCall';
+import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
 import moment from 'moment';
 
 const fetchCountries = () => {

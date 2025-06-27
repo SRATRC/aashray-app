@@ -1,23 +1,23 @@
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useState, useMemo, useCallback } from 'react';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { dropdowns, types } from '../../constants';
+import { dropdowns, types } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
-import { prepareSelfRequestBody } from '~/utils/preparingRequestBody';
-import CustomButton from '../../components/CustomButton';
-import PageHeader from '../../components/PageHeader';
-import RoomBookingDetails from '../../components/booking details cards/RoomBookingDetails';
-import TravelBookingDetails from '../../components/booking details cards/TravelBookingDetails';
-import AdhyayanBookingDetails from '../../components/booking details cards/AdhyayanBookingDetails';
-import RoomAddon from '../../components/booking addons/RoomAddon';
-import FoodAddon from '../../components/booking addons/FoodAddon';
-import AdhyayanAddon from '../../components/booking addons/AdhyayanAddon';
-import TravelAddon from '../../components/booking addons/TravelAddon';
-import handleAPICall from '~/utils/HandleApiCall';
-import CustomModal from '~/components/CustomModal';
-import EventBookingDetails from '~/components/booking details cards/EventBookingDetails';
+import { prepareSelfRequestBody } from '@/utils/preparingRequestBody';
+import CustomButton from '@/components/CustomButton';
+import PageHeader from '@/components/PageHeader';
+import RoomBookingDetails from '@/components/booking details cards/RoomBookingDetails';
+import TravelBookingDetails from '@/components/booking details cards/TravelBookingDetails';
+import AdhyayanBookingDetails from '@/components/booking details cards/AdhyayanBookingDetails';
+import RoomAddon from '@/components/booking addons/RoomAddon';
+import FoodAddon from '@/components/booking addons/FoodAddon';
+import AdhyayanAddon from '@/components/booking addons/AdhyayanAddon';
+import TravelAddon from '@/components/booking addons/TravelAddon';
+import handleAPICall from '@/utils/HandleApiCall';
+import CustomModal from '@/components/CustomModal';
+import EventBookingDetails from '@/components/booking details cards/EventBookingDetails';
 
 const BookingDetails = () => {
   const { booking } = useLocalSearchParams();

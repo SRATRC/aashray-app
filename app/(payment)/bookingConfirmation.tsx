@@ -2,10 +2,10 @@ import { useEffect, useRef, useMemo } from 'react';
 import { View, Text, Image, TouchableOpacity, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { icons, quotes } from '../../constants';
+import { icons, quotes } from '@/constants';
 import { useQueryClient } from '@tanstack/react-query';
-import { useGlobalContext } from '../../context/GlobalProvider';
-import CustomButton from '../../components/CustomButton';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import CustomButton from '@/components/CustomButton';
 
 const BookingSuccess = () => {
   const { user } = useGlobalContext();

@@ -1,5 +1,5 @@
 import { View, Text, Image } from 'react-native';
-import { images, colors } from '~/constants';
+import { images, colors } from '@/constants';
 
 interface CustomEmptyMessageProps {
   message: string;

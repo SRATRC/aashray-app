@@ -8,20 +8,20 @@ import {
   Image,
 } from 'react-native';
 import { useState, useCallback } from 'react';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { useQuery } from '@tanstack/react-query';
-import { colors, icons } from '../../constants';
+import { colors, icons } from '@/constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
-import PageHeader from '../../components/PageHeader';
-import handleAPICall from '../../utils/HandleApiCall';
-import CustomButton from '../../components/CustomButton';
-import HorizontalSeparator from '../../components/HorizontalSeparator';
+import PageHeader from '@/components/PageHeader';
+import handleAPICall from '@/utils/HandleApiCall';
+import CustomButton from '@/components/CustomButton';
+import HorizontalSeparator from '@/components/HorizontalSeparator';
 import moment from 'moment';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
-import CustomEmptyMessage from '../../components/CustomEmptyMessage';
-import CustomErrorMessage from '../../components/CustomErrorMessage';
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
+import CustomErrorMessage from '@/components/CustomErrorMessage';
 
 const wifi = () => {
   const { user } = useGlobalContext();

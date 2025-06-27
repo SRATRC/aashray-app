@@ -10,12 +10,12 @@ import {
 import { useState, useRef, useEffect } from 'react';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { MaterialIcons, Ionicons, AntDesign } from '@expo/vector-icons';
-import { useGlobalContext } from '../../context/GlobalProvider';
-import { handleUserNavigation } from '../../utils/navigationValidations';
-import { invalidateCachedImage } from '~/utils/imageCache';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import { handleUserNavigation } from '@/utils/navigationValidations';
+import { invalidateCachedImage } from '@/utils/imageCache';
 import { useRouter } from 'expo-router';
-import CustomButton from '../../components/CustomButton';
-import handleAPICall from '~/utils/HandleApiCall';
+import CustomButton from '@/components/CustomButton';
+import handleAPICall from '@/utils/HandleApiCall';
 import * as ImagePicker from 'expo-image-picker';
 
 const CameraScreen: React.FC = () => {

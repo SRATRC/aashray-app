@@ -11,16 +11,16 @@ import {
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { dropdowns, images, colors, icons } from '../../constants';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { dropdowns, images, colors, icons } from '@/constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { useRouter } from 'expo-router';
-import FormField from '../../components/FormField';
-import FormDisplayField from '../../components/FormDisplayField';
-import CustomButton from '../../components/CustomButton';
+import FormField from '@/components/FormField';
+import FormDisplayField from '@/components/FormDisplayField';
+import CustomButton from '@/components/CustomButton';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import handleAPICall from '../../utils/HandleApiCall';
-import CustomSelectBottomSheet from '~/components/CustomSelectBottomSheet';
-import PageHeader from '~/components/PageHeader';
+import handleAPICall from '@/utils/HandleApiCall';
+import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
+import PageHeader from '@/components/PageHeader';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
 

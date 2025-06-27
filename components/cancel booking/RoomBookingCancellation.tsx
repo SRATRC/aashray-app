@@ -9,10 +9,10 @@ import {
 } from 'react-native';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
-import { icons, status } from '../../constants';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { icons, status } from '@/constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import CustomButton from '../CustomButton';
-import handleAPICall from '../../utils/HandleApiCall';
+import handleAPICall from '@/utils/HandleApiCall';
 import ExpandableItem from '../ExpandableItem';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomEmptyMessage from '../CustomEmptyMessage';

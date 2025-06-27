@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Image } from 'react-native';
-import { icons, dropdowns } from '../../constants';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { icons, dropdowns } from '@/constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import FormDisplayField from '../FormDisplayField';

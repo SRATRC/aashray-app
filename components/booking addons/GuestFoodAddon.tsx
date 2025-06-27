@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
-import { colors, icons, dropdowns } from '../../constants';
+import { colors, icons, dropdowns } from '@/constants';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import HorizontalSeparator from '../HorizontalSeparator';

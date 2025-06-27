@@ -1,14 +1,14 @@
 import { View, Text, Alert } from 'react-native';
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { useGlobalContext } from '../../context/GlobalProvider';
-import { colors } from '../../constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import { colors } from '@/constants';
 import CustomCalender from '../CustomCalender';
 import CustomChipGroup from '../CustomChipGroup';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomButton from '../CustomButton';
 import GuestForm from '../GuestForm';
-import handleAPICall from '../../utils/HandleApiCall';
+import handleAPICall from '@/utils/HandleApiCall';
 import * as Haptics from 'expo-haptics';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';

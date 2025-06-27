@@ -2,22 +2,22 @@ import { View, Text, ScrollView, Platform } from 'react-native';
 import { useState, useCallback } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '../../constants';
-import { prepareSelfRequestBody } from '~/utils/preparingRequestBody';
+import { colors } from '@/constants';
+import { prepareSelfRequestBody } from '@/utils/preparingRequestBody';
 import { Ionicons } from '@expo/vector-icons';
-import RoomBookingDetails from '../../components/booking details cards/RoomBookingDetails';
-import PageHeader from '../../components/PageHeader';
-import TravelBookingDetails from '../../components/booking details cards/TravelBookingDetails';
-import AdhyayanBookingDetails from '../../components/booking details cards/AdhyayanBookingDetails';
-import CustomButton from '../../components/CustomButton';
-import FoodBookingDetails from '../../components/booking details cards/FoodBookingDetails';
-import handleAPICall from '../../utils/HandleApiCall';
+import RoomBookingDetails from '@/components/booking details cards/RoomBookingDetails';
+import PageHeader from '@/components/PageHeader';
+import TravelBookingDetails from '@/components/booking details cards/TravelBookingDetails';
+import AdhyayanBookingDetails from '@/components/booking details cards/AdhyayanBookingDetails';
+import CustomButton from '@/components/CustomButton';
+import FoodBookingDetails from '@/components/booking details cards/FoodBookingDetails';
+import handleAPICall from '@/utils/HandleApiCall';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
-import CustomModal from '~/components/CustomModal';
-import EventBookingDetails from '~/components/booking details cards/EventBookingDetails';
+import CustomModal from '@/components/CustomModal';
+import EventBookingDetails from '@/components/booking details cards/EventBookingDetails';
 import * as Haptics from 'expo-haptics';
 
 const bookingConfirmation = () => {

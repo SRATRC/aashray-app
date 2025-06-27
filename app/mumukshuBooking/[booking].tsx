@@ -1,24 +1,24 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { View, Text, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { dropdowns, types } from '../../constants';
+import { dropdowns, types } from '@/constants';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { ScrollView } from 'react-native-gesture-handler';
-import { prepareMumukshuRequestBody } from '~/utils/preparingRequestBody';
+import { prepareMumukshuRequestBody } from '@/utils/preparingRequestBody';
 import { useQuery } from '@tanstack/react-query';
-import PageHeader from '../../components/PageHeader';
-import CustomButton from '../../components/CustomButton';
-import MumukshuRoomBookingDetails from '../../components/booking details cards/MumukshuRoomBookingDetails';
-import MumukshuAdhyayanBookingDetails from '../../components/booking details cards/MumukshuAdhyayanBookingDetails';
-import MumukshuTravelBookingDetails from '../../components/booking details cards/MumukshuTravelBookingDetails';
-import MumukshuRoomAddon from '../../components/booking addons/MumukshuRoomAddon';
-import MumukshuFoodAddon from '../../components/booking addons/MumukshuFoodAddon';
-import MumukshuAdhyayanAddon from '../../components/booking addons/MumukshuAdhyayanAddon';
-import MumukshuTravelAddon from '../../components/booking addons/MumukshuTravelAddon';
-import handleAPICall from '~/utils/HandleApiCall';
-import CustomModal from '~/components/CustomModal';
-import MumukshuEventBookingDetails from '~/components/booking details cards/MumukshuEventBookingDetails';
+import PageHeader from '@/components/PageHeader';
+import CustomButton from '@/components/CustomButton';
+import MumukshuRoomBookingDetails from '@/components/booking details cards/MumukshuRoomBookingDetails';
+import MumukshuAdhyayanBookingDetails from '@/components/booking details cards/MumukshuAdhyayanBookingDetails';
+import MumukshuTravelBookingDetails from '@/components/booking details cards/MumukshuTravelBookingDetails';
+import MumukshuRoomAddon from '@/components/booking addons/MumukshuRoomAddon';
+import MumukshuFoodAddon from '@/components/booking addons/MumukshuFoodAddon';
+import MumukshuAdhyayanAddon from '@/components/booking addons/MumukshuAdhyayanAddon';
+import MumukshuTravelAddon from '@/components/booking addons/MumukshuTravelAddon';
+import handleAPICall from '@/utils/HandleApiCall';
+import CustomModal from '@/components/CustomModal';
+import MumukshuEventBookingDetails from '@/components/booking details cards/MumukshuEventBookingDetails';
 
 // Define initial form structures with factory functions for better reuse
 const createInitialRoomForm = (existingData: any = null) => ({

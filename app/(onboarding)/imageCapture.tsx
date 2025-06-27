@@ -2,10 +2,10 @@ import { View, Text, ScrollView, Image, TouchableWithoutFeedback } from 'react-n
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { colors, icons, images } from '../../constants';
-import { useGlobalContext } from '../../context/GlobalProvider';
-import CustomButton from '../../components/CustomButton';
-import handleAPICall from '../../utils/HandleApiCall';
+import { colors, icons, images } from '@/constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import CustomButton from '@/components/CustomButton';
+import handleAPICall from '@/utils/HandleApiCall';
 import Toast from 'react-native-toast-message';
 
 interface Step {

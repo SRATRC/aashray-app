@@ -14,20 +14,20 @@ import {
 import { useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import { colors, icons, status, types } from '../../constants';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { colors, icons, status, types } from '@/constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import PageHeader from '../../components/PageHeader';
-import handleAPICall from '../../utils/HandleApiCall';
-import CustomChipGroup from '../../components/CustomChipGroup';
-import CustomTag from '../../components/CustomTag';
-import ExpandableItem from '../../components/ExpandableItem';
-import HorizontalSeparator from '../../components/HorizontalSeparator';
-import FormField from '../../components/FormField';
-import CustomButton from '../../components/CustomButton';
-import CustomEmptyMessage from '../../components/CustomEmptyMessage';
-import CustomSelectBottomSheet from '~/components/CustomSelectBottomSheet';
+import PageHeader from '@/components/PageHeader';
+import handleAPICall from '@/utils/HandleApiCall';
+import CustomChipGroup from '@/components/CustomChipGroup';
+import CustomTag from '@/components/CustomTag';
+import ExpandableItem from '@/components/ExpandableItem';
+import HorizontalSeparator from '@/components/HorizontalSeparator';
+import FormField from '@/components/FormField';
+import CustomButton from '@/components/CustomButton';
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
+import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
 import moment from 'moment';
 
 const CHIPS = [

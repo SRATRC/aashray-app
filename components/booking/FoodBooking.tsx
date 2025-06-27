@@ -1,11 +1,11 @@
 import { View, Alert, Text } from 'react-native';
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { useGlobalContext } from '../../context/GlobalProvider';
-import { colors, dropdowns, status } from '../../constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import { colors, dropdowns, status } from '@/constants';
 import CustomButton from '../CustomButton';
 import CustomCalender from '../CustomCalender';
-import handleAPICall from '../../utils/HandleApiCall';
+import handleAPICall from '@/utils/HandleApiCall';
 import CustomChipGroup from '../CustomChipGroup';
 import CustomModal from '../CustomModal';
 import GuestForm from '../GuestForm';

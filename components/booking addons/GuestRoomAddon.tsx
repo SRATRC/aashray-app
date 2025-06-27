@@ -1,7 +1,7 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
-import { useGlobalContext } from '../../context/GlobalProvider';
-import { colors, icons, dropdowns } from '../../constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import { colors, icons, dropdowns } from '@/constants';
 import moment from 'moment';
 import AddonItem from '../AddonItem';
 import HorizontalSeparator from '../HorizontalSeparator';

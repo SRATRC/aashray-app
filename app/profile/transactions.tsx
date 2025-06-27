@@ -10,12 +10,12 @@ import { useState, useCallback, useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { FlashList } from '@shopify/flash-list';
-import { useGlobalContext } from '../../context/GlobalProvider';
-import { icons } from '../../constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import { icons } from '@/constants';
 import { Ionicons } from '@expo/vector-icons';
-import PageHeader from '../../components/PageHeader';
-import CustomEmptyMessage from '../../components/CustomEmptyMessage';
-import handleAPICall from '../../utils/HandleApiCall';
+import PageHeader from '@/components/PageHeader';
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
+import handleAPICall from '@/utils/HandleApiCall';
 import moment from 'moment';
 
 const Transactions = () => {

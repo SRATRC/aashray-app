@@ -2,15 +2,15 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-virtualized-view';
-import { status, types } from '../../constants';
-import { useGlobalContext } from '../../context/GlobalProvider';
-import CustomChipGroup from '../../components/CustomChipGroup';
-import RoomBooking from '../../components/booking/RoomBooking';
-import FoodBooking from '../../components/booking/FoodBooking';
-import TravelBooking from '../../components/booking/TravelBooking';
-import AdhyayanBooking from '../../components/booking/AdhyayanBooking';
-import EventsBooking from '../../components/booking/EventsBooking';
-import FlatBooking from '../../components/booking/FlatBooking';
+import { status, types } from '@/constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import CustomChipGroup from '@/components/CustomChipGroup';
+import RoomBooking from '@/components/booking/RoomBooking';
+import FoodBooking from '@/components/booking/FoodBooking';
+import TravelBooking from '@/components/booking/TravelBooking';
+import AdhyayanBooking from '@/components/booking/AdhyayanBooking';
+import EventsBooking from '@/components/booking/EventsBooking';
+import FlatBooking from '@/components/booking/FlatBooking';
 
 const BookingCategoriesInternal = () => {
   const { user } = useGlobalContext();

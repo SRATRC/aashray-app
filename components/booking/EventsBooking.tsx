@@ -15,11 +15,11 @@ import {
 } from 'react-native';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
-import { icons, status, types } from '../../constants';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { icons, status, types } from '@/constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { useRouter } from 'expo-router';
 import CustomButton from '../CustomButton';
-import handleAPICall from '../../utils/HandleApiCall';
+import handleAPICall from '@/utils/HandleApiCall';
 import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
 import CustomChipGroup from '../CustomChipGroup';

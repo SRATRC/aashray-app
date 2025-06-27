@@ -10,10 +10,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { icons, images, quotes, status } from '../../constants';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { icons, images, quotes, status } from '@/constants';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import { useRouter } from 'expo-router';
-import CustomHomeIcon from '../../components/CustomHomeIcon';
+import CustomHomeIcon from '@/components/CustomHomeIcon';
 import { Platform } from 'react-native';
 
 const QuotesBanner = ({ user, images }: any) => {

@@ -11,14 +11,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
-import { images } from '../../constants';
+import { images } from '@/constants';
 import { router } from 'expo-router';
-import { useGlobalContext } from '../../context/GlobalProvider';
-import { useNotification } from '../../context/NotificationContext';
-import { handleUserNavigation } from '../../utils/navigationValidations';
-import FormField from '../../components/FormField';
-import CustomButton from '../../components/CustomButton';
-import handleAPICall from '../../utils/HandleApiCall';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import { useNotification } from '@/context/NotificationContext';
+import { handleUserNavigation } from '@/utils/navigationValidations';
+import FormField from '@/components/FormField';
+import CustomButton from '@/components/CustomButton';
+import handleAPICall from '@/utils/HandleApiCall';
 
 const PasswordResetModal = ({ visible, onClose, email }: any) => {
   return (

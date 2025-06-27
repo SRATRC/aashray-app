@@ -1,9 +1,9 @@
 import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
-import { icons, types } from '../../constants';
+import { icons, types } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import { useGlobalContext } from '@/context/GlobalProvider';
 import AddonItem from '../AddonItem';
-import handleAPICall from '../../utils/HandleApiCall';
+import handleAPICall from '@/utils/HandleApiCall';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import moment from 'moment';
