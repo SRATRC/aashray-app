@@ -1,7 +1,7 @@
+import { useState, useMemo, useCallback } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { useState, useMemo, useCallback } from 'react';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore, useBookingStore } from '@/stores';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
@@ -21,7 +21,11 @@ import EventBookingDetails from '@/components/booking details cards/EventBooking
 
 const BookingDetails = () => {
   const { booking } = useLocalSearchParams();
-  const { user, data, setData } = useGlobalContext();
+
+  const user = useAuthStore((state) => state.user);
+  const data = useBookingStore((state) => state.data);
+  const setData = useBookingStore((state) => state.setData);
+
   const router = useRouter();
 
   // Consolidated state for addons visibility

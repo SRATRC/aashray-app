@@ -10,7 +10,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { FlashList } from '@shopify/flash-list';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore } from '@/stores';
 import { icons } from '@/constants';
 import { Ionicons } from '@expo/vector-icons';
 import PageHeader from '@/components/PageHeader';
@@ -19,7 +19,7 @@ import handleAPICall from '@/utils/HandleApiCall';
 import moment from 'moment';
 
 const Transactions = () => {
-  const { user } = useGlobalContext();
+  const { user } = useAuthStore();
   const [selectedChip, setSelectedChip] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
 

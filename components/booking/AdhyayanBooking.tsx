@@ -15,7 +15,7 @@ import {
 import React, { useCallback, useEffect, useState } from 'react';
 import { icons, status, types } from '@/constants';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore, useBookingStore } from '@/stores';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import CustomButton from '../CustomButton';
@@ -53,7 +53,10 @@ const INITIAL_MUMUKSHU_FORM = {
 
 const AdhyayanBookingDirect = () => {
   const router = useRouter();
-  const { user, updateBooking, updateGuestBooking, updateMumukshuBooking } = useGlobalContext();
+  const user = useAuthStore((state) => state.user);
+  const updateBooking = useBookingStore((state) => state.updateBooking);
+  const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
+  const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 

@@ -2,7 +2,7 @@ import { View, Text, ScrollView, Platform } from 'react-native';
 import { useState, useCallback } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore, useBookingStore } from '@/stores';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/constants';
 import { prepareSelfRequestBody } from '@/utils/preparingRequestBody';
@@ -22,7 +22,9 @@ import * as Haptics from 'expo-haptics';
 
 const bookingConfirmation = () => {
   const router = useRouter();
-  const { user, data, setData } = useGlobalContext();
+  const user = useAuthStore((state) => state.user);
+  const data = useBookingStore((state) => state.data);
+  const setData = useBookingStore((state) => state.setData);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPayLaterModal, setShowPayLaterModal] = useState(false);

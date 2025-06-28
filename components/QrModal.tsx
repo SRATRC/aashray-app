@@ -11,14 +11,14 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
-import { useGlobalContext } from '../context/GlobalProvider';
+import { useAuthStore } from '@/stores';
 import { colors } from '@/constants';
 // @ts-ignore
 import QRCodeStyled from 'react-native-qrcode-styled';
 import * as Haptics from 'expo-haptics';
 
 export const QrModal = () => {
-  const { user } = useGlobalContext();
+  const { user } = useAuthStore();
   const [modalVisible, setModalVisible] = useState(false);
   const scaleAnimation = new Animated.Value(0);
   const fadeAnimation = new Animated.Value(0);

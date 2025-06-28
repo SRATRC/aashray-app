@@ -4,11 +4,11 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icons, quotes } from '@/constants';
 import { useQueryClient } from '@tanstack/react-query';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore } from '@/stores';
 import CustomButton from '@/components/CustomButton';
 
 const PaymentConfirmation = () => {
-  const { user } = useGlobalContext();
+  const { user } = useAuthStore();
   const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;

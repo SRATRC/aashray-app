@@ -16,7 +16,7 @@ import {
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
 import { icons, status, types } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore, useBookingStore } from '@/stores';
 import { useRouter } from 'expo-router';
 import CustomButton from '../CustomButton';
 import handleAPICall from '@/utils/HandleApiCall';
@@ -94,7 +94,10 @@ const EventBookingDirect = () => {
     }, [])
   );
 
-  const { user, updateBooking, updateGuestBooking, updateMumukshuBooking } = useGlobalContext();
+  const user = useAuthStore((state) => state.user);
+  const updateBooking = useBookingStore((state) => state.updateBooking);
+  const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
+  const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
 
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [packages, setPackages] = useState<any[]>([]);

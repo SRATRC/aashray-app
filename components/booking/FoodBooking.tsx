@@ -1,8 +1,9 @@
-import { View, Alert, Text } from 'react-native';
 import React, { useState } from 'react';
+import { View, Alert, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore } from '@/stores';
 import { colors, dropdowns, status } from '@/constants';
+import { FontAwesome } from '@expo/vector-icons';
 import CustomButton from '../CustomButton';
 import CustomCalender from '../CustomCalender';
 import handleAPICall from '@/utils/HandleApiCall';
@@ -10,18 +11,17 @@ import CustomChipGroup from '../CustomChipGroup';
 import CustomModal from '../CustomModal';
 import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
-import { FontAwesome } from '@expo/vector-icons';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
 import moment from 'moment';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
 const FoodBooking = () => {
-  const { user } = useGlobalContext();
+  const { user } = useAuthStore();
   const router: any = useRouter();
 
   if (user.res_status == status.STATUS_GUEST) {

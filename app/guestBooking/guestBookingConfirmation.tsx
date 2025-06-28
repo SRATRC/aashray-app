@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, Platform } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useState, useCallback, useEffect } from 'react';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore, useBookingStore } from '@/stores';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
@@ -21,7 +21,10 @@ import GuestEventBookingDetails from '@/components/booking details cards/GuestEv
 
 const guestBookingConfirmation = () => {
   const router = useRouter();
-  const { user, guestData, setGuestData } = useGlobalContext();
+
+  const user = useAuthStore((state) => state.user);
+  const guestData = useBookingStore((state) => state.guestData);
+  const setGuestData = useBookingStore((state) => state.setGuestData);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPayLaterModal, setShowPayLaterModal] = useState(false);

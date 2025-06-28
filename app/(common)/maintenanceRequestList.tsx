@@ -15,9 +15,8 @@ import { useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { colors, icons, status, types } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore } from '@/stores';
 import { FlashList } from '@shopify/flash-list';
-import { useRouter } from 'expo-router';
 import PageHeader from '@/components/PageHeader';
 import handleAPICall from '@/utils/HandleApiCall';
 import CustomChipGroup from '@/components/CustomChipGroup';
@@ -43,8 +42,7 @@ const DEPARTMENT_LIST = [
 ];
 
 const maintenanceRequestList = () => {
-  const { user } = useGlobalContext();
-  const router = useRouter();
+  const { user } = useAuthStore();
   const queryClient = useQueryClient();
 
   const [selectedChip, setSelectedChip] = useState(types.MAINTENANCE_TYPE_ALL);

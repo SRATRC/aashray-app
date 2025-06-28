@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import { useGlobalContext } from '../context/GlobalProvider';
-import { handleUserNavigation } from '../utils/navigationValidations';
+import { useAuthStore } from '@/stores';
+import { handleUserNavigation } from '@/utils/navigationValidations';
 import { View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 
 export default function Index() {
-  const { loading, user } = useGlobalContext();
+  const loading = useAuthStore((state) => state.loading);
+  const user = useAuthStore((state) => state.user);
   const router = useRouter();
 
   useEffect(() => {

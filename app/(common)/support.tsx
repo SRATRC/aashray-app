@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore } from '@/stores';
 import PageHeader from '@/components/PageHeader';
 import FormField from '@/components/FormField';
 import CustomButton from '@/components/CustomButton';
@@ -18,7 +18,7 @@ const SERVICE_LIST = [
 ];
 
 const SupportTicket = () => {
-  const { user } = useGlobalContext();
+  const { user } = useAuthStore();
   const router = useRouter();
   const queryClient = useQueryClient();
 

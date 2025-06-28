@@ -1,14 +1,13 @@
-import { View, Text, Image, ScrollView } from 'react-native';
-import { colors, icons, status } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { View, Text, Image } from 'react-native';
+import { colors, icons } from '@/constants';
+import { useBookingStore } from '@/stores';
 import { FontAwesome5, FontAwesome } from '@expo/vector-icons';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import HorizontalSeparator from '../HorizontalSeparator';
-import CustomTag from '../CustomTag';
 import moment from 'moment';
 
 const GuestEventBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
-  const { guestData } = useGlobalContext();
+  const guestData = useBookingStore((store) => store.guestData);
 
   const formattedStartDate = moment(guestData.utsav.utsav.utsav_start).format('Do MMMM');
   const formattedEndDate = moment(guestData.utsav.utsav.utsav_end).format('Do MMMM, YYYY');

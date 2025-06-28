@@ -12,7 +12,7 @@ import { useState, useCallback, useRef } from 'react';
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { icons } from '@/constants';
 import { FlashList } from '@shopify/flash-list';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore } from '@/stores';
 import { useBottomSheetModal } from '@gorhom/bottom-sheet';
 import { FontAwesome } from '@expo/vector-icons';
 import Animated from 'react-native-reanimated';
@@ -35,7 +35,7 @@ const SPICE_LIST = [
 ];
 
 export default function FoodBookingCancellation() {
-  const { user } = useGlobalContext();
+  const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
 

@@ -1,7 +1,7 @@
 import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { icons } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore, useBookingStore } from '@/stores';
 import handleAPICall from '@/utils/HandleApiCall';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomEmptyMessage from '../CustomEmptyMessage';
@@ -25,7 +25,9 @@ const MumukshuAdhyayanAddon: React.FC<MumukshuAdhyayanAddonProps> = ({
   INITIAL_ADHYAYAN_FORM,
   mumukshu_dropdown,
 }) => {
-  const { user, mumukshuData, setMumukshuData } = useGlobalContext();
+  const user = useAuthStore((store) => store.user);
+  const mumukshuData = useBookingStore((store) => store.mumukshuData);
+  const setMumukshuData = useBookingStore((store) => store.setMumukshuData);
 
   const fetchAdhyayans = async () => {
     return new Promise((resolve, reject) => {

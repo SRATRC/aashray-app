@@ -1,8 +1,8 @@
+import React, { useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { colors, icons } from '../constants';
 import { useQueries } from '@tanstack/react-query';
-import { useGlobalContext } from '../context/GlobalProvider';
-import React, { useEffect } from 'react';
+import { useAuthStore } from '@/stores';
 import FormField from './FormField';
 import handleAPICall from '../utils/HandleApiCall';
 
@@ -23,7 +23,7 @@ const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
   removeMumukshuForm,
   children = () => null,
 }) => {
-  const { user } = useGlobalContext();
+  const { user } = useAuthStore();
 
   const verifyMumukshu = async (mobno: any) => {
     return new Promise((resolve, reject) => {

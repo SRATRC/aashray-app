@@ -10,7 +10,7 @@ export const useGlobalContext = () => useContext(GlobalContext);
 // };
 
 const getStorage = async () => {
-  const data = await AsyncStorage.multiGet(['user', 'settings']);
+  const data = await AsyncStorage.multiGet(['user']);
   return data;
 };
 
@@ -32,14 +32,6 @@ const GlobalProvider = ({ children }) => {
   const [guestData, setGuestData] = useState({});
   const [mumukshuData, setMumukshuData] = useState({});
   const [loading, setLoading] = useState(true);
-  const [settings, setSettings] = useState({});
-
-  // Save settings to AsyncStorage whenever they change
-  useEffect(() => {
-    if (Object.keys(settings).length > 0) {
-      addItem('settings', settings);
-    }
-  }, [settings]);
 
   useEffect(() => {
     let isMounted = true;
@@ -48,10 +40,8 @@ const GlobalProvider = ({ children }) => {
         if (isMounted) {
           if (res) {
             setUser(res[0][1] ? JSON.parse(res[0][1]) : null);
-            setSettings(res[1][1] ? JSON.parse(res[1][1]) : {});
           } else {
             setUser(null);
-            setSettings({});
           }
         }
       })
@@ -137,8 +127,6 @@ const GlobalProvider = ({ children }) => {
         updateMumukshuBooking,
         cleanupValidationState,
         resetValidationState,
-        settings,
-        setSettings,
       }}>
       {children}
     </GlobalContext.Provider>

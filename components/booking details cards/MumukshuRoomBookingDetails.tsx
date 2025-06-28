@@ -1,6 +1,6 @@
 import { View, Text, Image, ScrollView } from 'react-native';
 import { icons, status } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useBookingStore } from '@/stores';
 import { countStatusesForField } from '@/utils/BookingValidationStatusCounter';
 import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
@@ -8,7 +8,7 @@ import CustomTag from '../CustomTag';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 
 const MumukshuRoomBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
-  const { mumukshuData } = useGlobalContext();
+  const mumukshuData = useBookingStore((store) => store.mumukshuData);
   const formattedStartDate = moment(mumukshuData?.room?.startDay).format('Do MMMM');
   const formattedEndDate = mumukshuData?.room?.endDay
     ? moment(mumukshuData?.room?.endDay).format('Do MMMM, YYYY')

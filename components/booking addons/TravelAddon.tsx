@@ -1,14 +1,14 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, Image } from 'react-native';
 import { icons, dropdowns } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore, useBookingStore } from '@/stores';
+import { useQuery } from '@tanstack/react-query';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
 import moment from 'moment';
 import FormDisplayField from '../FormDisplayField';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import { useQuery } from '@tanstack/react-query';
 import handleAPICall from '@/utils/HandleApiCall';
 
 interface TravelAddonProps {
@@ -26,7 +26,9 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
   setDatePickerVisibility,
   onToggle,
 }) => {
-  const { data, setData, user } = useGlobalContext();
+  const user = useAuthStore((state) => state.user);
+  const data = useBookingStore((state) => state.data);
+  const setData = useBookingStore((state) => state.setData);
 
   const [tempTravelDate, setTempTravelDate] = useState(
     travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()

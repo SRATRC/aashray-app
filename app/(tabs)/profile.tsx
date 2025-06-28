@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { icons } from '@/constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore } from '@/stores';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { Feather } from '@expo/vector-icons';
@@ -28,7 +28,10 @@ import CustomModal from '@/components/CustomModal';
 import * as Haptics from 'expo-haptics';
 
 const Profile: React.FC = () => {
-  const { user, removeItem, setUser, setCurrentUser } = useGlobalContext();
+  const user = useAuthStore((state) => state.user);
+  const setUser = useAuthStore((state) => state.setUser);
+  const logout = useAuthStore((state) => state.logout);
+
   const router: any = useRouter();
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
   const [imageModalVisible, setImageModalVisible] = useState(false);
@@ -37,7 +40,7 @@ const Profile: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isLogoutLoading, setIsLogoutLoading] = useState(false); // Add logout loading state
+  const [isLogoutLoading, setIsLogoutLoading] = useState(false);
   const [creditsInfoModalVisible, setCreditsInfoModalVisible] = useState(false);
   const [cachedImageUri, setCachedImageUri] = useState('');
   const [previousPfpUrl, setPreviousPfpUrl] = useState('');
@@ -56,7 +59,6 @@ const Profile: React.FC = () => {
   useEffect(() => {
     const loadCachedImage = async () => {
       if (user?.pfp) {
-        // Only reload if the URL has changed (indicating a new profile picture)
         if (user.pfp !== previousPfpUrl) {
           const uri = await getCachedImageUri(user.pfp);
           setCachedImageUri(uri);
@@ -68,7 +70,6 @@ const Profile: React.FC = () => {
     loadCachedImage();
   }, [user?.pfp, previousPfpUrl]);
 
-  // Check if profile picture was updated when returning from camera screen
   useFocusEffect(
     useCallback(() => {
       const checkProfileUpdate = async () => {
@@ -112,7 +113,6 @@ const Profile: React.FC = () => {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setIsLoading(false);
       setPasswordModalVisible(false);
-      // Clear inputs
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -162,6 +162,8 @@ const Profile: React.FC = () => {
   };
 
   const refreshUserData = async () => {
+    if (!user) return;
+
     setIsRefreshing(true);
     await handleAPICall(
       'GET',
@@ -169,17 +171,12 @@ const Profile: React.FC = () => {
       { cardno: user.cardno },
       null,
       async (data: any) => {
-        // Check if profile picture URL has changed
         if (data.data.pfp && data.data.pfp !== user.pfp) {
-          // Invalidate old cached image
           await invalidateCachedImage(user.pfp);
         }
 
-        setUser((prev: any) => {
-          const updatedUser = { ...prev, ...data.data };
-          setCurrentUser(updatedUser);
-          return updatedUser;
-        });
+        const updatedUser = { ...user, ...data.data };
+        setUser(updatedUser);
       },
       () => {
         setIsRefreshing(false);
@@ -213,13 +210,14 @@ const Profile: React.FC = () => {
       name: 'Logout',
       icon: icons.logout,
       onPress: async () => {
-        if (isLogoutLoading) return; // Prevent multiple clicks
+        if (isLogoutLoading || !user) return;
 
         try {
-          setIsLogoutLoading(true); // Set loading state
+          setIsLogoutLoading(true);
 
           const onSuccess = async (_data: any) => {
-            removeItem('user');
+            // Use built-in logout function - handles both state and storage cleanup
+            logout();
             router.replace('/sign-in');
           };
 
@@ -230,11 +228,11 @@ const Profile: React.FC = () => {
             null,
             onSuccess,
             () => {
-              setIsLogoutLoading(false); // Reset loading state on error
+              setIsLogoutLoading(false);
             }
           );
         } catch (error: any) {
-          setIsLogoutLoading(false); // Reset loading state on catch
+          setIsLogoutLoading(false);
           Toast.show({
             type: 'error',
             text1: 'An error occurred!',
@@ -290,7 +288,6 @@ const Profile: React.FC = () => {
             className="h-[150] w-[150] rounded-full border-2 border-secondary"
             resizeMode="cover"
             onError={() => {
-              // If cached image fails, try to re-cache
               if (user?.pfp) {
                 getCachedImageUri(user.pfp).then((uri) => setCachedImageUri(uri));
               }
@@ -323,7 +320,9 @@ const Profile: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <Text className="mt-2 font-psemibold text-base">{formatNameWithMehta(user.issuedto)}</Text>
+      <Text className="mt-2 font-psemibold text-base">
+        {formatNameWithMehta(user?.issuedto || '')}
+      </Text>
 
       <View className="mt-6 w-full px-4">
         <View
@@ -451,6 +450,17 @@ const Profile: React.FC = () => {
       </View>
     </View>
   );
+
+  // Add safety check for user
+  if (!user) {
+    return (
+      <SafeAreaView className="flex-1 bg-white">
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#FF9500" />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['top']}>

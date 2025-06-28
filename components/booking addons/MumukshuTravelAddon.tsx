@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { icons, colors, dropdowns } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore } from '@/stores';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import HorizontalSeparator from '../HorizontalSeparator';
@@ -37,7 +37,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
   setDatePickerVisibility,
   onToggle,
 }) => {
-  const { user } = useGlobalContext();
+  const { user } = useAuthStore();
   const [activeMumukshuIndex, setActiveMumukshuIndex] = useState(null);
 
   const [tempTravelDate, setTempTravelDate] = useState(

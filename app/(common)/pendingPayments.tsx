@@ -10,10 +10,10 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useGlobalContext } from '@/context/GlobalProvider';
 import { colors, icons } from '@/constants';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useAuthStore } from '@/stores';
 import PageHeader from '@/components/PageHeader';
 import CustomEmptyMessage from '@/components/CustomEmptyMessage';
 import CustomErrorMessage from '@/components/CustomErrorMessage';
@@ -134,7 +134,7 @@ const PaymentTimer = ({ createdAt }: { createdAt: string }) => {
 };
 
 const PendingPayments = () => {
-  const { user } = useGlobalContext();
+  const { user } = useAuthStore();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 

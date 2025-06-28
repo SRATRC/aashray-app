@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,11 +10,10 @@ import {
   TouchableOpacity,
   Modal,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import React, { useState } from 'react';
-import { images } from '@/constants';
 import { router } from 'expo-router';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { images } from '@/constants';
+import { useAuthStore } from '@/stores';
 import { useNotification } from '@/context/NotificationContext';
 import { handleUserNavigation } from '@/utils/navigationValidations';
 import FormField from '@/components/FormField';
@@ -68,25 +68,22 @@ const SignIn = () => {
   const [resetEmail, setResetEmail] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
 
-  const { setUser, setCurrentUser } = useGlobalContext();
+  const setUser = useAuthStore((state) => state.setUser);
   const { expoPushToken } = useNotification();
 
   const submit = async () => {
     setIsSubmitting(true);
 
     if (!form.phone || form.phone.length < 10 || !form.password) {
-      Alert.alert('Error', 'Please fill the fields corectly');
+      Alert.alert('Error', 'Please fill the fields correctly');
       setIsSubmitting(false);
       return;
     }
 
     const onSuccess = async (data: any) => {
-      setUser(() => {
-        const updatedUser = data.data;
-        setCurrentUser(updatedUser);
-        handleUserNavigation(updatedUser, router);
-        return updatedUser;
-      });
+      const updatedUser = data.data;
+      setUser(updatedUser);
+      handleUserNavigation(updatedUser, router);
     };
 
     const onFinally = () => {
@@ -179,7 +176,7 @@ const SignIn = () => {
               handlePress={submit}
               containerStyles="mt-7 min-h-[62px]"
               isLoading={isSubmitting}
-              isDisabled={!form.phone || !form.password}
+              isDisabled={form.phone.length !== 10 || !form.password}
             />
 
             {/* Password Reset Modal */}

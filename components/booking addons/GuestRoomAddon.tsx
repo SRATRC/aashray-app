@@ -1,14 +1,14 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { useBookingStore } from '@/stores';
 import { colors, icons, dropdowns } from '@/constants';
-import moment from 'moment';
 import AddonItem from '../AddonItem';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FormDisplayField from '../FormDisplayField';
 import Toast from 'react-native-toast-message';
+import moment from 'moment';
 import * as Haptics from 'expo-haptics';
 
 interface GuestRoomAddonProps {
@@ -36,7 +36,7 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
   setDatePickerVisibility,
   onToggle,
 }) => {
-  const { setGuestData } = useGlobalContext();
+  const setGuestData = useBookingStore((store) => store.setGuestData);
 
   const [tempCheckinDate, setTempCheckinDate] = useState(
     roomForm.startDay ? moment(roomForm.startDay).toDate() : moment().add(1, 'days').toDate()

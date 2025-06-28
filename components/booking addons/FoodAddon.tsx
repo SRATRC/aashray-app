@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Image } from 'react-native';
 import { icons, dropdowns } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useBookingStore } from '@/stores';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import FormDisplayField from '../FormDisplayField';
@@ -25,7 +25,8 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
   setDatePickerVisibility,
   onToggle,
 }) => {
-  const { data, setData } = useGlobalContext();
+  const data = useBookingStore((state) => state.data);
+  const setData = useBookingStore((state) => state.setData);
 
   // Temporary state to hold the date for the checkin picker
   const [tempFoodStartDate, setTempFoodStartDate] = useState(

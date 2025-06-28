@@ -2,8 +2,8 @@ import { View, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { dropdowns, icons } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { dropdowns } from '@/constants';
+import { useAuthStore } from '@/stores';
 import { useRouter } from 'expo-router';
 import PageHeader from '@/components/PageHeader';
 import FormField from '@/components/FormField';
@@ -75,7 +75,9 @@ const fetchCentres = () => {
 };
 
 const profileDetails = () => {
-  const { user, setUser, setCurrentUser } = useGlobalContext();
+  const user = useAuthStore((state) => state.user);
+  const setUser = useAuthStore((state) => state.setUser);
+
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -168,7 +170,6 @@ const profileDetails = () => {
     setIsSubmitting(true);
     const onSuccess = (data: any) => {
       setUser(data.data);
-      setCurrentUser(data.data);
       setIsSubmitting(false);
       router.back();
     };

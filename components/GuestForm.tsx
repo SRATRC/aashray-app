@@ -1,8 +1,8 @@
+import React, { useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { colors, icons, dropdowns } from '../constants';
 import { useQueries } from '@tanstack/react-query';
-import { useGlobalContext } from '../context/GlobalProvider';
-import React, { useEffect } from 'react';
+import { useAuthStore } from '@/stores';
 import FormField from './FormField';
 import handleAPICall from '../utils/HandleApiCall';
 import CustomSelectBottomSheet from './CustomSelectBottomSheet';
@@ -24,7 +24,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
   removeGuestForm,
   children = () => null,
 }) => {
-  const { user } = useGlobalContext();
+  const { user } = useAuthStore();
 
   const verifyGuest = async (
     mobno: string

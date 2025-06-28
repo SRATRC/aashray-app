@@ -1,13 +1,13 @@
 import { View, Text, Image } from 'react-native';
 import { icons, status } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useBookingStore } from '@/stores';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomTag from '../CustomTag';
-import moment from 'moment';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
+import moment from 'moment';
 
 const AdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
-  const { data } = useGlobalContext();
+  const data = useBookingStore((state) => state.data);
 
   const formattedStartDate = moment(data.adhyayan[0].start_date).format('Do MMMM');
   const formattedEndDate = moment(data.adhyayan[0].end_date).format('Do MMMM, YYYY');

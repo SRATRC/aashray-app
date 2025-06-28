@@ -2,7 +2,7 @@ import { View, Text } from 'react-native';
 import React, { useState, useCallback, useEffect } from 'react';
 import { types, dropdowns, status } from '@/constants';
 import { useRouter } from 'expo-router';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore, useBookingStore } from '@/stores';
 import { useQuery } from '@tanstack/react-query';
 import CustomButton from '../CustomButton';
 import CustomCalender from '../CustomCalender';
@@ -38,7 +38,9 @@ const INITIAL_MUMUKSHU_FORM = {
 
 const TravelBooking = () => {
   const router = useRouter();
-  const { user, updateBooking, updateMumukshuBooking } = useGlobalContext();
+  const user = useAuthStore((state) => state.user);
+  const updateBooking = useBookingStore((state) => state.updateBooking);
+  const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
 
   if (user.res_status == status.STATUS_GUEST) {
     CHIPS = ['Self'];

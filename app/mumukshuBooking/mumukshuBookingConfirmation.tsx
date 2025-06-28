@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, Platform } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useState, useCallback } from 'react';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore, useBookingStore } from '@/stores';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
@@ -31,7 +31,10 @@ interface ValidationData {
 
 const mumukshuBookingConfirmation = () => {
   const router = useRouter();
-  const { user, mumukshuData, setMumukshuData } = useGlobalContext();
+
+  const user = useAuthStore((state) => state.user);
+  const mumukshuData = useBookingStore((state) => state.mumukshuData);
+  const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPayLaterModal, setShowPayLaterModal] = useState(false);

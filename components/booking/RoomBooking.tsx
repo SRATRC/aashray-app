@@ -1,9 +1,9 @@
 import { View, Alert, Text } from 'react-native';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { types, dropdowns, status } from '@/constants';
 import { useRouter } from 'expo-router';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { types, dropdowns, status } from '@/constants';
+import { useAuthStore, useBookingStore } from '@/stores';
 import SegmentedControl from '@/components/SegmentedControl';
 import CustomButton from '@/components/CustomButton';
 import CustomCalender from '@/components/CustomCalender';
@@ -67,7 +67,10 @@ const INITIAL_MUMUKSHU_FORM = {
 
 const RoomBooking = () => {
   const router = useRouter();
-  const { user, updateBooking, updateGuestBooking, updateMumukshuBooking } = useGlobalContext();
+  const user = useAuthStore((state) => state.user);
+  const updateBooking = useBookingStore((state) => state.updateBooking);
+  const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
+  const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
 
   if (user.res_status == status.STATUS_GUEST) {
     CHIPS = ['Self'];

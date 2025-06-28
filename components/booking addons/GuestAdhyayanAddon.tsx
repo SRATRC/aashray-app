@@ -1,14 +1,14 @@
 import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { icons } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore, useBookingStore } from '@/stores';
 import AddonItem from '../AddonItem';
 import handleAPICall from '@/utils/HandleApiCall';
 import HorizontalSeparator from '../HorizontalSeparator';
-import moment from 'moment';
-import * as Haptics from 'expo-haptics';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
+import moment from 'moment';
+import * as Haptics from 'expo-haptics';
 
 interface GuestAdhyayanAddonProps {
   adhyayanForm: any;
@@ -25,7 +25,9 @@ const GuestAdhyayanAddon: React.FC<GuestAdhyayanAddonProps> = ({
   INITIAL_ADHYAYAN_FORM,
   guest_dropdown,
 }) => {
-  const { user, guestData, setGuestData } = useGlobalContext();
+  const user = useAuthStore((store) => store.user);
+  const guestData = useBookingStore((store) => store.guestData);
+  const setGuestData = useBookingStore((store) => store.setGuestData);
 
   const fetchAdhyayans = async () => {
     return new Promise((resolve, reject) => {

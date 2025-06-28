@@ -6,21 +6,18 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
-  Dimensions,
   TouchableOpacity,
 } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore } from '@/stores';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import handleAPICall from '@/utils/HandleApiCall';
 import PageHeader from '@/components/PageHeader';
 import CustomEmptyMessage from '@/components/CustomEmptyMessage';
 
-const { width } = Dimensions.get('window');
-
 const MenuPage = () => {
-  const { user } = useGlobalContext();
+  const { user } = useAuthStore();
   const router = useRouter();
 
   const fetchMenu = async () => {

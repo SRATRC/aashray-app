@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   View,
   KeyboardAvoidingView,
@@ -8,12 +9,11 @@ import {
   Modal,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { useState } from 'react';
+import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, images, colors, icons } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
-import { useRouter } from 'expo-router';
+import { useAuthStore } from '@/stores';
 import FormField from '@/components/FormField';
 import FormDisplayField from '@/components/FormDisplayField';
 import CustomButton from '@/components/CustomButton';
@@ -85,7 +85,10 @@ const fetchCentres = () => {
 };
 
 const CompleteProfile = () => {
-  const { user, setUser, setCurrentUser, removeItem } = useGlobalContext();
+  const user = useAuthStore((state) => state.user);
+  const setUser = useAuthStore((state) => state.setUser);
+  const logout = useAuthStore((state) => state.logout);
+
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -159,7 +162,6 @@ const CompleteProfile = () => {
     setIsSubmitting(true);
     const onSuccess = (data: any) => {
       setUser(data.data);
-      setCurrentUser(data.data);
       setIsSubmitting(false);
       router.replace('/home');
     };
@@ -189,6 +191,31 @@ const CompleteProfile = () => {
       onSuccess,
       onFinally
     );
+  };
+
+  const handleLogout = async () => {
+    try {
+      const onSuccess = async () => {
+        logout();
+        router.replace('/sign-in');
+      };
+
+      await handleAPICall(
+        'GET',
+        '/client/logout',
+        { cardno: user?.cardno },
+        null,
+        onSuccess,
+        () => {}
+      );
+    } catch (error: any) {
+      Toast.show({
+        type: 'error',
+        text1: 'An error occurred!',
+        text2: error.message,
+        swipeable: false,
+      });
+    }
   };
 
   return (
@@ -237,32 +264,7 @@ const CompleteProfile = () => {
           </View>
 
           <View className="w-full items-center">
-            <TouchableWithoutFeedback
-              onPress={async () => {
-                try {
-                  const onSuccess = async () => {
-                    setUser(null);
-                    removeItem('user');
-                    router.replace('/sign-in');
-                  };
-
-                  await handleAPICall(
-                    'GET',
-                    '/client/logout',
-                    { cardno: user?.cardno },
-                    null,
-                    onSuccess,
-                    () => {}
-                  );
-                } catch (error: any) {
-                  Toast.show({
-                    type: 'error',
-                    text1: 'An error occurred!',
-                    text2: error.message,
-                    swipeable: false,
-                  });
-                }
-              }}>
+            <TouchableWithoutFeedback onPress={handleLogout}>
               <View className="flex flex-row items-center">
                 <Image source={icons.logout} className="h-4 w-4" resizeMode="contain" />
                 <Text className="ml-2 font-pregular text-sm text-black">Logout</Text>
@@ -287,7 +289,6 @@ const CompleteProfile = () => {
         maximumDate={moment().toDate()}
       />
 
-      {/* Modal moved out of nested component */}
       <Modal
         animationType="slide"
         transparent={true}

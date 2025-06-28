@@ -1,13 +1,13 @@
 import { View, Text, Image } from 'react-native';
 import { icons } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useBookingStore } from '@/stores';
 import HorizontalSeparator from '../HorizontalSeparator';
-import moment from 'moment';
-import CustomTag from '../CustomTag';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
+import CustomTag from '../CustomTag';
+import moment from 'moment';
 
 const MumukshuTravelBookingDetail: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
-  const { mumukshuData } = useGlobalContext();
+  const mumukshuData = useBookingStore((store) => store.mumukshuData);
 
   return (
     <PrimaryAddonBookingCard containerStyles={containerStyles} title={'Raj Pravas Booking'}>

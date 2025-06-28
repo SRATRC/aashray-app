@@ -8,13 +8,13 @@ import {
   Linking,
   ImageSourcePropType,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icons, images, quotes, status } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
-import { useRouter } from 'expo-router';
+import { useAuthStore } from '@/stores';
 import CustomHomeIcon from '@/components/CustomHomeIcon';
-import { Platform } from 'react-native';
 
 const QuotesBanner = ({ user, images }: any) => {
   const randomQuote = useMemo(() => {
@@ -53,7 +53,7 @@ const QuotesBanner = ({ user, images }: any) => {
 };
 
 const Home: React.FC = () => {
-  const { user } = useGlobalContext();
+  const { user } = useAuthStore();
   const router: any = useRouter();
 
   if (!user || !user.issuedto) {
@@ -85,7 +85,7 @@ const Home: React.FC = () => {
         <View className="mt-7 w-full">
           <Text className="px-4 font-pmedium text-lg text-black">Quick Access</Text>
           <View className="mt-3 flex-row flex-wrap gap-y-4 px-4">
-            {user.res_status !== status.STATUS_RESIDENT && (
+            {user?.res_status !== status.STATUS_RESIDENT && (
               <CustomHomeIcon
                 image={icons.wifiHome as ImageSourcePropType}
                 title={'Wifi'}

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { colors, icons, images } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore } from '@/stores';
 import CustomButton from '@/components/CustomButton';
 import handleAPICall from '@/utils/HandleApiCall';
 import Toast from 'react-native-toast-message';
@@ -16,7 +16,9 @@ interface Step {
 }
 
 const ImageCaptureOnboarding: React.FC = () => {
-  const { user, setUser, removeItem } = useGlobalContext();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+
   const [currentStep, setCurrentStep] = useState<number>(1);
   const router: any = useRouter();
 
@@ -87,8 +89,7 @@ const ImageCaptureOnboarding: React.FC = () => {
               onPress={async () => {
                 try {
                   const onSuccess = async () => {
-                    setUser(null);
-                    removeItem('user');
+                    logout();
                     router.replace('/sign-in');
                   };
 

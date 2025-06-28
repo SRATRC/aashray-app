@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore, useBookingStore } from '@/stores';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
@@ -53,7 +53,11 @@ const createInitialAdhyayanForm = (existingData: any = null) => ({
 
 const GuestAddons = () => {
   const { booking } = useLocalSearchParams();
-  const { user, guestData, setGuestData } = useGlobalContext();
+
+  const user = useAuthStore((state) => state.user);
+  const guestData = useBookingStore((state) => state.guestData);
+  const setGuestData = useBookingStore((state) => state.setGuestData);
+
   const router = useRouter();
 
   console.log('GUEST DATA: ', JSON.stringify(guestData));

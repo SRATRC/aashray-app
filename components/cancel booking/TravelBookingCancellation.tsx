@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -6,10 +7,9 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
-import { useState } from 'react';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { icons, status } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore } from '@/stores';
 import { FlashList } from '@shopify/flash-list';
 import CustomButton from '../CustomButton';
 import handleAPICall from '@/utils/HandleApiCall';
@@ -20,7 +20,7 @@ import BookingStatusDisplay from '../BookingStatusDisplay';
 import moment from 'moment';
 
 const TravelBookingCancellation = () => {
-  const { user } = useGlobalContext();
+  const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
 

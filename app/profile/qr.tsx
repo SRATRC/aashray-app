@@ -1,13 +1,13 @@
 import { View, ImageBackground, Modal } from 'react-native';
 import { images, colors } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore } from '@/stores';
 import { router } from 'expo-router';
 import React from 'react';
 import QRCodeStyled from 'react-native-qrcode-styled';
 import PageHeader from '@/components/PageHeader';
 
 const QrScreen = () => {
-  const { user } = useGlobalContext();
+  const { user } = useAuthStore();
 
   const closeModal = () => {
     router.back();

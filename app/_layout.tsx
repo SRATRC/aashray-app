@@ -5,11 +5,11 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter } from 'expo-router';
 import { SystemBars } from 'react-native-edge-to-edge';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { NotificationProvider } from '../context/NotificationContext';
+import { NotificationProvider } from '@/context/NotificationContext';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { handleUserNavigation } from '../utils/navigationValidations';
-import GlobalProvider, { useGlobalContext } from '../context/GlobalProvider';
+import { handleUserNavigation } from '@/utils/navigationValidations';
+import { useAuthStore } from '@/stores';
 import Toast from 'react-native-toast-message';
 import * as Sentry from '@sentry/react-native';
 import * as SplashScreen from 'expo-splash-screen';
@@ -47,7 +47,8 @@ SplashScreen.preventAutoHideAsync();
 
 // Component that handles initial routing
 const AppNavigator = () => {
-  const { loading, user } = useGlobalContext();
+  const loading = useAuthStore((state) => state.loading);
+  const user = useAuthStore((state) => state.user);
   const router = useRouter();
   const hasNavigated = useRef(false);
 
@@ -90,6 +91,8 @@ const AppNavigator = () => {
 };
 
 const RootLayout = () => {
+  const initializeAuth = useAuthStore((state) => state.initializeAuth);
+
   const [fontsLoaded, error] = useFonts({
     'Poppins-Black': require('../assets/fonts/Poppins-Black.ttf'),
     'Poppins-Bold': require('../assets/fonts/Poppins-Bold.ttf'),
@@ -106,24 +109,28 @@ const RootLayout = () => {
     if (error) throw error;
   }, [error]);
 
-  if (!fontsLoaded && !error) {
-    return null;
-  }
+  // Initialize auth store on app startup
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
 
   return (
     <NotificationProvider>
       <QueryClientProvider client={queryClient}>
-        <GlobalProvider>
+        {fontsLoaded ? (
           <RootLayoutContent />
-        </GlobalProvider>
+        ) : (
+          // Render a blank screen while fonts are loading so that a navigator is still mounted.
+          <View style={{ flex: 1, backgroundColor: '#ffffff' }} />
+        )}
       </QueryClientProvider>
     </NotificationProvider>
   );
 };
 
-// Separate component to access GlobalContext
+// Separate component to access auth store
 const RootLayoutContent = () => {
-  const { loading } = useGlobalContext();
+  const loading = useAuthStore((state) => state.loading);
 
   if (loading) {
     return <View style={{ flex: 1, backgroundColor: '#ffffff' }}></View>;

@@ -1,7 +1,7 @@
 import { View, Text, Alert } from 'react-native';
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore } from '@/stores';
 import { colors } from '@/constants';
 import CustomCalender from '../CustomCalender';
 import CustomChipGroup from '../CustomChipGroup';
@@ -40,7 +40,7 @@ const INITIAL_GUEST_FORM = {
 };
 
 const FlatBooking = () => {
-  const { user } = useGlobalContext();
+  const { user } = useAuthStore();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 

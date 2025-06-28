@@ -8,9 +8,9 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { icons, status } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
 import { FlashList } from '@shopify/flash-list';
+import { icons, status } from '@/constants';
+import { useAuthStore } from '@/stores';
 import CustomButton from '../CustomButton';
 import handleAPICall from '@/utils/HandleApiCall';
 import ExpandableItem from '../ExpandableItem';
@@ -20,7 +20,7 @@ import CustomEmptyMessage from '../CustomEmptyMessage';
 import moment from 'moment';
 
 const AdhyayanBookingCancellation = () => {
-  const { user } = useGlobalContext();
+  const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
 

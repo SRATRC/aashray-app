@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, Image } from 'react-native';
 import { icons, dropdowns } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useBookingStore } from '@/stores';
 import AddonItem from '../AddonItem';
 import FormDisplayField from '../FormDisplayField';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 
 interface RoomAddonProps {
   roomForm: any;
@@ -25,7 +25,8 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
   setDatePickerVisibility,
   onToggle,
 }) => {
-  const { data, setData } = useGlobalContext();
+  const data = useBookingStore((state) => state.data);
+  const setData = useBookingStore((state) => state.setData);
 
   // Temporary state to hold the date for the checkin picker
   const [tempCheckinDate, setTempCheckinDate] = useState(

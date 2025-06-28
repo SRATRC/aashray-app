@@ -1,11 +1,11 @@
 import { View, Text, Image, Platform } from 'react-native';
 import { icons } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useBookingStore } from '@/stores';
 import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
 
 const GuestFoodBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
-  const { guestData } = useGlobalContext();
+  const guestData = useBookingStore((store) => store.guestData);
 
   const formattedStartDate = moment(guestData.food.startDay).format('Do MMMM');
   const formattedEndDate = moment(guestData.food.endDay).format('Do MMMM, YYYY');

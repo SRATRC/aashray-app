@@ -3,7 +3,7 @@ import { View, Text, KeyboardAvoidingView, Platform, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '@/constants';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore, useBookingStore } from '@/stores';
 import { ScrollView } from 'react-native-gesture-handler';
 import { prepareMumukshuRequestBody } from '@/utils/preparingRequestBody';
 import { useQuery } from '@tanstack/react-query';
@@ -75,7 +75,10 @@ const createInitialTravelForm = (existingData: any = null) => ({
 const MumukshuAddons = () => {
   const router = useRouter();
   const { booking } = useLocalSearchParams();
-  const { user, mumukshuData, setMumukshuData } = useGlobalContext();
+
+  const user = useAuthStore((state) => state.user);
+  const mumukshuData = useBookingStore((state) => state.mumukshuData);
+  const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
   const [addonOpen, setAddonOpen] = useState({
     room: false,

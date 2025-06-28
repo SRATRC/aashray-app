@@ -3,7 +3,7 @@ import { View, Text, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-virtualized-view';
 import { status, types } from '@/constants';
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useAuthStore } from '@/stores';
 import CustomChipGroup from '@/components/CustomChipGroup';
 import RoomBooking from '@/components/booking/RoomBooking';
 import FoodBooking from '@/components/booking/FoodBooking';
@@ -13,7 +13,7 @@ import EventsBooking from '@/components/booking/EventsBooking';
 import FlatBooking from '@/components/booking/FlatBooking';
 
 const BookingCategoriesInternal = () => {
-  const { user } = useGlobalContext();
+  const { user } = useAuthStore();
 
   const availableChips = useMemo(() => {
     const baseChips = [
@@ -24,13 +24,13 @@ const BookingCategoriesInternal = () => {
       types.booking_type_event,
     ];
     if (
-      user.res_status === status.STATUS_RESIDENT &&
+      user?.res_status === status.STATUS_RESIDENT &&
       !baseChips.includes(types.booking_type_flat)
     ) {
       return [...baseChips, types.booking_type_flat];
     }
     return baseChips;
-  }, [user.res_status]);
+  }, [user?.res_status]);
 
   const [selectedChip, setSelectedChip] = useState(() => {
     if (availableChips.includes(types.booking_type_adhyayan)) {
