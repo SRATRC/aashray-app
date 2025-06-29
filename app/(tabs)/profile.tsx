@@ -19,7 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
-import { Feather } from '@expo/vector-icons';
+import { Feather, FontAwesome, Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import handleAPICall from '@/utils/HandleApiCall';
 import getCachedImageUri, { invalidateCachedImage } from '@/utils/imageCache';
@@ -279,177 +279,109 @@ const Profile: React.FC = () => {
     );
   };
 
-  const renderHeader = () => (
-    <View className="mb-10 mt-8 flex-col items-center justify-center">
-      <View style={{ position: 'relative' }}>
-        <TouchableOpacity onPress={openImageModal}>
-          <Image
-            source={{ uri: cachedImageUri }}
-            className="h-[150] w-[150] rounded-full border-2 border-secondary"
-            resizeMode="cover"
-            onError={() => {
-              if (user?.pfp) {
-                getCachedImageUri(user.pfp).then((uri) => setCachedImageUri(uri));
-              }
-            }}
-          />
-        </TouchableOpacity>
+  const renderHeader = () => {
+    const totalCredits =
+      (user?.credits?.travel || 0) + (user?.credits?.food || 0) + (user?.credits?.room || 0);
 
-        <TouchableOpacity
-          onPress={openCamera}
-          style={{
-            position: 'absolute',
-            bottom: 5,
-            right: 5,
-            backgroundColor: '#FF9500',
-            width: 36,
-            height: 36,
-            borderRadius: 18,
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderWidth: 2,
-            borderColor: '#FFFFFF',
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.25,
-            shadowRadius: 4,
-            elevation: 5,
-          }}
-          activeOpacity={0.8}>
-          <Feather name="camera" size={14} color="white" />
-        </TouchableOpacity>
-      </View>
+    return (
+      <View className="mb-10 mt-8 flex-col items-center justify-center">
+        <View className="relative">
+          <TouchableOpacity onPress={openImageModal}>
+            <Image
+              source={{ uri: cachedImageUri }}
+              className="h-[150] w-[150] rounded-full border-2 border-secondary"
+              resizeMode="cover"
+              onError={() => {
+                if (user?.pfp) {
+                  getCachedImageUri(user.pfp).then((uri) => setCachedImageUri(uri));
+                }
+              }}
+            />
+          </TouchableOpacity>
 
-      <Text className="mt-2 font-psemibold text-base">
-        {formatNameWithMehta(user?.issuedto || '')}
-      </Text>
+          <TouchableOpacity
+            onPress={openCamera}
+            className="absolute bottom-[5px] right-[5px] h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-secondary shadow-lg shadow-black/20"
+            activeOpacity={0.8}>
+            <Feather name="camera" size={14} color="white" />
+          </TouchableOpacity>
+        </View>
 
-      <View className="mt-6 w-full px-4">
-        <View
-          className={`rounded-2xl bg-white p-6 ${
-            Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-xl shadow-gray-300'
-          }`}
-          style={{
-            borderWidth: 1,
-            borderColor: '#F3F4F6',
-          }}>
-          <View className="mb-5 flex-row items-center justify-between">
-            <View>
-              <Text className="font-psemibold text-xl text-gray-900">Account Balance</Text>
-              <Text className="mt-1 font-pregular text-xs text-gray-500">
-                Your available credits
+        <Text className="mt-2 font-psemibold text-base">
+          {formatNameWithMehta(user?.issuedto || '')}
+        </Text>
+
+        <View className="mt-8 w-full px-4">
+          <View
+            className={`rounded-3xl border border-gray-200/80 bg-white p-6 ${
+              Platform.OS === 'ios' ? 'shadow-lg shadow-gray-100/80' : 'shadow-2xl shadow-gray-200'
+            }`}>
+            {/* Header */}
+            <View className="flex-row items-start justify-between">
+              <View>
+                <Text className="font-psemibold text-lg text-gray-700">Total Balance</Text>
+                <Text className="mt-1 font-pregular text-sm text-gray-500">
+                  Your available credits
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setCreditsInfoModalVisible(true)}
+                className="rounded-full p-1.5"
+                activeOpacity={0.7}>
+                <Feather name="info" size={20} color="#9CA3AF" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Total Credits */}
+            <View className="mt-4">
+              <Text
+                className="font-pbold text-5xl tracking-tighter text-gray-800"
+                style={{ lineHeight: 60 }}>
+                {totalCredits}
               </Text>
             </View>
-            <TouchableOpacity
-              onPress={() => setCreditsInfoModalVisible(true)}
-              className="rounded-full bg-secondary-50 p-2.5"
-              style={{
-                borderWidth: 1,
-                borderColor: '#FED7AA',
-              }}
-              activeOpacity={0.7}>
-              <Feather name="info" size={16} color="#FF9500" />
-            </TouchableOpacity>
-          </View>
 
-          <View className="-mx-2 flex-row flex-wrap">
-            <View className="mb-3 w-1/2 px-2">
-              <View
-                className="rounded-xl bg-gradient-to-br p-4"
-                style={{
-                  backgroundColor: '#F0F9FF',
-                  borderWidth: 1,
-                  borderColor: '#BAE6FD',
-                }}>
-                <View className="mb-2 flex-row items-center justify-between">
-                  <View
-                    className="rounded-lg bg-white p-2.5"
-                    style={{
-                      shadowColor: '#0EA5E9',
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 3,
-                      elevation: 2,
-                    }}>
-                    <Image source={icons.coin} className="h-5 w-5" resizeMode="contain" />
-                  </View>
-                  <View className="rounded-full bg-sky-100 px-2 py-0.5">
-                    <Text className="font-pmedium text-[10px] text-sky-600">TRAVEL</Text>
-                  </View>
-                </View>
-                <Text className="mt-1 font-psemibold text-2xl text-gray-900">
-                  {user?.credits?.travel || 0}
-                </Text>
-                <Text className="font-pregular text-xs text-gray-500">credits</Text>
-              </View>
-            </View>
+            {/* Separator */}
+            <View className="my-6 h-px bg-gray-200" />
 
-            <View className="mb-3 w-1/2 px-2">
-              <View
-                className="rounded-xl bg-gradient-to-br p-4"
-                style={{
-                  backgroundColor: '#FDF4FF',
-                  borderWidth: 1,
-                  borderColor: '#E9D5FF',
-                }}>
-                <View className="mb-2 flex-row items-center justify-between">
-                  <View
-                    className="rounded-lg bg-white p-2.5"
-                    style={{
-                      shadowColor: '#A855F7',
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 3,
-                      elevation: 2,
-                    }}>
-                    <Image source={icons.coin} className="h-5 w-5" resizeMode="contain" />
-                  </View>
-                  <View className="rounded-full bg-purple-100 px-2 py-0.5">
-                    <Text className="font-pmedium text-[10px] text-purple-600">FOOD</Text>
-                  </View>
+            {/* Credit Breakdown */}
+            <View className="gap-y-4">
+              {/* Room Credits */}
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-x-3">
+                  <FontAwesome name="bed" size={20} color="#4B5563" />
+                  <Text className="font-pmedium text-base text-gray-700">Room / Flat</Text>
                 </View>
-                <Text className="mt-1 font-psemibold text-2xl text-gray-900">
-                  {user?.credits?.food || 0}
-                </Text>
-                <Text className="font-pregular text-xs text-gray-500">credits</Text>
-              </View>
-            </View>
-
-            <View className="mb-3 w-full px-2">
-              <View
-                className="rounded-xl bg-gradient-to-br p-4"
-                style={{
-                  backgroundColor: '#FFF7ED',
-                  borderWidth: 1,
-                  borderColor: '#FED7AA',
-                }}>
-                <View className="mb-2 flex-row items-center justify-between">
-                  <View
-                    className="rounded-lg bg-white p-2.5"
-                    style={{
-                      shadowColor: '#FF9500',
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 3,
-                      elevation: 2,
-                    }}>
-                    <Image source={icons.coin} className="h-5 w-5" resizeMode="contain" />
-                  </View>
-                  <View className="rounded-full bg-orange-100 px-2 py-0.5">
-                    <Text className="font-pmedium text-[10px] text-orange-600">ROOM / FLAT</Text>
-                  </View>
-                </View>
-                <Text className="mt-1 font-psemibold text-2xl text-gray-900">
+                <Text className="font-psemibold text-base text-gray-800">
                   {user?.credits?.room || 0}
                 </Text>
-                <Text className="font-pregular text-xs text-gray-500">credits</Text>
+              </View>
+              {/* Travel Credits */}
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-x-3">
+                  <FontAwesome name="taxi" size={20} color="#4B5563" />
+                  <Text className="font-pmedium text-base text-gray-700">Travel</Text>
+                </View>
+                <Text className="font-psemibold text-base text-gray-800">
+                  {user?.credits?.travel || 0}
+                </Text>
+              </View>
+              {/* Food Credits */}
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-x-3">
+                  <Ionicons name="fast-food" size={20} color="#4B5563" />
+                  <Text className="font-pmedium text-base text-gray-700">Food</Text>
+                </View>
+                <Text className="font-psemibold text-base text-gray-800">
+                  {user?.credits?.food || 0}
+                </Text>
               </View>
             </View>
           </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   // Add safety check for user
   if (!user) {

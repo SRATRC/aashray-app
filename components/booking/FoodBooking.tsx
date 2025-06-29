@@ -58,9 +58,9 @@ const FoodBooking = () => {
   const [modalMessage, setModalMessage] = useState('');
 
   const BookingNote = () => (
-    <View className="m-4 mb-2 flex-row items-center gap-x-2 rounded-lg border border-amber-300 bg-amber-50 p-4">
+    <View className="m-4 mb-2 flex-row items-center gap-x-2 rounded-lg border border-amber-300 bg-amber-50 p-3">
       <FontAwesome name="info-circle" size={16} color="#b45309" />
-      <Text className="font-pregular text-amber-800">
+      <Text className="font-pregular text-sm text-amber-800">
         Bookings must be made before 11 AM of the previous day for upcoming meals.
       </Text>
     </View>

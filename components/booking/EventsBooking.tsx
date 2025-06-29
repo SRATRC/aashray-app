@@ -85,7 +85,7 @@ const INITIAL_MUMUKSHU_FORM = {
   ],
 };
 
-const EventBookingDirect = () => {
+const EventBooking = () => {
   const router: any = useRouter();
 
   useEffect(
@@ -886,4 +886,4 @@ const EventBookingDirect = () => {
   );
 };
 
-export default EventBookingDirect;
+export default EventBooking;

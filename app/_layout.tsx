@@ -1,5 +1,5 @@
 import '../global.css';
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter } from 'expo-router';
@@ -47,15 +47,25 @@ SplashScreen.preventAutoHideAsync();
 
 // Component that handles initial routing
 const AppNavigator = () => {
-  const loading = useAuthStore((state) => state.loading);
   const user = useAuthStore((state) => state.user);
+  const userExists = !!user; // Create a boolean flag for user presence
   const router = useRouter();
-  const hasNavigated = useRef(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    if (!loading && !hasNavigated.current) {
-      hasNavigated.current = true;
+    const unsub = useAuthStore.persist.onFinishHydration(() => setIsHydrated(true));
 
+    // If the store is already hydrated, set the state immediately
+    if (useAuthStore.persist.hasHydrated()) {
+      setIsHydrated(true);
+    }
+
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    // Only run navigation logic once the store is hydrated and user presence changes.
+    if (isHydrated) {
       (async () => {
         try {
           await handleUserNavigation(user, router);
@@ -70,7 +80,7 @@ const AppNavigator = () => {
         }
       })();
     }
-  }, [loading, user, router]);
+  }, [isHydrated, userExists, router]); // Depend on userExists instead of user
 
   return (
     <Stack
@@ -91,8 +101,6 @@ const AppNavigator = () => {
 };
 
 const RootLayout = () => {
-  const initializeAuth = useAuthStore((state) => state.initializeAuth);
-
   const [fontsLoaded, error] = useFonts({
     'Poppins-Black': require('../assets/fonts/Poppins-Black.ttf'),
     'Poppins-Bold': require('../assets/fonts/Poppins-Bold.ttf'),
@@ -108,11 +116,6 @@ const RootLayout = () => {
   useEffect(() => {
     if (error) throw error;
   }, [error]);
-
-  // Initialize auth store on app startup
-  useEffect(() => {
-    initializeAuth();
-  }, [initializeAuth]);
 
   return (
     <NotificationProvider>
@@ -130,12 +133,6 @@ const RootLayout = () => {
 
 // Separate component to access auth store
 const RootLayoutContent = () => {
-  const loading = useAuthStore((state) => state.loading);
-
-  if (loading) {
-    return <View style={{ flex: 1, backgroundColor: '#ffffff' }}></View>;
-  }
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <BottomSheetModalProvider>

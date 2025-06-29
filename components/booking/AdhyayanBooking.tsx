@@ -51,7 +51,7 @@ const INITIAL_MUMUKSHU_FORM = {
   ],
 };
 
-const AdhyayanBookingDirect = () => {
+const AdhyayanBooking = () => {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const updateBooking = useBookingStore((state) => state.updateBooking);
@@ -60,7 +60,7 @@ const AdhyayanBookingDirect = () => {
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  if (user.res_status == status.STATUS_GUEST) {
+  if (user?.res_status == status.STATUS_GUEST) {
     CHIPS = ['Self'];
   }
 
@@ -579,4 +579,4 @@ function transformMumukshuData(inputData: any) {
   };
 }
 
-export default AdhyayanBookingDirect;
+export default AdhyayanBooking;
