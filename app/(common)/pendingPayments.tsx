@@ -296,9 +296,13 @@ const PendingPayments = () => {
       }
 
       setSelectedPayments((prev) => {
-        const isSelected = prev.some((item) => item.bookingid === payment.bookingid);
+        const isSelected = prev.some(
+          (item) => item.bookingid === payment.bookingid && item.category === payment.category
+        );
         const newSelection = isSelected
-          ? prev.filter((item) => item.bookingid !== payment.bookingid)
+          ? prev.filter(
+              (item) => item.bookingid !== payment.bookingid && item.category !== payment.category
+            )
           : [...prev, payment];
         return newSelection;
       });
@@ -509,7 +513,9 @@ const PendingPayments = () => {
 
   const renderItem = useCallback(
     ({ item }: { item: Transaction }) => {
-      const isSelected = selectedPayments.some((payment) => payment.bookingid === item.bookingid);
+      const isSelected = selectedPayments.some(
+        (payment) => payment.bookingid === item.bookingid && payment.category === item.category
+      );
       const isExpired = isTransactionExpired(item);
       const isCashPending = item.status === 'cash pending';
 
