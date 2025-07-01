@@ -1,7 +1,8 @@
 import { useState, useMemo, useCallback } from 'react';
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useAuthStore, useBookingStore } from '@/stores';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
@@ -287,98 +288,95 @@ const BookingDetails = () => {
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView
-          alwaysBounceVertical={false}
-          showsVerticalScrollIndicator={false}
-          nestedScrollEnabled={true}
-          className="h-full">
-          <PageHeader title="Booking Details" />
+      <KeyboardAwareScrollView
+        bottomOffset={62}
+        style={{ flex: 1 }}
+        keyboardShouldPersistTaps="handled">
+        <PageHeader title="Booking Details" />
 
-          {renderBookingDetails()}
+        {renderBookingDetails()}
 
-          {booking === types.EVENT_DETAILS_TYPE && (
-            <View className="mx-4 mb-2 mt-4 rounded-lg border-2 border-amber-300 bg-amber-50 p-4">
-              <View className="flex-row items-start">
-                <View className="mr-3 mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-yellow-500">
-                  <Text className="font-pbold text-xs text-white">i</Text>
-                </View>
-                <View className="flex-1">
-                  <Text className="mb-2 font-psemibold text-base text-amber-800">
-                    IMPORTANT NOTICE
-                  </Text>
-                  <Text className="font-pregular text-sm leading-5 text-amber-800">
-                    For Early Arrival or Late Departure during events please book your stay, food
-                    and travel through add-ons below.
-                  </Text>
-                </View>
+        {booking === types.EVENT_DETAILS_TYPE && (
+          <View className="mx-4 mb-2 mt-4 rounded-lg border-2 border-amber-300 bg-amber-50 p-4">
+            <View className="flex-row items-start">
+              <View className="mr-3 mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-yellow-500">
+                <Text className="font-pbold text-xs text-white">i</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="mb-2 font-psemibold text-base text-amber-800">
+                  IMPORTANT NOTICE
+                </Text>
+                <Text className="font-pregular text-sm leading-5 text-amber-800">
+                  For Early Arrival or Late Departure during events please book your stay, food and
+                  travel through add-ons below.
+                </Text>
               </View>
             </View>
-          )}
+          </View>
+        )}
 
-          <View className="w-full px-4">
-            <View>
-              <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
+        <View className="w-full px-4">
+          <View>
+            <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
 
-              {/* ROOM BOOKING COMPONENT */}
-              {booking !== types.ROOM_DETAILS_TYPE && (
-                <RoomAddon
-                  roomForm={forms.room}
-                  setRoomForm={(formData: any) => setFormValues('room', formData)}
-                  isDatePickerVisible={isDatePickerVisible}
-                  setDatePickerVisibility={toggleDatePicker}
-                  onToggle={(isOpen) => toggleAddon('room', isOpen)}
-                />
-              )}
-
-              {/* FOOD BOOKING COMPONENT */}
-              <FoodAddon
-                foodForm={forms.food}
-                setFoodForm={(formData: any) => setFormValues('food', formData)}
+            {/* ROOM BOOKING COMPONENT */}
+            {booking !== types.ROOM_DETAILS_TYPE && (
+              <RoomAddon
+                roomForm={forms.room}
+                setRoomForm={(formData: any) => setFormValues('room', formData)}
                 isDatePickerVisible={isDatePickerVisible}
                 setDatePickerVisibility={toggleDatePicker}
-                onToggle={(isOpen) => toggleAddon('food', isOpen)}
+                onToggle={(isOpen) => toggleAddon('room', isOpen)}
               />
+            )}
 
-              {/* ADHYAYAN BOOKING COMPONENT */}
-              {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking) && (
-                <AdhyayanAddon
-                  adhyayanBookingList={forms.adhyayan}
-                  setAdhyayanBookingList={setAdhyayanBookingList}
-                  booking={booking}
-                />
-              )}
-
-              {/* TRAVEL BOOKING COMPONENT */}
-              {booking !== types.TRAVEL_DETAILS_TYPE && (
-                <TravelAddon
-                  travelForm={forms.travel}
-                  setTravelForm={(formData: any) => setFormValues('travel', formData)}
-                  isDatePickerVisible={isDatePickerVisible}
-                  setDatePickerVisibility={toggleDatePicker}
-                  onToggle={(isOpen) => toggleAddon('travel', isOpen)}
-                />
-              )}
-            </View>
-
-            <CustomButton
-              text="Confirm"
-              handlePress={handleSubmit}
-              containerStyles="mb-8 min-h-[62px] mt-6"
-              isLoading={isSubmitting}
+            {/* FOOD BOOKING COMPONENT */}
+            <FoodAddon
+              foodForm={forms.food}
+              setFoodForm={(formData: any) => setFormValues('food', formData)}
+              isDatePickerVisible={isDatePickerVisible}
+              setDatePickerVisibility={toggleDatePicker}
+              onToggle={(isOpen) => toggleAddon('food', isOpen)}
             />
+
+            {/* ADHYAYAN BOOKING COMPONENT */}
+            {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking) && (
+              <AdhyayanAddon
+                adhyayanBookingList={forms.adhyayan}
+                setAdhyayanBookingList={setAdhyayanBookingList}
+                booking={booking}
+              />
+            )}
+
+            {/* TRAVEL BOOKING COMPONENT */}
+            {booking !== types.TRAVEL_DETAILS_TYPE && (
+              <TravelAddon
+                travelForm={forms.travel}
+                setTravelForm={(formData: any) => setFormValues('travel', formData)}
+                isDatePickerVisible={isDatePickerVisible}
+                setDatePickerVisibility={toggleDatePicker}
+                onToggle={(isOpen) => toggleAddon('travel', isOpen)}
+              />
+            )}
           </View>
 
-          {validationDataError && (
-            <CustomModal
-              visible={true}
-              onClose={handleCloseValidationModal}
-              message={validationDataError.message}
-              btnText="Okay"
-            />
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+          <CustomButton
+            text="Confirm"
+            handlePress={handleSubmit}
+            containerStyles="mb-8 min-h-[62px] mt-6"
+            isLoading={isSubmitting}
+          />
+        </View>
+
+        {validationDataError && (
+          <CustomModal
+            visible={true}
+            onClose={handleCloseValidationModal}
+            message={validationDataError.message}
+            btnText="Okay"
+          />
+        )}
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };

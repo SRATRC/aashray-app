@@ -1,6 +1,7 @@
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, Alert } from 'react-native';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores';
@@ -91,76 +92,72 @@ const SupportTicket = () => {
 
   return (
     <SafeAreaView className="h-full w-full bg-white">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1">
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
-          <PageHeader
-            title="Support Ticket"
-            onPress={() => {
-              if (form.service || form.issue_description) {
-                Alert.alert(
-                  'Discard Changes?',
-                  'Are you sure you want to go back? Your changes will be lost.',
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                      text: 'Discard',
-                      style: 'destructive',
-                      onPress: () => router.back(),
-                    },
-                  ]
-                );
-              } else {
-                router.back();
-              }
-            }}
+      <KeyboardAwareScrollView
+        bottomOffset={62}
+        style={{ flex: 1 }}
+        keyboardShouldPersistTaps="handled">
+        <PageHeader
+          title="Support Ticket"
+          onPress={() => {
+            if (form.service || form.issue_description) {
+              Alert.alert(
+                'Discard Changes?',
+                'Are you sure you want to go back? Your changes will be lost.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Discard',
+                    style: 'destructive',
+                    onPress: () => router.back(),
+                  },
+                ]
+              );
+            } else {
+              router.back();
+            }
+          }}
+        />
+
+        <View className="mt-6 flex-1 px-4">
+          <Text className="font-pregular text-base text-gray-500">
+            Hello {user.issuedto}, please let us know how we can help you today
+          </Text>
+
+          <CustomSelectBottomSheet
+            className="mt-7"
+            label="Issue in which service"
+            placeholder="Select Service"
+            options={SERVICE_LIST}
+            selectedValue={form.service}
+            onValueChange={(val: any) => setForm({ ...form, service: val })}
           />
 
-          <View className="mt-6 flex-1 px-4">
-            <Text className="font-pregular text-base text-gray-500">
-              Hello {user.issuedto}, please let us know how we can help you today
+          <FormField
+            text="Describe the issue"
+            value={form.issue_description}
+            handleChangeText={(e: any) => setForm({ ...form, issue_description: e })}
+            multiline={true}
+            numberOfLines={6}
+            otherStyles="mt-7"
+            inputStyles="font-pmedium text-base text-black"
+            containerStyles={'bg-gray-100'}
+            placeholder="Please provide detailed information about the issue you're facing..."
+          />
+
+          <View className="mt-4">
+            <Text className="font-pregular text-sm text-gray-400">
+              * Please be as specific as possible to help us resolve your issue quickly
             </Text>
-
-            <CustomSelectBottomSheet
-              className="mt-7"
-              label="Issue in which service"
-              placeholder="Select Service"
-              options={SERVICE_LIST}
-              selectedValue={form.service}
-              onValueChange={(val: any) => setForm({ ...form, service: val })}
-            />
-
-            <FormField
-              text="Describe the issue"
-              value={form.issue_description}
-              handleChangeText={(e: any) => setForm({ ...form, issue_description: e })}
-              multiline={true}
-              numberOfLines={6}
-              otherStyles="mt-7"
-              inputStyles="font-pmedium text-base text-gray-400"
-              containerStyles={'bg-gray-100'}
-              placeholder="Please provide detailed information about the issue you're facing..."
-            />
-
-            <View className="mt-4">
-              <Text className="font-pregular text-sm text-gray-400">
-                * Please be as specific as possible to help us resolve your issue quickly
-              </Text>
-            </View>
-
-            <CustomButton
-              text="Submit Ticket"
-              handlePress={handleSubmit}
-              containerStyles="min-h-[62px] mt-7"
-              isLoading={isSubmitting}
-            />
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+
+          <CustomButton
+            text="Submit Ticket"
+            handlePress={handleSubmit}
+            containerStyles="min-h-[62px] mt-7"
+            isLoading={isSubmitting}
+          />
+        </View>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };

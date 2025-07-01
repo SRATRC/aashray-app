@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { types } from '@/constants';
 import { useQueryClient } from '@tanstack/react-query';
@@ -94,13 +94,9 @@ const Bookings: React.FC = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['right', 'top', 'left']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}>
-        <View className="flex-1" style={{ paddingBottom: Platform.OS === 'ios' ? 80 : 0 }}>
-          <BookingCategories setRefreshHandler={setRefreshHandler} />
-        </View>
-      </KeyboardAvoidingView>
+      <View className="flex-1" style={{ paddingBottom: Platform.OS === 'ios' ? 80 : 0 }}>
+        <BookingCategories setRefreshHandler={setRefreshHandler} />
+      </View>
     </SafeAreaView>
   );
 };

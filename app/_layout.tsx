@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter } from 'expo-router';
 import { SystemBars } from 'react-native-edge-to-edge';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NotificationProvider } from '@/context/NotificationContext';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
@@ -48,14 +49,14 @@ SplashScreen.preventAutoHideAsync();
 // Component that handles initial routing
 const AppNavigator = () => {
   const user = useAuthStore((state) => state.user);
-  const userExists = !!user; // Create a boolean flag for user presence
+  const userExists = !!user;
   const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const unsub = useAuthStore.persist.onFinishHydration(() => setIsHydrated(true));
 
-    // If the store is already hydrated, set the state immediately
     if (useAuthStore.persist.hasHydrated()) {
       setIsHydrated(true);
     }
@@ -64,8 +65,19 @@ const AppNavigator = () => {
   }, []);
 
   useEffect(() => {
-    // Only run navigation logic once the store is hydrated and user presence changes.
+    // Add a small delay to ensure all providers are ready
     if (isHydrated) {
+      const timer = setTimeout(() => {
+        setIsReady(true);
+      }, 150);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isHydrated]);
+
+  useEffect(() => {
+    // Only run navigation logic once everything is ready
+    if (isReady) {
       (async () => {
         try {
           await handleUserNavigation(user, router);
@@ -80,7 +92,12 @@ const AppNavigator = () => {
         }
       })();
     }
-  }, [isHydrated, userExists, router]); // Depend on userExists instead of user
+  }, [isReady, userExists, router]);
+
+  // Show loading screen while not ready
+  if (!isReady) {
+    return <View style={{ flex: 1, backgroundColor: '#ffffff' }} />;
+  }
 
   return (
     <Stack
@@ -134,13 +151,15 @@ const RootLayout = () => {
 // Separate component to access auth store
 const RootLayoutContent = () => {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <BottomSheetModalProvider>
-        <SystemBars style="dark" />
-        <AppNavigator />
-        <Toast />
-      </BottomSheetModalProvider>
-    </GestureHandlerRootView>
+    <KeyboardProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <BottomSheetModalProvider>
+          <SystemBars style="dark" />
+          <AppNavigator />
+          <Toast />
+        </BottomSheetModalProvider>
+      </GestureHandlerRootView>
+    </KeyboardProvider>
   );
 };
 

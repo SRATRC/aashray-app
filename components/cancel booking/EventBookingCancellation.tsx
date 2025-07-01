@@ -30,7 +30,7 @@ const EventBookingCancellation = () => {
         'GET',
         '/utsav/booking',
         {
-          cardno: user.cardno,
+          cardno: user?.cardno,
           page: pageParam,
         },
         null,
@@ -44,7 +44,7 @@ const EventBookingCancellation = () => {
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch }: any =
     useInfiniteQuery({
-      queryKey: ['utsavBooking', user.cardno],
+      queryKey: ['utsavBooking', user?.cardno],
       queryFn: fetchUtsavs,
       initialPageParam: 1,
       staleTime: 1000 * 60 * 5,
@@ -52,6 +52,7 @@ const EventBookingCancellation = () => {
         if (!lastPage || lastPage.length === 0) return undefined;
         return pages.length + 1;
       },
+      enabled: !!user?.cardno,
     });
 
   const cancelBookingMutation = useMutation<any, any, any>({
@@ -71,7 +72,7 @@ const EventBookingCancellation = () => {
       });
     },
     onSuccess: (_, { bookingid }) => {
-      queryClient.setQueryData(['utsavBooking', user.cardno], (oldData: any) => {
+      queryClient.setQueryData(['utsavBooking', user?.cardno], (oldData: any) => {
         if (!oldData || !oldData.pages) return oldData;
 
         return {
@@ -132,7 +133,7 @@ const EventBookingCancellation = () => {
               transactionStatus={item.transaction_status}
             />
             <Text className="font-pmedium">{item.utsav_name}</Text>
-            {item.bookedBy && user.cardno == item.bookedBy && (
+            {item.bookedBy && user?.cardno == item.bookedBy && (
               <Text className="font-pmedium">
                 Booked For: <Text className="font-pmedium text-secondary">{item.user_name}</Text>
               </Text>

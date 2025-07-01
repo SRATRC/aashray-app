@@ -190,14 +190,16 @@ const AdhyayanBooking = () => {
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch }: any =
     useInfiniteQuery({
-      queryKey: ['adhyayans', user.cardno],
+      queryKey: ['adhyayans', user?.cardno],
       queryFn: fetchAdhyayans,
-      staleTime: 1000 * 60 * 30,
+      staleTime: 1000 * 60 * 5,
+      gcTime: 1000 * 60 * 5,
       initialPageParam: 1,
       getNextPageParam: (lastPage: any, pages: any) => {
         if (!lastPage || lastPage.length === 0) return undefined;
         return pages.length + 1;
       },
+      enabled: !!user?.cardno,
     });
 
   const renderItem = ({ item }: { item: any }) => (

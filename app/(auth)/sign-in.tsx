@@ -1,17 +1,8 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  KeyboardAvoidingView,
-  ScrollView,
-  Platform,
-  Image,
-  Alert,
-  TouchableOpacity,
-  Modal,
-} from 'react-native';
+import { View, Text, Image, Alert, TouchableOpacity, Modal } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { images } from '@/constants';
 import { useAuthStore } from '@/stores';
 import { useNotification } from '@/context/NotificationContext';
@@ -135,59 +126,60 @@ const SignIn = () => {
 
   return (
     <SafeAreaView className="h-full bg-white">
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView keyboardShouldPersistTaps="handled">
-          <View className="my-6 min-h-[83vh] w-full justify-center px-4">
-            <Image source={images.logo} className="h-[80px] w-[80px]" resizeMode="contain" />
-            <Text className="text-semibold mt-5 font-psemibold text-2xl text-black">
-              Welcome to SRATRC
-            </Text>
+      <KeyboardAwareScrollView
+        bottomOffset={62}
+        style={{ flex: 1 }}
+        keyboardShouldPersistTaps="handled">
+        <View className="my-6 min-h-[83vh] w-full justify-center px-4">
+          <Image source={images.logo} className="h-[80px] w-[80px]" resizeMode="contain" />
+          <Text className="text-semibold mt-5 font-psemibold text-2xl text-black">
+            Welcome to SRATRC
+          </Text>
 
-            <FormField
-              text="Phone Number"
-              value={form.phone}
-              handleChangeText={(e: any) => setForm({ ...form, phone: e })}
-              otherStyles="mt-7"
-              inputStyles="font-pmedium text-base text-black"
-              keyboardType="number-pad"
-              placeholder="Enter Your Phone Number"
-              maxLength={10}
-            />
+          <FormField
+            text="Phone Number"
+            value={form.phone}
+            handleChangeText={(e: any) => setForm({ ...form, phone: e })}
+            otherStyles="mt-7"
+            inputStyles="font-pmedium text-base text-black"
+            keyboardType="number-pad"
+            placeholder="Enter Your Phone Number"
+            maxLength={10}
+          />
 
-            <FormField
-              text="Password"
-              value={form.password}
-              handleChangeText={(e: any) => setForm({ ...form, password: e })}
-              otherStyles="mt-7"
-              inputStyles="font-pmedium text-base text-black"
-              keyboardType="default"
-              placeholder="Enter Your Password"
-              isPassword={true}
-            />
+          <FormField
+            text="Password"
+            value={form.password}
+            handleChangeText={(e: any) => setForm({ ...form, password: e })}
+            otherStyles="mt-7"
+            inputStyles="font-pmedium text-base text-black"
+            keyboardType="default"
+            placeholder="Enter Your Password"
+            isPassword={true}
+          />
 
-            <View className="mt-2 flex flex-row items-center justify-end">
-              <TouchableOpacity onPress={handleForgotPassword}>
-                <Text className="font-pmedium text-sm text-secondary">Forgot Password?</Text>
-              </TouchableOpacity>
-            </View>
-
-            <CustomButton
-              text="Sign In"
-              handlePress={submit}
-              containerStyles="mt-7 min-h-[62px]"
-              isLoading={isSubmitting}
-              isDisabled={form.phone.length !== 10 || !form.password}
-            />
-
-            {/* Password Reset Modal */}
-            <PasswordResetModal
-              visible={modalVisible}
-              onClose={() => setModalVisible(false)}
-              email={resetEmail}
-            />
+          <View className="mt-2 flex flex-row items-center justify-end">
+            <TouchableOpacity onPress={handleForgotPassword}>
+              <Text className="font-pmedium text-sm text-secondary">Forgot Password?</Text>
+            </TouchableOpacity>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+
+          <CustomButton
+            text="Sign In"
+            handlePress={submit}
+            containerStyles="mt-7 min-h-[62px]"
+            isLoading={isSubmitting}
+            isDisabled={form.phone.length !== 10 || !form.password}
+          />
+
+          {/* Password Reset Modal */}
+          <PasswordResetModal
+            visible={modalVisible}
+            onClose={() => setModalVisible(false)}
+            email={resetEmail}
+          />
+        </View>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-virtualized-view';
 import { status, types } from '@/constants';
@@ -78,11 +78,9 @@ const BookingCategories = React.memo(BookingCategoriesInternal);
 const BookNowInternal = () => {
   return (
     <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView alwaysBounceVertical={false} showsVerticalScrollIndicator={false}>
-          <BookingCategories />
-        </ScrollView>
-      </KeyboardAvoidingView>
+      <ScrollView alwaysBounceVertical={false} showsVerticalScrollIndicator={false}>
+        <BookingCategories />
+      </ScrollView>
     </SafeAreaView>
   );
 };

@@ -1,12 +1,12 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { dropdowns, types } from '@/constants';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { useAuthStore, useBookingStore } from '@/stores';
-import { ScrollView } from 'react-native-gesture-handler';
-import { prepareMumukshuRequestBody } from '@/utils/preparingRequestBody';
 import { useQuery } from '@tanstack/react-query';
+import { dropdowns, types } from '@/constants';
+import { prepareMumukshuRequestBody } from '@/utils/preparingRequestBody';
+import { useAuthStore, useBookingStore } from '@/stores';
 import PageHeader from '@/components/PageHeader';
 import CustomButton from '@/components/CustomButton';
 import MumukshuRoomBookingDetails from '@/components/booking details cards/MumukshuRoomBookingDetails';
@@ -695,129 +695,127 @@ const MumukshuAddons = () => {
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView
-          alwaysBounceVertical={false}
-          showsVerticalScrollIndicator={false}
-          nestedScrollEnabled={true}>
-          <PageHeader title="Booking Details" />
+      <KeyboardAwareScrollView
+        bottomOffset={62}
+        style={{ flex: 1 }}
+        keyboardShouldPersistTaps="handled">
+        <PageHeader title="Booking Details" />
 
-          {booking === types.ROOM_DETAILS_TYPE && (
-            <MumukshuRoomBookingDetails containerStyles="mt-2" />
-          )}
-          {booking === types.ADHYAYAN_DETAILS_TYPE && (
-            <MumukshuAdhyayanBookingDetails containerStyles="mt-2" />
-          )}
-          {booking === types.TRAVEL_DETAILS_TYPE && (
-            <MumukshuTravelBookingDetails containerStyles="mt-2" />
-          )}
-          {booking === types.EVENT_DETAILS_TYPE && (
-            <MumukshuEventBookingDetails containerStyles="mt-2" />
-          )}
+        {booking === types.ROOM_DETAILS_TYPE && (
+          <MumukshuRoomBookingDetails containerStyles="mt-2" />
+        )}
+        {booking === types.ADHYAYAN_DETAILS_TYPE && (
+          <MumukshuAdhyayanBookingDetails containerStyles="mt-2" />
+        )}
+        {booking === types.TRAVEL_DETAILS_TYPE && (
+          <MumukshuTravelBookingDetails containerStyles="mt-2" />
+        )}
+        {booking === types.EVENT_DETAILS_TYPE && (
+          <MumukshuEventBookingDetails containerStyles="mt-2" />
+        )}
 
-          {booking === types.EVENT_DETAILS_TYPE && (
-            <View className="mx-4 mb-2 mt-4 rounded-lg border-2 border-amber-300 bg-amber-50 p-4">
-              <View className="flex-row items-start">
-                <View className="mr-3 mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-yellow-500">
-                  <Text className="font-pbold text-xs text-white">i</Text>
-                </View>
-                <View className="flex-1">
-                  <Text className="mb-2 font-psemibold text-base text-amber-800">
-                    IMPORTANT NOTICE
-                  </Text>
-                  <Text className="font-pregular text-sm leading-5 text-amber-800">
-                    For Early Arrival or Late Departure during events please book your stay, food
-                    and travel through add-ons below.
-                  </Text>
-                </View>
+        {booking === types.EVENT_DETAILS_TYPE && (
+          <View className="mx-4 mb-2 mt-4 rounded-lg border-2 border-amber-300 bg-amber-50 p-4">
+            <View className="flex-row items-start">
+              <View className="mr-3 mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-yellow-500">
+                <Text className="font-pbold text-xs text-white">i</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="mb-2 font-psemibold text-base text-amber-800">
+                  IMPORTANT NOTICE
+                </Text>
+                <Text className="font-pregular text-sm leading-5 text-amber-800">
+                  For Early Arrival or Late Departure during events please book your stay, food and
+                  travel through add-ons below.
+                </Text>
               </View>
             </View>
-          )}
+          </View>
+        )}
 
-          <View className="w-full px-4">
-            {!isAdhyayanInResearchCentre && (
-              <View>
-                <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
+        <View className="w-full px-4">
+          {!isAdhyayanInResearchCentre && (
+            <View>
+              <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
 
-                {/* MUMUKSHU ROOM BOOKING COMPONENT */}
-                {booking !== types.ROOM_DETAILS_TYPE && (
-                  <MumukshuRoomAddon
-                    roomForm={roomForm}
-                    setRoomForm={setRoomForm}
-                    addRoomForm={addRoomForm}
-                    reomveRoomForm={removeRoomForm}
-                    updateRoomForm={updateRoomForm}
-                    resetRoomForm={resetRoomForm}
-                    mumukshu_dropdown={mumukshu_dropdown}
-                    isDatePickerVisible={isDatePickerVisible}
-                    setDatePickerVisibility={toggleDatePicker}
-                    onToggle={(isOpen) => toggleAddon('room', isOpen)}
-                  />
-                )}
-
-                {/* MUMUKSHU FOOD BOOKING COMPONENT */}
-                <MumukshuFoodAddon
-                  foodForm={foodForm}
-                  setFoodForm={setFoodForm}
-                  addFoodForm={addFoodForm}
-                  resetFoodForm={resetFoodForm}
-                  reomveFoodForm={removeFoodForm}
-                  updateFoodForm={updateFoodForm}
+              {/* MUMUKSHU ROOM BOOKING COMPONENT */}
+              {booking !== types.ROOM_DETAILS_TYPE && (
+                <MumukshuRoomAddon
+                  roomForm={roomForm}
+                  setRoomForm={setRoomForm}
+                  addRoomForm={addRoomForm}
+                  reomveRoomForm={removeRoomForm}
+                  updateRoomForm={updateRoomForm}
+                  resetRoomForm={resetRoomForm}
                   mumukshu_dropdown={mumukshu_dropdown}
                   isDatePickerVisible={isDatePickerVisible}
                   setDatePickerVisibility={toggleDatePicker}
-                  onToggle={(isOpen) => toggleAddon('food', isOpen)}
+                  onToggle={(isOpen) => toggleAddon('room', isOpen)}
                 />
+              )}
 
-                {/* MUMUKSHU ADHYAYAN BOOKING COMPONENT */}
-                {!(
-                  booking === types.ADHYAYAN_DETAILS_TYPE || booking === types.EVENT_DETAILS_TYPE
-                ) && (
-                  <MumukshuAdhyayanAddon
-                    adhyayanForm={adhyayanForm}
-                    setAdhyayanForm={setAdhyayanForm}
-                    updateAdhyayanForm={updateAdhyayanForm}
-                    INITIAL_ADHYAYAN_FORM={createInitialAdhyayanForm()}
-                    mumukshu_dropdown={mumukshu_dropdown}
-                  />
-                )}
+              {/* MUMUKSHU FOOD BOOKING COMPONENT */}
+              <MumukshuFoodAddon
+                foodForm={foodForm}
+                setFoodForm={setFoodForm}
+                addFoodForm={addFoodForm}
+                resetFoodForm={resetFoodForm}
+                reomveFoodForm={removeFoodForm}
+                updateFoodForm={updateFoodForm}
+                mumukshu_dropdown={mumukshu_dropdown}
+                isDatePickerVisible={isDatePickerVisible}
+                setDatePickerVisibility={toggleDatePicker}
+                onToggle={(isOpen) => toggleAddon('food', isOpen)}
+              />
 
-                {/* MUMUKSHU TRAVEL BOOKING COMPONENT */}
-                {booking !== types.TRAVEL_DETAILS_TYPE && (
-                  <MumukshuTravelAddon
-                    travelForm={travelForm}
-                    setTravelForm={setTravelForm}
-                    addTravelForm={addTravelForm}
-                    updateTravelForm={updateTravelForm}
-                    resetTravelForm={resetTravelForm}
-                    removeTravelForm={removeTravelForm}
-                    mumukshu_dropdown={mumukshu_dropdown}
-                    isDatePickerVisible={isDatePickerVisible}
-                    setDatePickerVisibility={toggleDatePicker}
-                    onToggle={(isOpen) => toggleAddon('travel', isOpen)}
-                  />
-                )}
-              </View>
-            )}
+              {/* MUMUKSHU ADHYAYAN BOOKING COMPONENT */}
+              {!(
+                booking === types.ADHYAYAN_DETAILS_TYPE || booking === types.EVENT_DETAILS_TYPE
+              ) && (
+                <MumukshuAdhyayanAddon
+                  adhyayanForm={adhyayanForm}
+                  setAdhyayanForm={setAdhyayanForm}
+                  updateAdhyayanForm={updateAdhyayanForm}
+                  INITIAL_ADHYAYAN_FORM={createInitialAdhyayanForm()}
+                  mumukshu_dropdown={mumukshu_dropdown}
+                />
+              )}
 
-            <CustomButton
-              text="Confirm"
-              handlePress={handleSubmit}
-              containerStyles="mb-8 min-h-[62px] mt-6"
-              isLoading={isSubmitting}
-            />
-          </View>
-
-          {validationDataError && (
-            <CustomModal
-              visible={true}
-              onClose={handleCloseValidationModal}
-              message={validationDataError.message}
-              btnText="Okay"
-            />
+              {/* MUMUKSHU TRAVEL BOOKING COMPONENT */}
+              {booking !== types.TRAVEL_DETAILS_TYPE && (
+                <MumukshuTravelAddon
+                  travelForm={travelForm}
+                  setTravelForm={setTravelForm}
+                  addTravelForm={addTravelForm}
+                  updateTravelForm={updateTravelForm}
+                  resetTravelForm={resetTravelForm}
+                  removeTravelForm={removeTravelForm}
+                  mumukshu_dropdown={mumukshu_dropdown}
+                  isDatePickerVisible={isDatePickerVisible}
+                  setDatePickerVisibility={toggleDatePicker}
+                  onToggle={(isOpen) => toggleAddon('travel', isOpen)}
+                />
+              )}
+            </View>
           )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+
+          <CustomButton
+            text="Confirm"
+            handlePress={handleSubmit}
+            containerStyles="mb-8 min-h-[62px] mt-6"
+            isLoading={isSubmitting}
+          />
+        </View>
+
+        {validationDataError && (
+          <CustomModal
+            visible={true}
+            onClose={handleCloseValidationModal}
+            message={validationDataError.message}
+            btnText="Okay"
+          />
+        )}
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };

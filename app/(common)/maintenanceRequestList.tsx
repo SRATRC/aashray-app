@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Modal,
   Platform,
-  KeyboardAvoidingView,
   ScrollView,
   Alert,
 } from 'react-native';
@@ -17,6 +16,7 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { colors, icons, status, types } from '@/constants';
 import { useAuthStore } from '@/stores';
 import { FlashList } from '@shopify/flash-list';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import PageHeader from '@/components/PageHeader';
 import handleAPICall from '@/utils/HandleApiCall';
 import CustomChipGroup from '@/components/CustomChipGroup';
@@ -216,8 +216,11 @@ const maintenanceRequestList = () => {
         presentationStyle="pageSheet"
         statusBarTranslucent={true}
         onRequestClose={() => setIsModalVisible(false)}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+        <SafeAreaView className="h-full w-full bg-white">
+          <KeyboardAwareScrollView
+            bottomOffset={62}
+            style={{ flex: 1 }}
+            keyboardShouldPersistTaps="handled">
             <PageHeader
               title="Maintenance Request"
               iconName="times"
@@ -252,7 +255,7 @@ const maintenanceRequestList = () => {
                 multiline={true}
                 numberOfLines={4}
                 otherStyles="mt-7"
-                inputStyles="font-pmedium text-base text-gray-400"
+                inputStyles="font-pmedium text-base text-black"
                 containerStyles={'bg-gray-100'}
                 placeholder="Work Description"
               />
@@ -262,7 +265,7 @@ const maintenanceRequestList = () => {
                 value={form.area_of_work}
                 handleChangeText={(e: any) => setForm({ ...form, area_of_work: e })}
                 otherStyles="mt-7"
-                inputStyles="font-pmedium text-base text-gray-400"
+                inputStyles="font-pmedium text-base text-black"
                 containerStyles={'bg-gray-100'}
                 placeholder="Place where work is needed"
               />
@@ -276,6 +279,7 @@ const maintenanceRequestList = () => {
                     form.work_detail.trim() == '' ||
                     form.area_of_work.trim() == ''
                   ) {
+                    setIsSubmitting(false);
                     Alert.alert('Please fill all fields');
                     return;
                   }
@@ -313,10 +317,13 @@ const maintenanceRequestList = () => {
                 }}
                 containerStyles="min-h-[62px] mt-7"
                 isLoading={isSubmitting}
+                isDisabled={
+                  form.department == '' || form.work_detail == '' || form.area_of_work == ''
+                }
               />
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+          </KeyboardAwareScrollView>
+        </SafeAreaView>
       </Modal>
     </SafeAreaView>
   );

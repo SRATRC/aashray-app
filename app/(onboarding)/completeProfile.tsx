@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   View,
-  KeyboardAvoidingView,
   ScrollView,
   Platform,
   Text,
@@ -12,6 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { dropdowns, images, colors, icons } from '@/constants';
 import { useAuthStore } from '@/stores';
 import FormField from '@/components/FormField';
@@ -294,9 +294,10 @@ const CompleteProfile = () => {
         transparent={true}
         visible={isModalVisible}
         onRequestClose={() => setIsModalVisible(false)}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          className="flex-1">
+        <KeyboardAwareScrollView
+          bottomOffset={62}
+          style={{ flex: 1 }}
+          keyboardShouldPersistTaps="handled">
           <SafeAreaView className="flex-1 bg-white" edges={['top']}>
             <PageHeader
               title="Complete your profile"
@@ -305,193 +306,189 @@ const CompleteProfile = () => {
                 setIsModalVisible(false);
               }}
             />
-            <ScrollView>
-              <View className="mb-8 w-full px-4">
-                <FormField
-                  text="Name"
-                  value={form.issuedto}
-                  handleChangeText={(e: any) => setForm({ ...form, issuedto: e })}
-                  otherStyles="mt-2"
-                  inputStyles="font-pmedium text-base"
-                  keyboardType="default"
-                  placeholder="Enter Your Name"
-                  containerStyles={'bg-gray-100'}
-                />
+            <View className="mb-8 w-full px-4">
+              <FormField
+                text="Name"
+                value={form.issuedto}
+                handleChangeText={(e: any) => setForm({ ...form, issuedto: e })}
+                otherStyles="mt-2"
+                inputStyles="font-pmedium text-base"
+                keyboardType="default"
+                placeholder="Enter Your Name"
+                containerStyles={'bg-gray-100'}
+              />
 
-                <FormField
-                  text="Phone Number"
-                  value={form.mobno ? form.mobno.toString() : ''}
-                  handleChangeText={(e: any) => setForm({ ...form, mobno: Number(e) })}
-                  otherStyles="mt-7"
-                  inputStyles="font-pmedium text-base"
-                  keyboardType="number-pad"
-                  placeholder="Enter Your Phone Number"
-                  maxLength={10}
-                  containerStyles={'bg-gray-100'}
-                />
+              <FormField
+                text="Phone Number"
+                value={form.mobno ? form.mobno.toString() : ''}
+                handleChangeText={(e: any) => setForm({ ...form, mobno: Number(e) })}
+                otherStyles="mt-7"
+                inputStyles="font-pmedium text-base"
+                keyboardType="number-pad"
+                placeholder="Enter Your Phone Number"
+                maxLength={10}
+                containerStyles={'bg-gray-100'}
+              />
 
-                <FormField
-                  text="Email"
-                  value={form.email}
-                  handleChangeText={(e: any) => setForm({ ...form, email: e })}
-                  otherStyles="mt-7"
-                  inputStyles="font-pmedium text-base"
-                  keyboardType="email-address"
-                  placeholder="Enter Your Email ID"
-                  maxLength={100}
-                  containerStyles={'bg-gray-100'}
-                />
+              <FormField
+                text="Email"
+                value={form.email}
+                handleChangeText={(e: any) => setForm({ ...form, email: e })}
+                otherStyles="mt-7"
+                inputStyles="font-pmedium text-base"
+                keyboardType="email-address"
+                placeholder="Enter Your Email ID"
+                maxLength={100}
+                containerStyles={'bg-gray-100'}
+              />
 
+              <CustomSelectBottomSheet
+                className="mt-7"
+                label="Select Government ID Type"
+                placeholder="Select Government ID Type"
+                options={dropdowns.ID_TYPE_LIST}
+                selectedValue={form.idType}
+                onValueChange={(val: any) => {
+                  setForm({ ...form, idType: val });
+                }}
+              />
+
+              <FormField
+                text="Enter ID Number"
+                value={form.idNo}
+                handleChangeText={(e: any) => setForm({ ...form, idNo: e.trim() })}
+                otherStyles="mt-7"
+                inputStyles="font-pmedium text-base"
+                keyboardType="default"
+                placeholder="Enter Your ID Number"
+                containerStyles={'bg-gray-100'}
+              />
+
+              <FormDisplayField
+                text="Date of Birth"
+                value={form.dob ? moment(form.dob).format('Do MMMM YYYY') : 'Select Date of Birth'}
+                otherStyles="mt-7"
+                backgroundColor={'bg-gray-100'}
+                onPress={() => setDatePickerVisibility(true)}
+              />
+
+              <CustomSelectBottomSheet
+                className="mt-7"
+                label="Gender"
+                placeholder="Select Gender"
+                options={dropdowns.GENDER_LIST}
+                selectedValue={form.gender}
+                onValueChange={(val: any) => setForm({ ...form, gender: val })}
+              />
+
+              <CustomSelectBottomSheet
+                className="mt-7"
+                label="Centre"
+                placeholder="Select Centre"
+                options={centres}
+                selectedValue={form.center}
+                onValueChange={(val: any) => {
+                  setForm({ ...form, center: val });
+                }}
+                searchable={true}
+                searchPlaceholder="Search Centres..."
+                noResultsText="No Centres Found"
+                isLoading={isCentresLoading}
+                onRetry={fetchCentres}
+                saveKeyInsteadOfValue={false}
+              />
+
+              <FormField
+                text="Address"
+                value={form.address}
+                handleChangeText={(e: any) => setForm({ ...form, address: e })}
+                multiline={true}
+                numberOfLines={4}
+                otherStyles="mt-7"
+                inputStyles="font-pmedium text-base"
+                keyboardType="default"
+                placeholder="Enter Your Address"
+                maxLength={200}
+                containerStyles={'bg-gray-100'}
+              />
+
+              <CustomSelectBottomSheet
+                className="mt-7"
+                label="Country"
+                placeholder="Select Country"
+                options={countries}
+                selectedValue={form.country}
+                onValueChange={(val: any) => {
+                  setForm({ ...form, country: val, state: '', city: '' });
+                  setSelectedCountry(val);
+                }}
+                searchable={true}
+                searchPlaceholder="Search Countries..."
+                noResultsText="No Countries Found"
+                isLoading={isCountriesLoading}
+                onRetry={fetchCountries}
+                saveKeyInsteadOfValue={false}
+              />
+
+              {selectedCountry && (
                 <CustomSelectBottomSheet
                   className="mt-7"
-                  label="Select Government ID Type"
-                  placeholder="Select Government ID Type"
-                  options={dropdowns.ID_TYPE_LIST}
-                  selectedValue={form.idType}
+                  label="State"
+                  placeholder="Select State"
+                  options={states}
+                  selectedValue={form.state}
                   onValueChange={(val: any) => {
-                    setForm({ ...form, idType: val });
-                  }}
-                />
-
-                <FormField
-                  text="Enter ID Number"
-                  value={form.idNo}
-                  handleChangeText={(e: any) => setForm({ ...form, idNo: e.trim() })}
-                  otherStyles="mt-7"
-                  inputStyles="font-pmedium text-base"
-                  keyboardType="default"
-                  placeholder="Enter Your ID Number"
-                  containerStyles={'bg-gray-100'}
-                />
-
-                <FormDisplayField
-                  text="Date of Birth"
-                  value={
-                    form.dob ? moment(form.dob).format('Do MMMM YYYY') : 'Select Date of Birth'
-                  }
-                  otherStyles="mt-7"
-                  backgroundColor={'bg-gray-100'}
-                  onPress={() => setDatePickerVisibility(true)}
-                />
-
-                <CustomSelectBottomSheet
-                  className="mt-7"
-                  label="Gender"
-                  placeholder="Select Gender"
-                  options={dropdowns.GENDER_LIST}
-                  selectedValue={form.gender}
-                  onValueChange={(val: any) => setForm({ ...form, gender: val })}
-                />
-
-                <CustomSelectBottomSheet
-                  className="mt-7"
-                  label="Centre"
-                  placeholder="Select Centre"
-                  options={centres}
-                  selectedValue={form.center}
-                  onValueChange={(val: any) => {
-                    setForm({ ...form, center: val });
+                    setForm({ ...form, state: val, city: '' });
+                    setSelectedState(val);
                   }}
                   searchable={true}
-                  searchPlaceholder="Search Centres..."
-                  noResultsText="No Centres Found"
-                  isLoading={isCentresLoading}
-                  onRetry={fetchCentres}
+                  searchPlaceholder="Search States..."
+                  noResultsText="No States Found"
+                  isLoading={isStatesLoading}
+                  onRetry={() => fetchStates(selectedCountry)}
                   saveKeyInsteadOfValue={false}
                 />
+              )}
 
-                <FormField
-                  text="Address"
-                  value={form.address}
-                  handleChangeText={(e: any) => setForm({ ...form, address: e })}
-                  multiline={true}
-                  numberOfLines={4}
-                  otherStyles="mt-7"
-                  inputStyles="font-pmedium text-base"
-                  keyboardType="default"
-                  placeholder="Enter Your Address"
-                  maxLength={200}
-                  containerStyles={'bg-gray-100'}
-                />
-
+              {selectedState && (
                 <CustomSelectBottomSheet
                   className="mt-7"
-                  label="Country"
-                  placeholder="Select Country"
-                  options={countries}
-                  selectedValue={form.country}
-                  onValueChange={(val: any) => {
-                    setForm({ ...form, country: val, state: '', city: '' });
-                    setSelectedCountry(val);
-                  }}
+                  label="City"
+                  placeholder="Select City"
+                  options={cities}
+                  selectedValue={form.city}
+                  onValueChange={(val: any) => setForm({ ...form, city: val })}
                   searchable={true}
-                  searchPlaceholder="Search Countries..."
-                  noResultsText="No Countries Found"
-                  isLoading={isCountriesLoading}
-                  onRetry={fetchCountries}
+                  searchPlaceholder="Search Cities..."
+                  noResultsText="No Cities Found"
+                  isLoading={isCitiesLoading}
+                  onRetry={() => fetchCities(selectedCountry, selectedState)}
                   saveKeyInsteadOfValue={false}
                 />
+              )}
 
-                {selectedCountry && (
-                  <CustomSelectBottomSheet
-                    className="mt-7"
-                    label="State"
-                    placeholder="Select State"
-                    options={states}
-                    selectedValue={form.state}
-                    onValueChange={(val: any) => {
-                      setForm({ ...form, state: val, city: '' });
-                      setSelectedState(val);
-                    }}
-                    searchable={true}
-                    searchPlaceholder="Search States..."
-                    noResultsText="No States Found"
-                    isLoading={isStatesLoading}
-                    onRetry={() => fetchStates(selectedCountry)}
-                    saveKeyInsteadOfValue={false}
-                  />
-                )}
+              <FormField
+                text="Pin Code"
+                value={form.pin ? form.pin.toString() : ''}
+                handleChangeText={(e: any) => setForm({ ...form, pin: e })}
+                otherStyles="mt-7"
+                inputStyles="font-pmedium text-base"
+                keyboardType="number-pad"
+                placeholder="Enter Your Pin Code"
+                maxLength={6}
+                containerStyles={'bg-gray-100'}
+              />
 
-                {selectedState && (
-                  <CustomSelectBottomSheet
-                    className="mt-7"
-                    label="City"
-                    placeholder="Select City"
-                    options={cities}
-                    selectedValue={form.city}
-                    onValueChange={(val: any) => setForm({ ...form, city: val })}
-                    searchable={true}
-                    searchPlaceholder="Search Cities..."
-                    noResultsText="No Cities Found"
-                    isLoading={isCitiesLoading}
-                    onRetry={() => fetchCities(selectedCountry, selectedState)}
-                    saveKeyInsteadOfValue={false}
-                  />
-                )}
-
-                <FormField
-                  text="Pin Code"
-                  value={form.pin ? form.pin.toString() : ''}
-                  handleChangeText={(e: any) => setForm({ ...form, pin: e })}
-                  otherStyles="mt-7"
-                  inputStyles="font-pmedium text-base"
-                  keyboardType="number-pad"
-                  placeholder="Enter Your Pin Code"
-                  maxLength={6}
-                  containerStyles={'bg-gray-100'}
-                />
-
-                <CustomButton
-                  text="Submit Profile Details"
-                  handlePress={submit}
-                  containerStyles={`mt-7 mb-10 min-h-[62px] ${Platform.OS == 'android' && 'mb-3'}`}
-                  isLoading={isSubmitting}
-                  isDisabled={!isFormValid()}
-                />
-              </View>
-            </ScrollView>
+              <CustomButton
+                text="Submit Profile Details"
+                handlePress={submit}
+                containerStyles={`mt-7 mb-10 min-h-[62px] ${Platform.OS == 'android' && 'mb-3'}`}
+                isLoading={isSubmitting}
+                isDisabled={!isFormValid()}
+              />
+            </View>
           </SafeAreaView>
-        </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
       </Modal>
     </SafeAreaView>
   );

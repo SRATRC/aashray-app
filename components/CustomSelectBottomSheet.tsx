@@ -10,11 +10,16 @@ import {
   ScrollView,
   ActivityIndicator,
   TextInput,
-  Keyboard,
-  KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
+import {
+  KeyboardProvider,
+  KeyboardAvoidingView,
+  KeyboardController,
+  useKeyboardAnimation,
+  useKeyboardController,
+} from 'react-native-keyboard-controller';
 import { colors } from '../constants';
 import AntDesign from '@expo/vector-icons/AntDesign';
 // @ts-ignore
@@ -32,7 +37,7 @@ interface SearchInputComponentProps {
   onChangeText: (text: string) => void;
   placeholder: string;
   placeholderTextColor: string;
-  inputRef: React.RefObject<TextInput>;
+  inputRef: React.RefObject<TextInput | null>;
 }
 
 interface CustomSelectBottomSheetProps {
@@ -212,9 +217,24 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
   const [filteredOptions, setFilteredOptions] = useState<Option[]>([]);
   const [tempSelectedValues, setTempSelectedValues] = useState<Array<string | number>>([]);
   const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
   const slideAnim = useRef(new Animated.Value(height)).current;
-  const searchInputRef = useRef<TextInput>(null);
+  const searchInputRef = useRef<TextInput | null>(null);
   const flashListRef = useRef(null);
+
+  // Use keyboard controller hooks
+  const { setEnabled } = useKeyboardController();
+  const { height: keyboardHeight, progress } = useKeyboardAnimation();
+
+  // Track keyboard visibility
+  useEffect(() => {
+    const unsubscribe = progress.addListener(({ value }) => {
+      setIsKeyboardVisible(value > 0);
+    });
+    return () => {
+      progress.removeListener(unsubscribe);
+    };
+  }, [progress]);
 
   // Update filtered options when options change
   useEffect(() => {
@@ -325,7 +345,8 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
   }, [options, isLoading, multiSelect, selectedValues, slideAnim]);
 
   const closeBottomSheet = useCallback(() => {
-    Keyboard.dismiss();
+    // Use keyboard controller's static dismiss method
+    KeyboardController.dismiss();
     Animated.timing(slideAnim, {
       toValue: height,
       duration: 300,
@@ -585,128 +606,140 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
         animationType="none"
         statusBarTranslucent={true}
         onRequestClose={closeBottomSheet}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ flex: 1 }}>
-          <View className="flex-1 justify-end bg-black/50">
-            <Pressable
-              onPress={closeBottomSheet}
-              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-            />
-            <Animated.View
-              className="overflow-hidden rounded-t-3xl bg-white"
-              style={[
-                {
-                  transform: [{ translateY: slideAnim }],
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: -3 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 5,
-                  elevation: 10,
-                },
-              ]}>
-              {/* Pull indicator */}
-              <View className="items-center pb-3 pt-2">
-                <View className="h-1.5 w-16 rounded-full bg-gray-300" />
-              </View>
-
-              {/* Header */}
-              <View className="flex-row items-center justify-between border-b border-gray-200 px-4 pb-4">
-                <Text
-                  style={{
-                    fontSize: 18,
-                    fontFamily: 'Poppins-SemiBold',
-                    color: colors.black_100,
-                  }}>
-                  {label || (multiSelect ? 'Select options' : 'Select an option')}
-                </Text>
-                <TouchableOpacity
-                  className="h-8 w-8 items-center justify-center rounded-full bg-gray-100"
-                  onPress={closeBottomSheet}
-                  hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}>
-                  <AntDesign name="close" size={18} color={colors.gray_400} />
-                </TouchableOpacity>
-              </View>
-
-              {/* Selected chips for multi-select */}
-              {SelectedChips}
-
-              {/* Search bar */}
-              {searchable && (
-                <View className="border-t border-gray-200 px-4 py-3">
-                  <SearchInputComponent
-                    inputRef={searchInputRef}
-                    value={searchQuery}
-                    onChangeText={handleSearchChange}
-                    placeholder={searchPlaceholder}
-                    placeholderTextColor={colors.gray_400}
-                  />
+        <KeyboardProvider>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ flex: 1 }}>
+            <View className="flex-1 justify-end bg-black/50">
+              <Pressable
+                onPress={closeBottomSheet}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+              />
+              <Animated.View
+                className="overflow-hidden rounded-t-3xl bg-white"
+                style={[
+                  {
+                    transform: [{ translateY: slideAnim }],
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: -3 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 5,
+                    elevation: 10,
+                  },
+                  // Apply keyboard offset as a separate style
+                  isKeyboardVisible && {
+                    marginBottom: 20, // Static margin when keyboard is visible
+                  },
+                ]}>
+                {/* Pull indicator */}
+                <View className="items-center pb-3 pt-2">
+                  <View className="h-1.5 w-16 rounded-full bg-gray-300" />
                 </View>
-              )}
 
-              {/* Loading indicator or empty state */}
-              {EmptyContent}
-
-              {/* Options list - Only show if we have options and are not loading */}
-              {!isLoading &&
-                !isSearching &&
-                options &&
-                options.length > 0 &&
-                filteredOptions.length > 0 && (
-                  <View
+                {/* Header */}
+                <View className="flex-row items-center justify-between border-b border-gray-200 px-4 pb-4">
+                  <Text
                     style={{
-                      height: Math.min(height * 0.4, filteredOptions.length * estimatedItemSize),
+                      fontSize: 18,
+                      fontFamily: 'Poppins-SemiBold',
+                      color: colors.black_100,
                     }}>
-                    <FlashList
-                      ref={flashListRef}
-                      data={filteredOptions}
-                      renderItem={renderItem}
-                      keyExtractor={keyExtractor}
-                      estimatedItemSize={estimatedItemSize}
-                      showsVerticalScrollIndicator={false}
-                      contentContainerStyle={{
-                        paddingHorizontal: 8,
-                        paddingVertical: 8,
-                      }}
-                      keyboardShouldPersistTaps="handled"
-                      keyboardDismissMode="on-drag"
-                      initialScrollIndex={0}
-                      onEndReachedThreshold={0.5}
-                      removeClippedSubviews={true}
-                      extraData={[tempSelectedValues, selectedValue]} // Add this to ensure list updates when selection changes
+                    {label || (multiSelect ? 'Select options' : 'Select an option')}
+                  </Text>
+                  <TouchableOpacity
+                    className="h-8 w-8 items-center justify-center rounded-full bg-gray-100"
+                    onPress={closeBottomSheet}
+                    hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+                    <AntDesign name="close" size={18} color={colors.gray_400} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Selected chips for multi-select */}
+                {SelectedChips}
+
+                {/* Search bar */}
+                {searchable && (
+                  <View className="border-t border-gray-200 px-4 py-3">
+                    <SearchInputComponent
+                      inputRef={searchInputRef}
+                      value={searchQuery}
+                      onChangeText={handleSearchChange}
+                      placeholder={searchPlaceholder}
+                      placeholderTextColor={colors.gray_400}
                     />
                   </View>
                 )}
 
-              {/* Confirm button for multi-select - Only show if not loading and have options */}
-              {multiSelect && !isLoading && options && options.length > 0 && (
-                <View className="border-t border-gray-200 px-4 py-3">
-                  <TouchableOpacity
-                    style={{
-                      backgroundColor: colors.orange,
-                      borderRadius: 12,
-                      padding: 12,
-                      alignItems: 'center',
-                    }}
-                    onPress={confirmMultiSelection}
-                    activeOpacity={0.8}>
-                    <Text
-                      style={{
-                        fontFamily: 'Poppins-Medium',
-                        fontSize: 16,
-                        color: 'white',
-                      }}>
-                      {confirmButtonText} ({tempSelectedValues.length})
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+                {/* Loading indicator or empty state */}
+                {EmptyContent}
 
-              {/* Safe area padding at bottom */}
-              <View className="h-8" />
-            </Animated.View>
-          </View>
-        </KeyboardAvoidingView>
+                {/* Options list - Only show if we have options and are not loading */}
+                {!isLoading &&
+                  !isSearching &&
+                  options &&
+                  options.length > 0 &&
+                  filteredOptions.length > 0 && (
+                    <View
+                      style={{
+                        // Adjust height based on keyboard presence using boolean state
+                        height: Math.min(
+                          isKeyboardVisible
+                            ? height * 0.25 // Smaller height when keyboard is visible
+                            : height * 0.4, // Full height when keyboard is hidden
+                          filteredOptions.length * estimatedItemSize
+                        ),
+                      }}>
+                      <FlashList
+                        ref={flashListRef}
+                        data={filteredOptions}
+                        renderItem={renderItem}
+                        keyExtractor={keyExtractor}
+                        estimatedItemSize={estimatedItemSize}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{
+                          paddingHorizontal: 8,
+                          paddingVertical: 8,
+                        }}
+                        keyboardShouldPersistTaps="handled"
+                        keyboardDismissMode="on-drag"
+                        initialScrollIndex={0}
+                        onEndReachedThreshold={0.5}
+                        removeClippedSubviews={true}
+                        extraData={[tempSelectedValues, selectedValue]} // Add this to ensure list updates when selection changes
+                      />
+                    </View>
+                  )}
+
+                {/* Confirm button for multi-select - Only show if not loading and have options */}
+                {multiSelect && !isLoading && options && options.length > 0 && (
+                  <View className="border-t border-gray-200 px-4 py-3">
+                    <TouchableOpacity
+                      style={{
+                        backgroundColor: colors.orange,
+                        borderRadius: 12,
+                        padding: 12,
+                        alignItems: 'center',
+                      }}
+                      onPress={confirmMultiSelection}
+                      activeOpacity={0.8}>
+                      <Text
+                        style={{
+                          fontFamily: 'Poppins-Medium',
+                          fontSize: 16,
+                          color: 'white',
+                        }}>
+                        {confirmButtonText} ({tempSelectedValues.length})
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* Safe area padding at bottom */}
+                <View className="h-8" />
+              </Animated.View>
+            </View>
+          </KeyboardAvoidingView>
+        </KeyboardProvider>
       </Modal>
     </View>
   );

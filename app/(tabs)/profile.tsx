@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Modal,
   Image,
-  KeyboardAvoidingView,
   ScrollView,
   TouchableWithoutFeedback,
   Keyboard,
@@ -14,6 +13,7 @@ import {
   StatusBar,
   ActivityIndicator,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { icons } from '@/constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores';
@@ -521,84 +521,89 @@ const Profile: React.FC = () => {
         </Modal>
 
         <Modal
-          animationType="slide"
+          animationType="fade"
           transparent={true}
           statusBarTranslucent={true}
           visible={passwordModalVisible}
           onRequestClose={closePasswordModal}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            className="flex-1"
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              <View className="flex-1 items-center justify-center bg-black/50">
-                <TouchableWithoutFeedback onPress={() => {}}>
-                  <View className="max-h-[80%] w-[90%] rounded-xl bg-white">
-                    <ScrollView
-                      contentContainerStyle={{ flexGrow: 1 }}
-                      keyboardShouldPersistTaps="handled"
-                      showsVerticalScrollIndicator={false}>
-                      <View className="p-6">
-                        <Text className="mb-5 text-center font-psemibold text-xl">
-                          Reset Password
-                        </Text>
+          <KeyboardAwareScrollView
+            className="flex-1 bg-black/50"
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{
+              flexGrow: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingHorizontal: 16,
+            }}>
+            <View className="w-full max-w-sm rounded-2xl bg-white">
+              <View className="p-6">
+                <Text className="mb-1 flex-1 font-psemibold text-xl text-gray-800">
+                  Reset Password
+                </Text>
 
-                        <FormField
-                          text="Current Password"
-                          value={currentPassword}
-                          placeholder="Enter current password"
-                          handleChangeText={setCurrentPassword}
-                          otherStyles="mb-4"
-                          containerStyles="bg-white border border-gray-300"
-                          inputStyles="font-pmedium text-base text-black"
-                          isPassword={true}
-                        />
+                <Text className="mb-6 mt-1 font-pregular text-sm text-gray-500">
+                  Choose a new, strong password that you don&apos;t use for other websites.
+                </Text>
 
-                        <FormField
-                          text="New Password"
-                          value={newPassword}
-                          placeholder="Enter new password"
-                          handleChangeText={setNewPassword}
-                          otherStyles="mb-4"
-                          containerStyles="bg-white border border-gray-300"
-                          inputStyles="font-pmedium text-base text-black"
-                          isPassword={true}
-                        />
+                <FormField
+                  text="Current Password"
+                  value={currentPassword}
+                  placeholder="Enter current password"
+                  handleChangeText={setCurrentPassword}
+                  otherStyles="mb-4"
+                  containerStyles="bg-gray-100 border-gray-200"
+                  inputStyles="font-pmedium text-base text-black"
+                  isPassword={true}
+                />
 
-                        <FormField
-                          text="Confirm Password"
-                          value={confirmPassword}
-                          placeholder="Confirm new password"
-                          handleChangeText={setConfirmPassword}
-                          otherStyles="mb-6"
-                          containerStyles="bg-white border border-gray-300"
-                          inputStyles="font-pmedium text-base text-black"
-                          isPassword={true}
-                        />
+                <FormField
+                  text="New Password"
+                  value={newPassword}
+                  placeholder="Enter new password"
+                  handleChangeText={setNewPassword}
+                  otherStyles="mb-4"
+                  containerStyles="bg-gray-100 border-gray-200"
+                  inputStyles="font-pmedium text-base text-black"
+                  isPassword={true}
+                />
 
-                        <View className="flex-row justify-between">
-                          <TouchableOpacity
-                            className="mr-2 h-12 flex-1 items-center justify-center rounded-lg border border-gray-300"
-                            onPress={closePasswordModal}>
-                            <Text className="font-pregular text-gray-700">Cancel</Text>
-                          </TouchableOpacity>
+                <FormField
+                  text="Confirm Password"
+                  value={confirmPassword}
+                  placeholder="Confirm new password"
+                  handleChangeText={setConfirmPassword}
+                  otherStyles="mb-8"
+                  containerStyles="bg-gray-100 border-gray-500"
+                  inputStyles="font-pmedium text-base text-black"
+                  isPassword={true}
+                />
 
-                          <TouchableOpacity
-                            className={`ml-2 h-12 flex-1 items-center justify-center rounded-lg ${isLoading ? 'bg-gray-400' : 'bg-[#FF9500]'}`}
-                            onPress={handleResetPassword}
-                            disabled={isLoading}>
-                            <Text className="font-psemibold text-white">
-                              {isLoading ? 'Updating...' : 'Update Password'}
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    </ScrollView>
-                  </View>
-                </TouchableWithoutFeedback>
+                <View className="flex-row gap-x-3">
+                  <TouchableOpacity
+                    className="h-12 flex-1 items-center justify-center rounded-xl border border-gray-200 bg-white"
+                    onPress={closePasswordModal}
+                    activeOpacity={0.8}>
+                    <Text className="font-psemibold text-base text-gray-700">Cancel</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    className={`h-12 flex-1 items-center justify-center rounded-xl ${
+                      isLoading ? 'bg-gray-400' : 'bg-secondary'
+                    }`}
+                    onPress={handleResetPassword}
+                    disabled={isLoading}
+                    activeOpacity={0.8}>
+                    {isLoading ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <Text className="font-psemibold text-base text-white">Update</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
               </View>
-            </TouchableWithoutFeedback>
-          </KeyboardAvoidingView>
+            </View>
+          </KeyboardAwareScrollView>
         </Modal>
 
         <CustomModal
