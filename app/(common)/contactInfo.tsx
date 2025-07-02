@@ -58,14 +58,14 @@ const departments: DepartmentContact[] = [
     name: 'Payment Support',
     description: 'Billing and payment assistance',
     icon: 'payment',
-    contactPeople: [{ name: 'Research Centre Office', phone: '9373532700' }],
+    contactPeople: [{ name: 'Research Centre Office', phone: '7875432613' }],
   },
   {
     id: '6',
     name: 'Technical Support',
     description: 'WiFi and technical assistance',
     icon: 'wifi',
-    contactPeople: [{ name: 'Research Centre Office', phone: '9373532700' }],
+    contactPeople: [{ name: 'Research Centre Office', phone: '7875432613' }],
   },
   {
     id: '7',

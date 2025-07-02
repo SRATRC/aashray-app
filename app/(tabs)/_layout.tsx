@@ -6,6 +6,7 @@ import { Tabs } from 'expo-router';
 // @ts-ignore
 import QRCodeStyled from 'react-native-qrcode-styled';
 import PageHeader from '../../components/PageHeader';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface TabIconProps {
   icon: any;
@@ -39,46 +40,50 @@ const QRModal: React.FC<QRModalProps> = React.memo(({ isVisible, onClose, user }
       presentationStyle="pageSheet"
       statusBarTranslucent={true}
       onRequestClose={onClose}>
-      <PageHeader title={'QR Code'} iconName="times" onPress={onClose} />
-      <View className="mt-10 h-full">
-        {!isUserValid ? (
-          // Show a loading or error state if user data isn't ready
-          <View className="h-full items-center justify-center">
-            <Text className="text-center font-pmedium text-base">Loading user information...</Text>
-          </View>
-        ) : (
-          <ImageBackground
-            source={images.ticketbg}
-            resizeMode="contain"
-            className="items-center justify-center">
-            <View className="h-[70%] items-center justify-center">
-              <QRCodeStyled
-                data={user.cardno}
-                style={{
-                  backgroundColor: '#fff',
-                  borderRadius: 20,
-                  overflow: 'hidden',
-                }}
-                padding={20}
-                pieceSize={10}
-                color={colors.black_200}
-                errorCorrectionLevel={'H'}
-                innerEyesOptions={{
-                  borderRadius: 0,
-                  color: colors.black_200,
-                }}
-                outerEyesOptions={{
-                  borderRadius: 0,
-                  color: colors.black_200,
-                }}
-                logo={{
-                  href: require('../../assets/images/logo.png'),
-                }}
-              />
+      <SafeAreaView>
+        <PageHeader title={'QR Code'} iconName="times" onPress={onClose} />
+        <View className="mt-10 h-full">
+          {!isUserValid ? (
+            // Show a loading or error state if user data isn't ready
+            <View className="h-full items-center justify-center">
+              <Text className="text-center font-pmedium text-base">
+                Loading user information...
+              </Text>
             </View>
-          </ImageBackground>
-        )}
-      </View>
+          ) : (
+            <ImageBackground
+              source={images.ticketbg}
+              resizeMode="contain"
+              className="items-center justify-center">
+              <View className="h-[70%] items-center justify-center">
+                <QRCodeStyled
+                  data={user.cardno}
+                  style={{
+                    backgroundColor: '#fff',
+                    borderRadius: 20,
+                    overflow: 'hidden',
+                  }}
+                  padding={20}
+                  pieceSize={10}
+                  color={colors.black_200}
+                  errorCorrectionLevel={'H'}
+                  innerEyesOptions={{
+                    borderRadius: 0,
+                    color: colors.black_200,
+                  }}
+                  outerEyesOptions={{
+                    borderRadius: 0,
+                    color: colors.black_200,
+                  }}
+                  // logo={{
+                  //   href: require('../../assets/images/logo.png'),
+                  // }}
+                />
+              </View>
+            </ImageBackground>
+          )}
+        </View>
+      </SafeAreaView>
     </Modal>
   );
 });
