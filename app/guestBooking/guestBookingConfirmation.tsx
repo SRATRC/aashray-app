@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, Platform } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useState, useCallback, useEffect } from 'react';
 import { useAuthStore, useBookingStore } from '@/stores';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import GuestRoomBookingDetails from '@/components/booking details cards/GuestRoomBookingDetails';
 import GuestAdhyayanBookingDetails from '@/components/booking details cards/GuestAdhyayanBookingDetails';
 import GuestFoodBookingDetails from '@/components/booking details cards/GuestFoodBookingDetails';
+import GuestEventBookingDetails from '@/components/booking details cards/GuestEventBookingDetails';
 import PageHeader from '@/components/PageHeader';
 import CustomButton from '@/components/CustomButton';
 import handleAPICall from '@/utils/HandleApiCall';
@@ -17,13 +18,13 @@ import handleAPICall from '@/utils/HandleApiCall';
 import RazorpayCheckout from 'react-native-razorpay';
 import CustomModal from '@/components/CustomModal';
 import * as Haptics from 'expo-haptics';
-import GuestEventBookingDetails from '@/components/booking details cards/GuestEventBookingDetails';
 
 const guestBookingConfirmation = () => {
+  const { details } = useLocalSearchParams();
   const router = useRouter();
 
   const user = useAuthStore((state) => state.user);
-  const guestData = useBookingStore((state) => state.guestData);
+  const guestData = JSON.parse(details as string);
   const setGuestData = useBookingStore((state) => state.setGuestData);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -100,10 +101,18 @@ const guestBookingConfirmation = () => {
       <ScrollView alwaysBounceVertical={false} showsVerticalScrollIndicator={false}>
         <PageHeader title="Payment Summary" />
 
-        {guestData.room && <GuestRoomBookingDetails containerStyles={'mt-2'} />}
-        {guestData.adhyayan && <GuestAdhyayanBookingDetails containerStyles={'mt-2'} />}
-        {guestData.food && <GuestFoodBookingDetails containerStyles={'mt-2'} />}
-        {guestData.utsav && <GuestEventBookingDetails containerStyles={'mt-2'} />}
+        {guestData.room && (
+          <GuestRoomBookingDetails containerStyles={'mt-2'} guestData={guestData} />
+        )}
+        {guestData.adhyayan && (
+          <GuestAdhyayanBookingDetails containerStyles={'mt-2'} guestData={guestData} />
+        )}
+        {guestData.food && (
+          <GuestFoodBookingDetails containerStyles={'mt-2'} guestData={guestData} />
+        )}
+        {guestData.utsav && (
+          <GuestEventBookingDetails containerStyles={'mt-2'} guestData={guestData} />
+        )}
 
         {validationData && validationData.totalCharge > 0 && (
           <View className="mt-4 w-full px-4">

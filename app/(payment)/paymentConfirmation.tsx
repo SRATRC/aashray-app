@@ -92,7 +92,7 @@ const PaymentConfirmation = () => {
             />
 
             <TouchableOpacity
-              onPress={() => router.replace('/')}
+              onPress={() => router.dismissTo('/home')}
               className="items-center py-3"
               activeOpacity={0.7}>
               <Text className="font-pmedium text-base text-gray-600">Return to Home</Text>

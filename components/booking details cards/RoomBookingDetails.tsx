@@ -5,11 +5,11 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
 import CustomTag from '../CustomTag';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
-import { useBookingStore } from '@/stores';
 
-const RoomBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
-  const data = useBookingStore((state) => state.data);
-
+const RoomBookingDetails: React.FC<{ containerStyles: any; data: any }> = ({
+  containerStyles,
+  data,
+}) => {
   const formattedStartDate = moment(data.room.startDay).format('Do MMMM');
   const formattedEndDate = moment(data.room.endDay).format('Do MMMM, YYYY');
 

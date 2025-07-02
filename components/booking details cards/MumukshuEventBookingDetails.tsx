@@ -6,9 +6,10 @@ import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
 
-const MumukshuEventBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
-  const mumukshuData = useBookingStore((store) => store.mumukshuData);
-
+const MumukshuEventBookingDetails: React.FC<{ containerStyles: any; mumukshuData: any }> = ({
+  containerStyles,
+  mumukshuData,
+}) => {
   const formattedStartDate = moment(mumukshuData.utsav.utsav.utsav_start).format('Do MMMM');
   const formattedEndDate = moment(mumukshuData.utsav.utsav.utsav_end).format('Do MMMM, YYYY');
 

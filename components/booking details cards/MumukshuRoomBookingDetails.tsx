@@ -7,8 +7,10 @@ import moment from 'moment';
 import CustomTag from '../CustomTag';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 
-const MumukshuRoomBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
-  const mumukshuData = useBookingStore((store) => store.mumukshuData);
+const MumukshuRoomBookingDetails: React.FC<{ containerStyles: any; mumukshuData: any }> = ({
+  containerStyles,
+  mumukshuData,
+}) => {
   const formattedStartDate = moment(mumukshuData?.room?.startDay).format('Do MMMM');
   const formattedEndDate = mumukshuData?.room?.endDay
     ? moment(mumukshuData?.room?.endDay).format('Do MMMM, YYYY')

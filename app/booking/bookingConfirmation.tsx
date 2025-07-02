@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Platform } from 'react-native';
 import { useState, useCallback } from 'react';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore, useBookingStore } from '@/stores';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,9 +21,11 @@ import EventBookingDetails from '@/components/booking details cards/EventBooking
 import * as Haptics from 'expo-haptics';
 
 const bookingConfirmation = () => {
+  const { details } = useLocalSearchParams();
   const router = useRouter();
+
   const user = useAuthStore((state) => state.user);
-  const data = useBookingStore((state) => state.data);
+  const data = JSON.parse(details as string);
   const setData = useBookingStore((state) => state.setData);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -94,11 +96,11 @@ const bookingConfirmation = () => {
       <ScrollView alwaysBounceVertical={false} showsVerticalScrollIndicator={false}>
         <PageHeader title="Payment Summary" />
 
-        {data.room && <RoomBookingDetails containerStyles={'mt-2'} />}
-        {data.travel && <TravelBookingDetails containerStyles={'mt-2'} />}
-        {data.adhyayan && <AdhyayanBookingDetails containerStyles={'mt-2'} />}
-        {data.food && <FoodBookingDetails containerStyles={'mt-2'} />}
-        {data.utsav && <EventBookingDetails containerStyles={'mt-2'} />}
+        {data.room && <RoomBookingDetails containerStyles={'mt-2'} data={data} />}
+        {data.travel && <TravelBookingDetails containerStyles={'mt-2'} data={data} />}
+        {data.adhyayan && <AdhyayanBookingDetails containerStyles={'mt-2'} data={data} />}
+        {data.food && <FoodBookingDetails containerStyles={'mt-2'} data={data} />}
+        {data.utsav && <EventBookingDetails containerStyles={'mt-2'} data={data} />}
 
         {validationData && validationData.totalCharge > 0 && (
           <View className="mt-4 w-full px-4">

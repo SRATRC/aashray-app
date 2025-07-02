@@ -1,15 +1,15 @@
 import { View, Text, Image } from 'react-native';
 import { colors, icons, status } from '@/constants';
-import { useBookingStore } from '@/stores';
 import { Ionicons } from '@expo/vector-icons';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomTag from '../CustomTag';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import moment from 'moment';
 
-const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerStyles }) => {
-  const data = useBookingStore((state) => state.data);
-
+const TravelBookingDetails: React.FC<{ containerStyles?: any; data: any }> = ({
+  containerStyles,
+  data,
+}) => {
   return (
     <PrimaryAddonBookingCard containerStyles={containerStyles} title={'Raj Pravas Booking'}>
       <View className="flex flex-row items-center gap-x-4 p-4">

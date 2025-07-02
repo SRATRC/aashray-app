@@ -1,14 +1,14 @@
 import { View, Text, Image, ScrollView } from 'react-native';
 import { icons } from '@/constants';
-import { useBookingStore } from '@/stores';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomTag from '../CustomTag';
-import moment from 'moment';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
+import moment from 'moment';
 
-const GuestAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
-  const guestData = useBookingStore((store) => store.guestData);
-
+const GuestAdhyayanBookingDetails: React.FC<{ containerStyles: any; guestData: any }> = ({
+  containerStyles,
+  guestData,
+}) => {
   const formattedStartDate = moment(guestData.adhyayan?.adhyayan?.start_date).format('Do MMMM');
   const formattedEndDate = moment(guestData.adhyayan?.adhyayan?.end_date).format('Do MMMM, YYYY');
 
