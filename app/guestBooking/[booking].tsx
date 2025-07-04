@@ -53,10 +53,10 @@ const createInitialAdhyayanForm = (existingData: any = null) => ({
 });
 
 const GuestAddons = () => {
-  const { booking, details } = useLocalSearchParams();
+  const { booking } = useLocalSearchParams();
 
   const user = useAuthStore((state) => state.user);
-  const guestData = JSON.parse(details as string);
+  const guestData = useBookingStore((state) => state.guestData);
   const setGuestData = useBookingStore((state) => state.setGuestData);
 
   const router = useRouter();
@@ -522,14 +522,12 @@ const GuestAddons = () => {
         keyboardShouldPersistTaps="handled">
         <PageHeader title="Guest Booking Details" />
 
-        {booking === types.ROOM_DETAILS_TYPE && (
-          <GuestRoomBookingDetails containerStyles="mt-2" guestData={guestData} />
-        )}
+        {booking === types.ROOM_DETAILS_TYPE && <GuestRoomBookingDetails containerStyles="mt-2" />}
         {booking === types.ADHYAYAN_DETAILS_TYPE && (
-          <GuestAdhyayanBookingDetails containerStyles="mt-2" guestData={guestData} />
+          <GuestAdhyayanBookingDetails containerStyles="mt-2" />
         )}
         {booking === types.EVENT_DETAILS_TYPE && (
-          <GuestEventBookingDetails containerStyles="mt-2" guestData={guestData} />
+          <GuestEventBookingDetails containerStyles="mt-2" />
         )}
 
         {booking === types.EVENT_DETAILS_TYPE && (

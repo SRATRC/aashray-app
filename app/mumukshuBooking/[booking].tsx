@@ -74,10 +74,10 @@ const createInitialTravelForm = (existingData: any = null) => ({
 
 const MumukshuAddons = () => {
   const router = useRouter();
-  const { booking, details } = useLocalSearchParams();
+  const { booking } = useLocalSearchParams();
 
   const user = useAuthStore((state) => state.user);
-  const mumukshuData = JSON.parse(details as string);
+  const mumukshuData = useBookingStore((state) => state.mumukshuData);
   const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
   const [addonOpen, setAddonOpen] = useState({
@@ -702,16 +702,16 @@ const MumukshuAddons = () => {
         <PageHeader title="Booking Details" />
 
         {booking === types.ROOM_DETAILS_TYPE && (
-          <MumukshuRoomBookingDetails containerStyles="mt-2" mumukshuData={mumukshuData} />
+          <MumukshuRoomBookingDetails containerStyles="mt-2" />
         )}
         {booking === types.ADHYAYAN_DETAILS_TYPE && (
-          <MumukshuAdhyayanBookingDetails containerStyles="mt-2" mumukshuData={mumukshuData} />
+          <MumukshuAdhyayanBookingDetails containerStyles="mt-2" />
         )}
         {booking === types.TRAVEL_DETAILS_TYPE && (
-          <MumukshuTravelBookingDetails containerStyles="mt-2" mumukshuData={mumukshuData} />
+          <MumukshuTravelBookingDetails containerStyles="mt-2" />
         )}
         {booking === types.EVENT_DETAILS_TYPE && (
-          <MumukshuEventBookingDetails containerStyles="mt-2" mumukshuData={mumukshuData} />
+          <MumukshuEventBookingDetails containerStyles="mt-2" />
         )}
 
         {booking === types.EVENT_DETAILS_TYPE && (

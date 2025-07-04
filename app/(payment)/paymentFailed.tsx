@@ -109,7 +109,7 @@ const PaymentFailed = () => {
 
             {/* Bottom Link */}
             <TouchableOpacity
-              onPress={() => router.dismissTo('/home')}
+              onPress={() => router.replace('/')}
               className="items-center py-3"
               activeOpacity={0.7}>
               <Text className="font-pmedium text-base text-gray-600">Return to Home</Text>

@@ -6,10 +6,9 @@ import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import CustomTag from '../CustomTag';
 import moment from 'moment';
 
-const MumukshuTravelBookingDetail: React.FC<{ containerStyles: any; mumukshuData: any }> = ({
-  containerStyles,
-  mumukshuData,
-}) => {
+const MumukshuTravelBookingDetail: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
+  const mumukshuData = useBookingStore((store) => store.mumukshuData);
+
   return (
     <PrimaryAddonBookingCard containerStyles={containerStyles} title={'Raj Pravas Booking'}>
       <View className="flex flex-row items-center gap-x-4 p-4">

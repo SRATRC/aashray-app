@@ -1,14 +1,16 @@
 import { View, Text, Image, ScrollView } from 'react-native';
 import { icons } from '@/constants';
+import { useBookingStore } from '@/stores';
 import HorizontalSeparator from '../HorizontalSeparator';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import CustomTag from '../CustomTag';
 import moment from 'moment';
 
-const MumukshuAdhyayanBookingDetails: React.FC<{ containerStyles: any; mumukshuData: any }> = ({
+const MumukshuAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({
   containerStyles,
-  mumukshuData,
 }) => {
+  const mumukshuData = useBookingStore((store) => store.mumukshuData);
+
   const formattedStartDate = moment(mumukshuData.adhyayan?.adhyayan?.start_date).format('Do MMMM');
   const formattedEndDate = moment(mumukshuData.adhyayan?.adhyayan?.end_date).format(
     'Do MMMM, YYYY'

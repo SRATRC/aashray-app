@@ -21,10 +21,10 @@ import CustomModal from '@/components/CustomModal';
 import EventBookingDetails from '@/components/booking details cards/EventBookingDetails';
 
 const BookingDetails = () => {
-  const { booking, details } = useLocalSearchParams();
+  const { booking } = useLocalSearchParams();
 
   const user = useAuthStore((state) => state.user);
-  const data = JSON.parse(details as string);
+  const data = useBookingStore((state) => state.data);
   const setData = useBookingStore((state) => state.setData);
 
   const router = useRouter();
@@ -274,13 +274,13 @@ const BookingDetails = () => {
   const renderBookingDetails = () => {
     switch (booking) {
       case types.ROOM_DETAILS_TYPE:
-        return <RoomBookingDetails containerStyles="mt-2" data={data} />;
+        return <RoomBookingDetails containerStyles="mt-2" />;
       case types.ADHYAYAN_DETAILS_TYPE:
-        return <AdhyayanBookingDetails containerStyles="mt-2" data={data} />;
+        return <AdhyayanBookingDetails containerStyles="mt-2" />;
       case types.TRAVEL_DETAILS_TYPE:
-        return <TravelBookingDetails containerStyles="mt-2" data={data} />;
+        return <TravelBookingDetails containerStyles="mt-2" />;
       case types.EVENT_DETAILS_TYPE:
-        return <EventBookingDetails containerStyles="mt-2" data={data} />;
+        return <EventBookingDetails containerStyles="mt-2" />;
       default:
         return null;
     }
