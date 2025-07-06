@@ -2,14 +2,13 @@ import '../global.css';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useFonts } from 'expo-font';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { SystemBars } from 'react-native-edge-to-edge';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NotificationProvider } from '@/context/NotificationContext';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { handleUserNavigation } from '@/utils/navigationValidations';
 import { useAuthStore } from '@/stores';
 import Toast from 'react-native-toast-message';
 import * as Sentry from '@sentry/react-native';
@@ -39,9 +38,7 @@ Notifications.setNotificationHandler({
 });
 
 Sentry.init({
-  dsn: 'https://788f18c3ef141608ef9be5d1f5e38db9@o4505325938278400.ingest.us.sentry.io/4507877656952832',
-  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
-  // enableSpotlight: __DEV__,
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
 });
 
 SplashScreen.preventAutoHideAsync();
@@ -49,70 +46,91 @@ SplashScreen.preventAutoHideAsync();
 // Component that handles initial routing
 const AppNavigator = () => {
   const user = useAuthStore((state) => state.user);
-  const userExists = !!user;
-  const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const unsub = useAuthStore.persist.onFinishHydration(() => setIsHydrated(true));
-
     if (useAuthStore.persist.hasHydrated()) {
       setIsHydrated(true);
     }
-
     return unsub;
   }, []);
 
+  // Add a small delay after hydration to ensure all providers are ready
   useEffect(() => {
-    // Add a small delay to ensure all providers are ready
     if (isHydrated) {
-      const timer = setTimeout(() => {
-        setIsReady(true);
-      }, 150);
-
+      const timer = setTimeout(() => setIsReady(true), 150);
       return () => clearTimeout(timer);
     }
   }, [isHydrated]);
 
+  // Hide the splash screen once the app is ready and routes are determined
   useEffect(() => {
-    // Only run navigation logic once everything is ready
     if (isReady) {
-      (async () => {
-        try {
-          await handleUserNavigation(user, router);
-        } catch (error) {
-          console.error('Navigation error:', error);
-          router.replace('/(auth)/sign-in');
-        } finally {
-          // Hide splash screen after navigation
-          setTimeout(() => {
-            SplashScreen.hideAsync();
-          }, 200);
-        }
-      })();
+      SplashScreen.hideAsync();
     }
-  }, [isReady, userExists, router]);
+  }, [isReady]);
 
-  // Show loading screen while not ready
-  if (!isReady) {
-    return <View style={{ flex: 1, backgroundColor: '#ffffff' }} />;
-  }
+  const userExists = !!user;
+
+  // State 1: User is logged in but has no profile picture
+  const needsPfp = userExists && !user.pfp;
+
+  // State 2: User has a PFP but has not completed their profile details
+  const isProfileComplete =
+    userExists &&
+    !!user.issuedto &&
+    !!user.email &&
+    !!user.mobno &&
+    !!user.address &&
+    !!user.dob &&
+    !!user.gender &&
+    !!user.idType &&
+    !!user.idNo &&
+    !!user.country &&
+    !!user.state &&
+    !!user.city &&
+    !!user.pin &&
+    !!user.center;
+
+  const needsProfileCompletion = userExists && !!user.pfp && !isProfileComplete;
+
+  // State 3: User is fully logged in and onboarded
+  const isFullyOnboarded = userExists && isProfileComplete;
 
   return (
     <Stack
       screenOptions={{
         headerShown: false,
       }}>
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(onboarding)" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="(common)" />
-      <Stack.Screen name="(payment)" />
-      <Stack.Screen name="profile" />
-      <Stack.Screen name="booking" />
-      <Stack.Screen name="guestBooking" />
-      <Stack.Screen name="mumukshuBooking" />
+      <Stack.Protected guard={!userExists}>
+        <Stack.Screen name="(auth)" />
+      </Stack.Protected>
+
+      <Stack.Protected guard={needsPfp}>
+        <Stack.Screen name="(onboarding)/imageCapture" />
+      </Stack.Protected>
+
+      <Stack.Protected guard={needsProfileCompletion}>
+        <Stack.Screen name="(onboarding)/completeProfile" />
+      </Stack.Protected>
+
+      <Stack.Protected guard={isFullyOnboarded}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(home)" />
+        <Stack.Screen name="(payment)" />
+        <Stack.Screen name="profile" />
+        <Stack.Screen name="booking" />
+        <Stack.Screen name="guestBooking" />
+        <Stack.Screen name="mumukshuBooking" />
+        <Stack.Screen name="adhyayan" />
+        <Stack.Screen name="index" />
+      </Stack.Protected>
+
+      <Stack.Protected guard={needsPfp || isFullyOnboarded}>
+        <Stack.Screen name="(common)" />
+      </Stack.Protected>
     </Stack>
   );
 };
@@ -140,7 +158,6 @@ const RootLayout = () => {
         {fontsLoaded ? (
           <RootLayoutContent />
         ) : (
-          // Render a blank screen while fonts are loading so that a navigator is still mounted.
           <View style={{ flex: 1, backgroundColor: '#ffffff' }} />
         )}
       </QueryClientProvider>

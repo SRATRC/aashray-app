@@ -163,7 +163,6 @@ const CompleteProfile = () => {
     const onSuccess = (data: any) => {
       setUser(data.data);
       setIsSubmitting(false);
-      router.replace('/home');
     };
     const onFinally = () => {
       setIsSubmitting(false);
@@ -197,7 +196,6 @@ const CompleteProfile = () => {
     try {
       const onSuccess = async () => {
         logout();
-        router.replace('/sign-in');
       };
 
       await handleAPICall(

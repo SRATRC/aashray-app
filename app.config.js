@@ -75,9 +75,28 @@ export default {
             // ],
             // minifyEnabled: true,
             // shrinkResources: true,
+            intentFilters: [
+              {
+                action: 'VIEW',
+                autoVerify: true,
+                data: [
+                  {
+                    scheme: 'https',
+                    host: 'aashray.vitraagvigyaan.org',
+                    pathPrefix: '/',
+                  },
+                  {
+                    scheme: 'aashray',
+                  },
+                ],
+                category: ['BROWSABLE', 'DEFAULT'],
+              },
+            ],
           },
           ios: {
             useFrameworks: 'static',
+            bundleIdentifier: 'org.vitraagvigyaan.aashray',
+            associatedDomains: ['applinks:aashray.vitraagvigyaan.org'],
           },
         },
       ],

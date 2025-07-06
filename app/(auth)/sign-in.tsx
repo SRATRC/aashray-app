@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, Image, Alert, TouchableOpacity, Modal } from 'react-native';
-import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { images } from '@/constants';
 import { useAuthStore } from '@/stores';
 import { useNotification } from '@/context/NotificationContext';
-import { handleUserNavigation } from '@/utils/navigationValidations';
 import FormField from '@/components/FormField';
 import CustomButton from '@/components/CustomButton';
 import handleAPICall from '@/utils/HandleApiCall';
@@ -74,7 +72,6 @@ const SignIn = () => {
     const onSuccess = async (data: any) => {
       const updatedUser = data.data;
       setUser(updatedUser);
-      handleUserNavigation(updatedUser, router);
     };
 
     const onFinally = () => {

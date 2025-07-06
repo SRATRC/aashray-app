@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Modal,
   Image,
-  ScrollView,
   TouchableWithoutFeedback,
   Keyboard,
   RefreshControl,
@@ -216,9 +215,7 @@ const Profile: React.FC = () => {
           setIsLogoutLoading(true);
 
           const onSuccess = async (_data: any) => {
-            // Use built-in logout function - handles both state and storage cleanup
             logout();
-            router.replace('/sign-in');
           };
 
           await handleAPICall(

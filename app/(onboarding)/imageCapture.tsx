@@ -1,5 +1,5 @@
-import { View, Text, ScrollView, Image, TouchableWithoutFeedback } from 'react-native';
 import React, { useState } from 'react';
+import { View, Text, ScrollView, Image, TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { colors, icons, images } from '@/constants';
@@ -8,31 +8,11 @@ import CustomButton from '@/components/CustomButton';
 import handleAPICall from '@/utils/HandleApiCall';
 import Toast from 'react-native-toast-message';
 
-interface Step {
-  title: string;
-  description: string;
-  btnText: string;
-  action: () => void;
-}
-
 const ImageCaptureOnboarding: React.FC = () => {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
 
-  const [currentStep, setCurrentStep] = useState<number>(1);
   const router: any = useRouter();
-
-  const steps: Step[] = [
-    {
-      title: 'Help Us Verify Your Identity',
-      description:
-        "Want Guruji to recognize you at a glance? Upload your picture and make sure he never has to say, 'Remind me who you are again!'",
-      btnText: 'Upload My Picture',
-      action: () => {
-        router.push('/camera');
-      },
-    },
-  ];
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -45,9 +25,7 @@ const ImageCaptureOnboarding: React.FC = () => {
 
           {/* Step Content */}
           <View className="flex-1 items-center justify-center">
-            <Text className="mb-2 text-sm text-gray-500">
-              Step {currentStep} of {steps.length}
-            </Text>
+            <Text className="mb-2 text-sm text-gray-500">Step 1 of 2</Text>
             <View
               style={{
                 width: '80%',
@@ -58,7 +36,7 @@ const ImageCaptureOnboarding: React.FC = () => {
               }}>
               <View
                 style={{
-                  width: `${(currentStep / steps.length) * 100}%`,
+                  width: '100%',
                   height: '100%',
                   backgroundColor: colors.orange,
                   borderRadius: 3,
@@ -67,30 +45,33 @@ const ImageCaptureOnboarding: React.FC = () => {
             </View>
 
             <Text className="text-center text-lg font-semibold text-gray-700">
-              {steps[currentStep - 1].title}
+              Help Us Verify Your Identity
             </Text>
             <Text className="mt-2 px-4 text-center text-sm text-gray-500">
-              {steps[currentStep - 1].description}
+              Want Guruji to recognize you at a glance? Upload your picture and make sure he never
+              has to say, 'Remind me who you are again!'
             </Text>
           </View>
 
           {/* Footer Buttons */}
           <View className="items-center">
-            {steps[currentStep - 1].btnText && steps[currentStep - 1].action && (
-              <CustomButton
-                text={steps[currentStep - 1].btnText}
-                handlePress={steps[currentStep - 1].action}
-                containerStyles="min-h-[52px] w-full rounded-lg mb-4"
-                textStyles="text-white text-base font-medium"
-              />
-            )}
+            <CustomButton
+              text="Upload My Picture"
+              handlePress={() =>
+                router.push({
+                  pathname: '/(common)/camera',
+                  params: { onSuccessRoute: '/(onboarding)/completeProfile' },
+                })
+              }
+              containerStyles="min-h-[52px] w-full rounded-lg mb-4"
+              textStyles="text-white text-base font-medium"
+            />
 
             <TouchableWithoutFeedback
               onPress={async () => {
                 try {
                   const onSuccess = async () => {
                     logout();
-                    router.replace('/sign-in');
                   };
 
                   await handleAPICall(

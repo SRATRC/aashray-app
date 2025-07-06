@@ -1,23 +1,7 @@
-import { useEffect } from 'react';
-import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/stores';
-import { handleUserNavigation } from '@/utils/navigationValidations';
-import { View } from 'react-native';
-import * as SplashScreen from 'expo-splash-screen';
+import { Redirect } from 'expo-router';
 
+// This component's only job is to redirect the user.
+// The routing logic in `_layout.tsx` will handle where the user should actually go.
 export default function Index() {
-  const loading = useAuthStore((state) => state.loading);
-  const user = useAuthStore((state) => state.user);
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading) {
-      (async () => {
-        await handleUserNavigation(user, router);
-        await SplashScreen.hideAsync();
-      })();
-    }
-  }, [loading, user, router]);
-
-  return <View style={{ flex: 1 }} />;
+  return <Redirect href="/home" />;
 }

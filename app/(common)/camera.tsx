@@ -1,19 +1,10 @@
-import {
-  Text,
-  TouchableOpacity,
-  View,
-  Image,
-  StatusBar,
-  SafeAreaView,
-  ActivityIndicator,
-} from 'react-native';
 import { useState, useRef } from 'react';
+import { Text, TouchableOpacity, View, Image, SafeAreaView, ActivityIndicator } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons, Ionicons, AntDesign } from '@expo/vector-icons';
-import { useAuthStore } from '@/stores';
-import { handleUserNavigation } from '@/utils/navigationValidations';
 import { invalidateCachedImage } from '@/utils/imageCache';
-import { useRouter } from 'expo-router';
+import { useAuthStore } from '@/stores';
 import CustomButton from '@/components/CustomButton';
 import handleAPICall from '@/utils/HandleApiCall';
 import * as ImagePicker from 'expo-image-picker';
@@ -21,6 +12,8 @@ import * as ImagePicker from 'expo-image-picker';
 const CameraScreen: React.FC = () => {
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
+
+  const { onSuccessRoute } = useLocalSearchParams<{ onSuccessRoute?: string }>();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
@@ -44,7 +37,6 @@ const CameraScreen: React.FC = () => {
   if (!permission) {
     return (
       <SafeAreaView className="flex-1 bg-white">
-        <StatusBar barStyle="dark-content" />
         <View className="flex-1 items-center justify-center px-6">
           <ActivityIndicator size="large" color="#F1AC09" />
         </View>
@@ -55,7 +47,6 @@ const CameraScreen: React.FC = () => {
   if (!permission.granted) {
     return (
       <SafeAreaView className="flex-1 bg-white">
-        <StatusBar barStyle="dark-content" />
         <View className="flex-1 justify-center px-6">
           <View className="mb-8 items-center">
             <Ionicons name="camera" size={80} color="#F1AC09" />
@@ -105,7 +96,11 @@ const CameraScreen: React.FC = () => {
         }
         const updatedUser = { ...user, pfp: data.data };
         setUser(updatedUser);
-        handleUserNavigation(updatedUser, router);
+        if (onSuccessRoute) {
+          router.replace(onSuccessRoute);
+        } else {
+          router.back();
+        }
       } catch (error) {
         console.error('Error updating profile picture:', error);
       }
@@ -127,7 +122,6 @@ const CameraScreen: React.FC = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-black">
-      <StatusBar barStyle="light-content" />
       {capturedImage ? (
         <View className="flex-1">
           <View className="flex-row items-center justify-between bg-black px-4 py-3">
