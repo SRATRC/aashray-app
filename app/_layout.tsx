@@ -1,6 +1,5 @@
 import '../global.css';
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { SystemBars } from 'react-native-edge-to-edge';
@@ -43,41 +42,11 @@ Sentry.init({
 
 SplashScreen.preventAutoHideAsync();
 
-// Component that handles initial routing
 const AppNavigator = () => {
   const user = useAuthStore((state) => state.user);
-  const [isHydrated, setIsHydrated] = useState(false);
-  const [isReady, setIsReady] = useState(false);
-
-  useEffect(() => {
-    const unsub = useAuthStore.persist.onFinishHydration(() => setIsHydrated(true));
-    if (useAuthStore.persist.hasHydrated()) {
-      setIsHydrated(true);
-    }
-    return unsub;
-  }, []);
-
-  // Add a small delay after hydration to ensure all providers are ready
-  useEffect(() => {
-    if (isHydrated) {
-      const timer = setTimeout(() => setIsReady(true), 150);
-      return () => clearTimeout(timer);
-    }
-  }, [isHydrated]);
-
-  // Hide the splash screen once the app is ready and routes are determined
-  useEffect(() => {
-    if (isReady) {
-      SplashScreen.hideAsync();
-    }
-  }, [isReady]);
 
   const userExists = !!user;
-
-  // State 1: User is logged in but has no profile picture
   const needsPfp = userExists && !user.pfp;
-
-  // State 2: User has a PFP but has not completed their profile details
   const isProfileComplete =
     userExists &&
     !!user.issuedto &&
@@ -95,8 +64,6 @@ const AppNavigator = () => {
     !!user.center;
 
   const needsProfileCompletion = userExists && !!user.pfp && !isProfileComplete;
-
-  // State 3: User is fully logged in and onboarded
   const isFullyOnboarded = userExists && isProfileComplete;
 
   return (
@@ -136,7 +103,8 @@ const AppNavigator = () => {
 };
 
 const RootLayout = () => {
-  const [fontsLoaded, error] = useFonts({
+  // Load fonts
+  const [fontsLoaded, fontError] = useFonts({
     'Poppins-Black': require('../assets/fonts/Poppins-Black.ttf'),
     'Poppins-Bold': require('../assets/fonts/Poppins-Bold.ttf'),
     'Poppins-ExtraBold': require('../assets/fonts/Poppins-ExtraBold.ttf'),
@@ -148,24 +116,50 @@ const RootLayout = () => {
     'Poppins-Thin': require('../assets/fonts/Poppins-Thin.ttf'),
   });
 
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+  // Track if the auth store has been rehydrated
+  const [isAuthReady, setIsAuthReady] = useState(false);
 
+  useEffect(() => {
+    // Check if the auth store has been rehydrated from async storage
+    const unsub = useAuthStore.persist.onFinishHydration(() => setIsAuthReady(true));
+    if (useAuthStore.persist.hasHydrated()) {
+      setIsAuthReady(true);
+    }
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    if (fontError) throw fontError;
+  }, [fontError]);
+
+  // Hide the splash screen only when both fonts are loaded and auth is ready
+  useEffect(() => {
+    async function hideSplash() {
+      if (fontsLoaded && isAuthReady) {
+        // A small delay can sometimes help prevent a white screen flash
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        await SplashScreen.hideAsync();
+      }
+    }
+
+    hideSplash();
+  }, [fontsLoaded, isAuthReady]);
+
+  if (!fontsLoaded || !isAuthReady) {
+    return null;
+  }
+
+  // Once everything is ready, render the main app
   return (
     <NotificationProvider>
       <QueryClientProvider client={queryClient}>
-        {fontsLoaded ? (
-          <RootLayoutContent />
-        ) : (
-          <View style={{ flex: 1, backgroundColor: '#ffffff' }} />
-        )}
+        <RootLayoutContent />
       </QueryClientProvider>
     </NotificationProvider>
   );
 };
 
-// Separate component to access auth store
+// This component remains the same
 const RootLayoutContent = () => {
   return (
     <KeyboardProvider>
