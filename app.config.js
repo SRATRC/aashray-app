@@ -3,15 +3,10 @@ export default {
     name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
-    version: '1.1.8',
+    version: '1.1.10',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     userInterfaceStyle: 'automatic',
-    // splash: {
-    //   image: './assets/images/splash.png',
-    //   resizeMode: 'contain',
-    //   backgroundColor: '#ffffff',
-    // },
     assetBundlePatterns: ['**/*'],
     ios: {
       icon: {
@@ -21,6 +16,7 @@ export default {
       supportsTablet: true,
       package: 'org.vitraagvigyaan.aashray',
       bundleIdentifier: 'org.vitraagvigyaan.aashray',
+      associatedDomains: ['applinks:aashray.vitraagvigyaan.org'],
       googleServicesFile: process.env.GOOGLE_SERVICES_PLIST,
       infoPlist: {
         LSApplicationQueriesSchemes: ['tez', 'phonepe', 'paytmmp'],
@@ -43,6 +39,28 @@ export default {
       intentFilters: [
         {
           action: 'VIEW',
+          autoVerify: true,
+          data: [
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/adhyayan',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/event',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/',
+            },
+          ],
+          category: ['BROWSABLE', 'DEFAULT'],
+        },
+        {
+          action: 'VIEW',
           data: [
             {
               scheme: 'aashray',
@@ -52,11 +70,6 @@ export default {
         },
       ],
     },
-    // updates: {
-    //   enabled: true,
-    //   checkAutomatically: 'ON_LOAD',
-    //   fallbackToCacheTimeout: 0
-    // },
     plugins: [
       'expo-router',
       '@react-native-firebase/app',
@@ -65,38 +78,9 @@ export default {
         {
           android: {
             minSdkVersion: 26,
-            // enableProguardInReleaseBuilds: true,
-            // proguardRules: [
-            //   '-keepattributes *Annotation*',
-            //   '-dontwarn com.razorpay.**',
-            //   '-keep class com.razorpay.** { *; }',
-            //   '-optimizations !method/inlining/',
-            //   '-keepclasseswithmembers class * { public void onPayment*(...); }',
-            // ],
-            // minifyEnabled: true,
-            // shrinkResources: true,
-            intentFilters: [
-              {
-                action: 'VIEW',
-                autoVerify: true,
-                data: [
-                  {
-                    scheme: 'https',
-                    host: 'aashray.vitraagvigyaan.org',
-                    pathPrefix: '/',
-                  },
-                  {
-                    scheme: 'aashray',
-                  },
-                ],
-                category: ['BROWSABLE', 'DEFAULT'],
-              },
-            ],
           },
           ios: {
             useFrameworks: 'static',
-            bundleIdentifier: 'org.vitraagvigyaan.aashray',
-            associatedDomains: ['applinks:aashray.vitraagvigyaan.org'],
           },
         },
       ],
@@ -119,8 +103,6 @@ export default {
         'expo-notifications',
         {
           icon: './assets/images/logo.png',
-          // "color": "#ffffff",
-          // "defaultChannel": "default",
           enableBackgroundRemoteNotifications: true,
         },
       ],
