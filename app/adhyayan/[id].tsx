@@ -6,7 +6,6 @@ import {
   Alert,
   Platform,
   RefreshControl,
-  Dimensions,
   Animated,
   Modal,
   KeyboardAvoidingView,
@@ -26,8 +25,6 @@ import CustomChipGroup from '@/components/CustomChipGroup';
 import GuestForm from '@/components/GuestForm';
 import OtherMumukshuForm from '@/components/OtherMumukshuForm';
 import HorizontalSeparator from '@/components/HorizontalSeparator';
-
-const { width, height } = Dimensions.get('window');
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
@@ -187,6 +184,7 @@ const AdhyayanDetails = () => {
 
   // Fetch single adhyayan details
   const fetchAdhyayanDetails = async () => {
+    console.log('Fetching adhyayan details for id:', id);
     return new Promise((resolve, reject) => {
       handleAPICall(
         'GET',

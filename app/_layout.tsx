@@ -1,7 +1,7 @@
 import '../global.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { SystemBars } from 'react-native-edge-to-edge';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -13,6 +13,7 @@ import Toast from 'react-native-toast-message';
 import * as Sentry from '@sentry/react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
+import * as Linking from 'expo-linking';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,6 +45,11 @@ SplashScreen.preventAutoHideAsync();
 
 const AppNavigator = () => {
   const user = useAuthStore((state) => state.user);
+  const router = useRouter();
+  const segments = useSegments();
+  const isProcessingDeepLink = useRef(false);
+  const lastProcessedUrl = useRef<string | null>(null);
+  const processingTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const userExists = !!user;
   const needsPfp = userExists && !user.pfp;
@@ -65,6 +71,232 @@ const AppNavigator = () => {
 
   const needsProfileCompletion = userExists && !!user.pfp && !isProfileComplete;
   const isFullyOnboarded = userExists && isProfileComplete;
+
+  // Single navigation function to avoid duplication
+  const navigateToPath = (path: string) => {
+    if (isProcessingDeepLink.current) {
+      console.log('🚫 Navigation already in progress, ignoring duplicate request');
+      return;
+    }
+
+    isProcessingDeepLink.current = true;
+
+    try {
+      let targetRoute = '';
+      let routeId = '';
+
+      if (path.startsWith('/adhyayan/')) {
+        routeId = path.split('/adhyayan/')[1];
+        targetRoute = `/adhyayan/${routeId}`;
+      } else if (path.startsWith('/event/')) {
+        routeId = path.split('/event/')[1];
+        targetRoute = `/event/${routeId}`;
+      }
+
+      if (targetRoute && routeId) {
+        // More robust current route detection
+        const currentPath = `/${segments.join('/')}`;
+        const currentRoute = segments.length > 0 ? `/${segments[0]}/${segments[1] || ''}` : '';
+
+        console.log('🔍 Current path:', currentPath);
+        console.log('🔍 Current route:', currentRoute);
+        console.log('🔍 Target route:', targetRoute);
+
+        // Check if we're already on the exact same route
+        if (currentPath === targetRoute || currentRoute === targetRoute) {
+          console.log('✋ Already on target route, skipping navigation');
+          return;
+        }
+
+        // For iOS, use replace instead of push to prevent stacking when app is already open
+        console.log('🎯 Navigating to:', targetRoute);
+
+        // Use replace to avoid double stacking
+        router.replace(targetRoute);
+      }
+    } catch (error) {
+      console.error('❌ Error navigating to path:', error);
+    } finally {
+      // Reset the flag after a short delay
+      setTimeout(() => {
+        isProcessingDeepLink.current = false;
+      }, 1000);
+    }
+  };
+
+  // Deep link handling
+  useEffect(() => {
+    const processDeepLink = (url: string) => {
+      console.log('🔗 Processing deep link:', url);
+
+      // Prevent processing if already in progress
+      if (isProcessingDeepLink.current) {
+        console.log('🚫 Deep link processing already in progress, ignoring');
+        return;
+      }
+
+      // Prevent processing the same URL multiple times
+      if (lastProcessedUrl.current === url) {
+        console.log('🚫 Same URL already processed recently, ignoring');
+        return;
+      }
+
+      // Clear any existing timeout
+      if (processingTimeout.current) {
+        clearTimeout(processingTimeout.current);
+      }
+
+      // Debounce the processing
+      processingTimeout.current = setTimeout(() => {
+        try {
+          lastProcessedUrl.current = url;
+
+          let path = '';
+
+          // Handle custom URL scheme (most reliable)
+          if (url.startsWith('aashray://')) {
+            path = '/' + url.replace('aashray://', '');
+            console.log('📱 Custom scheme detected');
+          }
+          // Handle universal links
+          else if (url.startsWith('https://aashray.vitraagvigyaan.org')) {
+            path = url.replace('https://aashray.vitraagvigyaan.org', '');
+            console.log('🌐 Universal link detected');
+          }
+
+          console.log('📍 Extracted path:', path);
+
+          // Only process if we have a valid path
+          if (path && isFullyOnboarded) {
+            console.log('✅ User authenticated, navigating to:', path);
+            navigateToPath(path);
+          } else if (path && !isFullyOnboarded) {
+            console.log('⏳ User not fully authenticated, would store pending deep link:', path);
+            // You can implement pending deep link storage here if needed
+          }
+        } catch (error) {
+          console.error('❌ Error processing deep link:', error);
+        }
+      }, 300);
+    };
+
+    // Handle deep links when app is already running
+    const handleDeepLink = (event: { url: string }) => {
+      console.log('🔗 Deep link received (app running):', event.url);
+      processDeepLink(event.url);
+    };
+
+    // Handle deep links when app is launched from closed state
+    const handleInitialUrl = async () => {
+      try {
+        console.log('🚀 Checking for initial URL...');
+        const initialUrl = await Linking.getInitialURL();
+
+        if (initialUrl) {
+          console.log('🔗 Initial URL found:', initialUrl);
+          // Add delay to ensure app is fully loaded
+          setTimeout(() => {
+            processDeepLink(initialUrl);
+          }, 2000);
+        }
+      } catch (error) {
+        console.error('❌ Error getting initial URL:', error);
+      }
+    };
+
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+    handleInitialUrl();
+
+    return () => {
+      subscription?.remove();
+      if (processingTimeout.current) {
+        clearTimeout(processingTimeout.current);
+      }
+    };
+  }, [isFullyOnboarded]);
+
+  useEffect(() => {
+    const processDeepLink = (url: string) => {
+      console.log('🔗 Processing deep link:', url);
+
+      // Prevent processing if already in progress
+      if (isProcessingDeepLink.current) {
+        console.log('🚫 Deep link processing already in progress, ignoring');
+        return;
+      }
+
+      // Prevent processing the same URL multiple times
+      if (lastProcessedUrl.current === url) {
+        console.log('🚫 Same URL already processed recently, ignoring');
+        return;
+      }
+
+      // Clear any existing timeout
+      if (processingTimeout.current) {
+        clearTimeout(processingTimeout.current);
+      }
+
+      // Debounce the processing
+      processingTimeout.current = setTimeout(() => {
+        try {
+          lastProcessedUrl.current = url;
+
+          let path = '';
+          if (url.startsWith('https://aashray.vitraagvigyaan.org')) {
+            path = url.replace('https://aashray.vitraagvigyaan.org', '');
+          } else if (url.startsWith('aashray://')) {
+            path = '/' + url.replace('aashray://', '');
+          }
+
+          console.log('📍 Extracted path:', path);
+
+          // Check if user is fully authenticated
+          if (isFullyOnboarded) {
+            console.log('✅ User authenticated, navigating to:', path);
+            navigateToPath(path);
+          } else {
+            console.log('⏳ User not fully authenticated, storing pending deep link:', path);
+          }
+        } catch (error) {
+          console.error('❌ Error processing deep link:', error);
+        }
+      }, 300); // 300ms debounce
+    };
+
+    // Handle deep links when app is already running
+    const handleDeepLink = (event: { url: string }) => {
+      console.log('🔗 Deep link received (app running):', event.url);
+      processDeepLink(event.url);
+    };
+
+    // Handle deep links when app is launched from closed state
+    const handleInitialUrl = async () => {
+      try {
+        console.log('🚀 Checking for initial URL...');
+        const initialUrl = await Linking.getInitialURL();
+
+        if (initialUrl) {
+          console.log('🔗 Initial URL found:', initialUrl);
+          // Add delay to ensure app is fully loaded
+          setTimeout(() => {
+            processDeepLink(initialUrl);
+          }, 2000);
+        }
+      } catch (error) {
+        console.error('❌ Error getting initial URL:', error);
+      }
+    };
+
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+    handleInitialUrl();
+
+    return () => {
+      subscription?.remove();
+      if (processingTimeout.current) {
+        clearTimeout(processingTimeout.current);
+      }
+    };
+  }, [isFullyOnboarded]);
 
   return (
     <Stack
