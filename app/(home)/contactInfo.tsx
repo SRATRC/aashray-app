@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Linking, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Linking, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import AppColors from '@/constants/colors';
@@ -58,14 +58,14 @@ const departments: DepartmentContact[] = [
     name: 'Payment Support',
     description: 'Billing and payment assistance',
     icon: 'payment',
-    contactPeople: [{ name: 'Research Centre Office', phone: '9373532700' }],
+    contactPeople: [{ name: 'Research Centre Office', phone: '7875432613' }],
   },
   {
     id: '6',
-    name: 'Technical Support',
-    description: 'WiFi and technical assistance',
+    name: 'WiFi Support',
+    description: 'WiFi assistance',
     icon: 'wifi',
-    contactPeople: [{ name: 'Research Centre Office', phone: '9373532700' }],
+    contactPeople: [{ name: 'Research Centre Office', phone: '7875432613' }],
   },
   {
     id: '7',
