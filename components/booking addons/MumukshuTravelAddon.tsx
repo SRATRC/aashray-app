@@ -144,12 +144,14 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
         onConfirm={(date: Date) => {
           // Ensure the selected date isn't before tomorrow
           const selectedMoment = moment(date);
-          const tomorrow = moment().add(1, 'days');
-          const validDate = selectedMoment.isBefore(tomorrow) ? tomorrow : selectedMoment;
+          const today = moment().format('YYYY-MM-DD');
+          const validDate = selectedMoment.isBefore(today)
+            ? today
+            : selectedMoment.format('YYYY-MM-DD');
 
           setTravelForm({
             ...travelForm,
-            date: validDate.format('YYYY-MM-DD'),
+            date: validDate,
           });
           setDatePickerVisibility('travel', false);
         }}

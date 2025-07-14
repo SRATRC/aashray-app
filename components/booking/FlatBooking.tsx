@@ -13,6 +13,7 @@ import * as Haptics from 'expo-haptics';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
+import moment from 'moment';
 
 const CHIPS = ['Mumukshus', 'Guest'];
 const INITIAL_MUMUKSHU_FORM = {
@@ -199,6 +200,7 @@ const FlatBooking = () => {
           setGuestForm((prev) => ({ ...prev, endDay: day }));
           setMumukshuForm((prev) => ({ ...prev, endDay: day }));
         }}
+        minDate={moment().format('YYYY-MM-DD')}
       />
 
       <View className="mt-7 flex w-full flex-col">
