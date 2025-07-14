@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-virtualized-view';
-import { status, types } from '../../constants';
+import { types } from '../../constants';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import CustomChipGroup from '../../components/CustomChipGroup';
 import RoomBooking from '../../components/booking/RoomBooking';
@@ -23,14 +23,11 @@ const BookingCategoriesInternal = () => {
       types.booking_type_travel,
       types.booking_type_event,
     ];
-    if (
-      user.res_status === status.STATUS_RESIDENT &&
-      !baseChips.includes(types.booking_type_flat)
-    ) {
+    if (user.isFlatOwner && !baseChips.includes(types.booking_type_flat)) {
       return [...baseChips, types.booking_type_flat];
     }
     return baseChips;
-  }, [user.res_status]);
+  }, [user.isFlatOwner]);
 
   const [selectedChip, setSelectedChip] = useState(() => {
     if (availableChips.includes(types.booking_type_adhyayan)) {

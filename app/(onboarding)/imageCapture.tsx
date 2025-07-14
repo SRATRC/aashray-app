@@ -19,6 +19,7 @@ const ImageCaptureOnboarding: React.FC = () => {
   const { user, setUser, removeItem } = useGlobalContext();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const router: any = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const steps: Step[] = [
     {
@@ -85,7 +86,10 @@ const ImageCaptureOnboarding: React.FC = () => {
 
             <TouchableWithoutFeedback
               onPress={async () => {
+                if (isLoggingOut) return;
+
                 try {
+                  setIsLoggingOut(true);
                   const onSuccess = async () => {
                     setUser(null);
                     removeItem('user');
@@ -107,11 +111,21 @@ const ImageCaptureOnboarding: React.FC = () => {
                     text2: error.message,
                     swipeable: false,
                   });
+                } finally {
+                  setIsLoggingOut(false);
                 }
               }}>
-              <View className="flex flex-row items-center">
-                <Image source={icons.logout} className="h-4 w-4" resizeMode="contain" />
-                <Text className="ml-2 font-pregular text-sm text-black">Logout</Text>
+              <View className={`flex flex-row items-center ${isLoggingOut ? 'opacity-50' : ''}`}>
+                <Image
+                  source={icons.logout}
+                  className="h-4 w-4"
+                  resizeMode="contain"
+                  style={{ opacity: isLoggingOut ? 0.5 : 1 }}
+                />
+                <Text
+                  className={`ml-2 font-pregular text-sm ${isLoggingOut ? 'text-gray-500' : 'text-black'}`}>
+                  {isLoggingOut ? 'Logging out...' : 'Logout'}
+                </Text>
               </View>
             </TouchableWithoutFeedback>
           </View>

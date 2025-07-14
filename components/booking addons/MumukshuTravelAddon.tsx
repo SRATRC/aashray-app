@@ -216,7 +216,12 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             placeholder="Select Pickup Location"
             options={getLocationOptions(travelForm.date)}
             selectedValue={assignment.pickup}
-            onValueChange={(val: any) => updateTravelForm(index, 'pickup', val)}
+            onValueChange={(val: any) => {
+              updateTravelForm(index, 'pickup', val);
+              if (val !== 'Research Centre') {
+                updateTravelForm(index, 'drop', 'Research Centre');
+              }
+            }}
             saveKeyInsteadOfValue={false}
           />
 
@@ -226,7 +231,12 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             placeholder="Select Drop Location"
             options={getLocationOptions(travelForm.date)}
             selectedValue={assignment.drop}
-            onValueChange={(val: any) => updateTravelForm(index, 'drop', val)}
+            onValueChange={(val: any) => {
+              updateTravelForm(index, 'drop', val);
+              if (val !== 'Research Centre') {
+                updateTravelForm(index, 'pickup', 'Research Centre');
+              }
+            }}
             saveKeyInsteadOfValue={false}
           />
 

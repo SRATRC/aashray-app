@@ -24,6 +24,8 @@ const BookingDetails = () => {
   const { user, data, setData } = useGlobalContext();
   const router = useRouter();
 
+  console.log(JSON.stringify(user));
+
   // Consolidated state for addons visibility
   const [addonOpen, setAddonOpen] = useState({
     room: false,
@@ -346,7 +348,7 @@ const BookingDetails = () => {
               )}
 
               {/* TRAVEL BOOKING COMPONENT */}
-              {booking !== types.TRAVEL_DETAILS_TYPE && (
+              {booking !== types.TRAVEL_DETAILS_TYPE && user.res_status !== 'GUEST' && (
                 <TravelAddon
                   travelForm={forms.travel}
                   setTravelForm={(formData: any) => setFormValues('travel', formData)}

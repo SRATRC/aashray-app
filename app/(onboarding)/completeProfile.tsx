@@ -85,6 +85,7 @@ const fetchCentres = () => {
 };
 
 const CompleteProfile = () => {
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { user, setUser, setCurrentUser, removeItem } = useGlobalContext();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -239,7 +240,10 @@ const CompleteProfile = () => {
           <View className="w-full items-center">
             <TouchableWithoutFeedback
               onPress={async () => {
+                if (isLoggingOut) return;
+
                 try {
+                  setIsLoggingOut(true);
                   const onSuccess = async () => {
                     setUser(null);
                     removeItem('user');
@@ -254,40 +258,35 @@ const CompleteProfile = () => {
                     onSuccess,
                     () => {}
                   );
-                } catch (error: any) {
+                } catch (error) {
                   Toast.show({
                     type: 'error',
                     text1: 'An error occurred!',
                     text2: error.message,
                     swipeable: false,
                   });
+                } finally {
+                  setIsLoggingOut(false);
                 }
               }}>
-              <View className="flex flex-row items-center">
-                <Image source={icons.logout} className="h-4 w-4" resizeMode="contain" />
-                <Text className="ml-2 font-pregular text-sm text-black">Logout</Text>
+              <View className={`flex flex-row items-center ${isLoggingOut ? 'opacity-50' : ''}`}>
+                <Image
+                  source={icons.logout}
+                  className="h-4 w-4"
+                  resizeMode="contain"
+                  style={{ opacity: isLoggingOut ? 0.5 : 1 }}
+                />
+                <Text
+                  className={`ml-2 font-pregular text-sm ${isLoggingOut ? 'text-gray-500' : 'text-black'}`}>
+                  {isLoggingOut ? 'Logging out...' : 'Logout'}
+                </Text>
               </View>
             </TouchableWithoutFeedback>
           </View>
         </View>
       </ScrollView>
 
-      <DateTimePickerModal
-        isVisible={isDatePickerVisible}
-        mode="date"
-        date={form.dob ? moment(form.dob).toDate() : moment().toDate()}
-        onConfirm={(date) => {
-          setForm({
-            ...form,
-            dob: moment(date).format('YYYY-MM-DD'),
-          });
-          setDatePickerVisibility(false);
-        }}
-        onCancel={() => setDatePickerVisibility(false)}
-        maximumDate={moment().toDate()}
-      />
-
-      {/* Modal moved out of nested component */}
+      {/* MAIN MODAL - DateTimePickerModal REMOVED from here */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -309,7 +308,7 @@ const CompleteProfile = () => {
                 <FormField
                   text="Name"
                   value={form.issuedto}
-                  handleChangeText={(e: any) => setForm({ ...form, issuedto: e })}
+                  handleChangeText={(e) => setForm({ ...form, issuedto: e })}
                   otherStyles="mt-2"
                   inputStyles="font-pmedium text-base"
                   keyboardType="default"
@@ -320,7 +319,7 @@ const CompleteProfile = () => {
                 <FormField
                   text="Phone Number"
                   value={form.mobno ? form.mobno.toString() : ''}
-                  handleChangeText={(e: any) => setForm({ ...form, mobno: Number(e) })}
+                  handleChangeText={(e) => setForm({ ...form, mobno: Number(e) })}
                   otherStyles="mt-7"
                   inputStyles="font-pmedium text-base"
                   keyboardType="number-pad"
@@ -332,7 +331,7 @@ const CompleteProfile = () => {
                 <FormField
                   text="Email"
                   value={form.email}
-                  handleChangeText={(e: any) => setForm({ ...form, email: e })}
+                  handleChangeText={(e) => setForm({ ...form, email: e })}
                   otherStyles="mt-7"
                   inputStyles="font-pmedium text-base"
                   keyboardType="email-address"
@@ -347,7 +346,7 @@ const CompleteProfile = () => {
                   placeholder="Select Government ID Type"
                   options={dropdowns.ID_TYPE_LIST}
                   selectedValue={form.idType}
-                  onValueChange={(val: any) => {
+                  onValueChange={(val) => {
                     setForm({ ...form, idType: val });
                   }}
                 />
@@ -355,7 +354,7 @@ const CompleteProfile = () => {
                 <FormField
                   text="Enter ID Number"
                   value={form.idNo}
-                  handleChangeText={(e: any) => setForm({ ...form, idNo: e.trim() })}
+                  handleChangeText={(e) => setForm({ ...form, idNo: e.trim() })}
                   otherStyles="mt-7"
                   inputStyles="font-pmedium text-base"
                   keyboardType="default"
@@ -363,6 +362,7 @@ const CompleteProfile = () => {
                   containerStyles={'bg-gray-100'}
                 />
 
+                {/* DATE OF BIRTH FIELD - This triggers the date picker */}
                 <FormDisplayField
                   text="Date of Birth"
                   value={
@@ -370,7 +370,9 @@ const CompleteProfile = () => {
                   }
                   otherStyles="mt-7"
                   backgroundColor={'bg-gray-100'}
-                  onPress={() => setDatePickerVisibility(true)}
+                  onPress={() => {
+                    setDatePickerVisibility(true);
+                  }}
                 />
 
                 <CustomSelectBottomSheet
@@ -379,7 +381,7 @@ const CompleteProfile = () => {
                   placeholder="Select Gender"
                   options={dropdowns.GENDER_LIST}
                   selectedValue={form.gender}
-                  onValueChange={(val: any) => setForm({ ...form, gender: val })}
+                  onValueChange={(val) => setForm({ ...form, gender: val })}
                 />
 
                 <CustomSelectBottomSheet
@@ -388,7 +390,7 @@ const CompleteProfile = () => {
                   placeholder="Select Centre"
                   options={centres}
                   selectedValue={form.center}
-                  onValueChange={(val: any) => {
+                  onValueChange={(val) => {
                     setForm({ ...form, center: val });
                   }}
                   searchable={true}
@@ -402,7 +404,7 @@ const CompleteProfile = () => {
                 <FormField
                   text="Address"
                   value={form.address}
-                  handleChangeText={(e: any) => setForm({ ...form, address: e })}
+                  handleChangeText={(e) => setForm({ ...form, address: e })}
                   multiline={true}
                   numberOfLines={4}
                   otherStyles="mt-7"
@@ -419,7 +421,7 @@ const CompleteProfile = () => {
                   placeholder="Select Country"
                   options={countries}
                   selectedValue={form.country}
-                  onValueChange={(val: any) => {
+                  onValueChange={(val) => {
                     setForm({ ...form, country: val, state: '', city: '' });
                     setSelectedCountry(val);
                   }}
@@ -438,7 +440,7 @@ const CompleteProfile = () => {
                     placeholder="Select State"
                     options={states}
                     selectedValue={form.state}
-                    onValueChange={(val: any) => {
+                    onValueChange={(val) => {
                       setForm({ ...form, state: val, city: '' });
                       setSelectedState(val);
                     }}
@@ -458,7 +460,7 @@ const CompleteProfile = () => {
                     placeholder="Select City"
                     options={cities}
                     selectedValue={form.city}
-                    onValueChange={(val: any) => setForm({ ...form, city: val })}
+                    onValueChange={(val) => setForm({ ...form, city: val })}
                     searchable={true}
                     searchPlaceholder="Search Cities..."
                     noResultsText="No Cities Found"
@@ -471,7 +473,7 @@ const CompleteProfile = () => {
                 <FormField
                   text="Pin Code"
                   value={form.pin ? form.pin.toString() : ''}
-                  handleChangeText={(e: any) => setForm({ ...form, pin: e })}
+                  handleChangeText={(e) => setForm({ ...form, pin: e })}
                   otherStyles="mt-7"
                   inputStyles="font-pmedium text-base"
                   keyboardType="number-pad"
@@ -492,6 +494,25 @@ const CompleteProfile = () => {
           </SafeAreaView>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* DATE PICKER MODAL - MOVED OUTSIDE THE MAIN MODAL */}
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        date={form.dob ? new Date(form.dob) : new Date('1950-01-01')} // Set initial date to 1950
+        onConfirm={(date) => {
+          setForm({
+            ...form,
+            dob: date.toISOString().split('T')[0],
+          });
+          setDatePickerVisibility(false);
+        }}
+        onCancel={() => {
+          setDatePickerVisibility(false);
+        }}
+        maximumDate={moment().toDate()}
+        minimumDate={new Date('1900-01-01')}
+      />
     </SafeAreaView>
   );
 };
