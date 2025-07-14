@@ -278,16 +278,19 @@ const profileDetails = () => {
           <DateTimePickerModal
             isVisible={isDatePickerVisible}
             mode="date"
-            date={form.dob ? moment(form.dob).toDate() : moment().toDate()}
+            date={form.dob ? new Date(form.dob) : new Date('1950-01-01')}
             onConfirm={(date) => {
               setForm({
                 ...form,
-                dob: moment(date).format('YYYY-MM-DD'),
+                dob: date.toISOString().split('T')[0],
               });
               setDatePickerVisibility(false);
             }}
-            onCancel={() => setDatePickerVisibility(false)}
+            onCancel={() => {
+              setDatePickerVisibility(false);
+            }}
             maximumDate={moment().toDate()}
+            minimumDate={new Date('1900-01-01')}
           />
 
           <CustomSelectBottomSheet

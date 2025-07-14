@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback } from 'react';
 import { View, Text, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useAuthStore, useBookingStore } from '@/stores';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
@@ -19,24 +18,25 @@ import TravelAddon from '@/components/booking addons/TravelAddon';
 import handleAPICall from '@/utils/HandleApiCall';
 import CustomModal from '@/components/CustomModal';
 import EventBookingDetails from '@/components/booking details cards/EventBookingDetails';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 const BookingDetails = () => {
   const { booking } = useLocalSearchParams();
-
   const user = useAuthStore((state) => state.user);
   const data = useBookingStore((state) => state.data);
   const setData = useBookingStore((state) => state.setData);
-
   const router = useRouter();
 
-  // Consolidated state for addons visibility
+  // Consolidated state with proper initialization
   const [addonOpen, setAddonOpen] = useState({
     room: false,
     food: false,
     travel: false,
   });
 
-  // Extract initial dates from context data
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Extract initial dates from context data with memoization
   const initialDates = useMemo(() => {
     const startDate =
       data.room?.startDay ||
@@ -49,34 +49,34 @@ const BookingDetails = () => {
     return { startDate, endDate };
   }, [data.room, data.travel, data.adhyayan]);
 
-  // Consolidated form state
-  const [forms, setForms]: any = useState({
+  // Initialize form state with proper defaults
+  const [forms, setForms] = useState(() => ({
     room: {
       startDay: initialDates.startDate,
       endDay: initialDates.endDate,
-      roomType: dropdowns.ROOM_TYPE_LIST[0].key,
-      floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
+      roomType: dropdowns.ROOM_TYPE_LIST[0]?.key || '',
+      floorType: dropdowns.FLOOR_TYPE_LIST[0]?.key || '',
     },
     food: {
       startDay: initialDates.startDate,
       endDay: initialDates.endDate,
       meals: ['breakfast', 'lunch', 'dinner'],
-      spicy: dropdowns.SPICE_LIST[0].key,
-      hightea: dropdowns.HIGHTEA_LIST[0].key,
+      spicy: dropdowns.SPICE_LIST[0]?.key || '',
+      hightea: dropdowns.HIGHTEA_LIST[0]?.key || '',
     },
     travel: {
       date: initialDates.startDate,
       pickup: '',
       drop: '',
-      adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
-      type: dropdowns.BOOKING_TYPE_LIST[0].value,
+      adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1]?.value || '',
+      type: dropdowns.BOOKING_TYPE_LIST[0]?.value || '',
       arrival_time: '',
       total_people: null,
       luggage: [],
       special_request: '',
     },
     adhyayan: [],
-  });
+  }));
 
   // Consolidated date picker visibility state
   const [isDatePickerVisible, setDatePickerVisibility] = useState({
@@ -88,25 +88,22 @@ const BookingDetails = () => {
     travel_time: false,
   });
 
-  // Update entire form handler
-  const setFormValues = useCallback((formType: any, values: any) => {
-    setForms((prev: any) => ({
+  // Memoized handlers to prevent unnecessary re-renders
+  const setFormValues = useCallback((formType: string, values: any) => {
+    setForms((prev) => ({
       ...prev,
       [formType]: values,
     }));
   }, []);
 
-  // Toggle addon visibility handler
-  const toggleAddon = useCallback((addonType: any, isOpen: any) => {
+  const toggleAddon = useCallback((addonType: string, isOpen: boolean) => {
     setAddonOpen((prev) => ({ ...prev, [addonType]: isOpen }));
   }, []);
 
-  // Handle date picker visibility
-  const toggleDatePicker = useCallback((pickerType: any, isVisible: any) => {
+  const toggleDatePicker = useCallback((pickerType: string, isVisible: boolean) => {
     setDatePickerVisibility((prev) => ({ ...prev, [pickerType]: isVisible }));
   }, []);
 
-  // Set adhyayan booking list
   const setAdhyayanBookingList = useCallback(
     (list: any) => {
       setFormValues('adhyayan', list);
@@ -114,8 +111,12 @@ const BookingDetails = () => {
     [setFormValues]
   );
 
-  // Validation API call
+  // Validation API call with proper error handling
   const fetchValidation = useCallback(async () => {
+    if (!user?.cardno) {
+      throw new Error('User not authenticated');
+    }
+
     const payload = prepareSelfRequestBody(user, data);
 
     return new Promise((resolve, reject) => {
@@ -135,18 +136,16 @@ const BookingDetails = () => {
   }, [user, data, setData]);
 
   const { error: validationDataError, refetch: refetchValidation } = useQuery({
-    queryKey: ['validations', user.cardno, JSON.stringify(data)],
+    queryKey: ['validations', user?.cardno, JSON.stringify(data)],
     queryFn: fetchValidation,
     retry: false,
-    enabled: !!user.cardno, // Only run when user.cardno is available
+    enabled: !!user?.cardno,
   });
 
-  // Force refetch validation when screen comes into focus and clean up addons
+  // Clean up effect with proper dependency management
   useFocusEffect(
     useCallback(() => {
-      if (user.cardno) {
-        // Clean up addon data when coming back from booking confirmation
-        // Only keep the main booking data based on the booking type
+      if (user?.cardno) {
         setData((prev: any) => {
           const cleanedData = { ...prev };
 
@@ -172,27 +171,26 @@ const BookingDetails = () => {
 
         refetchValidation();
       }
-    }, [user.cardno, refetchValidation, booking, setData])
+    }, [user?.cardno, refetchValidation, booking, setData])
   );
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Validation functions
+  // Validation functions with proper error handling
   const validateRoomForm = useCallback(() => {
-    return Object.values(forms.room).every((value) => value !== '');
+    return Object.values(forms.room).every((value) => value !== '' && value !== null);
   }, [forms.room]);
 
   const validateFoodForm = useCallback(() => {
     const requiredFields = ['startDay', 'endDay', 'meals'];
     return requiredFields.every(
-      (field: any) =>
+      (field) =>
         forms.food[field] &&
         (Array.isArray(forms.food[field]) ? forms.food[field].length > 0 : forms.food[field] !== '')
     );
   }, [forms.food]);
 
   const validateTravelForm = useCallback(() => {
-    const { date, pickup, drop, luggage, special_request } = forms.travel;
+    const { date, pickup, drop, luggage, special_request, type, total_people } = forms.travel;
+
     if (!date || !pickup || !drop || luggage.length === 0) return false;
     if (
       (pickup === 'Other' && special_request.trim() === '') ||
@@ -201,60 +199,76 @@ const BookingDetails = () => {
       return false;
     if (pickup === 'Research Centre' && drop === 'Research Centre') return false;
     if (pickup !== 'Research Centre' && drop !== 'Research Centre') return false;
-    if (forms.travel.type == dropdowns.BOOKING_TYPE_LIST[1].value && !forms.travel.total_people)
-      return false;
+    if (type === dropdowns.BOOKING_TYPE_LIST[1]?.value && !total_people) return false;
+
     return true;
   }, [forms.travel]);
 
-  // Handle form submission
-  const handleSubmit = useCallback(() => {
+  // Optimized form submission
+  const handleSubmit = useCallback(async () => {
+    if (isSubmitting) return;
+
     setIsSubmitting(true);
     let hasValidationError = false;
 
     try {
-      // Validate room form if addon is open and not on room details page
+      // Validate forms in batch
+      const validations = [];
+
       if (booking !== types.ROOM_DETAILS_TYPE && addonOpen.room) {
         if (!validateRoomForm()) {
           Alert.alert('Please fill all the room fields');
           hasValidationError = true;
           return;
         }
-        setData((prev: any) => ({ ...prev, room: forms.room }));
+        validations.push(['room', forms.room]);
       }
 
-      // Validate food form if addon is open
       if (addonOpen.food) {
         if (!validateFoodForm()) {
           Alert.alert('Please fill all the required food fields');
           hasValidationError = true;
           return;
         }
-        setData((prev: any) => ({ ...prev, food: forms.food }));
+        validations.push(['food', forms.food]);
       }
 
-      // Validate travel form if addon is open and not on travel details page
       if (booking !== types.TRAVEL_DETAILS_TYPE && addonOpen.travel) {
         if (!validateTravelForm()) {
           Alert.alert('Please fill all the travel fields');
           hasValidationError = true;
           return;
         }
-        setData((prev: any) => ({ ...prev, travel: forms.travel }));
+        validations.push(['travel', forms.travel]);
       }
 
-      // Add adhyayan data if available and not on adhyayan details page
       if (booking !== types.ADHYAYAN_DETAILS_TYPE && forms.adhyayan.length > 0) {
-        setData((prev: any) => ({ ...prev, adhyayan: forms.adhyayan }));
+        validations.push(['adhyayan', forms.adhyayan]);
       }
 
-      // If no validation errors, navigate to confirmation page
+      // Update data in batch
+      if (validations.length > 0) {
+        setData((prev: any) => {
+          const newData = { ...prev };
+          validations.forEach(([key, value]) => {
+            newData[key] = value;
+          });
+          return newData;
+        });
+      }
+
+      // Navigate if no validation errors
       if (!hasValidationError) {
         router.push('/booking/bookingConfirmation');
       }
+    } catch (error) {
+      console.error('Error during submission:', error);
+      Alert.alert('An error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   }, [
+    isSubmitting,
     booking,
     addonOpen,
     forms,
@@ -265,13 +279,12 @@ const BookingDetails = () => {
     router,
   ]);
 
-  // Close validation error modal
   const handleCloseValidationModal = useCallback(() => {
     router.back();
   }, [router]);
 
-  // Render booking details card based on booking type
-  const renderBookingDetails = () => {
+  // Memoized booking details component
+  const BookingDetailsComponent = useMemo(() => {
     switch (booking) {
       case types.ROOM_DETAILS_TYPE:
         return <RoomBookingDetails containerStyles="mt-2" />;
@@ -284,17 +297,19 @@ const BookingDetails = () => {
       default:
         return null;
     }
-  };
+  }, [booking]);
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
       <KeyboardAwareScrollView
         bottomOffset={62}
         style={{ flex: 1 }}
-        keyboardShouldPersistTaps="handled">
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}>
         <PageHeader title="Booking Details" />
 
-        {renderBookingDetails()}
+        {BookingDetailsComponent}
 
         {booking === types.EVENT_DETAILS_TYPE && (
           <View className="mx-4 mb-2 mt-4 rounded-lg border-2 border-amber-300 bg-amber-50 p-4">
@@ -349,7 +364,7 @@ const BookingDetails = () => {
             )}
 
             {/* TRAVEL BOOKING COMPONENT */}
-            {booking !== types.TRAVEL_DETAILS_TYPE && (
+            {booking !== types.TRAVEL_DETAILS_TYPE && user?.res_status !== 'GUEST' && (
               <TravelAddon
                 travelForm={forms.travel}
                 setTravelForm={(formData: any) => setFormValues('travel', formData)}

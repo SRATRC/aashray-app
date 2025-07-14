@@ -149,9 +149,21 @@ const TravelBooking = () => {
   const handleMumukshuFormChange = (index: any, key: any, value: any) => {
     setMumukshuForm((prev) => ({
       ...prev,
-      mumukshus: prev.mumukshus.map((mumukshu, i) =>
-        i === index ? { ...mumukshu, [key]: value } : mumukshu
-      ),
+      mumukshus: prev.mumukshus.map((mumukshu, i) => {
+        if (i !== index) return mumukshu;
+
+        // base update
+        const updated = { ...mumukshu, [key]: value } as any;
+
+        // Ensure Research Centre logic mirrors the main travel form
+        if (key === 'pickup') {
+          updated.drop = value !== 'Research Centre' ? 'Research Centre' : mumukshu.drop;
+        }
+        if (key === 'drop') {
+          updated.pickup = value !== 'Research Centre' ? 'Research Centre' : mumukshu.pickup;
+        }
+        return updated;
+      }),
     }));
   };
 
@@ -260,6 +272,7 @@ const TravelBooking = () => {
           setTravelForm((prev) => ({ ...prev, date: day }));
           setMumukshuForm((prev) => ({ ...prev, date: day }));
         }}
+        minDate={moment(new Date()).format('YYYY-MM-DD')}
       />
 
       <View className="mt-7 flex w-full flex-col">
@@ -305,7 +318,13 @@ const TravelBooking = () => {
             placeholder="Select Pickup Location"
             options={getLocationOptions(travelForm.date)}
             selectedValue={travelForm.pickup}
-            onValueChange={(val: any) => setTravelForm({ ...travelForm, pickup: val })}
+            onValueChange={(val: any) => {
+              setTravelForm({
+                ...travelForm,
+                pickup: val,
+                drop: val !== 'Research Centre' ? 'Research Centre' : travelForm.drop,
+              });
+            }}
             saveKeyInsteadOfValue={false}
           />
 
@@ -315,7 +334,13 @@ const TravelBooking = () => {
             placeholder="Select Drop Location"
             options={getLocationOptions(travelForm.date)}
             selectedValue={travelForm.drop}
-            onValueChange={(val: any) => setTravelForm({ ...travelForm, drop: val })}
+            onValueChange={(val: any) => {
+              setTravelForm({
+                ...travelForm,
+                drop: val,
+                pickup: val !== 'Research Centre' ? 'Research Centre' : travelForm.pickup,
+              });
+            }}
             saveKeyInsteadOfValue={false}
           />
 

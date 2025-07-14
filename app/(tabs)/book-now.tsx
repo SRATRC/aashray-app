@@ -23,14 +23,11 @@ const BookingCategoriesInternal = () => {
       types.booking_type_travel,
       types.booking_type_event,
     ];
-    if (
-      user?.res_status === status.STATUS_RESIDENT &&
-      !baseChips.includes(types.booking_type_flat)
-    ) {
+    if (user?.isFlatOwner && !baseChips.includes(types.booking_type_flat)) {
       return [...baseChips, types.booking_type_flat];
     }
     return baseChips;
-  }, [user?.res_status]);
+  }, [user?.isFlatOwner]);
 
   const [selectedChip, setSelectedChip] = useState(() => {
     if (availableChips.includes(types.booking_type_adhyayan)) {

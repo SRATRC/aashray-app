@@ -170,7 +170,13 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         placeholder="Select Pickup Location"
         options={getLocationOptions(travelForm.date)}
         selectedValue={travelForm.pickup}
-        onValueChange={(val: any) => setTravelForm({ ...travelForm, pickup: val })}
+        onValueChange={(val: any) =>
+          setTravelForm((prev: any) => ({
+            ...prev,
+            pickup: val,
+            drop: val !== 'Research Centre' ? 'Research Centre' : prev.drop,
+          }))
+        }
         saveKeyInsteadOfValue={false}
       />
 
@@ -180,7 +186,13 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         placeholder="Select Drop Location"
         options={getLocationOptions(travelForm.date)}
         selectedValue={travelForm.drop}
-        onValueChange={(val: any) => setTravelForm({ ...travelForm, drop: val })}
+        onValueChange={(val: any) =>
+          setTravelForm((prev: any) => ({
+            ...prev,
+            drop: val,
+            pickup: val !== 'Research Centre' ? 'Research Centre' : prev.pickup,
+          }))
+        }
         saveKeyInsteadOfValue={false}
       />
 
