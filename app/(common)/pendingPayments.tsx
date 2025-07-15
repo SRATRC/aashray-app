@@ -481,12 +481,12 @@ const PendingPayments = () => {
 
     const start = moment(startDay);
     const end = moment(endDay ? endDay : startDay);
-    const days = end.diff(start, 'days') + 1;
+    const nights = end.diff(start, 'days');
 
-    if (days === 1) {
-      return '1 day';
+    if (nights === 0) {
+      return '1 night';
     } else {
-      return `${days} days`;
+      return `${nights} nights`;
     }
   };
 
