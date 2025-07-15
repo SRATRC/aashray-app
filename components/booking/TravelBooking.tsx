@@ -94,7 +94,9 @@ const TravelBooking = () => {
       return false;
     }
 
-    const requiresSpecialRequest = travelForm.pickup === 'Other' || travelForm.drop === 'Other';
+    const requiresSpecialRequest =
+      travelForm.pickup === 'Other (enter location in comments)' ||
+      travelForm.drop === 'Other (enter location in comments)';
 
     return (
       travelForm.date &&
@@ -153,12 +155,24 @@ const TravelBooking = () => {
         // base update
         const updated = { ...mumukshu, [key]: value } as any;
 
-        // Ensure Research Centre logic mirrors the main travel form
+        // Enhanced Research Centre logic
         if (key === 'pickup') {
-          updated.drop = value !== 'Research Centre' ? 'Research Centre' : mumukshu.drop;
+          if (value === 'Research Centre') {
+            // If selecting Research Centre as pickup, drop must be something else
+            updated.drop = mumukshu.drop === 'Research Centre' ? '' : mumukshu.drop;
+          } else {
+            // If selecting anything else as pickup, drop must be Research Centre
+            updated.drop = 'Research Centre';
+          }
         }
         if (key === 'drop') {
-          updated.pickup = value !== 'Research Centre' ? 'Research Centre' : mumukshu.pickup;
+          if (value === 'Research Centre') {
+            // If selecting Research Centre as drop, pickup must be something else
+            updated.pickup = mumukshu.pickup === 'Research Centre' ? '' : mumukshu.pickup;
+          } else {
+            // If selecting anything else as drop, pickup must be Research Centre
+            updated.pickup = 'Research Centre';
+          }
         }
         return updated;
       }),
@@ -189,7 +203,9 @@ const TravelBooking = () => {
           return false;
         }
 
-        const requiresSpecialRequest = mumukshu.pickup === 'Other' || mumukshu.drop === 'Other';
+        const requiresSpecialRequest =
+          mumukshu.pickup === 'Other (enter location in comments)' ||
+          mumukshu.drop === 'Other (enter location in comments)';
 
         return (
           mumukshu.mobno?.length === 10 &&
@@ -317,11 +333,21 @@ const TravelBooking = () => {
             options={getLocationOptions(travelForm.date)}
             selectedValue={travelForm.pickup}
             onValueChange={(val: any) => {
-              setTravelForm({
-                ...travelForm,
-                pickup: val,
-                drop: val !== 'Research Centre' ? 'Research Centre' : travelForm.drop,
-              });
+              if (val === 'Research Centre') {
+                // If selecting Research Centre as pickup, drop must be something else
+                setTravelForm({
+                  ...travelForm,
+                  pickup: val,
+                  drop: travelForm.drop === 'Research Centre' ? '' : travelForm.drop,
+                });
+              } else {
+                // If selecting anything else as pickup, drop must be Research Centre
+                setTravelForm({
+                  ...travelForm,
+                  pickup: val,
+                  drop: 'Research Centre',
+                });
+              }
             }}
             saveKeyInsteadOfValue={false}
           />
@@ -333,11 +359,21 @@ const TravelBooking = () => {
             options={getLocationOptions(travelForm.date)}
             selectedValue={travelForm.drop}
             onValueChange={(val: any) => {
-              setTravelForm({
-                ...travelForm,
-                drop: val,
-                pickup: val !== 'Research Centre' ? 'Research Centre' : travelForm.pickup,
-              });
+              if (val === 'Research Centre') {
+                // If selecting Research Centre as drop, pickup must be something else
+                setTravelForm({
+                  ...travelForm,
+                  drop: val,
+                  pickup: travelForm.pickup === 'Research Centre' ? '' : travelForm.pickup,
+                });
+              } else {
+                // If selecting anything else as drop, pickup must be Research Centre
+                setTravelForm({
+                  ...travelForm,
+                  drop: val,
+                  pickup: 'Research Centre',
+                });
+              }
             }}
             saveKeyInsteadOfValue={false}
           />

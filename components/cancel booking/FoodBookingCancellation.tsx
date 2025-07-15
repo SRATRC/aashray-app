@@ -43,7 +43,7 @@ export default function FoodBookingCancellation() {
     <View className="mb-2 flex-row items-center gap-x-2 rounded-lg border border-amber-300 bg-amber-50 p-4">
       <FontAwesome name="info-circle" size={16} color="#b45309" />
       <Text className="font-pregular text-amber-800">
-        Bookings can be cancelled before 11 PM of each day for the next day's meals.
+        Bookings can be cancelled before 8 PM of each day for the next day's meals.
       </Text>
     </View>
   );

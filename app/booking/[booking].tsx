@@ -24,8 +24,6 @@ const BookingDetails = () => {
   const { user, data, setData } = useGlobalContext();
   const router = useRouter();
 
-  console.log(JSON.stringify(user));
-
   // Consolidated state for addons visibility
   const [addonOpen, setAddonOpen] = useState({
     room: false,
@@ -192,8 +190,8 @@ const BookingDetails = () => {
     const { date, pickup, drop, luggage, special_request } = forms.travel;
     if (!date || !pickup || !drop || luggage.length === 0) return false;
     if (
-      (pickup === 'Other' && special_request.trim() === '') ||
-      (drop === 'Other' && special_request.trim() === '')
+      (pickup === 'Other (enter location in comments)' && special_request.trim() === '') ||
+      (drop === 'Other (enter location in comments)' && special_request.trim() === '')
     )
       return false;
     if (pickup === 'Research Centre' && drop === 'Research Centre') return false;
