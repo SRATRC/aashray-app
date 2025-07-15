@@ -172,13 +172,23 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         placeholder="Select Pickup Location"
         options={getLocationOptions(travelForm.date)}
         selectedValue={travelForm.pickup}
-        onValueChange={(val: any) =>
-          setTravelForm((prev: any) => ({
-            ...prev,
-            pickup: val,
-            drop: val !== 'Research Centre' ? 'Research Centre' : prev.drop,
-          }))
-        }
+        onValueChange={(val: any) => {
+          if (val === 'Research Centre') {
+            // If selecting Research Centre as pickup, drop must be something else
+            setTravelForm({
+              ...travelForm,
+              pickup: val,
+              drop: travelForm.drop === 'Research Centre' ? '' : travelForm.drop,
+            });
+          } else {
+            // If selecting anything else as pickup, drop must be Research Centre
+            setTravelForm({
+              ...travelForm,
+              pickup: val,
+              drop: 'Research Centre',
+            });
+          }
+        }}
         saveKeyInsteadOfValue={false}
       />
 
@@ -188,13 +198,23 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         placeholder="Select Drop Location"
         options={getLocationOptions(travelForm.date)}
         selectedValue={travelForm.drop}
-        onValueChange={(val: any) =>
-          setTravelForm((prev: any) => ({
-            ...prev,
-            drop: val,
-            pickup: val !== 'Research Centre' ? 'Research Centre' : prev.pickup,
-          }))
-        }
+        onValueChange={(val: any) => {
+          if (val === 'Research Centre') {
+            // If selecting Research Centre as drop, pickup must be something else
+            setTravelForm({
+              ...travelForm,
+              drop: val,
+              pickup: travelForm.pickup === 'Research Centre' ? '' : travelForm.pickup,
+            });
+          } else {
+            // If selecting anything else as drop, pickup must be Research Centre
+            setTravelForm({
+              ...travelForm,
+              drop: val,
+              pickup: 'Research Centre',
+            });
+          }
+        }}
         saveKeyInsteadOfValue={false}
       />
 

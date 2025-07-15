@@ -186,9 +186,9 @@ const TransactionItem = ({ item }: { item: any }) => {
 
     const start = moment(item.start_day);
     const end = moment(item.end_day);
-    const days = end.diff(start, 'days') + 1;
+    const nights = end.diff(start, 'days');
 
-    return days === 1 ? '1 day' : `${days} days`;
+    return nights === 0 ? '1 night' : `${nights} nights`;
   }, [item.start_day, item.end_day]);
 
   const displayAmount = useMemo(() => {

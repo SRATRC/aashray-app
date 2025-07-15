@@ -567,14 +567,15 @@ const MumukshuAddons = () => {
   }, [adhyayanForm]);
 
   const validateTravelForm = useCallback(() => {
+    const otherLocation = dropdowns.LOCATION_LIST.find(loc => loc.key === 'other');
     const hasEmptyFields = travelForm.mumukshuGroup.some(
       (group: any) =>
         !group.pickup ||
         !group.drop ||
         group.mumukshus.length === 0 ||
         group.luggage.length === 0 ||
-        (group.pickup === 'Other' && group.special_request.trim() === '') ||
-        (group.drop === 'Other' && group.special_request.trim() === '') ||
+        (group.pickup === otherLocation?.value && group.special_request.trim() === '') ||
+        (group.drop === otherLocation?.value && group.special_request.trim() === '') ||
         (group.pickup == 'Research Centre' && group.drop == 'Research Centre') ||
         (group.pickup != 'Research Centre' && group.drop != 'Research Centre') ||
         (group.type == dropdowns.BOOKING_TYPE_LIST[1].value && !group.total_people)

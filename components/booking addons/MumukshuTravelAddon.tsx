@@ -219,8 +219,15 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             options={getLocationOptions(travelForm.date)}
             selectedValue={assignment.pickup}
             onValueChange={(val: any) => {
-              updateTravelForm(index, 'pickup', val);
-              if (val !== 'Research Centre') {
+              if (val === 'Research Centre') {
+                // If selecting Research Centre as pickup, drop must be something else
+                updateTravelForm(index, 'pickup', val);
+                if (assignment.drop === 'Research Centre') {
+                  updateTravelForm(index, 'drop', '');
+                }
+              } else {
+                // If selecting anything else as pickup, drop must be Research Centre
+                updateTravelForm(index, 'pickup', val);
                 updateTravelForm(index, 'drop', 'Research Centre');
               }
             }}
@@ -234,8 +241,15 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             options={getLocationOptions(travelForm.date)}
             selectedValue={assignment.drop}
             onValueChange={(val: any) => {
-              updateTravelForm(index, 'drop', val);
-              if (val !== 'Research Centre') {
+              if (val === 'Research Centre') {
+                // If selecting Research Centre as drop, pickup must be something else
+                updateTravelForm(index, 'drop', val);
+                if (assignment.pickup === 'Research Centre') {
+                  updateTravelForm(index, 'pickup', '');
+                }
+              } else {
+                // If selecting anything else as drop, pickup must be Research Centre
+                updateTravelForm(index, 'drop', val);
                 updateTravelForm(index, 'pickup', 'Research Centre');
               }
             }}

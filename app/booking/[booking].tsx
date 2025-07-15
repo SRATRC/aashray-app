@@ -192,9 +192,10 @@ const BookingDetails = () => {
     const { date, pickup, drop, luggage, special_request, type, total_people } = forms.travel;
 
     if (!date || !pickup || !drop || luggage.length === 0) return false;
+    const otherLocation = dropdowns.LOCATION_LIST.find(loc => loc.key === 'other');
     if (
-      (pickup === 'Other' && special_request.trim() === '') ||
-      (drop === 'Other' && special_request.trim() === '')
+      (pickup === otherLocation?.value && special_request.trim() === '') ||
+      (drop === otherLocation?.value && special_request.trim() === '')
     )
       return false;
     if (pickup === 'Research Centre' && drop === 'Research Centre') return false;

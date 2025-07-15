@@ -156,7 +156,7 @@ const wifi = () => {
       {wifiList?.length > 0 && (
         <View>
           <Text className="font-psemibold text-sm text-gray-400">
-            {wifiList?.length}/4 Codes Generated
+            {wifiList?.length}/3 Codes Generated
           </Text>
         </View>
       )}
@@ -189,7 +189,8 @@ const wifi = () => {
           handlePress={handleGenerateCode}
           containerStyles={'px-4 py-2 mt-10 min-h-[56px]'}
           textStyles={'text-base font-pregular text-white'}
-          isLoading={isSubmitting || wifiList?.length >= 4}
+          isLoading={isSubmitting}
+          isDisabled={wifiList?.length >= 3}
         />
       )}
     </View>
