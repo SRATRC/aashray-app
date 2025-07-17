@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { types } from '@/constants';
@@ -18,11 +18,7 @@ const CHIPS = [
   types.booking_type_event,
 ];
 
-interface BookingCategoriesProps {
-  setRefreshHandler: (handler: () => void) => void;
-}
-
-const BookingCategories: React.FC<BookingCategoriesProps> = ({ setRefreshHandler }) => {
+const BookingCategories = () => {
   const queryClient = useQueryClient();
   const [selectedChip, setSelectedChip] = useState<string>(types.booking_type_adhyayan);
 
@@ -60,14 +56,6 @@ const BookingCategories: React.FC<BookingCategoriesProps> = ({ setRefreshHandler
     [queryClient]
   );
 
-  const handleRefresh = () => {
-    invalidateSelectedData(selectedChip);
-  };
-
-  useEffect(() => {
-    setRefreshHandler(handleRefresh);
-  }, [setRefreshHandler, handleRefresh]);
-
   return (
     <View className="w-full flex-1">
       <View className="w-full px-4">
@@ -89,16 +77,12 @@ const BookingCategories: React.FC<BookingCategoriesProps> = ({ setRefreshHandler
   );
 };
 
-const Bookings: React.FC = () => {
-  const [refreshHandler, setRefreshHandler] = useState<() => void>(() => {});
-
-  return (
-    <SafeAreaView className="flex-1 bg-white" edges={['right', 'top', 'left']}>
-      <View className="flex-1" style={{ paddingBottom: Platform.OS === 'ios' ? 80 : 0 }}>
-        <BookingCategories setRefreshHandler={setRefreshHandler} />
-      </View>
-    </SafeAreaView>
-  );
-};
+const Bookings: React.FC = () => (
+  <SafeAreaView className="flex-1 bg-white" edges={['right', 'top', 'left']}>
+    <View className="flex-1" style={{ paddingBottom: Platform.OS === 'ios' ? 80 : 0 }}>
+      <BookingCategories />
+    </View>
+  </SafeAreaView>
+);
 
 export default Bookings;

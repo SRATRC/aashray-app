@@ -65,7 +65,7 @@ const Home: React.FC = () => {
   }
 
   return (
-    <SafeAreaView className="h-full bg-white" edges={['top']}>
+    <SafeAreaView className="h-full bg-white">
       <ScrollView
         showsVerticalScrollIndicator={false}
         className="flex-1"
