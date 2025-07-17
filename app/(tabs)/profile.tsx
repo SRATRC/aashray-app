@@ -315,12 +315,7 @@ const Profile: React.FC = () => {
             }`}>
             {/* Header */}
             <View className="flex-row items-start justify-between">
-              <View>
-                <Text className="font-psemibold text-lg text-gray-700">Total Balance</Text>
-                <Text className="mt-1 font-pregular text-sm text-gray-500">
-                  Your available credits
-                </Text>
-              </View>
+              <Text className="font-psemibold text-lg text-gray-700">Available Credits</Text>
               <TouchableOpacity
                 onPress={() => setCreditsInfoModalVisible(true)}
                 className="rounded-full p-1.5"
@@ -329,17 +324,8 @@ const Profile: React.FC = () => {
               </TouchableOpacity>
             </View>
 
-            {/* Total Credits */}
-            <View className="mt-4">
-              <Text
-                className="font-pbold text-5xl tracking-tighter text-gray-800"
-                style={{ lineHeight: 60 }}>
-                {totalCredits}
-              </Text>
-            </View>
-
             {/* Separator */}
-            <View className="my-6 h-px bg-gray-200" />
+            <View className="my-4 h-px bg-gray-200" />
 
             {/* Credit Breakdown */}
             <View className="gap-y-4">
@@ -396,7 +382,7 @@ const Profile: React.FC = () => {
       <View className="h-full w-full">
         <FlashList
           className="h-full py-2"
-          contentContainerStyle={{ paddingBottom: Platform.OS === 'ios' ? 80 : 0 }}
+          contentContainerStyle={{ paddingBottom: 20 }}
           showsVerticalScrollIndicator={false}
           data={profileList}
           renderItem={renderItem}

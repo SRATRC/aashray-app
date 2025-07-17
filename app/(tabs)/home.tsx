@@ -65,11 +65,11 @@ const Home: React.FC = () => {
   }
 
   return (
-    <SafeAreaView className="h-full bg-white">
+    <SafeAreaView className="h-full bg-white" edges={['top']}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         className="flex-1"
-        style={{ paddingBottom: Platform.OS === 'ios' ? 90 : 0 }}>
+        style={{ paddingBottom: 20 }}>
         <View className=" flex-row items-center justify-start px-4">
           <Image
             source={images.sratrcLogo as ImageSourcePropType}

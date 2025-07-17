@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ScrollView } from 'react-native-virtualized-view';
 import { status, types } from '@/constants';
 import { useAuthStore } from '@/stores';
 import CustomChipGroup from '@/components/CustomChipGroup';
@@ -12,7 +11,7 @@ import AdhyayanBooking from '@/components/booking/AdhyayanBooking';
 import EventsBooking from '@/components/booking/EventsBooking';
 import FlatBooking from '@/components/booking/FlatBooking';
 
-const BookingCategoriesInternal = () => {
+const BookingCategories = () => {
   const { user } = useAuthStore();
 
   const availableChips = useMemo(() => {
@@ -51,37 +50,35 @@ const BookingCategoriesInternal = () => {
   }
 
   return (
-    <View className="my-6 w-full px-4" style={{ paddingBottom: Platform.OS === 'ios' ? 80 : 0 }}>
-      <Text className="font-psemibold text-2xl">{`${selectedChip} Booking`}</Text>
+    <View className="w-full flex-1">
+      <View className="w-full px-4">
+        <Text className="mt-6 font-psemibold text-2xl">{`${selectedChip} Booking`}</Text>
 
-      <CustomChipGroup
-        chips={availableChips}
-        selectedChip={selectedChip}
-        handleChipPress={handleChipClick}
-      />
+        <CustomChipGroup
+          chips={availableChips}
+          selectedChip={selectedChip}
+          handleChipPress={handleChipClick}
+        />
+      </View>
 
-      {selectedChip === types.booking_type_room && <RoomBooking />}
-      {selectedChip === types.booking_type_flat && <FlatBooking />}
-      {selectedChip === types.booking_type_food && <FoodBooking />}
-      {selectedChip === types.booking_type_travel && <TravelBooking />}
-      {selectedChip === types.booking_type_adhyayan && <AdhyayanBooking />}
-      {selectedChip === types.booking_type_event && <EventsBooking />}
+      <View className="flex-1">
+        {selectedChip === types.booking_type_room && <RoomBooking />}
+        {selectedChip === types.booking_type_flat && <FlatBooking />}
+        {selectedChip === types.booking_type_food && <FoodBooking />}
+        {selectedChip === types.booking_type_travel && <TravelBooking />}
+        {selectedChip === types.booking_type_adhyayan && <AdhyayanBooking />}
+        {selectedChip === types.booking_type_event && <EventsBooking />}
+      </View>
     </View>
   );
 };
 
-const BookingCategories = React.memo(BookingCategoriesInternal);
-
-const BookNowInternal = () => {
-  return (
-    <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
-      <ScrollView alwaysBounceVertical={false} showsVerticalScrollIndicator={false}>
-        <BookingCategories />
-      </ScrollView>
-    </SafeAreaView>
-  );
-};
-
-const BookNow = React.memo(BookNowInternal);
+const BookNow: React.FC = () => (
+  <SafeAreaView className="flex-1 bg-white" edges={['right', 'top', 'left']}>
+    <View className="flex-1" style={{ paddingBottom: Platform.OS === 'ios' ? 80 : 0 }}>
+      <BookingCategories />
+    </View>
+  </SafeAreaView>
+);
 
 export default BookNow;

@@ -390,7 +390,7 @@ const EventBooking = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   return (
-    <View className="w-full">
+    <View className="mt-3 w-full flex-1">
       <Modal
         visible={isModalVisible}
         animationType="fade"
@@ -818,7 +818,8 @@ const EventBooking = () => {
       </Modal>
 
       <SectionList
-        className="flex-grow-1 px-2 py-2"
+        className="flex-grow-1"
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 }}
         sections={data?.pages?.flatMap((page: any) => page) || []}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}

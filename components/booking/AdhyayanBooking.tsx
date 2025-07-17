@@ -204,7 +204,7 @@ const AdhyayanBooking = () => {
 
   const renderItem = ({ item }: { item: any }) => (
     <View
-      className="mx-1 mb-2 mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg shadow-gray-400"
+      className="mb-2 mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg shadow-gray-400"
       style={{
         ...(Platform.OS === 'ios' && {
           shadowColor: '#000',
@@ -311,7 +311,7 @@ const AdhyayanBooking = () => {
   );
 
   const renderSectionHeader = ({ section: { title } }: { section: { title: any } }) => (
-    <Text className="mx-1 mt-2 font-psemibold text-lg">{title}</Text>
+    <Text className="mt-2 font-psemibold text-lg">{title}</Text>
   );
 
   const renderFooter = () => (
@@ -322,7 +322,7 @@ const AdhyayanBooking = () => {
   );
 
   return (
-    <View className="w-full">
+    <View className="mt-3 w-full flex-1">
       <Modal
         visible={isModalVisible}
         animationType="fade"
@@ -345,7 +345,10 @@ const AdhyayanBooking = () => {
                   <View className="flex-row gap-x-1">
                     <Text className="font-pregular text-xs text-gray-500">Date:</Text>
                     <Text className="font-pregular text-xs text-secondary">
-                      {moment(selectedItem?.start_date).isSame(moment(selectedItem?.end_date), 'day')
+                      {moment(selectedItem?.start_date).isSame(
+                        moment(selectedItem?.end_date),
+                        'day'
+                      )
                         ? moment(selectedItem?.start_date).format('Do MMMM, YYYY')
                         : `${moment(selectedItem?.start_date).format('Do MMMM')} - ${moment(selectedItem?.end_date).format('Do MMMM')}`}
                     </Text>
@@ -493,7 +496,8 @@ const AdhyayanBooking = () => {
         </KeyboardAvoidingView>
       </Modal>
       <SectionList
-        className="flex-grow-1 px-2 py-2"
+        className="flex-grow-1"
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 }}
         sections={data?.pages?.flatMap((page: any) => page) || []}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}

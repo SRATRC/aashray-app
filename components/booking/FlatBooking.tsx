@@ -1,4 +1,4 @@
-import { View, Text, Alert } from 'react-native';
+import { View, Text, Alert, ScrollView } from 'react-native';
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores';
@@ -183,166 +183,175 @@ const FlatBooking = () => {
   };
 
   return (
-    <View className="w-full flex-1">
-      <CustomCalender
-        type={'period'}
-        startDay={mumukshuForm.startDay}
-        setStartDay={(day: any) => {
-          setGuestForm((prev) => ({ ...prev, startDay: day, endDay: '' }));
-          setMumukshuForm((prev) => ({
-            ...prev,
-            startDay: day,
-            endDay: '',
-          }));
-        }}
-        endDay={mumukshuForm.endDay}
-        setEndDay={(day: any) => {
-          setGuestForm((prev) => ({ ...prev, endDay: day }));
-          setMumukshuForm((prev) => ({ ...prev, endDay: day }));
-        }}
-        minDate={moment().format('YYYY-MM-DD')}
-      />
-
-      <View className="mt-7 flex w-full flex-col">
-        <Text className="font-pmedium text-base text-gray-600">Book for</Text>
-        <CustomChipGroup
-          chips={CHIPS}
-          selectedChip={selectedChip}
-          handleChipPress={handleChipClick}
-          containerStyles={'mt-1'}
-          chipContainerStyles={'py-2'}
-          textStyles={'text-sm'}
+    <View className="mt-3 w-full flex-1">
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 }}
+        showsVerticalScrollIndicator={false}
+        alwaysBounceVertical={false}>
+        <CustomCalender
+          type={'period'}
+          startDay={mumukshuForm.startDay}
+          setStartDay={(day: any) => {
+            setGuestForm((prev) => ({ ...prev, startDay: day, endDay: '' }));
+            setMumukshuForm((prev) => ({
+              ...prev,
+              startDay: day,
+              endDay: '',
+            }));
+          }}
+          endDay={mumukshuForm.endDay}
+          setEndDay={(day: any) => {
+            setGuestForm((prev) => ({ ...prev, endDay: day }));
+            setMumukshuForm((prev) => ({ ...prev, endDay: day }));
+          }}
+          minDate={moment().format('YYYY-MM-DD')}
         />
-      </View>
 
-      {selectedChip === CHIPS[0] && (
-        <OtherMumukshuForm
-          mumukshuForm={mumukshuForm}
-          setMumukshuForm={setMumukshuForm}
-          handleMumukshuFormChange={handleMumukshuFormChange}
-          addMumukshuForm={addMumukshuForm}
-          removeMumukshuForm={removeMumukshuForm}
-        />
-      )}
+        <View className="mt-7 flex w-full flex-col">
+          <Text className="font-pmedium text-base text-gray-600">Book for</Text>
+          <CustomChipGroup
+            chips={CHIPS}
+            selectedChip={selectedChip}
+            handleChipPress={handleChipClick}
+            containerStyles={'mt-1'}
+            chipContainerStyles={'py-2'}
+            textStyles={'text-sm'}
+          />
+        </View>
 
-      {selectedChip === CHIPS[1] && (
-        <GuestForm
-          guestForm={guestForm}
-          setGuestForm={setGuestForm}
-          handleGuestFormChange={handleGuestFormChange}
-          addGuestForm={addGuestForm}
-          removeGuestForm={removeGuestForm}
-        />
-      )}
+        {selectedChip === CHIPS[0] && (
+          <OtherMumukshuForm
+            mumukshuForm={mumukshuForm}
+            setMumukshuForm={setMumukshuForm}
+            handleMumukshuFormChange={handleMumukshuFormChange}
+            addMumukshuForm={addMumukshuForm}
+            removeMumukshuForm={removeMumukshuForm}
+          />
+        )}
 
-      <CustomButton
-        text="Book Now"
-        handlePress={async () => {
-          setIsSubmitting(true);
-          if (selectedChip == CHIPS[0]) {
-            if (!isMumukshuFormValid()) {
-              Alert.alert('Validation Error', 'Please fill all required fields');
-              setIsSubmitting(false);
-              return;
-            }
-            await handleAPICall(
-              'POST',
-              '/stay/flat',
-              { cardno: user.cardno },
-              mumukshuForm,
-              async (res: any) => {
-                // Check if response contains payment data
-                if (res.data && (res.data.amount !== undefined || res.data.id !== undefined)) {
-                  handleRazorpayPayment(res.data);
-                } else {
-                  // No payment data - just show success
-                  Alert.alert('Success', 'Booking Successful');
-                  setMumukshuForm(INITIAL_MUMUKSHU_FORM);
-                  setIsSubmitting(false);
-                }
-              },
-              () => {
+        {selectedChip === CHIPS[1] && (
+          <GuestForm
+            guestForm={guestForm}
+            setGuestForm={setGuestForm}
+            handleGuestFormChange={handleGuestFormChange}
+            addGuestForm={addGuestForm}
+            removeGuestForm={removeGuestForm}
+          />
+        )}
+
+        <CustomButton
+          text="Book Now"
+          handlePress={async () => {
+            setIsSubmitting(true);
+            if (selectedChip == CHIPS[0]) {
+              if (!isMumukshuFormValid()) {
+                Alert.alert('Validation Error', 'Please fill all required fields');
                 setIsSubmitting(false);
+                return;
               }
-            );
-          }
-
-          if (selectedChip == CHIPS[1]) {
-            if (!isGuestFormValid()) {
-              Alert.alert('Validation Error', 'Please fill all required fields');
-              setIsSubmitting(false);
-              return;
-            }
-
-            await handleAPICall(
-              'POST',
-              '/guest',
-              null,
-              {
-                cardno: user.cardno,
-                guests: guestForm.guests,
-              },
-              async (res: any) => {
-                const updatedGuests = guestForm.guests.map((formGuest) => {
-                  const matchingApiGuest = res.guests.find(
-                    (apiGuest: any) => apiGuest.issuedto === formGuest.name
-                  );
-                  return matchingApiGuest ? matchingApiGuest.cardno : formGuest.cardno;
-                });
-
-                // Create the updated form object directly
-                const updatedGuestForm = {
-                  ...guestForm,
-                  guests: updatedGuests,
-                };
-
-                // Update the state
-                await new Promise((resolve) => {
-                  setGuestForm((prev) => {
-                    const newForm = updatedGuestForm;
-                    resolve(newForm);
-                    return newForm;
-                  });
-                });
-
-                // Use the updated form object directly, not the state
-                await handleAPICall(
-                  'POST',
-                  '/guest/flat',
-                  { cardno: user.cardno },
-                  updatedGuestForm,
-                  async (res: any) => {
-                    // Check if response contains payment data
-                    if (res.data && (res.data.amount !== undefined || res.data.id !== undefined)) {
-                      handleRazorpayPayment(res.data);
-                    } else {
-                      // No payment data - just show success
-                      Alert.alert('Success', 'Booking Successful');
-                      setGuestForm(INITIAL_GUEST_FORM);
-                      setIsSubmitting(false);
-                    }
-                  },
-                  () => {
+              await handleAPICall(
+                'POST',
+                '/stay/flat',
+                { cardno: user.cardno },
+                mumukshuForm,
+                async (res: any) => {
+                  // Check if response contains payment data
+                  if (res.data && (res.data.amount !== undefined || res.data.id !== undefined)) {
+                    handleRazorpayPayment(res.data);
+                  } else {
+                    // No payment data - just show success
+                    Alert.alert('Success', 'Booking Successful');
+                    setMumukshuForm(INITIAL_MUMUKSHU_FORM);
                     setIsSubmitting(false);
                   }
-                );
-              },
-              () => {
+                },
+                () => {
+                  setIsSubmitting(false);
+                }
+              );
+            }
+
+            if (selectedChip == CHIPS[1]) {
+              if (!isGuestFormValid()) {
+                Alert.alert('Validation Error', 'Please fill all required fields');
                 setIsSubmitting(false);
+                return;
               }
-            );
+
+              await handleAPICall(
+                'POST',
+                '/guest',
+                null,
+                {
+                  cardno: user.cardno,
+                  guests: guestForm.guests,
+                },
+                async (res: any) => {
+                  const updatedGuests = guestForm.guests.map((formGuest) => {
+                    const matchingApiGuest = res.guests.find(
+                      (apiGuest: any) => apiGuest.issuedto === formGuest.name
+                    );
+                    return matchingApiGuest ? matchingApiGuest.cardno : formGuest.cardno;
+                  });
+
+                  // Create the updated form object directly
+                  const updatedGuestForm = {
+                    ...guestForm,
+                    guests: updatedGuests,
+                  };
+
+                  // Update the state
+                  await new Promise((resolve) => {
+                    setGuestForm((prev) => {
+                      const newForm = updatedGuestForm;
+                      resolve(newForm);
+                      return newForm;
+                    });
+                  });
+
+                  // Use the updated form object directly, not the state
+                  await handleAPICall(
+                    'POST',
+                    '/guest/flat',
+                    { cardno: user.cardno },
+                    updatedGuestForm,
+                    async (res: any) => {
+                      // Check if response contains payment data
+                      if (
+                        res.data &&
+                        (res.data.amount !== undefined || res.data.id !== undefined)
+                      ) {
+                        handleRazorpayPayment(res.data);
+                      } else {
+                        // No payment data - just show success
+                        Alert.alert('Success', 'Booking Successful');
+                        setGuestForm(INITIAL_GUEST_FORM);
+                        setIsSubmitting(false);
+                      }
+                    },
+                    () => {
+                      setIsSubmitting(false);
+                    }
+                  );
+                },
+                () => {
+                  setIsSubmitting(false);
+                }
+              );
+            }
+          }}
+          containerStyles="mt-7 min-h-[62px]"
+          isLoading={isSubmitting}
+          isDisabled={
+            selectedChip === CHIPS[0]
+              ? !isMumukshuFormValid()
+              : selectedChip === CHIPS[1]
+                ? !isGuestFormValid()
+                : false
           }
-        }}
-        containerStyles="mt-7 min-h-[62px]"
-        isLoading={isSubmitting}
-        isDisabled={
-          selectedChip === CHIPS[0]
-            ? !isMumukshuFormValid()
-            : selectedChip === CHIPS[1]
-              ? !isGuestFormValid()
-              : false
-        }
-      />
+        />
+      </ScrollView>
     </View>
   );
 };

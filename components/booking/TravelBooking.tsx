@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import React, { useState, useCallback, useEffect } from 'react';
 import { types, dropdowns, status } from '@/constants';
 import { useRouter } from 'expo-router';
@@ -275,371 +275,379 @@ const TravelBooking = () => {
   );
 
   return (
-    <View className="w-full flex-1">
-      <CustomCalender
-        selectedDay={travelForm.date}
-        setSelectedDay={(day: any) => {
-          setTravelForm((prev) => ({ ...prev, date: day }));
-          setMumukshuForm((prev) => ({ ...prev, date: day }));
-        }}
-        minDate={moment(new Date()).format('YYYY-MM-DD')}
-      />
-
-      <View className="mt-7 flex w-full flex-col">
-        <Text className="font-pmedium text-base text-gray-600">Book for</Text>
-        <CustomChipGroup
-          chips={CHIPS}
-          selectedChip={selectedChip}
-          handleChipPress={handleChipClick}
-          containerStyles={'mt-1'}
-          chipContainerStyles={'py-2'}
-          textStyles={'text-sm'}
+    <View className="mt-3 w-full flex-1">
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 }}
+        showsVerticalScrollIndicator={false}
+        alwaysBounceVertical={false}>
+        <CustomCalender
+          selectedDay={travelForm.date}
+          setSelectedDay={(day: any) => {
+            setTravelForm((prev) => ({ ...prev, date: day }));
+            setMumukshuForm((prev) => ({ ...prev, date: day }));
+          }}
+          minDate={moment(new Date()).format('YYYY-MM-DD')}
         />
-      </View>
 
-      {selectedChip == CHIPS[0] && (
-        <View>
-          <CustomSelectBottomSheet
-            className="mt-7"
-            label="Booking Type"
-            placeholder="Booking Type"
-            options={dropdowns.BOOKING_TYPE_LIST}
-            selectedValue={travelForm.type}
-            onValueChange={(val: any) => setTravelForm({ ...travelForm, type: val })}
-            saveKeyInsteadOfValue={false}
-          />
-
-          {travelForm.type == dropdowns.BOOKING_TYPE_LIST[1].value && (
-            <FormField
-              text="Total People"
-              value={travelForm.total_people}
-              handleChangeText={(e: any) => setTravelForm({ ...travelForm, total_people: e })}
-              otherStyles="mt-7"
-              containerStyles="bg-gray-100"
-              keyboardType="number-pad"
-              placeholder="please specify total people here..."
-              inputStyles={'font-pmedium text-black text-lg'}
-            />
-          )}
-
-          <CustomSelectBottomSheet
-            className="mt-7"
-            label="Pickup Location"
-            placeholder="Select Pickup Location"
-            options={getLocationOptions(travelForm.date)}
-            selectedValue={travelForm.pickup}
-            onValueChange={(val: any) => {
-              if (val === 'Research Centre') {
-                // If selecting Research Centre as pickup, drop must be something else
-                setTravelForm({
-                  ...travelForm,
-                  pickup: val,
-                  drop: travelForm.drop === 'Research Centre' ? '' : travelForm.drop,
-                });
-              } else {
-                // If selecting anything else as pickup, drop must be Research Centre
-                setTravelForm({
-                  ...travelForm,
-                  pickup: val,
-                  drop: 'Research Centre',
-                });
-              }
-            }}
-            saveKeyInsteadOfValue={false}
-          />
-
-          <CustomSelectBottomSheet
-            className="mt-7"
-            label="Drop Location"
-            placeholder="Select Drop Location"
-            options={getLocationOptions(travelForm.date)}
-            selectedValue={travelForm.drop}
-            onValueChange={(val: any) => {
-              if (val === 'Research Centre') {
-                // If selecting Research Centre as drop, pickup must be something else
-                setTravelForm({
-                  ...travelForm,
-                  drop: val,
-                  pickup: travelForm.pickup === 'Research Centre' ? '' : travelForm.pickup,
-                });
-              } else {
-                // If selecting anything else as drop, pickup must be Research Centre
-                setTravelForm({
-                  ...travelForm,
-                  drop: val,
-                  pickup: 'Research Centre',
-                });
-              }
-            }}
-            saveKeyInsteadOfValue={false}
-          />
-
-          {(travelForm.pickup &&
-            dropdowns.LOCATION_LIST.find(
-              (loc: { value: string }) =>
-                loc.value === travelForm.pickup &&
-                (loc.value.toLowerCase().includes('railway') ||
-                  loc.value.toLowerCase().includes('airport'))
-            )) ||
-          (travelForm.drop &&
-            dropdowns.LOCATION_LIST.find(
-              (loc: { value: string }) =>
-                loc.value === travelForm.drop &&
-                (loc.value.toLowerCase().includes('railway') ||
-                  loc.value.toLowerCase().includes('airport'))
-            )) ? (
-            <>
-              <FormDisplayField
-                text="Flight/Train Time"
-                value={
-                  travelForm.arrival_time
-                    ? moment(travelForm.arrival_time).format('h:mm a')
-                    : 'Flight/Train Time'
-                }
-                otherStyles="mt-5"
-                inputStyles={'font-pmedium text-black text-lg'}
-                backgroundColor="bg-gray-100"
-                onPress={() => setDatePickerVisibility(true)}
-              />
-              <DateTimePickerModal
-                isVisible={isDatePickerVisible}
-                mode="time"
-                date={
-                  travelForm.arrival_time ? moment(travelForm.arrival_time).toDate() : new Date()
-                }
-                onConfirm={(date: Date) => {
-                  setTravelForm((prev) => ({
-                    ...prev,
-                    arrival_time: date.toISOString(),
-                  }));
-                  setDatePickerVisibility(false);
-                }}
-                onCancel={() => setDatePickerVisibility(false)}
-                minimumDate={travelForm.date ? moment(travelForm.date).toDate() : moment().toDate()}
-              />
-            </>
-          ) : null}
-
-          <CustomSelectBottomSheet
-            className="mt-7"
-            label="Luggage"
-            placeholder="Select any Luggage"
-            options={dropdowns.LUGGAGE_LIST}
-            selectedValues={travelForm.luggage}
-            onValuesChange={(val: any) => setTravelForm({ ...travelForm, luggage: val })}
-            saveKeyInsteadOfValue={false}
-            multiSelect={true}
-            confirmButtonText="Select"
-            maxSelectedDisplay={3}
-          />
-
-          {travelForm.pickup == dropdowns.LOCATION_LIST[0].value && (
-            <CustomSelectBottomSheet
-              className="mt-7"
-              label="Leaving post adhyayan?"
-              placeholder="Leaving post adhyayan?"
-              options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
-              selectedValue={travelForm.adhyayan}
-              onValueChange={(val: any) => setTravelForm({ ...travelForm, adhyayan: val })}
-              saveKeyInsteadOfValue={false}
-            />
-          )}
-
-          <FormField
-            text="Any Special Request?"
-            value={travelForm.special_request}
-            handleChangeText={(e: any) => setTravelForm({ ...travelForm, special_request: e })}
-            otherStyles="mt-7"
-            containerStyles="bg-gray-100"
-            keyboardType="default"
-            inputStyles={'font-pmedium text-black text-lg'}
-            placeholder="Please specify a location if 'Other' is selected, or provide any additional requests here..."
-            multiline={true}
-            numberOfLines={2}
+        <View className="mt-7 flex w-full flex-col">
+          <Text className="font-pmedium text-base text-gray-600">Book for</Text>
+          <CustomChipGroup
+            chips={CHIPS}
+            selectedChip={selectedChip}
+            handleChipPress={handleChipClick}
+            containerStyles={'mt-1'}
+            chipContainerStyles={'py-2'}
+            textStyles={'text-sm'}
           />
         </View>
-      )}
 
-      {selectedChip == CHIPS[1] && (
-        <View>
-          <OtherMumukshuForm
-            mumukshuForm={mumukshuForm}
-            setMumukshuForm={setMumukshuForm}
-            handleMumukshuFormChange={handleMumukshuFormChange}
-            addMumukshuForm={addMumukshuForm}
-            removeMumukshuForm={removeMumukshuForm}>
-            {(index: any) => (
+        {selectedChip == CHIPS[0] && (
+          <View>
+            <CustomSelectBottomSheet
+              className="mt-7"
+              label="Booking Type"
+              placeholder="Booking Type"
+              options={dropdowns.BOOKING_TYPE_LIST}
+              selectedValue={travelForm.type}
+              onValueChange={(val: any) => setTravelForm({ ...travelForm, type: val })}
+              saveKeyInsteadOfValue={false}
+            />
+
+            {travelForm.type == dropdowns.BOOKING_TYPE_LIST[1].value && (
+              <FormField
+                text="Total People"
+                value={travelForm.total_people}
+                handleChangeText={(e: any) => setTravelForm({ ...travelForm, total_people: e })}
+                otherStyles="mt-7"
+                containerStyles="bg-gray-100"
+                keyboardType="number-pad"
+                placeholder="please specify total people here..."
+                inputStyles={'font-pmedium text-black text-lg'}
+              />
+            )}
+
+            <CustomSelectBottomSheet
+              className="mt-7"
+              label="Pickup Location"
+              placeholder="Select Pickup Location"
+              options={getLocationOptions(travelForm.date)}
+              selectedValue={travelForm.pickup}
+              onValueChange={(val: any) => {
+                if (val === 'Research Centre') {
+                  // If selecting Research Centre as pickup, drop must be something else
+                  setTravelForm({
+                    ...travelForm,
+                    pickup: val,
+                    drop: travelForm.drop === 'Research Centre' ? '' : travelForm.drop,
+                  });
+                } else {
+                  // If selecting anything else as pickup, drop must be Research Centre
+                  setTravelForm({
+                    ...travelForm,
+                    pickup: val,
+                    drop: 'Research Centre',
+                  });
+                }
+              }}
+              saveKeyInsteadOfValue={false}
+            />
+
+            <CustomSelectBottomSheet
+              className="mt-7"
+              label="Drop Location"
+              placeholder="Select Drop Location"
+              options={getLocationOptions(travelForm.date)}
+              selectedValue={travelForm.drop}
+              onValueChange={(val: any) => {
+                if (val === 'Research Centre') {
+                  // If selecting Research Centre as drop, pickup must be something else
+                  setTravelForm({
+                    ...travelForm,
+                    drop: val,
+                    pickup: travelForm.pickup === 'Research Centre' ? '' : travelForm.pickup,
+                  });
+                } else {
+                  // If selecting anything else as drop, pickup must be Research Centre
+                  setTravelForm({
+                    ...travelForm,
+                    drop: val,
+                    pickup: 'Research Centre',
+                  });
+                }
+              }}
+              saveKeyInsteadOfValue={false}
+            />
+
+            {(travelForm.pickup &&
+              dropdowns.LOCATION_LIST.find(
+                (loc: { value: string }) =>
+                  loc.value === travelForm.pickup &&
+                  (loc.value.toLowerCase().includes('railway') ||
+                    loc.value.toLowerCase().includes('airport'))
+              )) ||
+            (travelForm.drop &&
+              dropdowns.LOCATION_LIST.find(
+                (loc: { value: string }) =>
+                  loc.value === travelForm.drop &&
+                  (loc.value.toLowerCase().includes('railway') ||
+                    loc.value.toLowerCase().includes('airport'))
+              )) ? (
               <>
-                <CustomSelectBottomSheet
-                  className="mt-7"
-                  label="Booking Type"
-                  placeholder="Select Booking Type"
-                  options={dropdowns.BOOKING_TYPE_LIST}
-                  selectedValue={mumukshuForm.mumukshus[index].type}
-                  onValueChange={(val: any) => handleMumukshuFormChange(index, 'type', val)}
-                  saveKeyInsteadOfValue={false}
+                <FormDisplayField
+                  text="Flight/Train Time"
+                  value={
+                    travelForm.arrival_time
+                      ? moment(travelForm.arrival_time).format('h:mm a')
+                      : 'Flight/Train Time'
+                  }
+                  otherStyles="mt-5"
+                  inputStyles={'font-pmedium text-black text-lg'}
+                  backgroundColor="bg-gray-100"
+                  onPress={() => setDatePickerVisibility(true)}
                 />
+                <DateTimePickerModal
+                  isVisible={isDatePickerVisible}
+                  mode="time"
+                  date={
+                    travelForm.arrival_time ? moment(travelForm.arrival_time).toDate() : new Date()
+                  }
+                  onConfirm={(date: Date) => {
+                    setTravelForm((prev) => ({
+                      ...prev,
+                      arrival_time: date.toISOString(),
+                    }));
+                    setDatePickerVisibility(false);
+                  }}
+                  onCancel={() => setDatePickerVisibility(false)}
+                  minimumDate={
+                    travelForm.date ? moment(travelForm.date).toDate() : moment().toDate()
+                  }
+                />
+              </>
+            ) : null}
 
-                {mumukshuForm.mumukshus[index].type == dropdowns.BOOKING_TYPE_LIST[1].value && (
+            <CustomSelectBottomSheet
+              className="mt-7"
+              label="Luggage"
+              placeholder="Select any Luggage"
+              options={dropdowns.LUGGAGE_LIST}
+              selectedValues={travelForm.luggage}
+              onValuesChange={(val: any) => setTravelForm({ ...travelForm, luggage: val })}
+              saveKeyInsteadOfValue={false}
+              multiSelect={true}
+              confirmButtonText="Select"
+              maxSelectedDisplay={3}
+            />
+
+            {travelForm.pickup == dropdowns.LOCATION_LIST[0].value && (
+              <CustomSelectBottomSheet
+                className="mt-7"
+                label="Leaving post adhyayan?"
+                placeholder="Leaving post adhyayan?"
+                options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
+                selectedValue={travelForm.adhyayan}
+                onValueChange={(val: any) => setTravelForm({ ...travelForm, adhyayan: val })}
+                saveKeyInsteadOfValue={false}
+              />
+            )}
+
+            <FormField
+              text="Any Special Request?"
+              value={travelForm.special_request}
+              handleChangeText={(e: any) => setTravelForm({ ...travelForm, special_request: e })}
+              otherStyles="mt-7"
+              containerStyles="bg-gray-100"
+              keyboardType="default"
+              inputStyles={'font-pmedium text-black text-lg'}
+              placeholder="Please specify a location if 'Other' is selected, or provide any additional requests here..."
+              multiline={true}
+              numberOfLines={2}
+            />
+          </View>
+        )}
+
+        {selectedChip == CHIPS[1] && (
+          <View>
+            <OtherMumukshuForm
+              mumukshuForm={mumukshuForm}
+              setMumukshuForm={setMumukshuForm}
+              handleMumukshuFormChange={handleMumukshuFormChange}
+              addMumukshuForm={addMumukshuForm}
+              removeMumukshuForm={removeMumukshuForm}>
+              {(index: any) => (
+                <>
+                  <CustomSelectBottomSheet
+                    className="mt-7"
+                    label="Booking Type"
+                    placeholder="Select Booking Type"
+                    options={dropdowns.BOOKING_TYPE_LIST}
+                    selectedValue={mumukshuForm.mumukshus[index].type}
+                    onValueChange={(val: any) => handleMumukshuFormChange(index, 'type', val)}
+                    saveKeyInsteadOfValue={false}
+                  />
+
+                  {mumukshuForm.mumukshus[index].type == dropdowns.BOOKING_TYPE_LIST[1].value && (
+                    <FormField
+                      text="Total People"
+                      value={mumukshuForm.mumukshus[index].total_people}
+                      handleChangeText={(e: any) =>
+                        handleMumukshuFormChange(index, 'total_people', e)
+                      }
+                      otherStyles="mt-7"
+                      containerStyles="bg-gray-100"
+                      keyboardType="number-pad"
+                      placeholder="please specify total people here..."
+                      inputStyles={'font-pmedium text-black text-lg'}
+                    />
+                  )}
+
+                  <CustomSelectBottomSheet
+                    className="mt-7"
+                    label="Pickup Location"
+                    placeholder="Select Pickup Location"
+                    options={getLocationOptions(mumukshuForm.date)}
+                    selectedValue={mumukshuForm.mumukshus[index].pickup}
+                    onValueChange={(val: any) => handleMumukshuFormChange(index, 'pickup', val)}
+                    saveKeyInsteadOfValue={false}
+                  />
+
+                  <CustomSelectBottomSheet
+                    className="mt-7"
+                    label="Drop Location"
+                    placeholder="Select Drop Location"
+                    options={getLocationOptions(mumukshuForm.date)}
+                    selectedValue={mumukshuForm.mumukshus[index].drop}
+                    onValueChange={(val: any) => handleMumukshuFormChange(index, 'drop', val)}
+                    saveKeyInsteadOfValue={false}
+                  />
+
+                  {(mumukshuForm.mumukshus[index].pickup &&
+                    dropdowns.LOCATION_LIST.find(
+                      (loc) =>
+                        loc.value === mumukshuForm.mumukshus[index].pickup &&
+                        (loc.key.toLowerCase().includes('railway') ||
+                          loc.key.toLowerCase().includes('airport'))
+                    )) ||
+                  (mumukshuForm.mumukshus[index].drop &&
+                    dropdowns.LOCATION_LIST.find(
+                      (loc) =>
+                        loc.value === mumukshuForm.mumukshus[index].drop &&
+                        (loc.key.toLowerCase().includes('railway') ||
+                          loc.key.toLowerCase().includes('airport'))
+                    )) ? (
+                    <>
+                      <FormDisplayField
+                        text="Flight/Train Time"
+                        value={
+                          mumukshuForm.mumukshus[index].arrival_time
+                            ? moment(mumukshuForm.mumukshus[index].arrival_time).format(
+                                'Do MMMM YYYY, h:mm a'
+                              )
+                            : 'Flight/Train Time'
+                        }
+                        otherStyles="mt-5"
+                        inputStyles={'font-pmedium text-gray-400 text-lg'}
+                        backgroundColor="bg-gray-100"
+                        onPress={() => {
+                          setDatePickerVisibility(true);
+                          setActiveMumukshuIndex(index);
+                        }}
+                      />
+                      <DateTimePickerModal
+                        isVisible={isDatePickerVisible && activeMumukshuIndex === index}
+                        mode="time"
+                        date={
+                          mumukshuForm.mumukshus[index].arrival_time
+                            ? moment(mumukshuForm.mumukshus[index].arrival_time).toDate()
+                            : new Date()
+                        }
+                        onConfirm={(date: Date) => {
+                          handleMumukshuFormChange(index, 'arrival_time', date.toISOString());
+                          setDatePickerVisibility(false);
+                        }}
+                        onCancel={() => setDatePickerVisibility(false)}
+                        minimumDate={
+                          mumukshuForm.date ? moment(mumukshuForm.date).toDate() : moment().toDate()
+                        }
+                      />
+                    </>
+                  ) : null}
+
+                  <CustomSelectBottomSheet
+                    className="mt-7"
+                    label="Luggage"
+                    placeholder="Select any luggage"
+                    options={dropdowns.LUGGAGE_LIST}
+                    selectedValues={mumukshuForm.mumukshus[index].luggage}
+                    onValuesChange={(val: any) => handleMumukshuFormChange(index, 'luggage', val)}
+                    saveKeyInsteadOfValue={false}
+                    multiSelect={true}
+                    confirmButtonText="Select"
+                    maxSelectedDisplay={3}
+                  />
+
+                  <CustomSelectBottomSheet
+                    className="mt-7"
+                    label="Leaving post adhyayan?"
+                    placeholder="Leaving post adhyayan?"
+                    options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
+                    selectedValue={mumukshuForm.mumukshus[index].adhyayan}
+                    onValueChange={(val: any) => handleMumukshuFormChange(index, 'adhyayan', val)}
+                    saveKeyInsteadOfValue={false}
+                  />
+
                   <FormField
-                    text="Total People"
-                    value={mumukshuForm.mumukshus[index].total_people}
+                    text="Any Special Request?"
+                    value={mumukshuForm.mumukshus[index].special_request}
                     handleChangeText={(e: any) =>
-                      handleMumukshuFormChange(index, 'total_people', e)
+                      handleMumukshuFormChange(index, 'special_request', e)
                     }
                     otherStyles="mt-7"
                     containerStyles="bg-gray-100"
-                    keyboardType="number-pad"
-                    placeholder="please specify total people here..."
+                    keyboardType="default"
                     inputStyles={'font-pmedium text-black text-lg'}
+                    placeholder="Please specify a location if 'Other' is selected, or provide any additional requests here..."
+                    multiline={true}
+                    numberOfLines={2}
                   />
-                )}
+                </>
+              )}
+            </OtherMumukshuForm>
+          </View>
+        )}
+        <CustomButton
+          text="Book Now"
+          handlePress={async () => {
+            setIsSubmitting(true);
+            if (selectedChip == CHIPS[0]) {
+              if (!isSelfFormValid()) {
+                setModalVisible(true);
+                setModalMessage('Please fill all fields');
+                setIsSubmitting(false);
+                return;
+              }
 
-                <CustomSelectBottomSheet
-                  className="mt-7"
-                  label="Pickup Location"
-                  placeholder="Select Pickup Location"
-                  options={getLocationOptions(mumukshuForm.date)}
-                  selectedValue={mumukshuForm.mumukshus[index].pickup}
-                  onValueChange={(val: any) => handleMumukshuFormChange(index, 'pickup', val)}
-                  saveKeyInsteadOfValue={false}
-                />
-
-                <CustomSelectBottomSheet
-                  className="mt-7"
-                  label="Drop Location"
-                  placeholder="Select Drop Location"
-                  options={getLocationOptions(mumukshuForm.date)}
-                  selectedValue={mumukshuForm.mumukshus[index].drop}
-                  onValueChange={(val: any) => handleMumukshuFormChange(index, 'drop', val)}
-                  saveKeyInsteadOfValue={false}
-                />
-
-                {(mumukshuForm.mumukshus[index].pickup &&
-                  dropdowns.LOCATION_LIST.find(
-                    (loc) =>
-                      loc.value === mumukshuForm.mumukshus[index].pickup &&
-                      (loc.key.toLowerCase().includes('railway') ||
-                        loc.key.toLowerCase().includes('airport'))
-                  )) ||
-                (mumukshuForm.mumukshus[index].drop &&
-                  dropdowns.LOCATION_LIST.find(
-                    (loc) =>
-                      loc.value === mumukshuForm.mumukshus[index].drop &&
-                      (loc.key.toLowerCase().includes('railway') ||
-                        loc.key.toLowerCase().includes('airport'))
-                  )) ? (
-                  <>
-                    <FormDisplayField
-                      text="Flight/Train Time"
-                      value={
-                        mumukshuForm.mumukshus[index].arrival_time
-                          ? moment(mumukshuForm.mumukshus[index].arrival_time).format(
-                              'Do MMMM YYYY, h:mm a'
-                            )
-                          : 'Flight/Train Time'
-                      }
-                      otherStyles="mt-5"
-                      inputStyles={'font-pmedium text-gray-400 text-lg'}
-                      backgroundColor="bg-gray-100"
-                      onPress={() => {
-                        setDatePickerVisibility(true);
-                        setActiveMumukshuIndex(index);
-                      }}
-                    />
-                    <DateTimePickerModal
-                      isVisible={isDatePickerVisible && activeMumukshuIndex === index}
-                      mode="time"
-                      date={
-                        mumukshuForm.mumukshus[index].arrival_time
-                          ? moment(mumukshuForm.mumukshus[index].arrival_time).toDate()
-                          : new Date()
-                      }
-                      onConfirm={(date: Date) => {
-                        handleMumukshuFormChange(index, 'arrival_time', date.toISOString());
-                        setDatePickerVisibility(false);
-                      }}
-                      onCancel={() => setDatePickerVisibility(false)}
-                      minimumDate={
-                        mumukshuForm.date ? moment(mumukshuForm.date).toDate() : moment().toDate()
-                      }
-                    />
-                  </>
-                ) : null}
-
-                <CustomSelectBottomSheet
-                  className="mt-7"
-                  label="Luggage"
-                  placeholder="Select any luggage"
-                  options={dropdowns.LUGGAGE_LIST}
-                  selectedValues={mumukshuForm.mumukshus[index].luggage}
-                  onValuesChange={(val: any) => handleMumukshuFormChange(index, 'luggage', val)}
-                  saveKeyInsteadOfValue={false}
-                  multiSelect={true}
-                  confirmButtonText="Select"
-                  maxSelectedDisplay={3}
-                />
-
-                <CustomSelectBottomSheet
-                  className="mt-7"
-                  label="Leaving post adhyayan?"
-                  placeholder="Leaving post adhyayan?"
-                  options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
-                  selectedValue={mumukshuForm.mumukshus[index].adhyayan}
-                  onValueChange={(val: any) => handleMumukshuFormChange(index, 'adhyayan', val)}
-                  saveKeyInsteadOfValue={false}
-                />
-
-                <FormField
-                  text="Any Special Request?"
-                  value={mumukshuForm.mumukshus[index].special_request}
-                  handleChangeText={(e: any) =>
-                    handleMumukshuFormChange(index, 'special_request', e)
-                  }
-                  otherStyles="mt-7"
-                  containerStyles="bg-gray-100"
-                  keyboardType="default"
-                  inputStyles={'font-pmedium text-black text-lg'}
-                  placeholder="Please specify a location if 'Other' is selected, or provide any additional requests here..."
-                  multiline={true}
-                  numberOfLines={2}
-                />
-              </>
-            )}
-          </OtherMumukshuForm>
-        </View>
-      )}
-      <CustomButton
-        text="Book Now"
-        handlePress={async () => {
-          setIsSubmitting(true);
-          if (selectedChip == CHIPS[0]) {
-            if (!isSelfFormValid()) {
-              setModalVisible(true);
-              setModalMessage('Please fill all fields');
-              setIsSubmitting(false);
-              return;
+              await updateBooking('travel', travelForm);
+              router.push(`/booking/${types.TRAVEL_DETAILS_TYPE}`);
             }
-
-            await updateBooking('travel', travelForm);
-            router.push(`/booking/${types.TRAVEL_DETAILS_TYPE}`);
-          }
-          if (selectedChip == CHIPS[1]) {
-            if (!isMumukshuFormValid()) {
-              setModalVisible(true);
-              setModalMessage('Please fill all fields');
-              setIsSubmitting(false);
-              return;
+            if (selectedChip == CHIPS[1]) {
+              if (!isMumukshuFormValid()) {
+                setModalVisible(true);
+                setModalMessage('Please fill all fields');
+                setIsSubmitting(false);
+                return;
+              }
+              const temp = transformMumukshuData(mumukshuForm);
+              await updateMumukshuBooking('travel', temp);
+              router.push(`/mumukshuBooking/${types.TRAVEL_DETAILS_TYPE}`);
             }
-            const temp = transformMumukshuData(mumukshuForm);
-            await updateMumukshuBooking('travel', temp);
-            router.push(`/mumukshuBooking/${types.TRAVEL_DETAILS_TYPE}`);
-          }
-        }}
-        containerStyles="mt-7 w-full px-1 min-h-[62px]"
-        isLoading={isSubmitting}
-        isDisabled={selectedChip == CHIPS[0] ? !isSelfFormValid() : !isMumukshuFormValid()}
-      />
+          }}
+          containerStyles="mt-7 w-full px-1 min-h-[62px]"
+          isLoading={isSubmitting}
+          isDisabled={selectedChip == CHIPS[0] ? !isSelfFormValid() : !isMumukshuFormValid()}
+        />
+      </ScrollView>
       <CustomModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}

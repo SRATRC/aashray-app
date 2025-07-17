@@ -2,6 +2,7 @@ import { View, Alert, Text } from 'react-native';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
+import { ScrollView } from 'react-native-virtualized-view';
 import { types, dropdowns, status } from '@/constants';
 import { useAuthStore, useBookingStore } from '@/stores';
 import SegmentedControl from '@/components/SegmentedControl';
@@ -312,347 +313,317 @@ const RoomBooking = () => {
   };
 
   return (
-    <View className="mt-10 flex-1 justify-center" key={key}>
-      <SegmentedControl
-        segments={SWITCH_OPTIONS}
-        onSegmentChange={(segment: any) => {
-          setValue(segment);
-        }}
-      />
-      {value === SWITCH_OPTIONS[0] && (
-        <View>
-          <CustomCalender
-            type={'period'}
-            startDay={multiDayForm.startDay}
-            setStartDay={(day: any) => {
-              setMultiDayForm((prev) => ({
-                ...prev,
-                startDay: day,
-                endDay: '',
-              }));
-              setGuestForm((prev) => ({ ...prev, startDay: day, endDay: '' }));
-              setMumukshuForm((prev) => ({
-                ...prev,
-                startDay: day,
-                endDay: '',
-              }));
-            }}
-            endDay={multiDayForm.endDay}
-            setEndDay={(day: any) => {
-              setMultiDayForm((prev) => ({ ...prev, endDay: day }));
-              setGuestForm((prev) => ({ ...prev, endDay: day }));
-              setMumukshuForm((prev) => ({ ...prev, endDay: day }));
+    <View className="mt-3 w-full flex-1">
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 }}
+        showsVerticalScrollIndicator={false}
+        alwaysBounceVertical={false}>
+        <View key={key}>
+          <SegmentedControl
+            segments={SWITCH_OPTIONS}
+            onSegmentChange={(segment: any) => {
+              setValue(segment);
             }}
           />
-          <View className="mt-7 flex w-full flex-col">
-            <Text className="font-pmedium text-base text-gray-600">Book for</Text>
-            <CustomChipGroup
-              chips={CHIPS}
-              selectedChip={selectedChip}
-              handleChipPress={handleChipClick}
-              containerStyles={'mt-1'}
-              chipContainerStyles={'py-2'}
-              textStyles={'text-sm'}
-            />
-          </View>
-          {selectedChip === CHIPS[0] && (
+          {value === SWITCH_OPTIONS[0] && (
             <View>
-              <CustomSelectBottomSheet
-                className="mt-7"
-                label="Room Type"
-                placeholder="Select Room Type"
-                options={dropdowns.ROOM_TYPE_LIST}
-                selectedValue={multiDayForm.roomType}
-                onValueChange={(val: any) => setMultiDayForm({ ...multiDayForm, roomType: val })}
+              <CustomCalender
+                type={'period'}
+                startDay={multiDayForm.startDay}
+                setStartDay={(day: any) => {
+                  setMultiDayForm((prev) => ({
+                    ...prev,
+                    startDay: day,
+                    endDay: '',
+                  }));
+                  setGuestForm((prev) => ({ ...prev, startDay: day, endDay: '' }));
+                  setMumukshuForm((prev) => ({
+                    ...prev,
+                    startDay: day,
+                    endDay: '',
+                  }));
+                }}
+                endDay={multiDayForm.endDay}
+                setEndDay={(day: any) => {
+                  setMultiDayForm((prev) => ({ ...prev, endDay: day }));
+                  setGuestForm((prev) => ({ ...prev, endDay: day }));
+                  setMumukshuForm((prev) => ({ ...prev, endDay: day }));
+                }}
+              />
+              <View className="mt-7 flex w-full flex-col">
+                <Text className="font-pmedium text-base text-gray-600">Book for</Text>
+                <CustomChipGroup
+                  chips={CHIPS}
+                  selectedChip={selectedChip}
+                  handleChipPress={handleChipClick}
+                  containerStyles={'mt-1'}
+                  chipContainerStyles={'py-2'}
+                  textStyles={'text-sm'}
+                />
+              </View>
+              {selectedChip === CHIPS[0] && (
+                <View>
+                  <CustomSelectBottomSheet
+                    className="mt-7"
+                    label="Room Type"
+                    placeholder="Select Room Type"
+                    options={dropdowns.ROOM_TYPE_LIST}
+                    selectedValue={multiDayForm.roomType}
+                    onValueChange={(val: any) =>
+                      setMultiDayForm({ ...multiDayForm, roomType: val })
+                    }
+                  />
+
+                  <CustomSelectBottomSheet
+                    className="mt-7"
+                    label="Select Floor Type"
+                    placeholder="Select Floor Type"
+                    options={dropdowns.FLOOR_TYPE_LIST}
+                    selectedValue={multiDayForm.floorType}
+                    onValueChange={(val: any) =>
+                      setMultiDayForm({ ...multiDayForm, floorType: val })
+                    }
+                  />
+
+                  <CustomButton
+                    text="Book Now"
+                    handlePress={async () => {
+                      setIsSubmitting(true);
+                      if (!isMultiDayFormValid()) {
+                        setModalVisible(true);
+                        setModalMessage('Please enter all details');
+                        setIsSubmitting(false);
+                        return;
+                      }
+
+                      await updateBooking('room', multiDayForm);
+                      router.push(`/booking/${types.ROOM_DETAILS_TYPE}`);
+                    }}
+                    containerStyles="mt-7 min-h-[62px]"
+                    isLoading={isSubmitting}
+                    isDisabled={!isMultiDayFormValid()}
+                  />
+                </View>
+              )}
+              {selectedChip === CHIPS[1] && (
+                <View>
+                  <GuestForm
+                    guestForm={guestForm}
+                    setGuestForm={setGuestForm}
+                    handleGuestFormChange={handleGuestFormChange}
+                    addGuestForm={addGuestForm}
+                    removeGuestForm={removeGuestForm}>
+                    {(index: any) => (
+                      <>
+                        <CustomSelectBottomSheet
+                          className="mt-7"
+                          label="Room Type"
+                          placeholder="Select Room Type"
+                          options={dropdowns.ROOM_TYPE_LIST}
+                          selectedValue={guestForm.guests[index].roomType}
+                          onValueChange={(val: any) =>
+                            handleGuestFormChange(index, 'roomType', val)
+                          }
+                        />
+
+                        <CustomSelectBottomSheet
+                          className="mt-7"
+                          label="Floor Type"
+                          placeholder="Select Floor Type"
+                          options={dropdowns.FLOOR_TYPE_LIST}
+                          selectedValue={guestForm.guests[index].floorType}
+                          onValueChange={(val: any) =>
+                            handleGuestFormChange(index, 'floorType', val)
+                          }
+                        />
+                      </>
+                    )}
+                  </GuestForm>
+
+                  <CustomButton
+                    text="Book Now"
+                    handlePress={async () => {
+                      setIsSubmitting(true);
+                      if (!isGuestFormValid()) {
+                        setIsSubmitting(false);
+                        setModalMessage('Please fill all fields');
+                        setModalVisible(true);
+                        return;
+                      } else {
+                        await handleAPICall(
+                          'POST',
+                          '/guest',
+                          null,
+                          {
+                            cardno: user.cardno,
+                            guests: guestForm.guests,
+                          },
+                          async (res: any) => {
+                            const updatedGuests = guestForm.guests.map((formGuest) => {
+                              const matchingApiGuest = res.guests.find(
+                                (apiGuest: any) => apiGuest.issuedto === formGuest.name
+                              );
+                              return matchingApiGuest
+                                ? { ...formGuest, cardno: matchingApiGuest.cardno }
+                                : formGuest;
+                            });
+
+                            // Create the updated form object directly
+                            const updatedGuestForm = {
+                              ...guestForm,
+                              guests: updatedGuests,
+                            };
+
+                            // Update the state
+                            await new Promise((resolve) => {
+                              setGuestForm((prev) => {
+                                const newForm = updatedGuestForm;
+                                resolve(newForm);
+                                return newForm;
+                              });
+                            });
+
+                            // Use the updated form object directly, not the state
+                            const temp = transformGuestApiResponse(updatedGuestForm);
+
+                            updateGuestBooking('room', temp);
+                            setIsSubmitting(false);
+                            setGuestForm(INITIAL_GUEST_FORM);
+                            router.push(`/guestBooking/${types.ROOM_DETAILS_TYPE}`);
+                          },
+                          () => {
+                            setIsSubmitting(false);
+                          }
+                        );
+                      }
+                    }}
+                    containerStyles="mt-7 min-h-[62px]"
+                    isLoading={isSubmitting}
+                    isDisabled={!isGuestFormValid()}
+                  />
+                </View>
+              )}
+
+              {selectedChip === CHIPS[2] && (
+                <View>
+                  <OtherMumukshuForm
+                    mumukshuForm={mumukshuForm}
+                    setMumukshuForm={setMumukshuForm}
+                    handleMumukshuFormChange={handleMumukshuFormChange}
+                    addMumukshuForm={addMumukshuForm}
+                    removeMumukshuForm={removeMumukshuForm}>
+                    {(index: any) => (
+                      <View>
+                        <CustomSelectBottomSheet
+                          className="mt-7"
+                          label="Room Type"
+                          placeholder="Select Room Type"
+                          options={dropdowns.ROOM_TYPE_LIST}
+                          selectedValue={mumukshuForm.mumukshus[index].roomType}
+                          onValueChange={(val: any) =>
+                            handleMumukshuFormChange(index, 'roomType', val)
+                          }
+                        />
+
+                        <CustomSelectBottomSheet
+                          className="mt-7"
+                          label="Floor Type"
+                          placeholder="Select Floor Type"
+                          options={dropdowns.FLOOR_TYPE_LIST}
+                          selectedValue={mumukshuForm.mumukshus[index].floorType}
+                          onValueChange={(val: any) =>
+                            handleMumukshuFormChange(index, 'floorType', val)
+                          }
+                        />
+                      </View>
+                    )}
+                  </OtherMumukshuForm>
+
+                  <CustomButton
+                    text="Book Now"
+                    handlePress={() => {
+                      setIsSubmitting(true);
+                      if (!isMumukshuFormValid()) {
+                        setIsSubmitting(false);
+                        setModalMessage('Please fill all fields');
+                        setModalVisible(true);
+                        return;
+                      }
+                      const temp = transformMumukshuResponse(mumukshuForm);
+
+                      updateMumukshuBooking('room', temp);
+                      router.push(`/mumukshuBooking/${types.ROOM_DETAILS_TYPE}`);
+                    }}
+                    containerStyles="mt-7 min-h-[62px]"
+                    isDisabled={!isMumukshuFormValid()}
+                  />
+                </View>
+              )}
+            </View>
+          )}
+
+          {value === SWITCH_OPTIONS[1] && (
+            <View>
+              <CustomCalender
+                selectedDay={selectedDay}
+                setSelectedDay={(day: any) => setSelectedDay(day)}
               />
 
-              <CustomSelectBottomSheet
-                className="mt-7"
-                label="Select Floor Type"
-                placeholder="Select Floor Type"
-                options={dropdowns.FLOOR_TYPE_LIST}
-                selectedValue={multiDayForm.floorType}
-                onValueChange={(val: any) => setMultiDayForm({ ...multiDayForm, floorType: val })}
-              />
+              <View className="mt-7 flex w-full flex-col">
+                <Text className="font-pmedium text-base text-gray-600">Book for</Text>
+                <CustomChipGroup
+                  chips={CHIPS}
+                  selectedChip={selectedChip}
+                  handleChipPress={handleChipClick}
+                  containerStyles={'mt-1'}
+                  chipContainerStyles={'py-2'}
+                  textStyles={'text-sm'}
+                />
+              </View>
+
+              {selectedChip === CHIPS[1] && (
+                <GuestForm
+                  guestForm={singleDayGuestForm}
+                  setGuestForm={setSingleDayGuestForm}
+                  handleGuestFormChange={handleSingleDayGuestFormChange}
+                  addGuestForm={addSingleDayGuestForm}
+                  removeGuestForm={removeSingleDayGuestForm}
+                />
+              )}
+
+              {selectedChip === CHIPS[2] && (
+                <OtherMumukshuForm
+                  mumukshuForm={singleDayMumukshuForm}
+                  setMumukshuForm={setSingleDayMumukshuForm}
+                  handleMumukshuFormChange={handleSingleDayMumukshuFormChange}
+                  addMumukshuForm={addSingleDayMumukshuForm}
+                  removeMumukshuForm={removeSingleDayMumukshuForm}
+                />
+              )}
 
               <CustomButton
                 text="Book Now"
                 handlePress={async () => {
-                  setIsSubmitting(true);
-                  if (!isMultiDayFormValid()) {
-                    setModalVisible(true);
-                    setModalMessage('Please enter all details');
+                  if (!selectedDay) {
+                    Alert.alert('Please fill all fields');
                     setIsSubmitting(false);
                     return;
                   }
-
-                  await updateBooking('room', multiDayForm);
-                  router.push(`/booking/${types.ROOM_DETAILS_TYPE}`);
-                }}
-                containerStyles="mt-7 min-h-[62px]"
-                isLoading={isSubmitting}
-                isDisabled={!isMultiDayFormValid()}
-              />
-            </View>
-          )}
-          {selectedChip === CHIPS[1] && (
-            <View>
-              <GuestForm
-                guestForm={guestForm}
-                setGuestForm={setGuestForm}
-                handleGuestFormChange={handleGuestFormChange}
-                addGuestForm={addGuestForm}
-                removeGuestForm={removeGuestForm}>
-                {(index: any) => (
-                  <>
-                    <CustomSelectBottomSheet
-                      className="mt-7"
-                      label="Room Type"
-                      placeholder="Select Room Type"
-                      options={dropdowns.ROOM_TYPE_LIST}
-                      selectedValue={guestForm.guests[index].roomType}
-                      onValueChange={(val: any) => handleGuestFormChange(index, 'roomType', val)}
-                    />
-
-                    <CustomSelectBottomSheet
-                      className="mt-7"
-                      label="Floor Type"
-                      placeholder="Select Floor Type"
-                      options={dropdowns.FLOOR_TYPE_LIST}
-                      selectedValue={guestForm.guests[index].floorType}
-                      onValueChange={(val: any) => handleGuestFormChange(index, 'floorType', val)}
-                    />
-                  </>
-                )}
-              </GuestForm>
-
-              <CustomButton
-                text="Book Now"
-                handlePress={async () => {
                   setIsSubmitting(true);
-                  if (!isGuestFormValid()) {
-                    setIsSubmitting(false);
-                    setModalMessage('Please fill all fields');
-                    setModalVisible(true);
-                    return;
-                  } else {
-                    await handleAPICall(
-                      'POST',
-                      '/guest',
-                      null,
-                      {
-                        cardno: user.cardno,
-                        guests: guestForm.guests,
-                      },
-                      async (res: any) => {
-                        const updatedGuests = guestForm.guests.map((formGuest) => {
-                          const matchingApiGuest = res.guests.find(
-                            (apiGuest: any) => apiGuest.issuedto === formGuest.name
-                          );
-                          return matchingApiGuest
-                            ? { ...formGuest, cardno: matchingApiGuest.cardno }
-                            : formGuest;
-                        });
 
-                        // Create the updated form object directly
-                        const updatedGuestForm = {
-                          ...guestForm,
-                          guests: updatedGuests,
-                        };
+                  if (selectedChip == CHIPS[0]) {
+                    const onSuccess = (_data: any) => {
+                      Alert.alert('Booking Successful');
+                    };
 
-                        // Update the state
-                        await new Promise((resolve) => {
-                          setGuestForm((prev) => {
-                            const newForm = updatedGuestForm;
-                            resolve(newForm);
-                            return newForm;
-                          });
-                        });
-
-                        // Use the updated form object directly, not the state
-                        const temp = transformGuestApiResponse(updatedGuestForm);
-
-                        updateGuestBooking('room', temp);
-                        setIsSubmitting(false);
-                        setGuestForm(INITIAL_GUEST_FORM);
-                        router.push(`/guestBooking/${types.ROOM_DETAILS_TYPE}`);
-                      },
-                      () => {
-                        setIsSubmitting(false);
-                      }
-                    );
-                  }
-                }}
-                containerStyles="mt-7 min-h-[62px]"
-                isLoading={isSubmitting}
-                isDisabled={!isGuestFormValid()}
-              />
-            </View>
-          )}
-
-          {selectedChip === CHIPS[2] && (
-            <View>
-              <OtherMumukshuForm
-                mumukshuForm={mumukshuForm}
-                setMumukshuForm={setMumukshuForm}
-                handleMumukshuFormChange={handleMumukshuFormChange}
-                addMumukshuForm={addMumukshuForm}
-                removeMumukshuForm={removeMumukshuForm}>
-                {(index: any) => (
-                  <View>
-                    <CustomSelectBottomSheet
-                      className="mt-7"
-                      label="Room Type"
-                      placeholder="Select Room Type"
-                      options={dropdowns.ROOM_TYPE_LIST}
-                      selectedValue={mumukshuForm.mumukshus[index].roomType}
-                      onValueChange={(val: any) => handleMumukshuFormChange(index, 'roomType', val)}
-                    />
-
-                    <CustomSelectBottomSheet
-                      className="mt-7"
-                      label="Floor Type"
-                      placeholder="Select Floor Type"
-                      options={dropdowns.FLOOR_TYPE_LIST}
-                      selectedValue={mumukshuForm.mumukshus[index].floorType}
-                      onValueChange={(val: any) =>
-                        handleMumukshuFormChange(index, 'floorType', val)
-                      }
-                    />
-                  </View>
-                )}
-              </OtherMumukshuForm>
-
-              <CustomButton
-                text="Book Now"
-                handlePress={() => {
-                  setIsSubmitting(true);
-                  if (!isMumukshuFormValid()) {
-                    setIsSubmitting(false);
-                    setModalMessage('Please fill all fields');
-                    setModalVisible(true);
-                    return;
-                  }
-                  const temp = transformMumukshuResponse(mumukshuForm);
-
-                  updateMumukshuBooking('room', temp);
-                  router.push(`/mumukshuBooking/${types.ROOM_DETAILS_TYPE}`);
-                }}
-                containerStyles="mt-7 min-h-[62px]"
-                isDisabled={!isMumukshuFormValid()}
-              />
-            </View>
-          )}
-        </View>
-      )}
-
-      {value === SWITCH_OPTIONS[1] && (
-        <View>
-          <CustomCalender
-            selectedDay={selectedDay}
-            setSelectedDay={(day: any) => setSelectedDay(day)}
-          />
-
-          <View className="mt-7 flex w-full flex-col">
-            <Text className="font-pmedium text-base text-gray-600">Book for</Text>
-            <CustomChipGroup
-              chips={CHIPS}
-              selectedChip={selectedChip}
-              handleChipPress={handleChipClick}
-              containerStyles={'mt-1'}
-              chipContainerStyles={'py-2'}
-              textStyles={'text-sm'}
-            />
-          </View>
-
-          {selectedChip === CHIPS[1] && (
-            <GuestForm
-              guestForm={singleDayGuestForm}
-              setGuestForm={setSingleDayGuestForm}
-              handleGuestFormChange={handleSingleDayGuestFormChange}
-              addGuestForm={addSingleDayGuestForm}
-              removeGuestForm={removeSingleDayGuestForm}
-            />
-          )}
-
-          {selectedChip === CHIPS[2] && (
-            <OtherMumukshuForm
-              mumukshuForm={singleDayMumukshuForm}
-              setMumukshuForm={setSingleDayMumukshuForm}
-              handleMumukshuFormChange={handleSingleDayMumukshuFormChange}
-              addMumukshuForm={addSingleDayMumukshuForm}
-              removeMumukshuForm={removeSingleDayMumukshuForm}
-            />
-          )}
-
-          <CustomButton
-            text="Book Now"
-            handlePress={async () => {
-              if (!selectedDay) {
-                Alert.alert('Please fill all fields');
-                setIsSubmitting(false);
-                return;
-              }
-              setIsSubmitting(true);
-
-              if (selectedChip == CHIPS[0]) {
-                const onSuccess = (_data: any) => {
-                  Alert.alert('Booking Successful');
-                };
-
-                const onFinally = () => {
-                  setIsSubmitting(false);
-                };
-
-                await handleAPICall(
-                  'POST',
-                  '/unified/booking',
-                  null,
-                  {
-                    cardno: user.cardno,
-                    primary_booking: {
-                      booking_type: 'room',
-                      details: {
-                        checkin_date: selectedDay,
-                        checkout_date: selectedDay,
-                      },
-                    },
-                    addons: [],
-                  },
-                  onSuccess,
-                  onFinally
-                );
-              }
-
-              if (selectedChip == CHIPS[1]) {
-                if (!isSingleDayGuestFormValid()) {
-                  Alert.alert('Please fill all fields');
-                  setIsSubmitting(false);
-                  return;
-                }
-
-                const guests = singleDayGuestForm.guests.map((guest: any) => ({
-                  cardno: guest.cardno ? guest.cardno : null,
-                  name: guest.name,
-                  gender: guest.gender,
-                  type: guest.type,
-                  mobno: guest.mobno ? guest.mobno : null,
-                }));
-
-                await handleAPICall(
-                  'POST',
-                  '/guest',
-                  null,
-                  {
-                    cardno: user.cardno,
-                    guests: guests,
-                  },
-                  async (res: any) => {
-                    const updatedGuests = res.guests.map((guest: any) => guest.cardno);
+                    const onFinally = () => {
+                      setIsSubmitting(false);
+                    };
 
                     await handleAPICall(
                       'POST',
-                      '/guest/booking',
+                      '/unified/booking',
                       null,
                       {
                         cardno: user.cardno,
@@ -661,79 +632,127 @@ const RoomBooking = () => {
                           details: {
                             checkin_date: selectedDay,
                             checkout_date: selectedDay,
-                            guestGroup: [
-                              {
-                                roomType: 'nac',
-                                floorType: '',
-                                guests: updatedGuests,
-                              },
-                            ],
                           },
                         },
+                        addons: [],
                       },
-                      (_data: any) => {
-                        Alert.alert('Booking Successful');
+                      onSuccess,
+                      onFinally
+                    );
+                  }
+
+                  if (selectedChip == CHIPS[1]) {
+                    if (!isSingleDayGuestFormValid()) {
+                      Alert.alert('Please fill all fields');
+                      setIsSubmitting(false);
+                      return;
+                    }
+
+                    const guests = singleDayGuestForm.guests.map((guest: any) => ({
+                      cardno: guest.cardno ? guest.cardno : null,
+                      name: guest.name,
+                      gender: guest.gender,
+                      type: guest.type,
+                      mobno: guest.mobno ? guest.mobno : null,
+                    }));
+
+                    await handleAPICall(
+                      'POST',
+                      '/guest',
+                      null,
+                      {
+                        cardno: user.cardno,
+                        guests: guests,
+                      },
+                      async (res: any) => {
+                        const updatedGuests = res.guests.map((guest: any) => guest.cardno);
+
+                        await handleAPICall(
+                          'POST',
+                          '/guest/booking',
+                          null,
+                          {
+                            cardno: user.cardno,
+                            primary_booking: {
+                              booking_type: 'room',
+                              details: {
+                                checkin_date: selectedDay,
+                                checkout_date: selectedDay,
+                                guestGroup: [
+                                  {
+                                    roomType: 'nac',
+                                    floorType: '',
+                                    guests: updatedGuests,
+                                  },
+                                ],
+                              },
+                            },
+                          },
+                          (_data: any) => {
+                            Alert.alert('Booking Successful');
+                          },
+                          () => {
+                            setIsSubmitting(false);
+                          }
+                        );
                       },
                       () => {
                         setIsSubmitting(false);
                       }
                     );
-                  },
-                  () => {
-                    setIsSubmitting(false);
                   }
-                );
-              }
 
-              if (selectedChip == CHIPS[2]) {
-                const onSuccess = (_data: any) => {
-                  Alert.alert('Booking Successful');
-                };
+                  if (selectedChip == CHIPS[2]) {
+                    const onSuccess = (_data: any) => {
+                      Alert.alert('Booking Successful');
+                    };
 
-                const onFinally = () => {
-                  setIsSubmitting(false);
-                };
+                    const onFinally = () => {
+                      setIsSubmitting(false);
+                    };
 
-                await handleAPICall(
-                  'POST',
-                  '/mumukshu/booking',
-                  null,
-                  {
-                    cardno: user.cardno,
-                    primary_booking: {
-                      booking_type: 'room',
-                      details: {
-                        checkin_date: selectedDay,
-                        checkout_date: selectedDay,
-                        mumukshuGroup: [
-                          {
-                            roomType: 'nac',
-                            floorType: '',
-                            mumukshus: singleDayMumukshuForm.mumukshus.map(
-                              (mumukshu) => mumukshu.cardno
-                            ),
+                    await handleAPICall(
+                      'POST',
+                      '/mumukshu/booking',
+                      null,
+                      {
+                        cardno: user.cardno,
+                        primary_booking: {
+                          booking_type: 'room',
+                          details: {
+                            checkin_date: selectedDay,
+                            checkout_date: selectedDay,
+                            mumukshuGroup: [
+                              {
+                                roomType: 'nac',
+                                floorType: '',
+                                mumukshus: singleDayMumukshuForm.mumukshus.map(
+                                  (mumukshu) => mumukshu.cardno
+                                ),
+                              },
+                            ],
                           },
-                        ],
+                        },
                       },
-                    },
-                  },
-                  onSuccess,
-                  onFinally
-                );
-              }
-            }}
-            containerStyles="mt-10 min-h-[62px]"
-            isLoading={isSubmitting}
-            isDisabled={
-              selectedChip === CHIPS[1]
-                ? !isSingleDayGuestFormValid()
-                : selectedChip === CHIPS[2]
-                  ? !isSingleDayMumukshuFormValid()
-                  : false
-            }
-          />
+                      onSuccess,
+                      onFinally
+                    );
+                  }
+                }}
+                containerStyles="mt-10 min-h-[62px]"
+                isLoading={isSubmitting}
+                isDisabled={
+                  selectedChip === CHIPS[1]
+                    ? !isSingleDayGuestFormValid()
+                    : selectedChip === CHIPS[2]
+                      ? !isSingleDayMumukshuFormValid()
+                      : false
+                }
+              />
+            </View>
+          )}
         </View>
-      )}
+      </ScrollView>
 
       <CustomModal
         visible={modalVisible}
