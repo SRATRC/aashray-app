@@ -220,8 +220,9 @@ const AdhyayanBooking = () => {
         <View className="mb-2 flex-row items-center justify-between">
           <View className="rounded-full bg-secondary/10 px-3 py-1">
             <Text className="font-psemibold text-xs uppercase tracking-wide text-secondary">
-              {moment(item.start_date).format('MMM DD')} -{' '}
-              {moment(item.end_date).format('MMM DD, YYYY')}
+              {moment(item.start_date).isSame(moment(item.end_date), 'day')
+                ? moment(item.start_date).format('MMM DD, YYYY')
+                : `${moment(item.start_date).format('MMM DD')} - ${moment(item.end_date).format('MMM DD, YYYY')}`}
             </Text>
           </View>
           {(item.status == status.STATUS_CLOSED || item.available_seats == 0) && (
@@ -344,8 +345,9 @@ const AdhyayanBooking = () => {
                   <View className="flex-row gap-x-1">
                     <Text className="font-pregular text-xs text-gray-500">Date:</Text>
                     <Text className="font-pregular text-xs text-secondary">
-                      {moment(selectedItem?.start_date).format('Do MMMM')} -{' '}
-                      {moment(selectedItem?.end_date).format('Do MMMM')}
+                      {moment(selectedItem?.start_date).isSame(moment(selectedItem?.end_date), 'day')
+                        ? moment(selectedItem?.start_date).format('Do MMMM, YYYY')
+                        : `${moment(selectedItem?.start_date).format('Do MMMM')} - ${moment(selectedItem?.end_date).format('Do MMMM')}`}
                     </Text>
                   </View>
                 </View>

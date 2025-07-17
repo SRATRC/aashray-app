@@ -294,8 +294,9 @@ const EventBooking = () => {
         <View className="mb-2 flex-row items-center justify-between">
           <View className="rounded-full bg-secondary/10 px-3 py-1">
             <Text className="font-psemibold text-xs uppercase tracking-wide text-secondary">
-              {moment(item.utsav_start).format('MMM DD')} -{' '}
-              {moment(item.utsav_end).format('MMM DD, YYYY')}
+              {moment(item.utsav_start).isSame(moment(item.utsav_end), 'day')
+                ? moment(item.utsav_start).format('MMM DD, YYYY')
+                : `${moment(item.utsav_start).format('MMM DD')} - ${moment(item.utsav_end).format('MMM DD, YYYY')}`}
             </Text>
           </View>
           {item.status == status.STATUS_CLOSED && (

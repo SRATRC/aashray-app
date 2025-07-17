@@ -1,11 +1,12 @@
 import { useState, useMemo, useCallback } from 'react';
 import { View, Text, Alert } from 'react-native';
-import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useAuthStore, useBookingStore } from '@/stores';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
 import { prepareSelfRequestBody } from '@/utils/preparingRequestBody';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import CustomButton from '@/components/CustomButton';
 import PageHeader from '@/components/PageHeader';
 import RoomBookingDetails from '@/components/booking details cards/RoomBookingDetails';
@@ -18,7 +19,6 @@ import TravelAddon from '@/components/booking addons/TravelAddon';
 import handleAPICall from '@/utils/HandleApiCall';
 import CustomModal from '@/components/CustomModal';
 import EventBookingDetails from '@/components/booking details cards/EventBookingDetails';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 const BookingDetails = () => {
   const { booking } = useLocalSearchParams();
@@ -192,7 +192,7 @@ const BookingDetails = () => {
     const { date, pickup, drop, luggage, special_request, type, total_people } = forms.travel;
 
     if (!date || !pickup || !drop || luggage.length === 0) return false;
-    const otherLocation = dropdowns.LOCATION_LIST.find(loc => loc.key === 'other');
+    const otherLocation = dropdowns.LOCATION_LIST.find((loc) => loc.key === 'other');
     if (
       (pickup === otherLocation?.value && special_request.trim() === '') ||
       (drop === otherLocation?.value && special_request.trim() === '')

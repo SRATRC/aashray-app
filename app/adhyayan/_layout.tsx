@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import React from 'react';
 
-const DetailsLayout = () => {
+const AdhyayanDetailsLayout = () => {
   return (
     <>
       <Stack>
@@ -11,4 +11,4 @@ const DetailsLayout = () => {
   );
 };
 
-export default DetailsLayout;
+export default AdhyayanDetailsLayout;

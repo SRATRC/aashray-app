@@ -188,6 +188,7 @@ const AppNavigator = () => {
         <Stack.Screen name="guestBooking" />
         <Stack.Screen name="mumukshuBooking" />
         <Stack.Screen name="adhyayan" />
+        <Stack.Screen name="utsav" />
         <Stack.Screen name="index" />
       </Stack.Protected>
       <Stack.Protected guard={needsPfp || isFullyOnboarded}>
