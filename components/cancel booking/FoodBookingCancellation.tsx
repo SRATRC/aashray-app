@@ -255,18 +255,8 @@ export default function FoodBookingCancellation() {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }}
         activeOpacity={isCancellable ? 0.98 : 1}
-        className={`mb-3 rounded-xl ${
-          !isCancellable
-            ? 'bg-neutral-50 shadow-sm'
-            : isSelected
-              ? 'bg-white shadow-md shadow-secondary/10'
-              : 'bg-white shadow-sm'
-        } ${
-          !isCancellable
-            ? 'border border-neutral-200'
-            : isSelected
-              ? 'border border-secondary/20'
-              : 'border border-neutral-200'
+        className={`mb-3 rounded-xl ${!isCancellable ? 'border border-neutral-200 bg-neutral-50' : 'border border-neutral-200 bg-white'} ${
+          Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
         }`}>
         {/* Main content */}
         <View className="p-4">
