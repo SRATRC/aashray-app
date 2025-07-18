@@ -88,7 +88,7 @@ export const QrModal = () => {
         visible={modalVisible}
         statusBarTranslucent={true}
         onRequestClose={closeModal}>
-        <BlurView intensity={30} tint="dark" style={styles.overlay}>
+        <BlurView intensity={100} tint="dark" style={styles.overlay}>
           <SafeAreaView style={styles.safeArea}>
             <Animated.View
               style={[
