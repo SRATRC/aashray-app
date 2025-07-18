@@ -155,10 +155,22 @@ const AppNavigator = () => {
       processDeepLink(event.url);
     };
 
+    const handleInitialUrl = async () => {
+      try {
+        const initialUrl = await Linking.getInitialURL();
+        if (initialUrl) {
+          console.log('🔗 Initial URL (app launched):', initialUrl);
+          processDeepLink(initialUrl);
+        }
+      } catch (error) {
+        console.error('❌ Error getting initial URL:', error);
+      }
+    };
+
     // Listen for incoming links while the app is running
     const subscription = Linking.addEventListener('url', handleDeepLink);
 
-    // REMOVED the call to handleInitialUrl() to prevent conflict with Expo Router
+    handleInitialUrl();
 
     return () => {
       subscription?.remove();
@@ -166,7 +178,7 @@ const AppNavigator = () => {
         clearTimeout(processingTimeout.current);
       }
     };
-  }, [isFullyOnboarded]); // Dependency on isFullyOnboarded is still good practice
+  }, [isFullyOnboarded]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

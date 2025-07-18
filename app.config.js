@@ -3,7 +3,7 @@ export default {
     name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
-    version: '1.1.15',
+    version: '1.1.16',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     userInterfaceStyle: 'automatic',
@@ -71,7 +71,12 @@ export default {
       ],
     },
     plugins: [
-      'expo-router',
+      [
+        'expo-router',
+        {
+          origin: 'https://aashray.vitraagvigyaan.org',
+        },
+      ],
       '@react-native-firebase/app',
       [
         'expo-build-properties',
