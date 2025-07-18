@@ -100,7 +100,6 @@ const AdhyayanDetails = () => {
         message: `Join us for ${adhyayan.name} from ${moment(adhyayan.start_date).format(
           'MMM D'
         )} to ${moment(adhyayan.end_date).format('MMM D, YYYY')} at ${adhyayan.location}.\n\nhttps://aashray.vitraagvigyaan.org/adhyayan/${adhyayan.id}`,
-        url: `https://aashray.vitraagvigyaan.org/adhyayan/${adhyayan.id}`,
       };
 
       await Share.share(shareContent);

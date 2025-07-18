@@ -160,7 +160,6 @@ const UtsavPage = () => {
         message: `Join us for ${utsav.utsav_name} from ${moment(utsav.utsav_start).format(
           'MMM D'
         )} to ${moment(utsav.utsav_end).format('MMM D, YYYY')} at ${utsav.utsav_location}.\n\nhttps://aashray.vitraagvigyaan.org/utsav/${utsav.utsav_id}`,
-        url: `https://aashray.vitraagvigyaan.org/utsav/${utsav.utsav_id}`,
       };
 
       await Share.share(shareContent);
