@@ -177,11 +177,11 @@ const RoomBookingCancellation: React.FC = () => {
         </Text>
       </View>
 
-      <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
+      {/* <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
         <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Charge:</Text>
         <Text className="font-pmedium text-black">₹ {item.amount}</Text>
-      </View>
+      </View> */}
 
       {moment(item.checkin).diff(moment().format('YYYY-MM-DD')) > 0 &&
         ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
