@@ -222,123 +222,136 @@ export default function FoodBookingCancellation() {
     );
 
     return (
-      <Animated.View
-        className={`mb-5 rounded-2xl p-3 ${
-          Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-        } ${
-          isCancellable
-            ? `bg-white ${isSelected ? 'border border-secondary' : ''}`
-            : 'bg-gray-100 opacity-60'
-        }`}>
-        <TouchableOpacity
-          disabled={!isCancellable}
-          onPress={() => {
-            if (!isCancellable) return;
+      <TouchableOpacity
+        disabled={!isCancellable}
+        onPress={() => {
+          if (!isCancellable) return;
 
-            const prevSelectedItems = [...selectedItems];
-            const itemKey = `${item.date}-${item.mealType}-${item.bookedFor}`;
+          const prevSelectedItems = [...selectedItems];
+          const itemKey = `${item.date}-${item.mealType}-${item.bookedFor}`;
 
-            const itemExists = prevSelectedItems.some(
-              (selected: any) =>
-                `${selected.date}-${selected.mealType}-${selected.bookedFor}` === itemKey
+          const itemExists = prevSelectedItems.some(
+            (selected: any) =>
+              `${selected.date}-${selected.mealType}-${selected.bookedFor}` === itemKey
+          );
+
+          if (itemExists) {
+            setSelectedItems(
+              prevSelectedItems.filter(
+                (selected: any) =>
+                  `${selected.date}-${selected.mealType}-${selected.bookedFor}` !== itemKey
+              )
             );
-
-            if (itemExists) {
-              setSelectedItems(
-                prevSelectedItems.filter(
-                  (selected: any) =>
-                    `${selected.date}-${selected.mealType}-${selected.bookedFor}` !== itemKey
-                )
-              );
-            } else {
-              setSelectedItems([
-                ...prevSelectedItems,
-                {
-                  date: item.date,
-                  mealType: item.mealType,
-                  bookedFor: item.bookedFor,
-                },
-              ]);
-            }
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          }}
-          className="flex-row justify-between overflow-hidden">
-          <View className="flex-1 flex-row items-center gap-x-4">
+          } else {
+            setSelectedItems([
+              ...prevSelectedItems,
+              {
+                date: item.date,
+                mealType: item.mealType,
+                bookedFor: item.bookedFor,
+              },
+            ]);
+          }
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }}
+        activeOpacity={isCancellable ? 0.98 : 1}
+        className={`mb-3 rounded-xl ${
+          !isCancellable
+            ? 'bg-neutral-50 shadow-sm'
+            : isSelected
+              ? 'bg-white shadow-md shadow-secondary/10'
+              : 'bg-white shadow-sm'
+        } ${
+          !isCancellable
+            ? 'border border-neutral-200'
+            : isSelected
+              ? 'border border-secondary/20'
+              : 'border border-neutral-200'
+        }`}>
+        {/* Main content */}
+        <View className="p-4">
+          <View className="flex-row items-center justify-between">
+            {/* Left side - Date badge */}
             <View
-              className={`flex-col items-center justify-center rounded-full px-3 py-1.5 ${
-                !isCancellable ? 'bg-gray-200' : isSelected ? 'bg-secondary' : 'bg-secondary-50'
+              className={`rounded-lg px-3 py-2 ${
+                !isCancellable ? 'bg-neutral-100' : 'bg-neutral-50'
               }`}>
               <Text
-                className={`font-psemibold text-base ${
-                  !isCancellable ? 'text-gray-400' : isSelected ? 'text-white' : 'text-secondary'
+                className={`font-pmedium text-xs uppercase tracking-wider ${
+                  !isCancellable ? 'text-neutral-400' : 'text-neutral-600'
                 }`}>
-                {moment(item.date).date()}
+                {moment(item.date).format('MMM DD')}
               </Text>
               <Text
-                className={`font-psemibold text-xs ${
-                  !isCancellable ? 'text-gray-400' : isSelected ? 'text-white' : 'text-secondary'
+                className={`font-psemibold text-lg ${
+                  !isCancellable ? 'text-neutral-400' : 'text-neutral-900'
                 }`}>
-                {moment(item.date).format('MMM')}
+                {moment(item.date).format('ddd')}
               </Text>
             </View>
 
-            <View className="flex-col gap-y-2">
-              {!isCancellable && (
-                <View className="mb-1">
-                  <Text className="font-pmedium text-xs text-red-500">
-                    Cannot cancel (deadline passed)
+            {/* Center - Meal info */}
+            <View className="flex-1 px-4">
+              <Text
+                className={`font-psemibold text-lg ${
+                  !isCancellable ? 'text-neutral-400' : 'text-neutral-900'
+                }`}>
+                {item.mealType}
+              </Text>
+
+              <View className="mt-1 flex-row items-center space-x-3">
+                <View className="flex-row items-center">
+                  <View
+                    className={`mr-1.5 h-2 w-2 rounded-full ${
+                      !isCancellable
+                        ? 'bg-neutral-300'
+                        : item.spicy
+                          ? 'bg-amber-400'
+                          : 'bg-emerald-400'
+                    }`}
+                  />
+                  <Text
+                    className={`font-pregular text-sm ${
+                      !isCancellable ? 'text-neutral-400' : 'text-neutral-600'
+                    }`}>
+                    {item.spicy ? 'Spicy' : 'Mild'}
                   </Text>
                 </View>
-              )}
 
-              <CustomTag
-                icon={icons.spice}
-                iconStyles={'w-4 h-4 items-center justify-center'}
-                text={item.spicy ? 'Regular' : 'Non-Spicy'}
-                textStyles={
-                  !isCancellable ? 'text-gray-400' : item.spicy ? 'text-red-200' : 'text-green-200'
-                }
-                containerStyles={
-                  !isCancellable ? 'bg-gray-100' : item.spicy ? 'bg-red-100' : 'bg-green-100'
-                }
-                tintColor={!isCancellable ? '#9CA3AF' : item.spicy ? '#EB5757' : '#05B617'}
-              />
-              <View className="flex-row items-center">
-                <Image
-                  source={icons.meal}
-                  resizeMode="contain"
-                  className="h-4 w-4"
-                  style={!isCancellable ? { opacity: 0.5 } : {}}
-                />
-                <Text className={`ml-1 ${!isCancellable ? 'text-gray-400' : 'text-gray-400'}`}>
-                  Meal Type
-                </Text>
-                <Text
-                  className={`ml-1 font-pmedium ${!isCancellable ? 'text-gray-500' : 'text-black'}`}>
-                  {item.mealType}
-                </Text>
-              </View>
-              {item.bookedBy && (
-                <View className="flex-row items-center">
-                  <Image
-                    source={icons.person}
-                    resizeMode="contain"
-                    className="h-4 w-4"
-                    style={!isCancellable ? { opacity: 0.5 } : {}}
-                  />
-                  <Text className={`ml-1 ${!isCancellable ? 'text-gray-400' : 'text-gray-400'}`}>
-                    Booked For
-                  </Text>
+                {item.bookedBy && (
                   <Text
-                    className={`ml-1 font-pmedium ${!isCancellable ? 'text-gray-500' : 'text-black'}`}>
-                    {item.name}
+                    className={`font-pregular text-sm ${
+                      !isCancellable ? 'text-neutral-400' : 'text-neutral-500'
+                    }`}>
+                    • {item.name}
                   </Text>
+                )}
+              </View>
+            </View>
+
+            {/* Right side - Selection */}
+            <View className="items-center justify-center">
+              {!isCancellable ? (
+                <View className="h-8 w-8 items-center justify-center rounded-full bg-neutral-100">
+                  <FontAwesome name="clock-o" size={14} color="#A3A3A3" />
+                </View>
+              ) : (
+                <View
+                  className={`h-6 w-6 items-center justify-center rounded-full ${
+                    isSelected ? 'bg-secondary' : 'border-2 border-neutral-200 bg-neutral-100'
+                  }`}>
+                  {isSelected && <FontAwesome name="check" size={12} color="white" />}
                 </View>
               )}
             </View>
           </View>
-        </TouchableOpacity>
-      </Animated.View>
+        </View>
+
+        {/* Selection indicator strip */}
+        {isSelected && (
+          <View className="absolute bottom-0 left-0 top-0 w-1 rounded-l-xl bg-secondary" />
+        )}
+      </TouchableOpacity>
     );
   };
 
