@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { icons, images, quotes, status } from '@/constants';
 import { useAuthStore } from '@/stores';
 import CustomHomeIcon from '@/components/CustomHomeIcon';
+import { useBottomTabOverflow } from '@/components/TabBarBackground';
 
 const QuotesBanner = ({ user, images }: any) => {
   const randomQuote = useMemo(() => {
@@ -55,6 +56,7 @@ const QuotesBanner = ({ user, images }: any) => {
 const Home: React.FC = () => {
   const { user } = useAuthStore();
   const router: any = useRouter();
+  const tabBarHeight = useBottomTabOverflow();
 
   if (!user || !user.issuedto) {
     return (
@@ -69,7 +71,9 @@ const Home: React.FC = () => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         className="flex-1"
-        style={{ paddingBottom: 20 }}>
+        contentContainerStyle={{
+          paddingBottom: Platform.OS === 'ios' ? tabBarHeight + 20 : 20,
+        }}>
         <View className=" flex-row items-center justify-start px-4">
           <Image
             source={images.sratrcLogo as ImageSourcePropType}

@@ -25,11 +25,13 @@ import getCachedImageUri, { invalidateCachedImage } from '@/utils/imageCache';
 import FormField from '@/components/FormField';
 import CustomModal from '@/components/CustomModal';
 import * as Haptics from 'expo-haptics';
+import { useBottomTabOverflow } from '@/components/TabBarBackground';
 
 const Profile: React.FC = () => {
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
   const logout = useAuthStore((state) => state.logout);
+  const tabBarHeight = useBottomTabOverflow();
 
   const router: any = useRouter();
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
@@ -382,7 +384,9 @@ const Profile: React.FC = () => {
       <View className="h-full w-full">
         <FlashList
           className="h-full py-2"
-          contentContainerStyle={{ paddingBottom: 20 }}
+          contentContainerStyle={{
+            paddingBottom: Platform.OS === 'ios' ? tabBarHeight + 20 : 20,
+          }}
           showsVerticalScrollIndicator={false}
           data={profileList}
           renderItem={renderItem}
