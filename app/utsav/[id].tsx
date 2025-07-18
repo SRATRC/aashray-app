@@ -10,6 +10,7 @@ import {
   Modal,
   KeyboardAvoidingView,
   Image,
+  Share,
 } from 'react-native';
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -48,13 +49,6 @@ type Utsav = {
   packages: Package[];
   available_seats?: number;
   comments?: string;
-  // Alias fields for backward compatibility
-  name?: string;
-  location?: string;
-  start_date?: string;
-  end_date?: string;
-  status?: string;
-  UtsavPackagesDbs?: any[]; // For backward compatibility
 };
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
@@ -155,6 +149,26 @@ const UtsavPage = () => {
       useNativeDriver: true,
     }).start();
   }, []);
+
+  // Share functionality
+  const handleShare = async () => {
+    if (!utsav) return;
+
+    try {
+      const shareContent = {
+        title: utsav.utsav_name,
+        message: `Join us for ${utsav.utsav_name} from ${moment(utsav.utsav_start).format(
+          'MMM D'
+        )} to ${moment(utsav.utsav_end).format('MMM D, YYYY')} at ${utsav.utsav_location}.\n\nhttps://aashray.vitraagvigyaan.org/utsav/${utsav.utsav_id}`,
+        url: `https://aashray.vitraagvigyaan.org/utsav/${utsav.utsav_id}`,
+      };
+
+      await Share.share(shareContent);
+    } catch (error) {
+      console.error('Error sharing:', error);
+      Alert.alert('Error', 'Failed to share. Please try again.');
+    }
+  };
 
   // Modal toggle function
   const toggleModal = () => {
@@ -296,7 +310,7 @@ const UtsavPage = () => {
     );
   };
 
-  // Fetch single utsav details with proper error handling and type safety
+  // Fetch single utsav details
   const fetchUtsavDetails = async (): Promise<{ data: Utsav }> => {
     if (!id) {
       throw new Error('Utsav ID is required');
@@ -321,25 +335,7 @@ const UtsavPage = () => {
             res.data.packages = [];
           }
 
-          // Map the API response to the expected format
-          const utsavData: Utsav = {
-            ...res.data,
-            // Add aliases for backward compatibility
-            name: res.data.utsav_name,
-            location: res.data.utsav_location,
-            start_date: res.data.utsav_start,
-            end_date: res.data.utsav_end,
-            status: res.data.utsav_status,
-            // Map packages to UtsavPackagesDbs for backward compatibility
-            UtsavPackagesDbs: res.data.packages.map((pkg) => ({
-              id: pkg.package_id,
-              name: pkg.package_name,
-              start_date: pkg.package_start,
-              end_date: pkg.package_end,
-              amount: pkg.package_amount,
-            })),
-          };
-          resolve({ data: utsavData });
+          resolve(res);
         } catch (error) {
           console.error('Error processing utsav data:', error);
           reject(new Error('Failed to process utsav details'));
@@ -390,7 +386,7 @@ const UtsavPage = () => {
         utsav: utsav,
       }));
 
-      // Safely handle packages with null check
+      // Set package options
       if (utsav.packages) {
         const packageOptions = utsav.packages.map((packageItem) => ({
           key: packageItem.package_id,
@@ -460,7 +456,7 @@ const UtsavPage = () => {
               await updateGuestBooking('utsav', guestForm);
               setGuestForm(INITIAL_GUEST_FORM);
 
-              if (utsav.location !== 'Research Centre')
+              if (utsav.utsav_location !== 'Research Centre')
                 router.push('/guestBooking/bookingConfirmation');
               else router.push(`/guestBooking/${types.EVENT_DETAILS_TYPE}`);
             },
@@ -471,7 +467,7 @@ const UtsavPage = () => {
         } else {
           await updateGuestBooking('utsav', guestForm);
           setGuestForm(INITIAL_GUEST_FORM);
-          if (utsav.location !== 'Research Centre')
+          if (utsav.utsav_location !== 'Research Centre')
             router.push('/guestBooking/guestBookingConfirmation');
           else router.push(`/guestBooking/${types.EVENT_DETAILS_TYPE}`);
           setIsSubmitting(false);
@@ -510,7 +506,7 @@ const UtsavPage = () => {
 
   // Get availability status
   const getAvailabilityInfo = () => {
-    if (utsav?.status === status.STATUS_CLOSED || utsav?.available_seats === 0) {
+    if (utsav?.utsav_status === status.STATUS_CLOSED || utsav?.available_seats === 0) {
       return {
         text: 'Waitlist only',
         shortText: 'Waitlist',
@@ -534,44 +530,57 @@ const UtsavPage = () => {
     };
   };
 
-  // Animated header
-  const headerOpacity = scrollY.interpolate({
+  // Header text animations
+  const headerTextOpacity = scrollY.interpolate({
     inputRange: [0, 100],
     outputRange: [0, 1],
     extrapolate: 'clamp',
   });
 
-  const headerTranslateY = scrollY.interpolate({
+  const headerTextTranslateY = scrollY.interpolate({
     inputRange: [0, 100],
-    outputRange: [-50, 0],
+    outputRange: [20, 0],
     extrapolate: 'clamp',
   });
 
   if (isLoading) {
     return (
       <View className="flex-1 bg-white">
-        <SafeAreaView className="flex-1">
-          <View className="border-b border-gray-100 px-4 py-4">
-            <View className="flex-row items-center">
-              <TouchableOpacity
-                onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
-                className="mr-4 p-2">
-                <Ionicons name="arrow-back" size={24} color="#222" />
-              </TouchableOpacity>
+        <View
+          className="bg-white"
+          style={{
+            paddingTop: insets.top,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}>
+          <View className="flex-row items-center justify-between px-4 py-4">
+            <TouchableOpacity
+              onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
+              className="rounded-full bg-gray-50 p-3">
+              <Ionicons name="arrow-back" size={20} color="#374151" />
+            </TouchableOpacity>
+
+            <View className="flex-1 items-center">
+              <Text className="font-psemibold text-lg text-gray-900">Loading...</Text>
             </View>
+
+            <View className="w-[44px]" />
           </View>
-          {/* Skeleton Loading */}
-          <View className="animate-pulse p-6">
-            <View className="mb-4 h-8 w-3/4 rounded-lg bg-gray-200" />
-            <View className="mb-6 h-6 w-1/2 rounded-lg bg-gray-200" />
-            <View className="mb-8 h-4 w-full rounded-lg bg-gray-200" />
-            <View className="gap-4">
-              <View className="h-24 rounded-xl bg-gray-200" />
-              <View className="h-24 rounded-xl bg-gray-200" />
-              <View className="h-32 rounded-xl bg-gray-200" />
-            </View>
+        </View>
+        {/* Skeleton Loading */}
+        <View className="animate-pulse p-6">
+          <View className="mb-4 h-8 w-3/4 rounded-lg bg-gray-200" />
+          <View className="mb-6 h-6 w-1/2 rounded-lg bg-gray-200" />
+          <View className="mb-8 h-4 w-full rounded-lg bg-gray-200" />
+          <View className="gap-4">
+            <View className="h-24 rounded-xl bg-gray-200" />
+            <View className="h-24 rounded-xl bg-gray-200" />
+            <View className="h-32 rounded-xl bg-gray-200" />
           </View>
-        </SafeAreaView>
+        </View>
       </View>
     );
   }
@@ -579,31 +588,42 @@ const UtsavPage = () => {
   if (isError || !utsav) {
     return (
       <View className="flex-1 bg-white">
-        <SafeAreaView className="flex-1">
-          <View className="border-b border-gray-100 px-4 py-4">
-            <View className="flex-row items-center">
-              <TouchableOpacity
-                onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
-                className="mr-4 p-2">
-                <Ionicons name="arrow-back" size={24} color="#222" />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View className="flex-1 items-center justify-center px-6">
-            <Ionicons name="warning-outline" size={48} color="#222" />
-            <Text className="mb-2 mt-4 text-center font-psemibold text-xl text-gray-900">
-              Something went wrong
-            </Text>
-            <Text className="mb-6 text-center text-base text-gray-600">
-              We couldn't load this utsav. Please try again.
-            </Text>
+        <View
+          className="bg-white"
+          style={{
+            paddingTop: insets.top,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}>
+          <View className="flex-row items-center justify-between px-4 py-4">
             <TouchableOpacity
-              onPress={() => refetch()}
-              className="rounded-lg bg-gray-900 px-6 py-3">
-              <Text className="font-pmedium text-white">Try again</Text>
+              onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
+              className="rounded-full bg-gray-50 p-3">
+              <Ionicons name="arrow-back" size={20} color="#374151" />
             </TouchableOpacity>
+
+            <View className="flex-1 items-center">
+              <Text className="font-psemibold text-lg text-gray-900">Error</Text>
+            </View>
+
+            <View className="w-[44px]" />
           </View>
-        </SafeAreaView>
+        </View>
+        <View className="flex-1 items-center justify-center px-6">
+          <Ionicons name="warning-outline" size={48} color="#222" />
+          <Text className="mb-2 mt-4 text-center font-psemibold text-xl text-gray-900">
+            Something went wrong
+          </Text>
+          <Text className="mb-6 text-center text-base text-gray-600">
+            We couldn't load this utsav. Please try again.
+          </Text>
+          <TouchableOpacity onPress={() => refetch()} className="rounded-lg bg-gray-900 px-6 py-3">
+            <Text className="font-pmedium text-white">Try again</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -611,50 +631,65 @@ const UtsavPage = () => {
   const availabilityInfo = getAvailabilityInfo();
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      {/* Fixed Header */}
-      <View className="border-b border-gray-100 px-4 py-4">
-        <View className="flex-row items-center">
+    <View className="flex-1 bg-white">
+      {/* Single Sticky Header */}
+      <View
+        className="bg-white"
+        style={{
+          paddingTop: insets.top,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 3.84,
+          elevation: 5,
+        }}>
+        <View className="flex-row items-center justify-between px-4 py-4">
           <TouchableOpacity
             onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
-            className="-ml-2 mr-4 p-2"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Ionicons name="arrow-back" size={24} color="#222" />
+            className="rounded-full bg-gray-50 p-3 active:bg-gray-100"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={{
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 2,
+              elevation: 2,
+            }}>
+            <Ionicons name="arrow-back" size={20} color="#374151" />
           </TouchableOpacity>
-          <View className="flex-1" />
+
+          <View className="flex-1 px-4">
+            <Animated.View
+              style={{
+                opacity: headerTextOpacity,
+                transform: [{ translateY: headerTextTranslateY }],
+                alignItems: 'center',
+              }}>
+              <Text className="font-psemibold text-lg text-gray-900" numberOfLines={1}>
+                {utsav.utsav_name}
+              </Text>
+              <Text className="font-pregular text-sm text-gray-500" numberOfLines={1}>
+                {moment(utsav.utsav_start).format('MMM D')} -{' '}
+                {moment(utsav.utsav_end).format('MMM D')}
+              </Text>
+            </Animated.View>
+          </View>
+
+          <TouchableOpacity
+            onPress={handleShare}
+            className="rounded-full bg-blue-50 p-3 active:bg-blue-100"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={{
+              shadowColor: '#3B82F6',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 2,
+              elevation: 2,
+            }}>
+            <Ionicons name="share-outline" size={20} color="#3B82F6" />
+          </TouchableOpacity>
         </View>
       </View>
-
-      {/* Sticky Header on Scroll */}
-      <Animated.View
-        className="absolute left-0 right-0 z-30"
-        style={{
-          top: insets.top, // This positions it below the status bar
-          opacity: headerOpacity,
-          transform: [{ translateY: headerTranslateY }],
-        }}
-        pointerEvents="box-none">
-        <Animated.View
-          style={{
-            opacity: headerOpacity,
-          }}>
-          <View className="border-b border-gray-200 bg-white px-4 py-4">
-            <View className="flex-row items-center">
-              <TouchableOpacity
-                onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
-                className="-ml-2 mr-4 p-2"
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <Ionicons name="arrow-back" size={24} color="#222" />
-              </TouchableOpacity>
-              <View className="flex-1">
-                <Text className="font-psemibold text-base text-gray-900" numberOfLines={1}>
-                  {utsav.name}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </Animated.View>
-      </Animated.View>
 
       <Animated.ScrollView
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
@@ -667,16 +702,16 @@ const UtsavPage = () => {
         <Animated.View style={{ opacity: fadeAnim }}>
           <View className="px-6">
             {/* Title Section */}
-            <View className="mb-6">
+            <View className="my-6">
               <Text className="mb-2 font-pbold text-3xl leading-tight text-gray-900">
-                {utsav.name}
+                {utsav.utsav_name}
               </Text>
               <View className="flex-row items-center gap-2">
                 <Ionicons name="bonfire-outline" size={16} color="#EA580C" />
                 <Text className="font-pmedium text-base text-gray-900">Utsav</Text>
                 <Text className="text-gray-400">·</Text>
                 <Text className="font-pmedium text-base text-gray-900 underline">
-                  {utsav.location}
+                  {utsav.utsav_location}
                 </Text>
               </View>
             </View>
@@ -695,13 +730,13 @@ const UtsavPage = () => {
                 <View className="flex-row items-center">
                   <Ionicons name="calendar-clear-outline" size={20} color="#222" />
                   <Text className="ml-2 font-psemibold text-base text-gray-900">
-                    {moment(utsav.start_date).format('MMM D')} -{' '}
-                    {moment(utsav.end_date).format('D, YYYY')}
+                    {moment(utsav.utsav_start).format('MMM D')} -{' '}
+                    {moment(utsav.utsav_end).format('D, YYYY')}
                   </Text>
                 </View>
                 <View className="rounded-full bg-orange-100 px-3 py-1">
                   <Text className="font-pmedium text-xs text-orange-700">
-                    {moment(utsav.end_date).diff(moment(utsav.start_date), 'days') + 1} days
+                    {moment(utsav.utsav_end).diff(moment(utsav.utsav_start), 'days') + 1} days
                   </Text>
                 </View>
               </View>
@@ -715,9 +750,11 @@ const UtsavPage = () => {
               <View className="flex-row items-start">
                 <Ionicons name="location-outline" size={20} color="#222" />
                 <View className="ml-2 flex-1">
-                  <Text className="font-psemibold text-base text-gray-900">{utsav.location}</Text>
+                  <Text className="font-psemibold text-base text-gray-900">
+                    {utsav.utsav_location}
+                  </Text>
                   <Text className="mt-1 font-pregular text-sm text-gray-600">
-                    {utsav.location === 'Research Centre'
+                    {utsav.utsav_location === 'Research Centre'
                       ? 'Accommodation available at venue'
                       : 'Accommodation not available at venue'}
                   </Text>
@@ -746,7 +783,7 @@ const UtsavPage = () => {
                     {availabilityInfo.text}
                   </Text>
                 </View>
-                {utsav.status === 'open' && !availabilityInfo.isWaitlist && (
+                {utsav.utsav_status === 'open' && !availabilityInfo.isWaitlist && (
                   <View className="flex-row items-center">
                     <View className="mr-1 h-2 w-2 rounded-full bg-green-500" />
                     <Text className="font-pregular text-sm text-gray-600">Open</Text>
@@ -788,21 +825,23 @@ const UtsavPage = () => {
           <View className="px-6 pb-6">
             <Text className="mb-4 font-psemibold text-xl text-gray-900">Package Details</Text>
             <View className="mb-3 flex-1 gap-y-3">
-              {utsav.UtsavPackagesDbs?.map((packageitem: any) => (
+              {utsav.packages?.map((packageItem) => (
                 <View
-                  key={packageitem.id}
+                  key={packageItem.package_id}
                   className="rounded-xl border border-gray-200 bg-white p-4">
                   <View className="flex-row items-center justify-between">
                     <View className="flex-1">
                       <Text className="font-psemibold text-base text-gray-800">
-                        {packageitem.name}
+                        {packageItem.package_name}
                       </Text>
                       <Text className="mt-1 font-pregular text-sm text-gray-500">
-                        {moment(packageitem.start_date).format('MMM D')} -{' '}
-                        {moment(packageitem.end_date).format('MMM D, YYYY')}
+                        {moment(packageItem.package_start).format('MMM D')} -{' '}
+                        {moment(packageItem.package_end).format('MMM D, YYYY')}
                       </Text>
                     </View>
-                    <Text className="font-pbold text-xl text-secondary">₹{packageitem.amount}</Text>
+                    <Text className="font-pbold text-xl text-secondary">
+                      ₹{packageItem.package_amount}
+                    </Text>
                   </View>
                 </View>
               ))}
@@ -878,17 +917,17 @@ const UtsavPage = () => {
             <View className="flex-row items-baseline">
               <Text className="font-pregular text-sm text-gray-600">Starting from </Text>
               <Text className="font-pbold text-lg text-gray-900">
-                {utsav.UtsavPackagesDbs?.length
-                  ? `₹${utsav.UtsavPackagesDbs.reduce(
-                      (min, pkg) => (pkg.amount < min ? pkg.amount : min),
-                      utsav.UtsavPackagesDbs[0]?.amount || 0
+                {utsav.packages?.length
+                  ? `₹${utsav.packages.reduce(
+                      (min, pkg) => (pkg.package_amount < min ? pkg.package_amount : min),
+                      utsav.packages[0]?.package_amount || 0
                     )}`
                   : 'N/A'}
               </Text>
             </View>
             <TouchableOpacity>
               <Text className="font-pregular text-sm text-gray-900 underline">
-                {moment(utsav.start_date).format('MMM D')} - {moment(utsav.end_date).format('D')}
+                {moment(utsav.utsav_start).format('MMM D')} - {moment(utsav.utsav_end).format('D')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -922,13 +961,13 @@ const UtsavPage = () => {
                     className="font-pmedium text-sm text-black"
                     numberOfLines={2}
                     ellipsizeMode="tail">
-                    {utsav?.name}
+                    {utsav?.utsav_name}
                   </Text>
                   <View className="flex-row gap-x-1">
                     <Text className="font-pregular text-xs text-gray-500">Date:</Text>
                     <Text className="font-pregular text-xs text-secondary">
-                      {moment(utsav?.start_date).format('Do MMMM')} -{' '}
-                      {moment(utsav?.end_date).format('Do MMMM')}
+                      {moment(utsav?.utsav_start).format('Do MMMM')} -{' '}
+                      {moment(utsav?.utsav_end).format('Do MMMM')}
                     </Text>
                   </View>
                 </View>
@@ -1218,7 +1257,7 @@ const UtsavPage = () => {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 

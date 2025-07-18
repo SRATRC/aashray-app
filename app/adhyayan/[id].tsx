@@ -10,6 +10,7 @@ import {
   Modal,
   KeyboardAvoidingView,
   Image,
+  Share,
 } from 'react-native';
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -89,9 +90,34 @@ const AdhyayanDetails = () => {
     }).start();
   }, []);
 
+  // Share functionality
+  const handleShare = async () => {
+    if (!adhyayan) return;
+
+    try {
+      const shareContent = {
+        title: adhyayan.name,
+        message: `Join us for ${adhyayan.name} from ${moment(adhyayan.start_date).format(
+          'MMM D'
+        )} to ${moment(adhyayan.end_date).format('MMM D, YYYY')} at ${adhyayan.location}.\n\nhttps://aashray.vitraagvigyaan.org/adhyayan/${adhyayan.id}`,
+        url: `https://aashray.vitraagvigyaan.org/adhyayan/${adhyayan.id}`,
+      };
+
+      await Share.share(shareContent);
+    } catch (error) {
+      console.error('Error sharing:', error);
+      Alert.alert('Error', 'Failed to share. Please try again.');
+    }
+  };
+
   // Modal toggle function
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible);
+    if (isModalVisible) {
+      // Only reset when closing the modal
+      setGuestForm(INITIAL_GUEST_FORM);
+      setMumukshuForm(INITIAL_MUMUKSHU_FORM);
+    }
   };
 
   // Reset forms when navigating back to this screen
@@ -351,44 +377,57 @@ const AdhyayanDetails = () => {
     };
   };
 
-  // Animated header
-  const headerOpacity = scrollY.interpolate({
+  // Header text animations
+  const headerTextOpacity = scrollY.interpolate({
     inputRange: [0, 100],
     outputRange: [0, 1],
     extrapolate: 'clamp',
   });
 
-  const headerTranslateY = scrollY.interpolate({
+  const headerTextTranslateY = scrollY.interpolate({
     inputRange: [0, 100],
-    outputRange: [-50, 0],
+    outputRange: [20, 0],
     extrapolate: 'clamp',
   });
 
   if (isLoading) {
     return (
       <View className="flex-1 bg-white">
-        <SafeAreaView className="flex-1">
-          <View className="border-b border-gray-100 px-4 py-4">
-            <View className="flex-row items-center">
-              <TouchableOpacity
-                onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
-                className="mr-4 p-2">
-                <Ionicons name="arrow-back" size={24} color="#222" />
-              </TouchableOpacity>
+        <View
+          className="bg-white"
+          style={{
+            paddingTop: insets.top,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}>
+          <View className="flex-row items-center justify-between px-4 py-4">
+            <TouchableOpacity
+              onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
+              className="rounded-full bg-gray-50 p-3">
+              <Ionicons name="arrow-back" size={20} color="#374151" />
+            </TouchableOpacity>
+
+            <View className="flex-1 items-center">
+              <Text className="font-psemibold text-lg text-gray-900">Loading...</Text>
             </View>
+
+            <View className="w-[44px]" />
           </View>
-          {/* Skeleton Loading */}
-          <View className="animate-pulse p-6">
-            <View className="mb-4 h-8 w-3/4 rounded-lg bg-gray-200" />
-            <View className="mb-6 h-6 w-1/2 rounded-lg bg-gray-200" />
-            <View className="mb-8 h-4 w-full rounded-lg bg-gray-200" />
-            <View className="gap-4">
-              <View className="h-24 rounded-xl bg-gray-200" />
-              <View className="h-24 rounded-xl bg-gray-200" />
-              <View className="h-32 rounded-xl bg-gray-200" />
-            </View>
+        </View>
+        {/* Skeleton Loading */}
+        <View className="animate-pulse p-6">
+          <View className="mb-4 h-8 w-3/4 rounded-lg bg-gray-200" />
+          <View className="mb-6 h-6 w-1/2 rounded-lg bg-gray-200" />
+          <View className="mb-8 h-4 w-full rounded-lg bg-gray-200" />
+          <View className="gap-4">
+            <View className="h-24 rounded-xl bg-gray-200" />
+            <View className="h-24 rounded-xl bg-gray-200" />
+            <View className="h-32 rounded-xl bg-gray-200" />
           </View>
-        </SafeAreaView>
+        </View>
       </View>
     );
   }
@@ -396,31 +435,42 @@ const AdhyayanDetails = () => {
   if (isError || !adhyayan) {
     return (
       <View className="flex-1 bg-white">
-        <SafeAreaView className="flex-1">
-          <View className="border-b border-gray-100 px-4 py-4">
-            <View className="flex-row items-center">
-              <TouchableOpacity
-                onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
-                className="mr-4 p-2">
-                <Ionicons name="arrow-back" size={24} color="#222" />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View className="flex-1 items-center justify-center px-6">
-            <Ionicons name="warning-outline" size={48} color="#222" />
-            <Text className="mb-2 mt-4 text-center font-psemibold text-xl text-gray-900">
-              Something went wrong
-            </Text>
-            <Text className="mb-6 text-center text-base text-gray-600">
-              We couldn't load this adhyayan. Please try again.
-            </Text>
+        <View
+          className="bg-white"
+          style={{
+            paddingTop: insets.top,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}>
+          <View className="flex-row items-center justify-between px-4 py-4">
             <TouchableOpacity
-              onPress={() => refetch()}
-              className="rounded-lg bg-gray-900 px-6 py-3">
-              <Text className="font-pmedium text-white">Try again</Text>
+              onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
+              className="rounded-full bg-gray-50 p-3">
+              <Ionicons name="arrow-back" size={20} color="#374151" />
             </TouchableOpacity>
+
+            <View className="flex-1 items-center">
+              <Text className="font-psemibold text-lg text-gray-900">Error</Text>
+            </View>
+
+            <View className="w-[44px]" />
           </View>
-        </SafeAreaView>
+        </View>
+        <View className="flex-1 items-center justify-center px-6">
+          <Ionicons name="warning-outline" size={48} color="#222" />
+          <Text className="mb-2 mt-4 text-center font-psemibold text-xl text-gray-900">
+            Something went wrong
+          </Text>
+          <Text className="mb-6 text-center text-base text-gray-600">
+            We couldn't load this adhyayan. Please try again.
+          </Text>
+          <TouchableOpacity onPress={() => refetch()} className="rounded-lg bg-gray-900 px-6 py-3">
+            <Text className="font-pmedium text-white">Try again</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -428,50 +478,65 @@ const AdhyayanDetails = () => {
   const availabilityInfo = getAvailabilityInfo();
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      {/* Fixed Header */}
-      <View className="border-b border-gray-100 px-4 py-4">
-        <View className="flex-row items-center">
+    <View className="flex-1 bg-white">
+      {/* Single Sticky Header */}
+      <View
+        className="bg-white"
+        style={{
+          paddingTop: insets.top,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 3.84,
+          elevation: 5,
+        }}>
+        <View className="flex-row items-center justify-between px-4 py-4">
           <TouchableOpacity
             onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
-            className="-ml-2 mr-4 p-2"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Ionicons name="arrow-back" size={24} color="#222" />
+            className="rounded-full bg-gray-50 p-3 active:bg-gray-100"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={{
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 2,
+              elevation: 2,
+            }}>
+            <Ionicons name="arrow-back" size={20} color="#374151" />
           </TouchableOpacity>
-          <View className="flex-1" />
+
+          <View className="flex-1 px-4">
+            <Animated.View
+              style={{
+                opacity: headerTextOpacity,
+                transform: [{ translateY: headerTextTranslateY }],
+                alignItems: 'center',
+              }}>
+              <Text className="font-psemibold text-lg text-gray-900" numberOfLines={1}>
+                {adhyayan.name}
+              </Text>
+              <Text className="font-pregular text-sm text-gray-500" numberOfLines={1}>
+                {moment(adhyayan.start_date).format('MMM D')} -{' '}
+                {moment(adhyayan.end_date).format('MMM D')}
+              </Text>
+            </Animated.View>
+          </View>
+
+          <TouchableOpacity
+            onPress={handleShare}
+            className="rounded-full bg-blue-50 p-3 active:bg-blue-100"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={{
+              shadowColor: '#3B82F6',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 2,
+              elevation: 2,
+            }}>
+            <Ionicons name="share-outline" size={20} color="#3B82F6" />
+          </TouchableOpacity>
         </View>
       </View>
-
-      {/* Sticky Header on Scroll */}
-      <Animated.View
-        className="absolute left-0 right-0 z-30"
-        style={{
-          top: insets.top, // This positions it below the status bar
-          opacity: headerOpacity,
-          transform: [{ translateY: headerTranslateY }],
-        }}
-        pointerEvents="box-none">
-        <Animated.View
-          style={{
-            opacity: headerOpacity,
-          }}>
-          <View className="border-b border-gray-200 bg-white px-4 py-4">
-            <View className="flex-row items-center">
-              <TouchableOpacity
-                onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
-                className="-ml-2 mr-4 p-2"
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <Ionicons name="arrow-back" size={24} color="#222" />
-              </TouchableOpacity>
-              <View className="flex-1">
-                <Text className="font-psemibold text-base text-gray-900" numberOfLines={1}>
-                  {adhyayan.name}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </Animated.View>
-      </Animated.View>
 
       <Animated.ScrollView
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
@@ -482,9 +547,9 @@ const AdhyayanDetails = () => {
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
         {/* Header Content */}
         <Animated.View style={{ opacity: fadeAnim }}>
-          <View className="px-6 pb-6">
+          <View className="px-6">
             {/* Title Section */}
-            <View className="mb-6">
+            <View className="my-6">
               <Text className="mb-2 font-pbold text-3xl leading-tight text-gray-900">
                 {adhyayan.name}
               </Text>
@@ -499,7 +564,7 @@ const AdhyayanDetails = () => {
             </View>
 
             {/* Host Info */}
-            <View className="flex-row items-center justify-between rounded-xl border border-gray-200 p-4">
+            <View className="mb-6 flex-row items-center justify-between rounded-xl border border-gray-200 p-4">
               <View className="flex-row items-center">
                 <View className="mr-3 h-12 w-12 items-center justify-center rounded-full bg-orange-100">
                   <Ionicons name="person" size={20} color="#EA580C" />
@@ -577,7 +642,8 @@ const AdhyayanDetails = () => {
             {/* Availability Status */}
             <View
               className={`mb-4 rounded-xl border p-4 ${
-                availabilityInfo.isWaitlist || adhyayan.available_seats <= 10
+                availabilityInfo.isWaitlist ||
+                (adhyayan.available_seats && adhyayan.available_seats <= 10)
                   ? 'border-red-200 bg-red-50'
                   : 'border-green-200 bg-green-50'
               }`}>
@@ -861,7 +927,7 @@ const AdhyayanDetails = () => {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 
