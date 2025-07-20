@@ -291,6 +291,7 @@ const CompleteProfile = () => {
         animationType="slide"
         transparent={true}
         visible={isModalVisible}
+        presentationStyle="pageSheet"
         onRequestClose={() => setIsModalVisible(false)}>
         <KeyboardAwareScrollView
           bottomOffset={62}
