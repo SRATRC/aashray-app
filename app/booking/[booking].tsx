@@ -4,7 +4,7 @@ import { useAuthStore, useBookingStore } from '@/stores';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
-import { prepareSelfRequestBody } from '@/utils/preparingRequestBody';
+import { prepareMumukshuRequestBody } from '@/utils/preparingRequestBody';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import CustomButton from '@/components/CustomButton';
@@ -20,11 +20,79 @@ import handleAPICall from '@/utils/HandleApiCall';
 import CustomModal from '@/components/CustomModal';
 import EventBookingDetails from '@/components/booking details cards/EventBookingDetails';
 
+// Transform simple form to mumukshu format for API compatibility
+const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string) => {
+  const selfMumukshu = {
+    cardno: user.cardno,
+    issuedto: user.name || `${user.firstname} ${user.lastname}`.trim(),
+  };
+
+  switch (formType) {
+    case 'room':
+      return {
+        startDay: simpleForm.startDay,
+        endDay: simpleForm.endDay,
+        mumukshuGroup: [
+          {
+            roomType: simpleForm.roomType,
+            floorType: simpleForm.floorType,
+            mumukshus: [selfMumukshu],
+            mumukshuIndices: ['0'],
+          },
+        ],
+      };
+
+    case 'food':
+      return {
+        startDay: simpleForm.startDay,
+        endDay: simpleForm.endDay,
+        mumukshuGroup: [
+          {
+            meals: simpleForm.meals,
+            spicy: simpleForm.spicy,
+            hightea: simpleForm.hightea,
+            mumukshus: [selfMumukshu],
+            mumukshuIndices: ['0'],
+          },
+        ],
+      };
+
+    case 'travel':
+      return {
+        date: simpleForm.date,
+        mumukshuGroup: [
+          {
+            pickup: simpleForm.pickup,
+            drop: simpleForm.drop,
+            luggage: simpleForm.luggage,
+            type: simpleForm.type,
+            adhyayan: simpleForm.adhyayan,
+            arrival_time: simpleForm.arrival_time,
+            total_people: simpleForm.total_people,
+            special_request: simpleForm.special_request,
+            mumukshus: [selfMumukshu],
+            mumukshuIndices: ['0'],
+          },
+        ],
+      };
+
+    case 'adhyayan':
+      return {
+        adhyayan: simpleForm[0] || {}, // adhyayan is array in simple form but object in mumukshu
+        mumukshus: [selfMumukshu],
+        mumukshuIndices: ['0'],
+      };
+
+    default:
+      return simpleForm;
+  }
+};
+
 const BookingDetails = () => {
   const { booking } = useLocalSearchParams();
   const user = useAuthStore((state) => state.user);
-  const data = useBookingStore((state) => state.data);
-  const setData = useBookingStore((state) => state.setData);
+  const mumukshuData = useBookingStore((state) => state.mumukshuData);
+  const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
   const router = useRouter();
 
   // Consolidated state with proper initialization
@@ -39,17 +107,20 @@ const BookingDetails = () => {
   // Extract initial dates from context data with memoization
   const initialDates = useMemo(() => {
     const startDate =
-      data.room?.startDay ||
-      data.travel?.date ||
-      (data.adhyayan && data.adhyayan[0]?.start_date) ||
+      mumukshuData.room?.startDay ||
+      mumukshuData.travel?.date ||
+      (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.start_date) ||
       '';
 
-    const endDate = data.room?.endDay || (data.adhyayan && data.adhyayan[0]?.end_date) || '';
+    const endDate =
+      mumukshuData.room?.endDay ||
+      (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.end_date) ||
+      '';
 
     return { startDate, endDate };
-  }, [data.room, data.travel, data.adhyayan]);
+  }, [mumukshuData.room, mumukshuData.travel, mumukshuData.adhyayan]);
 
-  // Initialize form state with proper defaults
+  // Initialize form state with proper defaults (keeping simple structure for UI)
   const [forms, setForms] = useState(() => ({
     room: {
       startDay: initialDates.startDate,
@@ -111,42 +182,42 @@ const BookingDetails = () => {
     [setFormValues]
   );
 
-  // Validation API call with proper error handling
+  // Validation API call with proper error handling - now using mumukshu endpoint
   const fetchValidation = useCallback(async () => {
     if (!user?.cardno) {
       throw new Error('User not authenticated');
     }
 
-    const payload = prepareSelfRequestBody(user, data);
+    const payload = prepareMumukshuRequestBody(user, mumukshuData);
 
     return new Promise((resolve, reject) => {
       handleAPICall(
         'POST',
-        '/unified/validate',
+        '/mumukshu/validate',
         null,
         payload,
         (res: any) => {
-          setData((prev: any) => ({ ...prev, validationData: res.data }));
+          setMumukshuData((prev: any) => ({ ...prev, validationData: res.data }));
           resolve(res.data);
         },
         () => {},
         (errorDetails) => reject(new Error(errorDetails.message))
       );
     });
-  }, [user, data, setData]);
+  }, [user, mumukshuData, setMumukshuData]);
 
   const { error: validationDataError, refetch: refetchValidation } = useQuery({
-    queryKey: ['validations', user?.cardno, JSON.stringify(data)],
+    queryKey: ['mumukshuValidations', user?.cardno, JSON.stringify(mumukshuData)],
     queryFn: fetchValidation,
     retry: false,
-    enabled: !!user?.cardno,
+    enabled: !!user?.cardno && Object.keys(mumukshuData).length > 0,
   });
 
   // Clean up effect with proper dependency management
   useFocusEffect(
     useCallback(() => {
       if (user?.cardno) {
-        setData((prev: any) => {
+        setMumukshuData((prev: any) => {
           const cleanedData = { ...prev };
 
           // Remove addon data based on what's NOT the main booking type
@@ -171,7 +242,7 @@ const BookingDetails = () => {
 
         refetchValidation();
       }
-    }, [user?.cardno, refetchValidation, booking, setData])
+    }, [user?.cardno, refetchValidation, booking, setMumukshuData])
   );
 
   // Validation functions with proper error handling
@@ -213,7 +284,7 @@ const BookingDetails = () => {
     let hasValidationError = false;
 
     try {
-      // Validate forms in batch
+      // Validate forms in batch and transform to mumukshu format when saving
       const validations = [];
 
       if (booking !== types.ROOM_DETAILS_TYPE && addonOpen.room) {
@@ -222,7 +293,8 @@ const BookingDetails = () => {
           hasValidationError = true;
           return;
         }
-        validations.push(['room', forms.room]);
+        const mumukshuRoomData = transformToMumukshuFormat(user, forms.room, 'room');
+        validations.push(['room', mumukshuRoomData]);
       }
 
       if (addonOpen.food) {
@@ -231,7 +303,8 @@ const BookingDetails = () => {
           hasValidationError = true;
           return;
         }
-        validations.push(['food', forms.food]);
+        const mumukshuFoodData = transformToMumukshuFormat(user, forms.food, 'food');
+        validations.push(['food', mumukshuFoodData]);
       }
 
       if (booking !== types.TRAVEL_DETAILS_TYPE && addonOpen.travel) {
@@ -240,16 +313,18 @@ const BookingDetails = () => {
           hasValidationError = true;
           return;
         }
-        validations.push(['travel', forms.travel]);
+        const mumukshuTravelData = transformToMumukshuFormat(user, forms.travel, 'travel');
+        validations.push(['travel', mumukshuTravelData]);
       }
 
       if (booking !== types.ADHYAYAN_DETAILS_TYPE && forms.adhyayan.length > 0) {
-        validations.push(['adhyayan', forms.adhyayan]);
+        const mumukshuAdhyayanData = transformToMumukshuFormat(user, forms.adhyayan, 'adhyayan');
+        validations.push(['adhyayan', mumukshuAdhyayanData]);
       }
 
       // Update data in batch
       if (validations.length > 0) {
-        setData((prev: any) => {
+        setMumukshuData((prev: any) => {
           const newData = { ...prev };
           validations.forEach(([key, value]) => {
             newData[key] = value;
@@ -276,8 +351,9 @@ const BookingDetails = () => {
     validateRoomForm,
     validateFoodForm,
     validateTravelForm,
-    setData,
+    setMumukshuData,
     router,
+    user,
   ]);
 
   const handleCloseValidationModal = useCallback(() => {

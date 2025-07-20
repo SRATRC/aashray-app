@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuthStore, useBookingStore } from '@/stores';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/constants';
-import { prepareSelfRequestBody } from '@/utils/preparingRequestBody';
+import { prepareMumukshuRequestBody } from '@/utils/preparingRequestBody';
 import { Ionicons } from '@expo/vector-icons';
 import RoomBookingDetails from '@/components/booking details cards/RoomBookingDetails';
 import PageHeader from '@/components/PageHeader';
@@ -20,33 +20,42 @@ import CustomModal from '@/components/CustomModal';
 import EventBookingDetails from '@/components/booking details cards/EventBookingDetails';
 import * as Haptics from 'expo-haptics';
 
+// Define validation data type
+interface ValidationData {
+  roomDetails?: Array<{ charge: number; availableCredits?: number }>;
+  travelDetails?: { charge: number; availableCredits?: number };
+  adhyayanDetails?: Array<{ charge: number; availableCredits?: number }>;
+  utsavDetails?: Array<{ charge: number; availableCredits?: number }>;
+  totalCharge: number;
+}
+
 const bookingConfirmation = () => {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
-  const data = useBookingStore((state) => state.data);
-  const setData = useBookingStore((state) => state.setData);
+  const mumukshuData = useBookingStore((state) => state.mumukshuData);
+  const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPayLaterModal, setShowPayLaterModal] = useState(false);
 
-  const payload = prepareSelfRequestBody(user, data);
+  const payload = prepareMumukshuRequestBody(user, mumukshuData);
 
   const fetchValidation = useCallback(async () => {
-    return new Promise((resolve, reject) => {
+    return new Promise<ValidationData>((resolve, reject) => {
       handleAPICall(
         'POST',
-        '/unified/validate',
+        '/mumukshu/validate',
         null,
         payload,
         (res: any) => {
-          setData((prev: any) => ({ ...prev, validationData: res.data }));
+          setMumukshuData((prev: any) => ({ ...prev, validationData: res.data }));
           resolve(res.data);
         },
         () => {},
         (errorDetails: any) => reject(new Error(errorDetails.message))
       );
     });
-  }, [payload, setData]);
+  }, [payload, setMumukshuData]);
 
   const {
     isLoading: isValidationDataLoading,
@@ -54,8 +63,8 @@ const bookingConfirmation = () => {
     error: validationDataError,
     data: validationData,
     refetch: refetchValidation,
-  }: any = useQuery({
-    queryKey: ['confirmationValidations', user.cardno, JSON.stringify(data)],
+  } = useQuery<ValidationData, Error>({
+    queryKey: ['mumukshuConfirmationValidations', user.cardno, JSON.stringify(mumukshuData)],
     queryFn: fetchValidation,
     retry: false,
     enabled: !!user.cardno,
@@ -86,7 +95,7 @@ const bookingConfirmation = () => {
       setIsSubmitting(false);
     };
 
-    await handleAPICall('POST', '/unified/booking', null, payload, onSuccess, onFinally);
+    await handleAPICall('POST', '/mumukshu/booking', null, payload, onSuccess, onFinally);
   };
 
   return (
@@ -94,11 +103,11 @@ const bookingConfirmation = () => {
       <ScrollView alwaysBounceVertical={false} showsVerticalScrollIndicator={false}>
         <PageHeader title="Payment Summary" />
 
-        {data.room && <RoomBookingDetails containerStyles={'mt-2'} />}
-        {data.travel && <TravelBookingDetails containerStyles={'mt-2'} />}
-        {data.adhyayan && <AdhyayanBookingDetails containerStyles={'mt-2'} />}
-        {data.food && <FoodBookingDetails containerStyles={'mt-2'} />}
-        {data.utsav && <EventBookingDetails containerStyles={'mt-2'} />}
+        {mumukshuData.room && <RoomBookingDetails containerStyles={'mt-2'} />}
+        {mumukshuData.travel && <TravelBookingDetails containerStyles={'mt-2'} />}
+        {mumukshuData.adhyayan && <AdhyayanBookingDetails containerStyles={'mt-2'} />}
+        {mumukshuData.food && <FoodBookingDetails containerStyles={'mt-2'} />}
+        {mumukshuData.utsav && <EventBookingDetails containerStyles={'mt-2'} />}
 
         {validationData && validationData.totalCharge > 0 && (
           <View className="mt-4 w-full px-4">
@@ -156,34 +165,35 @@ const bookingConfirmation = () => {
                       return null;
                     })()}
 
-                  {validationData.travelDetails?.charge > 0 && (
+                  {validationData.travelDetails && validationData.travelDetails.charge > 0 && (
                     <View className="border-b border-gray-200 pb-3">
                       <View className="flex-row items-center justify-between">
                         <Text className="font-pregular text-base text-gray-700">Travel Charge</Text>
                         <View className="items-end">
                           <Text
-                            className={`font-${validationData.travelDetails.availableCredits > 0 ? 'pregular' : 'pregular'} text-base text-${validationData.travelDetails.availableCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
+                            className={`font-${validationData.travelDetails.availableCredits && validationData.travelDetails.availableCredits > 0 ? 'pregular' : 'pregular'} text-base text-${validationData.travelDetails.availableCredits && validationData.travelDetails.availableCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
                             ₹{validationData.travelDetails.charge.toLocaleString('en-IN')}
                           </Text>
-                          {validationData.travelDetails.availableCredits > 0 && (
-                            <>
-                              <Text className="font-pregular text-xs text-green-600">
-                                −₹
-                                {validationData.travelDetails.availableCredits.toLocaleString(
-                                  'en-IN'
-                                )}{' '}
-                                credit
-                              </Text>
-                              <Text className="mt-0.5 font-pmedium text-base text-black">
-                                ₹
-                                {Math.max(
-                                  0,
-                                  validationData.travelDetails.charge -
-                                    validationData.travelDetails.availableCredits
-                                ).toLocaleString('en-IN')}
-                              </Text>
-                            </>
-                          )}
+                          {validationData.travelDetails.availableCredits &&
+                            validationData.travelDetails.availableCredits > 0 && (
+                              <>
+                                <Text className="font-pregular text-xs text-green-600">
+                                  −₹
+                                  {validationData.travelDetails.availableCredits.toLocaleString(
+                                    'en-IN'
+                                  )}{' '}
+                                  credit
+                                </Text>
+                                <Text className="mt-0.5 font-pmedium text-base text-black">
+                                  ₹
+                                  {Math.max(
+                                    0,
+                                    validationData.travelDetails.charge -
+                                      validationData.travelDetails.availableCredits
+                                  ).toLocaleString('en-IN')}
+                                </Text>
+                              </>
+                            )}
                         </View>
                       </View>
                     </View>
@@ -193,96 +203,112 @@ const bookingConfirmation = () => {
                     validationData.adhyayanDetails.length > 0 &&
                     (() => {
                       const totalCharge = validationData.adhyayanDetails.reduce(
-                        (total: any, shibir: any) => total + shibir.charge,
+                        (total: number, shibir: { charge: number }) => total + shibir.charge,
                         0
                       );
                       const totalCredits = validationData.adhyayanDetails.reduce(
-                        (total: any, shibir: any) => total + (shibir.availableCredits || 0),
+                        (total: number, shibir: { charge: number; availableCredits?: number }) =>
+                          total + (shibir.availableCredits || 0),
                         0
                       );
-                      return (
-                        <View className="border-b border-gray-200 pb-3">
-                          <View className="flex-row items-center justify-between">
-                            <Text className="font-pregular text-base text-gray-700">
-                              Adhyayan Charge
-                            </Text>
-                            <View className="items-end">
-                              <Text
-                                className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
-                                ₹{totalCharge.toLocaleString('en-IN')}
+
+                      if (totalCharge > 0) {
+                        return (
+                          <View className="border-b border-gray-200 pb-3">
+                            <View className="flex-row items-center justify-between">
+                              <Text className="font-pregular text-base text-gray-700">
+                                Adhyayan Charge
                               </Text>
-                              {totalCredits > 0 && (
-                                <>
-                                  <Text className="font-pregular text-xs text-green-600">
-                                    −₹{totalCredits.toLocaleString('en-IN')} credit
-                                  </Text>
-                                  <Text className="mt-0.5 font-pmedium text-base text-black">
-                                    ₹
-                                    {Math.max(0, totalCharge - totalCredits).toLocaleString(
-                                      'en-IN'
-                                    )}
-                                  </Text>
-                                </>
-                              )}
+                              <View className="items-end">
+                                <Text
+                                  className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
+                                  ₹{totalCharge.toLocaleString('en-IN')}
+                                </Text>
+                                {totalCredits > 0 && (
+                                  <>
+                                    <Text className="font-pregular text-xs text-green-600">
+                                      −₹{totalCredits.toLocaleString('en-IN')} credit
+                                    </Text>
+                                    <Text className="mt-0.5 font-pmedium text-base text-black">
+                                      ₹
+                                      {Math.max(0, totalCharge - totalCredits).toLocaleString(
+                                        'en-IN'
+                                      )}
+                                    </Text>
+                                  </>
+                                )}
+                              </View>
                             </View>
                           </View>
-                        </View>
-                      );
+                        );
+                      }
+                      return null;
                     })()}
 
                   {validationData.utsavDetails &&
                     validationData.utsavDetails.length > 0 &&
                     (() => {
                       const totalCharge = validationData.utsavDetails.reduce(
-                        (total: any, utsav: any) => total + utsav.charge,
+                        (total: number, utsav: { charge: number }) => total + utsav.charge,
                         0
                       );
                       const totalCredits = validationData.utsavDetails.reduce(
-                        (total: any, utsav: any) => total + (utsav.availableCredits || 0),
+                        (total: number, utsav: { charge: number; availableCredits?: number }) =>
+                          total + (utsav.availableCredits || 0),
                         0
                       );
-                      return (
-                        <View className="border-b border-gray-200 pb-3">
-                          <View className="flex-row items-center justify-between">
-                            <Text className="font-pregular text-base text-gray-700">
-                              Utsav Charge
-                            </Text>
-                            <View className="items-end">
-                              <Text
-                                className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
-                                ₹{totalCharge.toLocaleString('en-IN')}
+
+                      if (totalCharge > 0) {
+                        return (
+                          <View className="border-b border-gray-200 pb-3">
+                            <View className="flex-row items-center justify-between">
+                              <Text className="font-pregular text-base text-gray-700">
+                                Utsav Charge
                               </Text>
-                              {totalCredits > 0 && (
-                                <>
-                                  <Text className="font-pregular text-xs text-green-600">
-                                    −₹{totalCredits.toLocaleString('en-IN')} credit
-                                  </Text>
-                                  <Text className="mt-0.5 font-pmedium text-base text-black">
-                                    ₹
-                                    {Math.max(0, totalCharge - totalCredits).toLocaleString(
-                                      'en-IN'
-                                    )}
-                                  </Text>
-                                </>
-                              )}
+                              <View className="items-end">
+                                <Text
+                                  className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
+                                  ₹{totalCharge.toLocaleString('en-IN')}
+                                </Text>
+                                {totalCredits > 0 && (
+                                  <>
+                                    <Text className="font-pregular text-xs text-green-600">
+                                      −₹{totalCredits.toLocaleString('en-IN')} credit
+                                    </Text>
+                                    <Text className="mt-0.5 font-pmedium text-base text-black">
+                                      ₹
+                                      {Math.max(0, totalCharge - totalCredits).toLocaleString(
+                                        'en-IN'
+                                      )}
+                                    </Text>
+                                  </>
+                                )}
+                              </View>
                             </View>
                           </View>
-                        </View>
-                      );
+                        );
+                      }
+                      return null;
                     })()}
 
                   {/* Total section */}
                   <View className="pt-2">
                     {(() => {
                       const totalCredits =
-                        (validationData.roomDetails?.availableCredits || 0) +
+                        (validationData.roomDetails?.reduce(
+                          (sum: number, item: { availableCredits?: number }) =>
+                            sum + (item.availableCredits || 0),
+                          0
+                        ) || 0) +
                         (validationData.travelDetails?.availableCredits || 0) +
                         (validationData.adhyayanDetails?.reduce(
-                          (sum: number, item: any) => sum + (item.availableCredits || 0),
+                          (sum: number, item: { availableCredits?: number }) =>
+                            sum + (item.availableCredits || 0),
                           0
                         ) || 0) +
                         (validationData.utsavDetails?.reduce(
-                          (sum: number, item: any) => sum + (item.availableCredits || 0),
+                          (sum: number, item: { availableCredits?: number }) =>
+                            sum + (item.availableCredits || 0),
                           0
                         ) || 0);
 
@@ -373,7 +399,7 @@ const bookingConfirmation = () => {
 
                   await handleAPICall(
                     'POST',
-                    '/unified/booking',
+                    '/mumukshu/booking',
                     null,
                     payload,
                     onSuccess,
@@ -409,7 +435,7 @@ const bookingConfirmation = () => {
 
                 await handleAPICall(
                   'POST',
-                  '/unified/booking',
+                  '/mumukshu/booking',
                   null,
                   payload,
                   onSuccess,

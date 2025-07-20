@@ -628,7 +628,25 @@ const TravelBooking = () => {
                 return;
               }
 
-              await updateBooking('travel', travelForm);
+              const temp = transformMumukshuData({
+                date: travelForm.date,
+                mumukshus: [
+                  {
+                    cardno: user.cardno,
+                    mobno: user.mobno,
+                    pickup: travelForm.pickup,
+                    drop: travelForm.drop,
+                    luggage: travelForm.luggage,
+                    adhyayan: travelForm.adhyayan,
+                    type: travelForm.type,
+                    total_people: travelForm.total_people,
+                    special_request: travelForm.special_request,
+                    arrival_time: travelForm.arrival_time,
+                  },
+                ],
+              });
+
+              await updateMumukshuBooking('travel', temp);
               router.push(`/booking/${types.TRAVEL_DETAILS_TYPE}`);
             }
             if (selectedChip == CHIPS[1]) {

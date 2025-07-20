@@ -9,8 +9,13 @@ import moment from 'moment';
 const MumukshuEventBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const mumukshuData = useBookingStore((store) => store.mumukshuData);
 
-  const formattedStartDate = moment(mumukshuData.utsav.utsav.utsav_start).format('Do MMMM');
-  const formattedEndDate = moment(mumukshuData.utsav.utsav.utsav_end).format('Do MMMM, YYYY');
+  const startDate = moment(mumukshuData.utsav.utsav.utsav_start);
+  const endDate = moment(mumukshuData.utsav.utsav.utsav_end);
+
+  const sameDay = startDate.isSame(endDate, 'day');
+  const formattedDate = sameDay
+    ? startDate.format('Do MMMM, YYYY')
+    : `${startDate.format('Do MMMM')} - ${endDate.format('Do MMMM, YYYY')}`;
 
   return (
     <PrimaryAddonBookingCard title={'Raj Utsav Booking'} containerStyles={containerStyles}>
@@ -40,9 +45,7 @@ const MumukshuEventBookingDetails: React.FC<{ containerStyles: any }> = ({ conta
                 )}
             </ScrollView>
           )} */}
-          <Text className="text-md font-pmedium">
-            {`${formattedStartDate} - ${formattedEndDate}`}
-          </Text>
+          <Text className="text-md font-pmedium">{formattedDate}</Text>
         </View>
       </View>
 

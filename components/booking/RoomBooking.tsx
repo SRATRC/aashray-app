@@ -38,6 +38,13 @@ const INITIAL_SINGLE_DAY_MUMUKSHU_FORM = {
   ],
 };
 
+const INITIAL_MULTI_DAY_FORM = {
+  startDay: '',
+  endDay: '',
+  roomType: dropdowns.ROOM_TYPE_LIST[0].key,
+  floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
+};
+
 const INITIAL_GUEST_FORM = {
   startDay: '',
   endDay: '',
@@ -90,6 +97,7 @@ const RoomBooking = () => {
       setKey((prevKey) => prevKey + 1);
       setGuestForm(INITIAL_GUEST_FORM);
       setMumukshuForm(INITIAL_MUMUKSHU_FORM);
+      setMultiDayForm(INITIAL_MULTI_DAY_FORM);
     }, [])
   );
 
@@ -397,7 +405,23 @@ const RoomBooking = () => {
                         return;
                       }
 
-                      await updateBooking('room', multiDayForm);
+                      const temp = transformMumukshuResponse({
+                        startDay: multiDayForm.startDay,
+                        endDay: multiDayForm.endDay,
+                        mumukshus: [
+                          {
+                            cardno: user.cardno,
+                            mobno: user.mobno,
+                            issuedto: user.name,
+                            gender: user.gender,
+                            res_status: user.res_status,
+                            roomType: multiDayForm.roomType,
+                            floorType: multiDayForm.floorType,
+                          },
+                        ],
+                      });
+
+                      await updateMumukshuBooking('room', temp);
                       router.push(`/booking/${types.ROOM_DETAILS_TYPE}`);
                     }}
                     containerStyles="mt-7 min-h-[62px]"
@@ -623,7 +647,7 @@ const RoomBooking = () => {
 
                     await handleAPICall(
                       'POST',
-                      '/unified/booking',
+                      '/mumukshu/booking',
                       null,
                       {
                         cardno: user.cardno,
@@ -632,12 +656,19 @@ const RoomBooking = () => {
                           details: {
                             checkin_date: selectedDay,
                             checkout_date: selectedDay,
+                            mumukshuGroup: [
+                              {
+                                roomType: 'nac',
+                                floorType: '',
+                                mumukshus: [user.cardno],
+                              },
+                            ],
                           },
                         },
-                        addons: [],
                       },
                       onSuccess,
-                      onFinally
+                      onFinally,
+                      () => {}
                     );
                   }
 

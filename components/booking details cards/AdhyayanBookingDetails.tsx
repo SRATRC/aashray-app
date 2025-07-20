@@ -1,4 +1,4 @@
-import { View, Text, Image } from 'react-native';
+import { View, Text, Image, ScrollView } from 'react-native';
 import { icons, status } from '@/constants';
 import { useBookingStore } from '@/stores';
 import HorizontalSeparator from '../HorizontalSeparator';
@@ -7,31 +7,40 @@ import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import moment from 'moment';
 
 const AdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
-  const data = useBookingStore((state) => state.data);
+  const data = useBookingStore((state) => state.mumukshuData);
 
-  const formattedStartDate = moment(data.adhyayan[0].start_date).format('Do MMMM');
-  const formattedEndDate = moment(data.adhyayan[0].end_date).format('Do MMMM, YYYY');
+  const formattedStartDate = moment(data.adhyayan?.adhyayan?.start_date).format('Do MMMM');
+  const formattedEndDate = moment(data.adhyayan?.adhyayan?.end_date).format('Do MMMM, YYYY');
 
   return (
     <PrimaryAddonBookingCard title={'Raj Adhyayan Booking'} containerStyles={containerStyles}>
       <View className="item-center flex flex-row gap-x-4 p-4">
         <Image source={icons.adhyayan} className="h-10 w-10" resizeMode="contain" />
         <View className="w-full flex-1 justify-center gap-y-1">
-          {data.validationData?.adhyayanDetails[0] && (
-            <CustomTag
-              text={data.validationData?.adhyayanDetails[0]?.status}
-              textStyles={
-                data.validationData?.adhyayanDetails[0]?.status == status.STATUS_AVAILABLE
-                  ? 'text-green-200'
-                  : 'text-red-200'
-              }
-              containerStyles={
-                data.validationData?.adhyayanDetails[0]?.status == status.STATUS_AVAILABLE
-                  ? 'bg-green-100'
-                  : 'bg-red-100'
-              }
-            />
+          {data.validationData?.adhyayanDetails?.length > 0 && (
+            <ScrollView horizontal>
+              {data.validationData &&
+                Object.keys(data.validationData).length > 0 &&
+                data.validationData.adhyayanDetails[0]?.available !== 0 && (
+                  <CustomTag
+                    text={`available: ${data.validationData.adhyayanDetails[0].available}`}
+                    textStyles={'text-green-200'}
+                    containerStyles={'bg-green-100'}
+                  />
+                )}
+
+              {data.validationData &&
+                Object.keys(data.validationData).length > 0 &&
+                data.validationData.adhyayanDetails[0]?.waiting !== 0 && (
+                  <CustomTag
+                    text={`waiting: ${data.validationData.adhyayanDetails[0].waiting}`}
+                    textStyles={'text-red-200'}
+                    containerStyles={'bg-red-100'}
+                  />
+                )}
+            </ScrollView>
           )}
+
           <Text className="text-md font-pmedium">
             {`${formattedStartDate} - ${formattedEndDate}`}
           </Text>
@@ -44,19 +53,19 @@ const AdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ containerS
         <Image source={icons.description} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Name:</Text>
         <Text className="flex-1 font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
-          {data.adhyayan[0].name}
+          {data.adhyayan.adhyayan.name}
         </Text>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
         <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Swadhyay Karta:</Text>
-        <Text className="font-pmedium text-black">{data.adhyayan[0].speaker}</Text>
+        <Text className="font-pmedium text-black">{data.adhyayan.adhyayan.speaker}</Text>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
         <Image source={icons.marker} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Location:</Text>
         <Text className="flex-1 font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
-          {data.adhyayan[0].location}
+          {data.adhyayan.adhyayan.location}
         </Text>
       </View>
     </PrimaryAddonBookingCard>

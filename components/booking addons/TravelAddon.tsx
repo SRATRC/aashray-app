@@ -27,8 +27,8 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
   onToggle,
 }) => {
   const user = useAuthStore((state) => state.user);
-  const data = useBookingStore((state) => state.data);
-  const setData = useBookingStore((state) => state.setData);
+  const mumukshuData = useBookingStore((state) => state.mumukshuData);
+  const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
   const [tempTravelDate, setTempTravelDate] = useState(
     travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()
@@ -92,7 +92,10 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
       onToggle={onToggle}
       onCollapse={() => {
         setTravelForm({
-          date: data.room?.startDay || (data.adhyayan && data.adhyayan[0]?.start_date) || '',
+          date:
+            mumukshuData.room?.startDay ||
+            (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.start_date) ||
+            '',
           pickup: '',
           drop: '',
           arrival_time: '',
@@ -102,7 +105,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           total_people: null,
           special_request: '',
         });
-        setData((prev: any) => {
+        setMumukshuData((prev: any) => {
           const { travel, ...rest } = prev;
           return rest;
         });

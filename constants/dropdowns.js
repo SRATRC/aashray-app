@@ -90,6 +90,9 @@ const ID_TYPE_LIST = [
   { key: 'AADHAR', value: 'Aadhaar Card' },
   { key: 'PAN', value: 'PAN Card' },
   { key: 'PASSPORT', value: 'Passport' },
+  { key: 'SSN', value: 'Social Security Number' },
+  { key: 'EMIRATESID', value: 'Emirates ID' },
+  { key: 'OTHER', value: 'Other' },
 ];
 
 export default {

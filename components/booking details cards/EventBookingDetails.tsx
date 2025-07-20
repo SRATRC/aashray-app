@@ -8,7 +8,7 @@ import CustomTag from '../CustomTag';
 import moment from 'moment';
 
 const EventBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
-  const data = useBookingStore((state) => state.data);
+  const data = useBookingStore((store) => store.mumukshuData);
 
   const startDate = moment(data.utsav.utsav.utsav_start);
   const endDate = moment(data.utsav.utsav.utsav_end);
@@ -23,7 +23,7 @@ const EventBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyl
       <View className="item-center flex flex-row gap-x-4 p-4">
         <Image source={icons.events} className="h-10 w-10" resizeMode="contain" />
         <View className="w-full flex-1 justify-center gap-y-1">
-          {data.validationData?.utsavDetails && (
+          {/* {data.validationData?.utsavDetails && (
             <CustomTag
               text={data.validationData?.utsavDetails[0].status}
               textStyles={
@@ -37,7 +37,7 @@ const EventBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyl
                   : 'bg-red-100'
               }
             />
-          )}
+          )} */}
           <Text className="text-md font-pmedium">{formattedDate}</Text>
         </View>
       </View>
@@ -55,7 +55,7 @@ const EventBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyl
         <FontAwesome5 name="ticket-alt" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Package:</Text>
         <Text className="flex-1 font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
-          {data.utsav.package_name}
+          {data.utsav.mumukshus[0].package_name}
         </Text>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
@@ -69,7 +69,7 @@ const EventBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyl
         <MaterialIcons name="volunteer-activism" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Volunteer:</Text>
         <Text className="flex-1 font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
-          {data.utsav.volunteer || 'Unable to Volunteer'}
+          {data.utsav.mumukshus[0].volunteer || 'Unable to Volunteer'}
         </Text>
       </View>
     </PrimaryAddonBookingCard>

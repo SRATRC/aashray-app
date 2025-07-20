@@ -25,8 +25,8 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
   setDatePickerVisibility,
   onToggle,
 }) => {
-  const data = useBookingStore((state) => state.data);
-  const setData = useBookingStore((state) => state.setData);
+  const mumukshuData = useBookingStore((state) => state.mumukshuData);
+  const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
   // Temporary state to hold the date for the checkin picker
   const [tempFoodStartDate, setTempFoodStartDate] = useState(
@@ -38,17 +38,20 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
       onCollapse={() => {
         setFoodForm({
           startDay:
-            data.room?.startDay ||
-            (data.adhyayan && data.adhyayan[0]?.start_date) ||
-            data.travel?.date ||
+            mumukshuData.room?.startDay ||
+            (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.start_date) ||
+            mumukshuData.travel?.date ||
             '',
-          endDay: data.room?.endDay || (data.adhyayan && data.adhyayan[0]?.end_date) || '',
+          endDay:
+            mumukshuData.room?.endDay ||
+            (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.end_date) ||
+            '',
           meals: ['breakfast', 'lunch', 'dinner'],
           spicy: dropdowns.SPICE_LIST[0].key,
           hightea: dropdowns.HIGHTEA_LIST[0].key,
         });
 
-        setData((prev: any) => {
+        setMumukshuData((prev: any) => {
           const { food, ...rest } = prev;
           return rest;
         });

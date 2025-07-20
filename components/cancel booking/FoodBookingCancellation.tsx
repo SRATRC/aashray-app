@@ -40,9 +40,9 @@ export default function FoodBookingCancellation() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const CancellationNote = () => (
-    <View className="mb-2 flex-row items-center gap-x-2 rounded-lg border border-amber-300 bg-amber-50 p-3">
-      <FontAwesome name="info-circle" size={16} color="#b45309" />
-      <Text className="font-pregular text-sm text-amber-800">
+    <View className="mb-2 flex-row items-start gap-x-3 rounded-lg border border-amber-300 bg-amber-50 p-3">
+      <FontAwesome name="info-circle" size={16} color="#b45309" style={{ alignSelf: 'center' }} />
+      <Text className="flex-1 font-pregular text-sm text-amber-800">
         Bookings can be cancelled before 8 PM of each day for the next day's meals.
       </Text>
     </View>

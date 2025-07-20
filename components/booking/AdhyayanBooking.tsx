@@ -414,7 +414,20 @@ const AdhyayanBooking = () => {
                   handlePress={async () => {
                     setIsSubmitting(true);
                     if (selectedChip == CHIPS[0]) {
-                      await updateBooking('adhyayan', [selectedItem]);
+                      const temp = transformMumukshuData({
+                        adhyayan: selectedItem,
+                        mumukshus: [
+                          {
+                            cardno: user.cardno,
+                            mobno: user.mobno,
+                            issuedto: user.name,
+                            gender: user.gender,
+                            res_status: user.res_status,
+                          },
+                        ],
+                      });
+
+                      await updateMumukshuBooking('adhyayan', temp);
                       if (selectedItem.location !== 'Research Centre')
                         router.push('/booking/bookingConfirmation');
                       else router.push(`/booking/${types.ADHYAYAN_DETAILS_TYPE}`);
@@ -436,7 +449,7 @@ const AdhyayanBooking = () => {
                           },
                           async (res: any) => {
                             guestForm.guests = res.guests;
-                            const transformedData = transformData(guestForm);
+                            const transformedData = transformGuestData(guestForm);
 
                             await updateGuestBooking('adhyayan', transformedData);
                             setGuestForm(INITIAL_GUEST_FORM);
@@ -450,7 +463,7 @@ const AdhyayanBooking = () => {
                           }
                         );
                       } else {
-                        const transformedData = transformData(guestForm);
+                        const transformedData = transformGuestData(guestForm);
 
                         await updateGuestBooking('adhyayan', transformedData);
                         setGuestForm(INITIAL_GUEST_FORM);
@@ -566,7 +579,7 @@ const AdhyayanBooking = () => {
   );
 };
 
-function transformData(inputData: any) {
+function transformGuestData(inputData: any) {
   const { adhyayan, guests } = inputData;
 
   return {

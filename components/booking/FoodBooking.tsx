@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores';
 import { colors, dropdowns, status } from '@/constants';
 import { FontAwesome } from '@expo/vector-icons';
+import { prepareMumukshuRequestBody } from '@/utils/preparingRequestBody';
 import CustomButton from '../CustomButton';
 import CustomCalender from '../CustomCalender';
 import handleAPICall from '@/utils/HandleApiCall';
@@ -293,7 +294,7 @@ const FoodBooking = () => {
 
                 await handleAPICall(
                   'POST',
-                  '/unified/booking',
+                  '/mumukshu/booking',
                   null,
                   {
                     cardno: user.cardno,
@@ -302,11 +303,14 @@ const FoodBooking = () => {
                       details: {
                         start_date: foodForm.startDay,
                         end_date: foodForm.endDay ? foodForm.endDay : foodForm.startDay,
-                        breakfast: foodForm.meals.includes('breakfast') ? 1 : 0,
-                        lunch: foodForm.meals.includes('lunch') ? 1 : 0,
-                        dinner: foodForm.meals.includes('dinner') ? 1 : 0,
-                        spicy: foodForm.spicy,
-                        high_tea: foodForm.hightea,
+                        mumukshuGroup: [
+                          {
+                            mumukshus: [user.cardno],
+                            meals: foodForm.meals,
+                            spicy: foodForm.spicy,
+                            high_tea: foodForm.hightea,
+                          },
+                        ],
                       },
                     },
                   },
@@ -524,26 +528,32 @@ const FoodBooking = () => {
                   return;
                 }
 
-                const transformedData = transformMumukshuData(
-                  JSON.parse(JSON.stringify(mumukshuForm))
-                );
+                const transformedMumukshuData = {
+                  primary: 'food',
+                  food: {
+                    startDay: mumukshuForm.startDay,
+                    endDay: mumukshuForm.endDay || mumukshuForm.startDay,
+                    mumukshuGroup: transformMumukshuFormToGroups(mumukshuForm.mumukshus),
+                  },
+                };
+
+                const requestBody = prepareMumukshuRequestBody(user, transformedMumukshuData);
 
                 await handleAPICall(
                   'POST',
                   '/mumukshu/booking',
                   null,
-                  {
-                    cardno: user.cardno,
-                    primary_booking: {
-                      booking_type: 'food',
-                      details: transformedData,
-                    },
-                  },
+                  requestBody,
                   (_data: any) => {
                     Alert.alert('Booking Successful');
                   },
                   () => {
                     setIsSubmitting(false);
+                  },
+                  (errorDetails: any) => {
+                    setIsSubmitting(false);
+                    setModalMessage(errorDetails.message);
+                    setModalVisible(true);
                   }
                 );
               }}
@@ -599,10 +609,7 @@ function transformGuestData(inputData: any) {
   };
 }
 
-function transformMumukshuData(inputData: any) {
-  const { startDay, endDay, mumukshus } = inputData;
-
-  // Group mumukshus by shared attributes
+const transformMumukshuFormToGroups = (mumukshus: any[]) => {
   const groupedMumukshus = mumukshus.reduce((acc: any, mumukshu: any) => {
     const key = JSON.stringify({
       meals: mumukshu.meals,
@@ -615,23 +622,15 @@ function transformMumukshuData(inputData: any) {
         mumukshus: [],
         meals: mumukshu.meals,
         spicy: mumukshu.spicy,
-        high_tea: mumukshu.hightea,
+        hightea: mumukshu.hightea,
       };
     }
 
-    acc[key].mumukshus.push(mumukshu.cardno);
-
+    acc[key].mumukshus.push({ cardno: mumukshu.cardno });
     return acc;
   }, {});
 
-  // Transform grouped data into an array
-  const mumukshuGroup = Object.values(groupedMumukshus);
-
-  return {
-    start_date: startDay,
-    end_date: endDay,
-    mumukshuGroup,
-  };
-}
+  return Object.values(groupedMumukshus);
+};
 
 export default FoodBooking;

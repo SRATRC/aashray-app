@@ -711,10 +711,24 @@ const EventBooking = () => {
                         }
 
                         const updatedForm = {
-                          ...selfForm,
+                          mumukshus: [
+                            {
+                              cardno: user.cardno,
+                              mobno: user.mobno,
+                              issuedto: user.name,
+                              gender: user.gender,
+                              res_status: user.res_status,
+                              package: selfForm.package,
+                              package_name: selfForm.package_name,
+                              arrival: selfForm.arrival,
+                              carno: selfForm.carno,
+                              volunteer: selfForm.volunteer,
+                              other: selfForm.other,
+                            },
+                          ],
                           utsav: selectedItem,
                         };
-                        await updateBooking('utsav', updatedForm);
+                        await updateMumukshuBooking('utsav', updatedForm);
                         router.push(`/booking/${types.EVENT_DETAILS_TYPE}`);
                       }
                       if (selectedChip == CHIPS[1]) {

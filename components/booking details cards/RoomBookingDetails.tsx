@@ -8,14 +8,18 @@ import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import { useBookingStore } from '@/stores';
 
 const RoomBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
-  const data = useBookingStore((state) => state.data);
+  const data = useBookingStore((state) => state.mumukshuData);
 
-  const formattedStartDate = moment(data.room.startDay).format('Do MMMM');
-  const formattedEndDate = moment(data.room.endDay).format('Do MMMM, YYYY');
+  const formattedStartDate = moment(data?.room?.startDay).format('Do MMMM');
+  const formattedEndDate = data?.room?.endDay
+    ? moment(data?.room?.endDay).format('Do MMMM, YYYY')
+    : null;
 
   const validationData = data?.validationData
     ? countStatusesForField(data?.validationData, 'roomDetails')
     : {};
+
+  console.log(JSON.stringify(data));
 
   return (
     <PrimaryAddonBookingCard containerStyles={containerStyles} title="Raj Sharan Booking">

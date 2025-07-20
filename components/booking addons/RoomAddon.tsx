@@ -25,8 +25,8 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
   setDatePickerVisibility,
   onToggle,
 }) => {
-  const data = useBookingStore((state) => state.data);
-  const setData = useBookingStore((state) => state.setData);
+  const mumukshuData = useBookingStore((state) => state.mumukshuData);
+  const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
   // Temporary state to hold the date for the checkin picker
   const [tempCheckinDate, setTempCheckinDate] = useState(
@@ -40,10 +40,13 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
         setRoomForm({
           roomType: dropdowns.ROOM_TYPE_LIST[0].key,
           floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
-          startDay: data.travel?.date || (data.adhyayan && data.adhyayan[0]?.start_date) || '',
-          endDay: (data.adhyayan && data.adhyayan[0]?.end_date) || '',
+          startDay:
+            mumukshuData.travel?.date ||
+            (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.start_date) ||
+            '',
+          endDay: (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.end_date) || '',
         });
-        setData((prev: any) => {
+        setMumukshuData((prev: any) => {
           const { room, ...rest } = prev;
           return rest;
         });

@@ -21,8 +21,8 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
   booking,
 }) => {
   const user = useAuthStore((state) => state.user);
-  const data = useBookingStore((state) => state.data);
-  const setData = useBookingStore((state) => state.setData);
+  const mumukshuData = useBookingStore((state) => state.mumukshuData);
+  const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
   const fetchAdhyayans = async () => {
     return new Promise((resolve, reject) => {
@@ -31,8 +31,11 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
         '/adhyayan/getrange',
         {
           cardno: user.cardno,
-          start_date: booking == types.ROOM_DETAILS_TYPE ? data.room.startDay : data.travel.date,
-          end_date: booking == types.ROOM_DETAILS_TYPE ? data.room.endDay : '',
+          start_date:
+            booking == types.ROOM_DETAILS_TYPE
+              ? mumukshuData.room?.startDay
+              : mumukshuData.travel?.date,
+          end_date: booking == types.ROOM_DETAILS_TYPE ? mumukshuData.room?.endDay : '',
         },
         null,
         (res: any) => {
@@ -49,7 +52,7 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
     error,
     data: adhyayanList,
   }: any = useQuery({
-    queryKey: ['adhyayans', booking, data.room?.startDay, data.travel?.date],
+    queryKey: ['adhyayans', booking, mumukshuData.room?.startDay, mumukshuData.travel?.date],
     queryFn: fetchAdhyayans,
     staleTime: 1000 * 60 * 30,
   });
@@ -62,7 +65,7 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
       const filteredList = prevSelectedItems.filter((selected) => selected.id !== item.id);
       setAdhyayanBookingList(filteredList);
       if (filteredList.length === 0) {
-        setData((prev: any) => {
+        setMumukshuData((prev: any) => {
           const { adhyayan, ...rest } = prev;
           return rest;
         });
@@ -179,7 +182,7 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
     <AddonItem
       onCollapse={() => {
         setAdhyayanBookingList([]);
-        setData((prev: any) => {
+        setMumukshuData((prev: any) => {
           const { adhyayan, ...rest } = prev;
           return rest;
         });
