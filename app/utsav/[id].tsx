@@ -13,7 +13,7 @@ import {
   Share,
 } from 'react-native';
 import React, { useCallback, useEffect, useState, useRef } from 'react';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { icons, status, types } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore, useBookingStore } from '@/stores';
@@ -109,13 +109,32 @@ const INITIAL_MUMUKSHU_FORM = {
   ],
 };
 
+// Transform self form to mumukshu format
+const transformSelfToMumukshu = (user: any, selfForm: any, utsav: any) => {
+  const selfMumukshu = {
+    cardno: user.cardno,
+    issuedto: user.name || `${user.firstname} ${user.lastname}`.trim(),
+    mobno: user.mobno || '',
+    package: selfForm.package,
+    package_name: selfForm.package_name,
+    arrival: selfForm.arrival,
+    carno: selfForm.carno,
+    volunteer: selfForm.volunteer,
+    other: selfForm.other,
+  };
+
+  return {
+    utsav: utsav,
+    mumukshus: [selfMumukshu],
+  };
+};
+
 const UtsavPage = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const user = useAuthStore((state) => state.user);
-  const updateBooking = useBookingStore((state) => state.updateBooking);
-  const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
   const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
+  const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
 
   const insets = useSafeAreaInsets();
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -408,11 +427,9 @@ const UtsavPage = () => {
           return;
         }
 
-        const updatedForm = {
-          ...selfForm,
-          utsav: utsav,
-        };
-        await updateBooking('utsav', updatedForm);
+        // Transform self form to mumukshu format
+        const mumukshuFormatData = transformSelfToMumukshu(user, selfForm, utsav);
+        await updateMumukshuBooking('utsav', mumukshuFormatData);
         router.push(`/booking/${types.EVENT_DETAILS_TYPE}`);
       }
       if (selectedChip == CHIPS[1]) {

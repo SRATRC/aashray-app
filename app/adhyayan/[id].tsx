@@ -51,13 +51,26 @@ const INITIAL_MUMUKSHU_FORM = {
   ],
 };
 
+// Transform self adhyayan booking to mumukshu format
+const transformSelfAdhyayanToMumukshu = (user: any, adhyayan: any) => {
+  const selfMumukshu = {
+    cardno: user.cardno,
+    issuedto: user.name || `${user.firstname} ${user.lastname}`.trim(),
+  };
+
+  return {
+    adhyayan: adhyayan,
+    mumukshus: [selfMumukshu],
+    mumukshuIndices: ['0'],
+  };
+};
+
 const AdhyayanDetails = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const user = useAuthStore((state) => state.user);
-  const updateBooking = useBookingStore((state) => state.updateBooking);
-  const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
   const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
+  const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
 
   const insets = useSafeAreaInsets();
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -260,7 +273,9 @@ const AdhyayanDetails = () => {
     setIsSubmitting(true);
     try {
       if (selectedChip == CHIPS[0]) {
-        await updateBooking('adhyayan', [adhyayan]);
+        // Transform self booking to mumukshu format
+        const mumukshuFormatData = transformSelfAdhyayanToMumukshu(user, adhyayan);
+        await updateMumukshuBooking('adhyayan', mumukshuFormatData);
         if (adhyayan.location !== 'Research Centre') router.push('/booking/bookingConfirmation');
         else router.push(`/booking/${types.ADHYAYAN_DETAILS_TYPE}`);
       }
