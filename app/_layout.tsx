@@ -87,9 +87,9 @@ const AppNavigator = () => {
       if (path.startsWith('/adhyayan/')) {
         routeId = path.split('/adhyayan/')[1];
         targetRoute = `/adhyayan/${routeId}`;
-      } else if (path.startsWith('/event/')) {
-        routeId = path.split('/event/')[1];
-        targetRoute = `/event/${routeId}`;
+      } else if (path.startsWith('/utsav/')) {
+        routeId = path.split('/utsav/')[1];
+        targetRoute = `/utsav/${routeId}`;
       }
 
       if (targetRoute && routeId) {
@@ -100,9 +100,15 @@ const AppNavigator = () => {
           return;
         }
         router.replace(targetRoute);
+      } else {
+        // Handle unmatched routes - redirect to not-found page
+        console.log('❌ Unmatched deeplink route:', path);
+        router.replace('/+not-found');
       }
     } catch (error) {
       console.error('❌ Error navigating to path:', error);
+      // On any navigation error, redirect to not-found page
+      router.replace('/+not-found');
     } finally {
       setTimeout(() => {
         isProcessingDeepLink.current = false;
@@ -143,6 +149,11 @@ const AppNavigator = () => {
             navigateToPath(path);
           } else if (path && !isFullyOnboarded) {
             console.log('⏳ User not fully authenticated, storing pending deep link:', path);
+            // Store the pending deeplink for later processing
+            // You could store this in AsyncStorage or a global state if needed
+          } else if (path) {
+            // If we have a path but user state is unclear, log it
+            console.log('⚠️ Received deeplink but user state is unclear:', path);
           }
         } catch (error) {
           console.error('❌ Error processing deep link:', error);
@@ -202,6 +213,7 @@ const AppNavigator = () => {
         <Stack.Screen name="adhyayan" />
         <Stack.Screen name="utsav" />
         <Stack.Screen name="index" />
+        <Stack.Screen name="+not-found" />
       </Stack.Protected>
       <Stack.Protected guard={needsPfp || isFullyOnboarded}>
         <Stack.Screen name="(common)" />
