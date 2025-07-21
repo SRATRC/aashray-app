@@ -23,24 +23,41 @@ export const QrModal = () => {
   const { user } = useAuthStore();
   const [modalVisible, setModalVisible] = useState(false);
   const modalAnimation = useRef(new Animated.Value(0)).current;
+  const buttonOpacity = useRef(new Animated.Value(1)).current; // Separate animation for button
 
   const qrSize = Math.min(screenWidth, screenHeight) * 0.7;
   const pieceSize = Math.max(8, Math.floor(qrSize / 35));
 
   useEffect(() => {
     if (modalVisible) {
-      Animated.spring(modalAnimation, {
-        toValue: 1,
-        tension: 60,
-        friction: 10,
-        useNativeDriver: true,
-      }).start();
+      // Animate modal in and button out
+      Animated.parallel([
+        Animated.spring(modalAnimation, {
+          toValue: 1,
+          tension: 60,
+          friction: 10,
+          useNativeDriver: true,
+        }),
+        Animated.timing(buttonOpacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
     } else {
-      Animated.timing(modalAnimation, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
+      // Animate modal out and button in
+      Animated.parallel([
+        Animated.timing(modalAnimation, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(buttonOpacity, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
     }
   }, [modalVisible]);
 
@@ -64,12 +81,6 @@ export const QrModal = () => {
     outputRange: [0.9, 1.05, 1],
   });
 
-  const buttonOpacity = modalAnimation.interpolate({
-    inputRange: [0, 0.5],
-    outputRange: [1, 0],
-    extrapolate: 'clamp',
-  });
-
   return (
     <>
       <Animated.View style={[styles.buttonContainer, { opacity: buttonOpacity }]}>
@@ -87,7 +98,10 @@ export const QrModal = () => {
         transparent={true}
         visible={modalVisible}
         statusBarTranslucent={true}
-        onRequestClose={closeModal}>
+        onRequestClose={closeModal}
+        presentationStyle="overFullScreen" // Add this to prevent interference
+        animationType="none" // We handle our own animations
+      >
         <BlurView intensity={100} tint="dark" style={styles.overlay}>
           <SafeAreaView style={styles.safeArea}>
             <Animated.View
