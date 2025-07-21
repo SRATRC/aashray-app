@@ -330,6 +330,7 @@ const RoomBooking = () => {
         <View key={key}>
           <SegmentedControl
             segments={SWITCH_OPTIONS}
+            selectedIndex={SWITCH_OPTIONS.indexOf(value)}
             onSegmentChange={(segment: any) => {
               setValue(segment);
             }}

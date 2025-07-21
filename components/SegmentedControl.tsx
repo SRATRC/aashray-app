@@ -16,20 +16,27 @@ interface SegmentedControlProps {
   segments: string[];
   onSegmentChange: (segment: string) => void;
   containerStyle?: StyleProp<ViewStyle>;
+  selectedIndex?: number;
 }
 
 const SegmentedControl: React.FC<SegmentedControlProps> = ({
   segments,
   onSegmentChange,
   containerStyle,
+  selectedIndex: controlledSelectedIndex,
 }) => {
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [internalSelectedIndex, setInternalSelectedIndex] = useState<number>(0);
+  const selectedIndex =
+    controlledSelectedIndex !== undefined ? controlledSelectedIndex : internalSelectedIndex;
   const translateValue = useRef(new Animated.Value(0)).current;
 
   const segmentWidth = (width - 32) / segments.length;
 
   const handlePress = (segment: string, index: number) => {
-    setSelectedIndex(index);
+    // Only update internal state if not controlled
+    if (controlledSelectedIndex === undefined) {
+      setInternalSelectedIndex(index);
+    }
     onSegmentChange(segment);
 
     Animated.timing(translateValue, {
