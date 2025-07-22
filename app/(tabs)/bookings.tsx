@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { types } from '@/constants';
 import { useQueryClient } from '@tanstack/react-query';
 import CustomChipGroup from '@/components/CustomChipGroup';
+import { useBottomTabOverflow } from '@/components/TabBarBackground';
 import RoomBookingCancellation from '@/components/cancel booking/RoomBookingCancellation';
 import FoodBookingCancellation from '@/components/cancel booking/FoodBookingCancellation';
 import TravelBookingCancellation from '@/components/cancel booking/TravelBookingCancellation';
@@ -77,12 +78,18 @@ const BookingCategories = () => {
   );
 };
 
-const Bookings: React.FC = () => (
-  <SafeAreaView className="flex-1 bg-white" edges={['right', 'top', 'left']}>
-    <View className="flex-1" style={{ paddingBottom: Platform.OS === 'ios' ? 80 : 0 }}>
-      <BookingCategories />
-    </View>
-  </SafeAreaView>
-);
+const Bookings: React.FC = () => {
+  const tabBarHeight = useBottomTabOverflow();
+
+  return (
+    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+      <View
+        className="flex-1"
+        style={{ paddingBottom: Platform.OS === 'ios' ? tabBarHeight + 20 : 20 }}>
+        <BookingCategories />
+      </View>
+    </SafeAreaView>
+  );
+};
 
 export default Bookings;

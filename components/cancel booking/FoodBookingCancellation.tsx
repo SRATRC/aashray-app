@@ -23,6 +23,7 @@ import moment from 'moment';
 import * as Haptics from 'expo-haptics';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import BottomSheetFilter from '../BottomSheetFilter';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 
 const FOOD_TYPE_LIST = [
   { key: 'breakfast', value: 'Breakfast' },
@@ -38,6 +39,7 @@ export default function FoodBookingCancellation() {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const tabBarPadding = useTabBarPadding();
 
   const CancellationNote = () => (
     <View className="mb-2 flex-row items-start gap-x-3 rounded-lg border border-amber-300 bg-amber-50 p-3">
@@ -494,7 +496,7 @@ export default function FoodBookingCancellation() {
         className="flex-grow"
         contentContainerStyle={{
           paddingHorizontal: 16,
-          paddingBottom: 16,
+          paddingBottom: tabBarPadding,
           paddingTop: 8,
         }}
         data={data?.pages?.flat()}

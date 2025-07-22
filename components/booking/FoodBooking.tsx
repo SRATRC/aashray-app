@@ -18,12 +18,14 @@ import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
 import moment from 'moment';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
 const FoodBooking = () => {
   const { user } = useAuthStore();
   const router: any = useRouter();
+  const tabBarPadding = useTabBarPadding();
 
   if (user.res_status == status.STATUS_GUEST) {
     CHIPS = ['Self'];
@@ -194,7 +196,11 @@ const FoodBooking = () => {
     <View className="mt-3 w-full flex-1">
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: tabBarPadding,
+        }}
         showsVerticalScrollIndicator={false}
         alwaysBounceVertical={false}>
         <BookingNote />

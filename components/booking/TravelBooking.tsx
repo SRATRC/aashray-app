@@ -15,6 +15,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import moment from 'moment';
 import handleAPICall from '@/utils/HandleApiCall';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 
 let CHIPS = ['Self', 'Mumukshus'];
 
@@ -41,6 +42,7 @@ const TravelBooking = () => {
   const user = useAuthStore((state) => state.user);
   const updateBooking = useBookingStore((state) => state.updateBooking);
   const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
+  const tabBarPadding = useTabBarPadding();
 
   const otherLocation = dropdowns.LOCATION_LIST.find((loc) => loc.key === 'other');
 
@@ -278,7 +280,11 @@ const TravelBooking = () => {
     <View className="mt-3 w-full flex-1">
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: tabBarPadding,
+        }}
         showsVerticalScrollIndicator={false}
         alwaysBounceVertical={false}>
         <CustomCalender

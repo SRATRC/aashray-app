@@ -26,6 +26,7 @@ import CustomChipGroup from '../CustomChipGroup';
 import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomEmptyMessage from '../CustomEmptyMessage';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
@@ -57,6 +58,7 @@ const AdhyayanBooking = () => {
   const updateBooking = useBookingStore((state) => state.updateBooking);
   const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
   const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
+  const tabBarPadding = useTabBarPadding();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -510,7 +512,11 @@ const AdhyayanBooking = () => {
       </Modal>
       <SectionList
         className="flex-grow-1"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: tabBarPadding,
+        }}
         sections={data?.pages?.flatMap((page: any) => page) || []}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}

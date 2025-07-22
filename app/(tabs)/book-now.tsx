@@ -10,6 +10,7 @@ import TravelBooking from '@/components/booking/TravelBooking';
 import AdhyayanBooking from '@/components/booking/AdhyayanBooking';
 import EventsBooking from '@/components/booking/EventsBooking';
 import FlatBooking from '@/components/booking/FlatBooking';
+import { useBottomTabOverflow } from '@/components/TabBarBackground';
 
 const BookingCategories = () => {
   const { user } = useAuthStore();
@@ -73,12 +74,18 @@ const BookingCategories = () => {
   );
 };
 
-const BookNow: React.FC = () => (
-  <SafeAreaView className="flex-1 bg-white" edges={['right', 'top', 'left']}>
-    <View className="flex-1" style={{ paddingBottom: Platform.OS === 'ios' ? 80 : 0 }}>
-      <BookingCategories />
-    </View>
-  </SafeAreaView>
-);
+const BookNow: React.FC = () => {
+  const tabBarHeight = useBottomTabOverflow();
+
+  return (
+    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+      <View
+        className="flex-1"
+        style={{ paddingBottom: Platform.OS === 'ios' ? tabBarHeight + 20 : 20 }}>
+        <BookingCategories />
+      </View>
+    </SafeAreaView>
+  );
+};
 
 export default BookNow;

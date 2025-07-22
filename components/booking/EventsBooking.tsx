@@ -28,6 +28,7 @@ import FormField from '../FormField';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 import { Ionicons } from '@expo/vector-icons';
 
 const CHIPS = ['Self', 'Guest', 'Mumukshus'];
@@ -87,6 +88,7 @@ const INITIAL_MUMUKSHU_FORM = {
 
 const EventBooking = () => {
   const router: any = useRouter();
+  const tabBarPadding = useTabBarPadding();
 
   useEffect(
     useCallback(() => {
@@ -833,7 +835,11 @@ const EventBooking = () => {
 
       <SectionList
         className="flex-grow-1"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: tabBarPadding,
+        }}
         sections={data?.pages?.flatMap((page: any) => page) || []}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}

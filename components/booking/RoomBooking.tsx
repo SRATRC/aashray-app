@@ -14,6 +14,7 @@ import CustomChipGroup from '@/components/CustomChipGroup';
 import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 
 const SWITCH_OPTIONS = ['Select Dates', 'One Day Visit'];
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
@@ -77,6 +78,7 @@ const RoomBooking = () => {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const updateBooking = useBookingStore((state) => state.updateBooking);
+  const tabBarPadding = useTabBarPadding();
   const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
   const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
 
@@ -324,7 +326,11 @@ const RoomBooking = () => {
     <View className="mt-3 w-full flex-1">
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: tabBarPadding,
+        }}
         showsVerticalScrollIndicator={false}
         alwaysBounceVertical={false}>
         <View key={key}>

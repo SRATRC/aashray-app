@@ -14,6 +14,7 @@ import * as Haptics from 'expo-haptics';
 import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
 import moment from 'moment';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 
 const CHIPS = ['Mumukshus', 'Guest'];
 const INITIAL_MUMUKSHU_FORM = {
@@ -43,6 +44,7 @@ const INITIAL_GUEST_FORM = {
 const FlatBooking = () => {
   const { user } = useAuthStore();
   const router = useRouter();
+  const tabBarPadding = useTabBarPadding();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [selectedChip, setSelectedChip] = useState(CHIPS[0]);
@@ -186,7 +188,11 @@ const FlatBooking = () => {
     <View className="mt-3 w-full flex-1">
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: tabBarPadding,
+        }}
         showsVerticalScrollIndicator={false}
         alwaysBounceVertical={false}>
         <CustomCalender

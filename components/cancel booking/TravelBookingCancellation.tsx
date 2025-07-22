@@ -18,11 +18,13 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import BookingStatusDisplay from '../BookingStatusDisplay';
 import moment from 'moment';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 
 const TravelBookingCancellation = () => {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const tabBarPadding = useTabBarPadding();
 
   const fetchTravels = async ({ pageParam = 1 }) => {
     return new Promise((resolve, reject) => {
@@ -220,7 +222,11 @@ const TravelBookingCancellation = () => {
     <View className="mt-3 w-full flex-1">
       <FlashList
         className="flex-grow-1"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: tabBarPadding,
+        }}
         showsVerticalScrollIndicator={false}
         data={data?.pages?.flatMap((page: any) => page) || []}
         estimatedItemSize={113}
