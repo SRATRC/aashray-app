@@ -55,7 +55,6 @@ const INITIAL_MUMUKSHU_FORM = {
 const AdhyayanBooking = () => {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
-  const updateBooking = useBookingStore((state) => state.updateBooking);
   const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
   const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
   const tabBarPadding = useTabBarPadding();

@@ -18,6 +18,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { icons, status, types } from '@/constants';
 import { useAuthStore, useBookingStore } from '@/stores';
 import { useRouter } from 'expo-router';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
+import { Ionicons } from '@expo/vector-icons';
 import CustomButton from '../CustomButton';
 import handleAPICall from '@/utils/HandleApiCall';
 import HorizontalSeparator from '../HorizontalSeparator';
@@ -28,8 +30,6 @@ import FormField from '../FormField';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import { useTabBarPadding } from '@/hooks/useTabBarPadding';
-import { Ionicons } from '@expo/vector-icons';
 
 const CHIPS = ['Self', 'Guest', 'Mumukshus'];
 const ARRIVAL = [
@@ -97,7 +97,6 @@ const EventBooking = () => {
   );
 
   const user = useAuthStore((state) => state.user);
-  const updateBooking = useBookingStore((state) => state.updateBooking);
   const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
   const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
 

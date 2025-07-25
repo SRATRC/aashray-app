@@ -23,41 +23,26 @@ export const QrModal = () => {
   const { user } = useAuthStore();
   const [modalVisible, setModalVisible] = useState(false);
   const modalAnimation = useRef(new Animated.Value(0)).current;
-  const buttonOpacity = useRef(new Animated.Value(1)).current; // Separate animation for button
 
   const qrSize = Math.min(screenWidth, screenHeight) * 0.7;
   const pieceSize = Math.max(8, Math.floor(qrSize / 35));
 
   useEffect(() => {
     if (modalVisible) {
-      // Animate modal in and button out
-      Animated.parallel([
-        Animated.spring(modalAnimation, {
-          toValue: 1,
-          tension: 60,
-          friction: 10,
-          useNativeDriver: true,
-        }),
-        Animated.timing(buttonOpacity, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      // Animate modal in
+      Animated.spring(modalAnimation, {
+        toValue: 1,
+        tension: 60,
+        friction: 10,
+        useNativeDriver: true,
+      }).start();
     } else {
-      // Animate modal out and button in
-      Animated.parallel([
-        Animated.timing(modalAnimation, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(buttonOpacity, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      // Animate modal out
+      Animated.timing(modalAnimation, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
     }
   }, [modalVisible]);
 
@@ -83,7 +68,7 @@ export const QrModal = () => {
 
   return (
     <>
-      <Animated.View style={[styles.buttonContainer, { opacity: buttonOpacity }]}>
+      <View style={styles.buttonContainer}>
         <View style={styles.buttonRing} />
         <TouchableOpacity onPress={handlePress} style={styles.button} activeOpacity={0.8}>
           <View style={styles.buttonInner}>
@@ -92,7 +77,7 @@ export const QrModal = () => {
             </View>
           </View>
         </TouchableOpacity>
-      </Animated.View>
+      </View>
 
       <Modal
         transparent={true}

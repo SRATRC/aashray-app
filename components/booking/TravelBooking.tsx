@@ -4,6 +4,7 @@ import { types, dropdowns, status } from '@/constants';
 import { useRouter } from 'expo-router';
 import { useAuthStore, useBookingStore } from '@/stores';
 import { useQuery } from '@tanstack/react-query';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 import CustomButton from '../CustomButton';
 import CustomCalender from '../CustomCalender';
 import FormField from '../FormField';
@@ -15,7 +16,6 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import moment from 'moment';
 import handleAPICall from '@/utils/HandleApiCall';
-import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 
 let CHIPS = ['Self', 'Mumukshus'];
 
@@ -40,7 +40,6 @@ const INITIAL_MUMUKSHU_FORM = {
 const TravelBooking = () => {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
-  const updateBooking = useBookingStore((state) => state.updateBooking);
   const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
   const tabBarPadding = useTabBarPadding();
 
@@ -685,7 +684,7 @@ const TravelBooking = () => {
 function transformMumukshuData(inputData: any) {
   const { date, mumukshus } = inputData;
 
-  const groupedMumukshus = mumukshus.reduce((acc: any, mumukshu: any, index: any) => {
+  const groupedMumukshus = mumukshus.reduce((acc: any, mumukshu: any) => {
     const key = `${mumukshu.pickup}-${mumukshu.drop}-${mumukshu.type}-${mumukshu.total_people || 'none'}`;
     if (!acc[key]) {
       acc[key] = {

@@ -15,15 +15,13 @@ import { FlashList } from '@shopify/flash-list';
 import { useAuthStore } from '@/stores';
 import { useBottomSheetModal } from '@gorhom/bottom-sheet';
 import { FontAwesome } from '@expo/vector-icons';
-import Animated from 'react-native-reanimated';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import handleAPICall from '@/utils/HandleApiCall';
-import CustomTag from '../CustomTag';
 import moment from 'moment';
-import * as Haptics from 'expo-haptics';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import BottomSheetFilter from '../BottomSheetFilter';
-import { useTabBarPadding } from '@/hooks/useTabBarPadding';
+import * as Haptics from 'expo-haptics';
 
 const FOOD_TYPE_LIST = [
   { key: 'breakfast', value: 'Breakfast' },

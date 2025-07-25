@@ -77,7 +77,6 @@ const INITIAL_MUMUKSHU_FORM = {
 const RoomBooking = () => {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
-  const updateBooking = useBookingStore((state) => state.updateBooking);
   const tabBarPadding = useTabBarPadding();
   const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
   const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);

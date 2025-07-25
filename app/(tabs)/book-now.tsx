@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, Platform } from 'react-native';
+import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { status, types } from '@/constants';
+import { types } from '@/constants';
 import { useAuthStore } from '@/stores';
 import CustomChipGroup from '@/components/CustomChipGroup';
 import RoomBooking from '@/components/booking/RoomBooking';
@@ -10,7 +10,6 @@ import TravelBooking from '@/components/booking/TravelBooking';
 import AdhyayanBooking from '@/components/booking/AdhyayanBooking';
 import EventsBooking from '@/components/booking/EventsBooking';
 import FlatBooking from '@/components/booking/FlatBooking';
-import { useBottomTabOverflow } from '@/components/TabBarBackground';
 
 const BookingCategories = () => {
   const { user } = useAuthStore();
@@ -75,13 +74,9 @@ const BookingCategories = () => {
 };
 
 const BookNow: React.FC = () => {
-  const tabBarHeight = useBottomTabOverflow();
-
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-      <View
-        className="flex-1"
-        style={{ paddingBottom: Platform.OS === 'ios' ? tabBarHeight + 20 : 20 }}>
+      <View className="flex-1">
         <BookingCategories />
       </View>
     </SafeAreaView>

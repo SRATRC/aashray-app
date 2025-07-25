@@ -17,9 +17,9 @@ import { useAuthStore } from '@/stores';
 import FormField from '@/components/FormField';
 import FormDisplayField from '@/components/FormDisplayField';
 import CustomButton from '@/components/CustomButton';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import handleAPICall from '@/utils/HandleApiCall';
 import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
+import RNDateTimePicker from '@react-native-community/datetimepicker';
 import PageHeader from '@/components/PageHeader';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
@@ -272,26 +272,11 @@ const CompleteProfile = () => {
         </View>
       </ScrollView>
 
-      <DateTimePickerModal
-        isVisible={isDatePickerVisible}
-        mode="date"
-        date={form.dob ? moment(form.dob).toDate() : moment().toDate()}
-        onConfirm={(date) => {
-          setForm({
-            ...form,
-            dob: moment(date).format('YYYY-MM-DD'),
-          });
-          setDatePickerVisibility(false);
-        }}
-        onCancel={() => setDatePickerVisibility(false)}
-        maximumDate={moment().toDate()}
-      />
-
       <Modal
         animationType="slide"
-        visible={isModalVisible}
         statusBarTranslucent={true}
         presentationStyle="pageSheet"
+        visible={isModalVisible}
         onRequestClose={() => setIsModalVisible(false)}>
         <KeyboardAwareScrollView
           bottomOffset={62}
@@ -370,6 +355,28 @@ const CompleteProfile = () => {
                 backgroundColor={'bg-gray-100'}
                 onPress={() => setDatePickerVisibility(true)}
               />
+
+              {isDatePickerVisible && (
+                <RNDateTimePicker
+                  themeVariant="light"
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  value={form.dob ? moment(form.dob).toDate() : new Date()}
+                  maximumDate={moment().toDate()}
+                  onChange={(event, date) => {
+                    if (Platform.OS === 'android') {
+                      setDatePickerVisibility(false);
+                    }
+
+                    if (date) {
+                      setForm({
+                        ...form,
+                        dob: moment(date).format('YYYY-MM-DD'),
+                      });
+                    }
+                  }}
+                />
+              )}
 
               <CustomSelectBottomSheet
                 className="mt-7"

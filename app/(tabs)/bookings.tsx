@@ -1,10 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, Platform } from 'react-native';
+import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { types } from '@/constants';
 import { useQueryClient } from '@tanstack/react-query';
 import CustomChipGroup from '@/components/CustomChipGroup';
-import { useBottomTabOverflow } from '@/components/TabBarBackground';
 import RoomBookingCancellation from '@/components/cancel booking/RoomBookingCancellation';
 import FoodBookingCancellation from '@/components/cancel booking/FoodBookingCancellation';
 import TravelBookingCancellation from '@/components/cancel booking/TravelBookingCancellation';
@@ -79,13 +78,9 @@ const BookingCategories = () => {
 };
 
 const Bookings: React.FC = () => {
-  const tabBarHeight = useBottomTabOverflow();
-
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-      <View
-        className="flex-1"
-        style={{ paddingBottom: Platform.OS === 'ios' ? tabBarHeight + 20 : 20 }}>
+      <View className="flex-1">
         <BookingCategories />
       </View>
     </SafeAreaView>
