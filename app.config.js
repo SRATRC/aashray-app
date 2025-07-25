@@ -98,13 +98,6 @@ export default {
         },
       ],
       [
-        'expo-camera',
-        {
-          cameraPermission:
-            'Allow $(PRODUCT_NAME) to access your camera to capture a selfie so guruji can view it before meetings.',
-        },
-      ],
-      [
         'expo-notifications',
         {
           icon: './assets/images/logo.png',
