@@ -215,9 +215,6 @@ const AppNavigator = () => {
         <Stack.Screen name="index" />
         <Stack.Screen name="+not-found" />
       </Stack.Protected>
-      <Stack.Protected guard={needsPfp || isFullyOnboarded}>
-        <Stack.Screen name="(common)" />
-      </Stack.Protected>
     </Stack>
   );
 };

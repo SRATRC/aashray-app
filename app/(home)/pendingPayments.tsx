@@ -301,7 +301,7 @@ const PendingPayments = () => {
         );
         const newSelection = isSelected
           ? prev.filter(
-              (item) => item.bookingid !== payment.bookingid && item.category !== payment.category
+              (item) => item.bookingid !== payment.bookingid || item.category !== payment.category
             )
           : [...prev, payment];
         return newSelection;
@@ -654,6 +654,23 @@ const PendingPayments = () => {
                 </View>
               )}
 
+              {item.description && (
+                <View className="flex-row items-center">
+                  <Ionicons
+                    name="information-outline"
+                    size={14}
+                    color={isExpired ? '#9CA3AF' : '#6B7280'}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text
+                    className={`font-pregular text-xs ${
+                      isExpired ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                    {item.description}
+                  </Text>
+                </View>
+              )}
+
               {isCashPending && (
                 <View className="flex-row items-center">
                   <Ionicons
@@ -854,7 +871,7 @@ const PendingPayments = () => {
   }
 
   return (
-    <SafeAreaView className="h-full">
+    <SafeAreaView className="h-full" edges={['top']}>
       <PageHeader title="Pending Payments" />
 
       <FlashList
@@ -862,7 +879,7 @@ const PendingPayments = () => {
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 12,
-          paddingBottom: selectedPayments.length > 0 && isPaymentAllowed ? 90 + insets.bottom : 20,
+          paddingBottom: selectedPayments.length > 0 && isPaymentAllowed ? 120 + insets.bottom : 20,
         }}
         data={pendingPayments}
         estimatedItemSize={120}
@@ -880,31 +897,35 @@ const PendingPayments = () => {
       />
 
       {selectedPayments.length > 0 && isPaymentAllowed && (
-        <View className="absolute left-0 right-0" style={{ bottom: insets.bottom }}>
-          <View className="rounded-t-xl border-t border-gray-200 bg-white p-4 shadow-lg">
-            <View className="mb-3 flex-row items-center justify-between">
-              <View>
-                <Text className="font-pregular text-xs text-gray-600">
-                  {selectedPayments.length} {selectedPayments.length === 1 ? 'item' : 'items'}{' '}
-                  selected
-                </Text>
-                <Text className="font-pbold text-lg text-gray-900">
-                  ₹ {totalAmount.toLocaleString()}
-                </Text>
+        <View className="absolute bottom-0 left-0 right-0">
+          <View
+            className="rounded-t-xl border-t border-gray-200 bg-white shadow-lg"
+            style={{ paddingBottom: insets.bottom }}>
+            <View className="p-4">
+              <View className="mb-3 flex-row items-center justify-between">
+                <View>
+                  <Text className="font-pregular text-xs text-gray-600">
+                    {selectedPayments.length} {selectedPayments.length === 1 ? 'item' : 'items'}{' '}
+                    selected
+                  </Text>
+                  <Text className="font-pbold text-lg text-gray-900">
+                    ₹ {totalAmount.toLocaleString()}
+                  </Text>
+                </View>
+                <View className="rounded-lg border border-secondary bg-secondary-50 px-3 py-1.5">
+                  <Text className="font-pmedium text-xs text-gray-800">
+                    {isInternationalUser ? 'International Payment' : 'Ready to pay'}
+                  </Text>
+                </View>
               </View>
-              <View className="rounded-lg border border-secondary bg-secondary-50 px-3 py-1.5">
-                <Text className="font-pmedium text-xs text-gray-800">
-                  {isInternationalUser ? 'International Payment' : 'Ready to pay'}
-                </Text>
-              </View>
+              <CustomButton
+                text={`Proceed to Payment • ₹${totalAmount.toLocaleString()}`}
+                handlePress={handleProceedToPayment}
+                containerStyles="min-h-[48px]"
+                textStyles="font-psemibold text-sm text-white"
+                isLoading={isSubmitting}
+              />
             </View>
-            <CustomButton
-              text={`Proceed to Payment • ₹${totalAmount.toLocaleString()}`}
-              handlePress={handleProceedToPayment}
-              containerStyles="min-h-[48px]"
-              textStyles="font-psemibold text-sm text-white"
-              isLoading={isSubmitting}
-            />
           </View>
         </View>
       )}

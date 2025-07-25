@@ -6,10 +6,8 @@ import {
   TouchableOpacity,
   Modal,
   Image,
-  TouchableWithoutFeedback,
   Keyboard,
   RefreshControl,
-  StatusBar,
   ActivityIndicator,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -19,13 +17,14 @@ import { useAuthStore } from '@/stores';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { Feather, FontAwesome, Ionicons } from '@expo/vector-icons';
+import { useBottomTabOverflow } from '@/components/TabBarBackground';
+import getCachedImageUri, { invalidateCachedImage } from '@/utils/imageCache';
+import { useQuickImagePicker } from '@/hooks/useQuickImagePicker';
 import Toast from 'react-native-toast-message';
 import handleAPICall from '@/utils/HandleApiCall';
-import getCachedImageUri, { invalidateCachedImage } from '@/utils/imageCache';
 import FormField from '@/components/FormField';
 import CustomModal from '@/components/CustomModal';
 import * as Haptics from 'expo-haptics';
-import { useBottomTabOverflow } from '@/components/TabBarBackground';
 
 const Profile: React.FC = () => {
   const user = useAuthStore((state) => state.user);
@@ -33,9 +32,10 @@ const Profile: React.FC = () => {
   const logout = useAuthStore((state) => state.logout);
   const tabBarHeight = useBottomTabOverflow();
 
+  const { pickAndUpload, isUploading, uploadProgress, uploadError } = useQuickImagePicker();
+
   const router: any = useRouter();
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
-  const [imageModalVisible, setImageModalVisible] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -147,19 +147,6 @@ const Profile: React.FC = () => {
     setNewPassword('');
     setConfirmPassword('');
     Keyboard.dismiss();
-  };
-
-  const openImageModal = () => {
-    setImageModalVisible(true);
-  };
-
-  const closeImageModal = () => {
-    setImageModalVisible(false);
-  };
-
-  const openCamera = () => {
-    setImageModalVisible(false);
-    router.push('/camera');
   };
 
   const refreshUserData = async () => {
@@ -279,13 +266,11 @@ const Profile: React.FC = () => {
   };
 
   const renderHeader = () => {
-    const totalCredits =
-      (user?.credits?.travel || 0) + (user?.credits?.food || 0) + (user?.credits?.room || 0);
-
     return (
       <View className="mb-10 mt-8 flex-col items-center justify-center">
         <View className="relative">
-          <TouchableOpacity onPress={openImageModal}>
+          {/* Profile Image Container */}
+          <View className="relative">
             <Image
               source={{ uri: cachedImageUri }}
               className="h-[150] w-[150] rounded-full border-2 border-secondary"
@@ -296,17 +281,44 @@ const Profile: React.FC = () => {
                 }
               }}
             />
-          </TouchableOpacity>
+
+            {/* Upload Progress Overlay */}
+            {isUploading && (
+              <View className="absolute inset-0 h-[150] w-[150] items-center justify-center rounded-full bg-black/50">
+                <View className="items-center">
+                  <ActivityIndicator size="large" color="white" />
+                  <Text className="mt-2 text-sm font-medium text-white">Uploading...</Text>
+                  <Text className="text-xs text-white">{uploadProgress}%</Text>
+
+                  {/* Progress Bar */}
+                  <View className="mt-2 h-1 w-20 rounded-full bg-white/30">
+                    <View
+                      className="h-1 rounded-full bg-white transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </View>
+                </View>
+              </View>
+            )}
+          </View>
 
           <TouchableOpacity
-            onPress={openCamera}
+            onPress={pickAndUpload}
             className="absolute bottom-[5px] right-[5px] h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-secondary shadow-lg shadow-black/20"
-            activeOpacity={0.8}>
-            <Feather name="camera" size={14} color="white" />
+            activeOpacity={0.8}
+            disabled={isUploading}>
+            <Feather name="edit-2" size={14} color="white" />
           </TouchableOpacity>
         </View>
 
-        <Text className="mt-2 font-psemibold text-base">
+        {/* Upload Error Display */}
+        {uploadError && (
+          <View className="mt-3 px-4">
+            <Text className="text-center text-sm text-red-500">Upload failed: {uploadError}</Text>
+          </View>
+        )}
+
+        <Text className="mt-3 font-psemibold text-base">
           {formatNameWithMehta(user?.issuedto || '')}
         </Text>
 
@@ -395,118 +407,7 @@ const Profile: React.FC = () => {
           refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refreshUserData} />}
         />
 
-        <Modal
-          animationType="fade"
-          transparent={false}
-          visible={imageModalVisible}
-          onRequestClose={closeImageModal}
-          statusBarTranslucent={true}>
-          <View className="flex-1 bg-black">
-            <View
-              className="absolute left-0 right-0 top-0"
-              style={{
-                height: Platform.OS === 'ios' ? 120 : 100,
-                backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                zIndex: 20,
-              }}>
-              <View
-                className="flex-row items-center justify-between px-6"
-                style={{
-                  paddingTop: Platform.OS === 'ios' ? 60 : 45,
-                  marginTop: Platform.OS === 'ios' ? 0 : StatusBar.currentHeight || 0,
-                }}>
-                <TouchableOpacity
-                  onPress={closeImageModal}
-                  className="rounded-full p-3"
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                    borderWidth: 1,
-                    borderColor: 'rgba(255, 255, 255, 0.2)',
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 4,
-                    elevation: 5,
-                    width: 44,
-                    height: 44,
-                  }}
-                  activeOpacity={0.8}>
-                  <View className="flex-1 items-center justify-center">
-                    <View style={{ position: 'relative', width: 18, height: 18 }}>
-                      <View
-                        style={{
-                          position: 'absolute',
-                          top: 8,
-                          left: 2,
-                          width: 14,
-                          height: 2,
-                          backgroundColor: '#ffffff',
-                          borderRadius: 1,
-                          transform: [{ rotate: '45deg' }],
-                        }}
-                      />
-                      <View
-                        style={{
-                          position: 'absolute',
-                          top: 8,
-                          left: 2,
-                          width: 14,
-                          height: 2,
-                          backgroundColor: '#ffffff',
-                          borderRadius: 1,
-                          transform: [{ rotate: '-45deg' }],
-                        }}
-                      />
-                    </View>
-                  </View>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={openCamera}
-                  className="rounded-full px-6 py-3"
-                  style={{
-                    backgroundColor: '#FF9500',
-                    borderWidth: 1,
-                    borderColor: 'rgba(255, 255, 255, 0.3)',
-                    shadowColor: '#FF9500',
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.4,
-                    shadowRadius: 8,
-                    elevation: 8,
-                  }}
-                  activeOpacity={0.9}>
-                  <Text className="font-psemibold text-base text-white">Edit Photo</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View className="flex-1 items-center justify-center px-4">
-              <Image
-                className="h-[250px] w-[250px] rounded-full border-2 border-secondary"
-                source={{ uri: cachedImageUri || user.pfp }}
-                resizeMode="cover"
-              />
-
-              <View className="mt-8 items-center">
-                <Text className="text-center font-psemibold text-2xl text-white">
-                  {formatNameWithMehta(user.issuedto)}
-                </Text>
-                <View
-                  className="mt-2 h-0.5 w-16"
-                  style={{
-                    backgroundColor: '#FF9500',
-                    borderRadius: 2,
-                  }}
-                />
-              </View>
-            </View>
-
-            <TouchableWithoutFeedback onPress={closeImageModal}>
-              <View className="absolute inset-0" style={{ backgroundColor: 'transparent' }} />
-            </TouchableWithoutFeedback>
-          </View>
-        </Modal>
-
+        {/* Password Reset Modal */}
         <Modal
           animationType="fade"
           transparent={true}
@@ -593,6 +494,7 @@ const Profile: React.FC = () => {
           </KeyboardAwareScrollView>
         </Modal>
 
+        {/* Credits Info Modal */}
         <CustomModal
           visible={creditsInfoModalVisible}
           onClose={() => setCreditsInfoModalVisible(false)}

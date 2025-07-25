@@ -55,13 +55,15 @@ const INITIAL_MUMUKSHU_FORM = {
 const transformSelfAdhyayanToMumukshu = (user: any, adhyayan: any) => {
   const selfMumukshu = {
     cardno: user.cardno,
-    issuedto: user.name || `${user.firstname} ${user.lastname}`.trim(),
+    mobno: user.mobno,
+    issuedto: user.name,
+    gender: user.gender,
+    res_status: user.res_status,
   };
 
   return {
     adhyayan: adhyayan,
-    mumukshus: [selfMumukshu],
-    mumukshuIndices: ['0'],
+    mumukshuGroup: [selfMumukshu],
   };
 };
 
