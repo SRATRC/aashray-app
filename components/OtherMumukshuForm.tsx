@@ -49,8 +49,8 @@ const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
   };
 
   const mumukshuQueries: any = useQueries({
-    queries: mumukshuForm.mumukshus.map((mumukshu: any) => ({
-      queryKey: ['verifyMumukshus', mumukshu.mobno],
+    queries: mumukshuForm.mumukshus.map((mumukshu: any, index: number) => ({
+      queryKey: ['verifyMumukshus', mumukshu.mobno, index],
       queryFn: () => verifyMumukshu(mumukshu.mobno),
       enabled: mumukshu.mobno?.length === 10 && mumukshu.mobno !== '',
       retry: false,
@@ -78,7 +78,7 @@ const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
         }
       }
     });
-  }, [mumukshuQueries.map((q) => q.data), mumukshuForm.mumukshus.length]);
+  }, [mumukshuQueries.map((q: any) => q.data), mumukshuForm.mumukshus.length]);
 
   // Helper function to get API error message
   const getErrorMessage = (error: any) => {

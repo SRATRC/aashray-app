@@ -52,8 +52,8 @@ const GuestForm: React.FC<GuestFormProps> = ({
   };
 
   const guestQueries: any = useQueries({
-    queries: guestForm.guests.map((guest: any) => ({
-      queryKey: ['verifyGuests', guest.mobno],
+    queries: guestForm.guests.map((guest: any, index: number) => ({
+      queryKey: ['verifyGuests', guest.mobno, index],
       queryFn: () => verifyGuest(guest.mobno),
       enabled: guest.mobno?.length === 10,
       retry: false,
