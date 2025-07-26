@@ -1,17 +1,21 @@
 import { View, Text, Image } from 'react-native';
-import { colors, icons, status } from '@/constants';
+import { colors, icons } from '@/constants';
 import { useBookingStore } from '@/stores';
 import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import HorizontalSeparator from '../HorizontalSeparator';
-import CustomTag from '../CustomTag';
 import moment from 'moment';
 
 const EventBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const data = useBookingStore((store) => store.mumukshuData);
 
-  const startDate = moment(data.utsav.utsav.utsav_start);
-  const endDate = moment(data.utsav.utsav.utsav_end);
+  const selectedPackageId = data.utsav.mumukshus[0]?.package;
+  const selectedPackage = data.utsav.utsav.packages.find(
+    (pkg: any) => pkg.package_id === selectedPackageId
+  );
+
+  const startDate = moment(selectedPackage.package_start);
+  const endDate = moment(selectedPackage.package_end);
 
   const sameDay = startDate.isSame(endDate, 'day');
   const formattedDate = sameDay
