@@ -1,5 +1,4 @@
-// const BASE_URL = 'https://aashray.vitraagvigyaan.org/api/v1';
-const BASE_URL = 'https://aashray-backend.onrender.com/api/v1';
+const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL;
 
 const quotes = [
   {
