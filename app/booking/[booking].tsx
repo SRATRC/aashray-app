@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { View, Text, Alert } from 'react-native';
+import { View, Text, Alert, ActivityIndicator } from 'react-native';
 import { useAuthStore, useBookingStore } from '@/stores';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '@/constants';
@@ -103,6 +103,7 @@ const BookingDetails = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
 
   // Extract initial dates from context data with memoization
   const initialDates = useMemo(() => {
@@ -184,65 +185,94 @@ const BookingDetails = () => {
 
   // Validation API call with proper error handling - now using mumukshu endpoint
   const fetchValidation = useCallback(async () => {
-    if (!user?.cardno) {
-      throw new Error('User not authenticated');
+    if (!user?.cardno || isValidating) {
+      throw new Error('User not authenticated or validation in progress');
     }
 
-    const payload = prepareMumukshuRequestBody(user, mumukshuData);
+    // Prevent multiple simultaneous validations
+    setIsValidating(true);
 
-    return new Promise((resolve, reject) => {
-      handleAPICall(
-        'POST',
-        '/mumukshu/validate',
-        null,
-        payload,
-        (res: any) => {
-          setMumukshuData((prev: any) => ({ ...prev, validationData: res.data }));
-          resolve(res.data);
-        },
-        () => {},
-        (errorDetails) => reject(new Error(errorDetails.message))
-      );
-    });
-  }, [user, mumukshuData, setMumukshuData]);
+    try {
+      const payload = prepareMumukshuRequestBody(user, mumukshuData);
+
+      return new Promise((resolve, reject) => {
+        handleAPICall(
+          'POST',
+          '/mumukshu/validate',
+          null,
+          payload,
+          (res: any) => {
+            setMumukshuData((prev: any) => ({ ...prev, validationData: res.data }));
+            resolve(res.data);
+          },
+          () => {},
+          (errorDetails) => reject(new Error(errorDetails.message))
+        );
+      });
+    } finally {
+      setIsValidating(false);
+    }
+  }, [user, mumukshuData, setMumukshuData, isValidating]);
 
   const { error: validationDataError, refetch: refetchValidation } = useQuery({
     queryKey: ['mumukshuValidations', user?.cardno, JSON.stringify(mumukshuData)],
     queryFn: fetchValidation,
     retry: false,
-    enabled: !!user?.cardno && Object.keys(mumukshuData).length > 0,
+    enabled: !!(user?.cardno && Object.keys(mumukshuData).length > 0 && !isValidating),
+    staleTime: 1000 * 10,
   });
 
-  // Clean up effect with proper dependency management
+  const [cleanupTimeoutId, setCleanupTimeoutId] = useState<NodeJS.Timeout | null>(null);
+
   useFocusEffect(
     useCallback(() => {
       if (user?.cardno) {
-        setMumukshuData((prev: any) => {
-          const cleanedData = { ...prev };
+        // Clear any existing timeout
+        if (cleanupTimeoutId) {
+          clearTimeout(cleanupTimeoutId);
+        }
 
-          // Remove addon data based on what's NOT the main booking type
-          if (booking !== types.ROOM_DETAILS_TYPE) {
-            delete cleanedData.room;
-          }
-          if (booking !== types.TRAVEL_DETAILS_TYPE) {
-            delete cleanedData.travel;
-          }
-          if (booking !== types.ADHYAYAN_DETAILS_TYPE) {
-            delete cleanedData.adhyayan;
-          }
-          if (booking !== types.EVENT_DETAILS_TYPE) {
-            delete cleanedData.utsav;
-          }
+        // Debounce the cleanup operation
+        const timeoutId = setTimeout(() => {
+          setMumukshuData((prev: any) => {
+            const cleanedData = { ...prev };
 
-          // Always remove food addon as it's never a main booking type
-          delete cleanedData.food;
+            // Remove addon data based on what's NOT the main booking type
+            if (booking !== types.ROOM_DETAILS_TYPE) {
+              delete cleanedData.room;
+            }
+            if (booking !== types.TRAVEL_DETAILS_TYPE) {
+              delete cleanedData.travel;
+            }
+            if (booking !== types.ADHYAYAN_DETAILS_TYPE) {
+              delete cleanedData.adhyayan;
+            }
+            if (booking !== types.EVENT_DETAILS_TYPE) {
+              delete cleanedData.utsav;
+            }
 
-          return cleanedData;
-        });
+            // Always remove food addon as it's never a main booking type
+            delete cleanedData.food;
 
-        refetchValidation();
+            return cleanedData;
+          });
+
+          // Only refetch if not currently validating
+          if (!isValidating) {
+            refetchValidation();
+          }
+        }, 100); // 100ms debounce
+
+        setCleanupTimeoutId(timeoutId);
       }
-    }, [user?.cardno, refetchValidation, booking, setMumukshuData])
+
+      // Cleanup function
+      return () => {
+        if (cleanupTimeoutId) {
+          clearTimeout(cleanupTimeoutId);
+        }
+      };
+    }, [user?.cardno, refetchValidation, booking, setMumukshuData, isValidating])
   );
 
   // Validation functions with proper error handling
@@ -357,6 +387,8 @@ const BookingDetails = () => {
   ]);
 
   const handleCloseValidationModal = useCallback(() => {
+    // Reset validation state when closing modal
+    setIsValidating(false);
     router.back();
   }, [router]);
 
@@ -375,6 +407,61 @@ const BookingDetails = () => {
         return null;
     }
   }, [booking]);
+
+  const renderAddons = () => {
+    if (isValidating) {
+      return (
+        <View className="flex items-center justify-center py-8">
+          <ActivityIndicator size="large" />
+          <Text className="mt-2 text-gray-500">Processing...</Text>
+        </View>
+      );
+    }
+
+    return (
+      <>
+        {/* ROOM BOOKING COMPONENT */}
+        {booking !== types.ROOM_DETAILS_TYPE && (
+          <RoomAddon
+            roomForm={forms.room}
+            setRoomForm={(formData: any) => setFormValues('room', formData)}
+            isDatePickerVisible={isDatePickerVisible}
+            setDatePickerVisibility={toggleDatePicker}
+            onToggle={(isOpen) => toggleAddon('room', isOpen)}
+          />
+        )}
+
+        {/* FOOD BOOKING COMPONENT */}
+        <FoodAddon
+          foodForm={forms.food}
+          setFoodForm={(formData: any) => setFormValues('food', formData)}
+          isDatePickerVisible={isDatePickerVisible}
+          setDatePickerVisibility={toggleDatePicker}
+          onToggle={(isOpen) => toggleAddon('food', isOpen)}
+        />
+
+        {/* ADHYAYAN BOOKING COMPONENT */}
+        {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking) && (
+          <AdhyayanAddon
+            adhyayanBookingList={forms.adhyayan}
+            setAdhyayanBookingList={setAdhyayanBookingList}
+            booking={booking}
+          />
+        )}
+
+        {/* TRAVEL BOOKING COMPONENT */}
+        {booking !== types.TRAVEL_DETAILS_TYPE && user?.res_status !== 'GUEST' && (
+          <TravelAddon
+            travelForm={forms.travel}
+            setTravelForm={(formData: any) => setFormValues('travel', formData)}
+            isDatePickerVisible={isDatePickerVisible}
+            setDatePickerVisibility={toggleDatePicker}
+            onToggle={(isOpen) => toggleAddon('travel', isOpen)}
+          />
+        )}
+      </>
+    );
+  };
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
@@ -410,46 +497,7 @@ const BookingDetails = () => {
         <View className="w-full px-4">
           <View>
             <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
-
-            {/* ROOM BOOKING COMPONENT */}
-            {booking !== types.ROOM_DETAILS_TYPE && (
-              <RoomAddon
-                roomForm={forms.room}
-                setRoomForm={(formData: any) => setFormValues('room', formData)}
-                isDatePickerVisible={isDatePickerVisible}
-                setDatePickerVisibility={toggleDatePicker}
-                onToggle={(isOpen) => toggleAddon('room', isOpen)}
-              />
-            )}
-
-            {/* FOOD BOOKING COMPONENT */}
-            <FoodAddon
-              foodForm={forms.food}
-              setFoodForm={(formData: any) => setFormValues('food', formData)}
-              isDatePickerVisible={isDatePickerVisible}
-              setDatePickerVisibility={toggleDatePicker}
-              onToggle={(isOpen) => toggleAddon('food', isOpen)}
-            />
-
-            {/* ADHYAYAN BOOKING COMPONENT */}
-            {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking) && (
-              <AdhyayanAddon
-                adhyayanBookingList={forms.adhyayan}
-                setAdhyayanBookingList={setAdhyayanBookingList}
-                booking={booking}
-              />
-            )}
-
-            {/* TRAVEL BOOKING COMPONENT */}
-            {booking !== types.TRAVEL_DETAILS_TYPE && user?.res_status !== 'GUEST' && (
-              <TravelAddon
-                travelForm={forms.travel}
-                setTravelForm={(formData: any) => setFormValues('travel', formData)}
-                isDatePickerVisible={isDatePickerVisible}
-                setDatePickerVisibility={toggleDatePicker}
-                onToggle={(isOpen) => toggleAddon('travel', isOpen)}
-              />
-            )}
+            {renderAddons()}
           </View>
 
           <CustomButton

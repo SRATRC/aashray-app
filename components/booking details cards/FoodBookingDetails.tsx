@@ -5,12 +5,14 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
 
 const FoodBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
-  const data = useBookingStore((state) => state.data);
+  const data = useBookingStore((state) => state.mumukshuData);
 
   const formattedStartDate = moment(data.food.startDay).format('Do MMMM');
   const formattedEndDate = moment(data.food.endDay).format('Do MMMM, YYYY');
 
-  const meals = data.food.meals.map((meal: any) => meal).join(', ');
+  console.log();
+
+  const meals = data.food.mumukshuGroup[0].meals.map((meal: any) => meal).join(', ');
 
   return (
     <View className={`w-full px-4 ${containerStyles}`}>
@@ -47,7 +49,7 @@ const FoodBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyle
         <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
           <Image source={icons.hightea} className="h-4 w-4" resizeMode="contain" />
           <Text className="font-pregular text-gray-400">High Tea:</Text>
-          <Text className="font-pmedium text-black">{data.food.hightea}</Text>
+          <Text className="font-pmedium text-black">{data.food.mumukshuGroup[0].hightea}</Text>
         </View>
       </View>
     </View>

@@ -370,9 +370,9 @@ const bookingConfirmation = () => {
                       name: 'Vitraag Vigyaan Aashray',
                       image: 'https://vitraagvigyaan.org/img/logo.png',
                       description: 'Payment for Vitraag Vigyaan Aashray',
-                      amount: data.data.amount.toString(),
+                      amount: data.order.amount.toString(),
                       currency: 'INR',
-                      order_id: data.data.id.toString(),
+                      order_id: data.order.id.toString(),
                       prefill: {
                         email: user.email.toString(),
                         contact: user.mobno.toString(),

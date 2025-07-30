@@ -24,24 +24,32 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
   const mumukshuData = useBookingStore((state) => state.mumukshuData);
   const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
+  // Extract dates safely with fallbacks
+  const startDate =
+    booking === types.ROOM_DETAILS_TYPE ? mumukshuData.room?.startDay : mumukshuData.travel?.date;
+
+  const endDate = booking === types.ROOM_DETAILS_TYPE ? mumukshuData.room?.endDay : '';
+
   const fetchAdhyayans = async () => {
+    // Add validation to prevent API calls with invalid data
+    if (!user?.cardno || !startDate) {
+      throw new Error('Missing required data for fetching adhyayans');
+    }
+
     return new Promise((resolve, reject) => {
       handleAPICall(
         'GET',
         '/adhyayan/getrange',
         {
           cardno: user.cardno,
-          start_date:
-            booking == types.ROOM_DETAILS_TYPE
-              ? mumukshuData.room?.startDay
-              : mumukshuData.travel?.date,
-          end_date: booking == types.ROOM_DETAILS_TYPE ? mumukshuData.room?.endDay : '',
+          start_date: startDate,
+          end_date: endDate || '',
         },
         null,
         (res: any) => {
           resolve(Array.isArray(res.data) ? res.data : []);
         },
-        () => reject(new Error('Failed to fetch rooms'))
+        () => reject(new Error('Failed to fetch adhyayans'))
       );
     });
   };
@@ -52,9 +60,19 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
     error,
     data: adhyayanList,
   }: any = useQuery({
-    queryKey: ['adhyayans', booking, mumukshuData.room?.startDay, mumukshuData.travel?.date],
+    queryKey: ['adhyayans', booking, startDate, endDate, user?.cardno],
     queryFn: fetchAdhyayans,
     staleTime: 1000 * 60 * 30,
+    // Only enable query when we have valid data
+    enabled: !!(user?.cardno && startDate),
+    // Add retry configuration to handle temporary errors
+    retry: (failureCount, error) => {
+      // Don't retry if it's a validation error
+      if (error.message.includes('Missing required data')) {
+        return false;
+      }
+      return failureCount < 2;
+    },
   });
 
   const handleToggleSelection = (item: any) => {
@@ -133,6 +151,15 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
   };
 
   const renderContent = () => {
+    // Show empty state if required data is missing
+    if (!user?.cardno || !startDate) {
+      return (
+        <View style={{ marginTop: 24, flex: 1 }}>
+          <CustomEmptyMessage message={'Please select dates to view available Adhyayans!'} />
+        </View>
+      );
+    }
+
     if (isLoading) {
       return (
         <View
