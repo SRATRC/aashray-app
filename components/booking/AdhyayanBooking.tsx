@@ -456,7 +456,7 @@ const AdhyayanBooking = () => {
                             setGuestForm(INITIAL_GUEST_FORM);
 
                             if (selectedItem.location !== 'Research Centre')
-                              router.push('/guestBooking/bookingConfirmation');
+                              router.push('/guestBooking/guestBookingConfirmation');
                             else router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
                           },
                           () => {
