@@ -27,9 +27,10 @@ const MenuPage = () => {
         '/food/menu',
         { cardno: user.cardno },
         null,
-        (res) => {
+        (res: any) => {
           resolve(res.data);
         },
+        () => {},
         (error) => {
           reject(error);
         }
@@ -102,9 +103,10 @@ const MenuPage = () => {
 
   if (!menuData || Object.keys(menuData).length === 0) {
     return (
-      <View style={styles.centerContainer}>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <PageHeader title="Menu" onPress={() => router.back()} />
         <CustomEmptyMessage message="No menu available" />
-      </View>
+      </SafeAreaView>
     );
   }
 
