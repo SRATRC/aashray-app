@@ -1,10 +1,10 @@
-import { View, Alert, Text } from 'react-native';
+import { View, Alert, Text, ScrollView } from 'react-native';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { ScrollView } from 'react-native-virtualized-view';
 import { types, dropdowns, status } from '@/constants';
 import { useAuthStore, useBookingStore } from '@/stores';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 import SegmentedControl from '@/components/SegmentedControl';
 import CustomButton from '@/components/CustomButton';
 import CustomCalender from '@/components/CustomCalender';
@@ -14,7 +14,6 @@ import CustomChipGroup from '@/components/CustomChipGroup';
 import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 
 const SWITCH_OPTIONS = ['Select Dates', 'One Day Visit'];
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
@@ -91,11 +90,8 @@ const RoomBooking = () => {
     }, [])
   );
 
-  // To re-render the page when navigating
-  const [key, setKey] = useState(0);
   useFocusEffect(
     useCallback(() => {
-      setKey((prevKey) => prevKey + 1);
       setGuestForm(INITIAL_GUEST_FORM);
       setMumukshuForm(INITIAL_MUMUKSHU_FORM);
       setMultiDayForm(INITIAL_MULTI_DAY_FORM);
@@ -113,9 +109,7 @@ const RoomBooking = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [value, setValue] = useState(SWITCH_OPTIONS[0]);
-
   const [selectedDay, setSelectedDay] = useState();
-
   const [singleDayGuestForm, setSingleDayGuestForm] = useState(INITIAL_SIGNLE_DAY_GUEST_FORM);
 
   const addSingleDayGuestForm = () => {
@@ -274,7 +268,7 @@ const RoomBooking = () => {
 
   const [mumukshuForm, setMumukshuForm] = useState(INITIAL_MUMUKSHU_FORM);
 
-  const addMumukshuForm = () => {
+  const addMumukshuForm = useCallback(() => {
     setMumukshuForm((prev) => ({
       ...prev,
       mumukshus: [
@@ -287,23 +281,23 @@ const RoomBooking = () => {
         },
       ],
     }));
-  };
+  }, []);
 
-  const removeMumukshuForm = (indexToRemove: any) => {
+  const removeMumukshuForm = useCallback((indexToRemove: any) => {
     setMumukshuForm((prev) => ({
       ...prev,
       mumukshus: prev.mumukshus.filter((_, index) => index !== indexToRemove),
     }));
-  };
+  }, []);
 
-  const handleMumukshuFormChange = (index: any, key: any, value: any) => {
+  const handleMumukshuFormChange = useCallback((index: any, key: any, value: any) => {
     setMumukshuForm((prev) => ({
       ...prev,
       mumukshus: prev.mumukshus.map((mumukshu, i) =>
         i === index ? { ...mumukshu, [key]: value } : mumukshu
       ),
     }));
-  };
+  }, []);
 
   const isMumukshuFormValid = () => {
     return (
@@ -328,11 +322,11 @@ const RoomBooking = () => {
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 8,
-          paddingBottom: tabBarPadding,
+          paddingBottom: tabBarPadding + 20,
         }}
         showsVerticalScrollIndicator={false}
         alwaysBounceVertical={false}>
-        <View key={key}>
+        <View>
           <SegmentedControl
             segments={SWITCH_OPTIONS}
             selectedIndex={SWITCH_OPTIONS.indexOf(value)}
