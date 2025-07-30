@@ -199,7 +199,7 @@ const FoodBooking = () => {
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 8,
-          paddingBottom: tabBarPadding,
+          paddingBottom: tabBarPadding + 20,
         }}
         showsVerticalScrollIndicator={false}
         alwaysBounceVertical={false}>

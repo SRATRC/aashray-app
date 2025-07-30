@@ -16,11 +16,12 @@ import { useAuthStore } from '@/stores';
 import { useBottomSheetModal } from '@gorhom/bottom-sheet';
 import { FontAwesome } from '@expo/vector-icons';
 import { useTabBarPadding } from '@/hooks/useTabBarPadding';
+import { useBottomTabOverflow } from '../TabBarBackground';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import handleAPICall from '@/utils/HandleApiCall';
-import moment from 'moment';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import BottomSheetFilter from '../BottomSheetFilter';
+import moment from 'moment';
 import * as Haptics from 'expo-haptics';
 
 const FOOD_TYPE_LIST = [
@@ -38,6 +39,7 @@ export default function FoodBookingCancellation() {
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const tabBarPadding = useTabBarPadding();
+  const tabBarHeight = useBottomTabOverflow();
 
   const CancellationNote = () => (
     <View className="mb-2 flex-row items-start gap-x-3 rounded-lg border border-amber-300 bg-amber-50 p-3">
@@ -446,7 +448,8 @@ export default function FoodBookingCancellation() {
 
     return (
       <View
-        className={`absolute bottom-0 left-0 right-0 ${Platform.OS === 'ios' ? 'pb-8' : 'pb-4'} px-4`}>
+        className={`absolute bottom-0 left-0 right-0 ${Platform.OS === 'ios' ? 'pb-8' : 'pb-4'} px-4`}
+        style={{ paddingBottom: Platform.OS === 'ios' ? tabBarHeight + 20 : 20 }}>
         <View
           className={`flex-row gap-x-3 rounded-2xl bg-white p-4 ${
             Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
