@@ -80,6 +80,8 @@ const RoomBooking = () => {
   const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
   const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
 
+  const [resetKey, setResetKey] = useState(0);
+
   if (user.res_status == status.STATUS_GUEST) {
     CHIPS = ['Self'];
   }
@@ -95,6 +97,8 @@ const RoomBooking = () => {
       setGuestForm(INITIAL_GUEST_FORM);
       setMumukshuForm(INITIAL_MUMUKSHU_FORM);
       setMultiDayForm(INITIAL_MULTI_DAY_FORM);
+
+      setResetKey((prevKey) => prevKey + 1);
     }, [])
   );
 
@@ -318,6 +322,7 @@ const RoomBooking = () => {
   return (
     <View className="mt-3 w-full flex-1">
       <ScrollView
+        key={resetKey}
         className="flex-1"
         contentContainerStyle={{
           paddingHorizontal: 16,
