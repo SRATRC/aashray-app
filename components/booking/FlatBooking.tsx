@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores';
 import { colors } from '@/constants';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 import CustomCalender from '../CustomCalender';
 import CustomChipGroup from '../CustomChipGroup';
 import OtherMumukshuForm from '../OtherMumukshuForm';
@@ -14,7 +15,6 @@ import * as Haptics from 'expo-haptics';
 import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
 import moment from 'moment';
-import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 
 const CHIPS = ['Mumukshus', 'Guest'];
 const INITIAL_MUMUKSHU_FORM = {
@@ -191,7 +191,7 @@ const FlatBooking = () => {
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 8,
-          paddingBottom: tabBarPadding,
+          paddingBottom: tabBarPadding + 20,
         }}
         showsVerticalScrollIndicator={false}
         alwaysBounceVertical={false}>
