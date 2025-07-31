@@ -25,7 +25,11 @@ const QuotesBanner = ({ user, images }: any) => {
 
   return (
     <View className="w-full px-4">
-      <ImageBackground className="h-[220px] w-full px-2" source={images.banner} resizeMode="cover">
+      <ImageBackground
+        className="w-full px-2 py-8" // Use padding instead of min-height
+        source={images.banner}
+        resizeMode="cover" // Ensure image covers the area properly
+      >
         <View className="flex-1 justify-center">
           <View>
             <Text
@@ -36,9 +40,9 @@ const QuotesBanner = ({ user, images }: any) => {
 
             <Text
               className="ml-auto max-w-[60%] px-4 pb-2 text-right font-pregular text-base"
+              // Remove numberOfLines to allow text to expand naturally
               adjustsFontSizeToFit
-              numberOfLines={5}
-              minimumFontScale={0.5}
+              minimumFontScale={0.4}
               allowFontScaling={false}>
               "{randomQuote.quote}"
             </Text>
