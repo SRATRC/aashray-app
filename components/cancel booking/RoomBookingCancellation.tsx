@@ -167,15 +167,25 @@ const RoomBookingCancellation: React.FC = () => {
 
       <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
         <Image source={icons.roomNumber} className="h-4 w-4" resizeMode="contain" />
+
         <Text className="font-pregular text-gray-400">
-          {item.roomtype == 'flat' ? 'Flat Number:' : 'Room Number:'}
+          {item.roomtype === 'flat' ? 'Flat Number:' : 'Room Number:'}
         </Text>
+
         <Text className="font-pmedium text-black">
-          {item.transaction_status === status.STATUS_CASH_COMPLETED ||
-          item.transaction_status === status.STATUS_PAYMENT_COMPLETED ||
-          item.roomtype == 'flat'
+          {item.roomtype === 'flat' ||
+          ([status.STATUS_CASH_COMPLETED, status.STATUS_PAYMENT_COMPLETED].includes(
+            item.transaction_status
+          ) &&
+            (moment().isAfter(moment(item.checkin)) ||
+              moment().isBetween(
+                moment(item.checkin).subtract(24, 'hours'),
+                moment(item.checkin),
+                null,
+                '[]'
+              )))
             ? item.roomno
-            : 'Will be shared later'}
+            : '24h before check-in'}
         </Text>
       </View>
 
