@@ -98,15 +98,9 @@ const AdhyayanBookingCancellation = () => {
                 booking.transaction_status === status.STATUS_PAYMENT_PENDING ||
                 booking.transaction_status === status.STATUS_CASH_PENDING;
 
-              const isCompleted =
-                booking.transaction_status === status.STATUS_PAYMENT_COMPLETED ||
-                booking.transaction_status === status.STATUS_CASH_COMPLETED;
-
               const newTransactionStatus = isPending
                 ? status.STATUS_CANCELLED
-                : isCompleted
-                  ? status.STATUS_CREDITED
-                  : booking.transaction_status;
+                : booking.transaction_status;
 
               return {
                 ...booking,

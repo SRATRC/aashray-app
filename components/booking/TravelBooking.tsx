@@ -1,10 +1,12 @@
 import { View, Text, ScrollView } from 'react-native';
 import React, { useState, useCallback, useEffect } from 'react';
-import { types, dropdowns, status } from '@/constants';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useRouter } from 'expo-router';
+import { types, dropdowns, status } from '@/constants';
 import { useAuthStore, useBookingStore } from '@/stores';
 import { useQuery } from '@tanstack/react-query';
 import { useTabBarPadding } from '@/hooks/useTabBarPadding';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomButton from '../CustomButton';
 import CustomCalender from '../CustomCalender';
 import FormField from '../FormField';
@@ -12,7 +14,6 @@ import CustomModal from '../CustomModal';
 import CustomChipGroup from '../CustomChipGroup';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import FormDisplayField from '../FormDisplayField';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import moment from 'moment';
 import handleAPICall from '@/utils/HandleApiCall';
@@ -277,15 +278,16 @@ const TravelBooking = () => {
 
   return (
     <View className="mt-3 w-full flex-1">
-      <ScrollView
-        className="flex-1"
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 8,
           paddingBottom: tabBarPadding + 20,
         }}
         showsVerticalScrollIndicator={false}
-        alwaysBounceVertical={false}>
+        alwaysBounceVertical={false}
+        keyboardShouldPersistTaps="handled">
         <CustomCalender
           selectedDay={travelForm.date}
           setSelectedDay={(day: any) => {
@@ -670,7 +672,7 @@ const TravelBooking = () => {
           isLoading={isSubmitting}
           isDisabled={selectedChip == CHIPS[0] ? !isSelfFormValid() : !isMumukshuFormValid()}
         />
-      </ScrollView>
+      </KeyboardAwareScrollView>
       <CustomModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
