@@ -460,7 +460,7 @@ const TravelBooking = () => {
             )}
 
             <FormField
-              text="Any Special Request?"
+              text="Comments"
               value={travelForm.special_request}
               handleChangeText={(e: any) => setTravelForm({ ...travelForm, special_request: e })}
               otherStyles="mt-7"
@@ -605,7 +605,7 @@ const TravelBooking = () => {
                   />
 
                   <FormField
-                    text="Any Special Request?"
+                    text="Comments"
                     value={mumukshuForm.mumukshus[index].special_request}
                     handleChangeText={(e: any) =>
                       handleMumukshuFormChange(index, 'special_request', e)

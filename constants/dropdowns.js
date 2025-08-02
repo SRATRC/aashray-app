@@ -39,7 +39,7 @@ const LOCATION_LIST = [
   { key: 'airport t1', value: 'Airport Terminal 1' },
   { key: 'airport t2', value: 'Airport Terminal 2' },
   { key: 'bandra railway station', value: 'Railway Station (Bandra Terminus)' },
-  { key: 'kurla railway station', value: 'Railway Station (Kurla Terminus)' },
+  { key: 'kurla railway station', value: 'Railway Station (LTT - Kurla Terminus)' },
   { key: 'csmt railway station', value: 'Railway Station (CSMT)' },
   { key: 'mumbai central rrailway station', value: 'Railway Station (Mumbai Central)' },
   { key: 'other', value: 'Other (enter location in comments)' },

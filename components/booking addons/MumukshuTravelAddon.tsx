@@ -334,7 +334,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
           )}
 
           <FormField
-            text="Any Special Request?"
+            text="Comments"
             value={assignment.special_request}
             handleChangeText={(e: any) => updateTravelForm(index, 'special_request', e)}
             otherStyles="mt-7"

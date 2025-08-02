@@ -291,7 +291,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
       )}
 
       <FormField
-        text="Any Special Request?"
+        text="Comments"
         value={travelForm.special_request}
         handleChangeText={(e: any) =>
           setTravelForm({
