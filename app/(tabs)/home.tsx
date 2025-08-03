@@ -26,10 +26,9 @@ const QuotesBanner = ({ user, images }: any) => {
   return (
     <View className="w-full px-4">
       <ImageBackground
-        className="w-full px-2 py-8" // Use padding instead of min-height
+        className="min-h-[220px] w-full px-2 py-8"
         source={images.banner}
-        resizeMode="cover" // Ensure image covers the area properly
-      >
+        resizeMode="cover">
         <View className="flex-1 justify-center">
           <View>
             <Text
