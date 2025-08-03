@@ -37,7 +37,7 @@ const BookingCategories = () => {
       },
       {
         title: types.booking_type_event,
-        icon: <MaterialIcons name="festival" {...iconProps} />,
+        icon: <MaterialIcons name="celebration" {...iconProps} />,
       },
     ];
 

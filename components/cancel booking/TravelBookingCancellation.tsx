@@ -183,7 +183,7 @@ const TravelBookingCancellation = () => {
         {item.comments && (
           <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
             <Image source={icons.request} className="h-4 w-4" resizeMode="contain" />
-            <Text className="font-pregular text-gray-400">Special Request:</Text>
+            <Text className="font-pregular text-gray-400">Comments:</Text>
             <Text className="font-pmedium text-black">{item.comments}</Text>
           </View>
         )}

@@ -57,7 +57,7 @@ const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerSt
       </View>
       <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
         <Image source={icons.request} className="h-4 w-4" resizeMode="contain" />
-        <Text className="font-pregular text-gray-400">Special Request:</Text>
+        <Text className="font-pregular text-gray-400">Comments:</Text>
         <Text className="flex-1 font-pmedium text-black" numberOfLines={1}>
           {data.travel.mumukshuGroup[0].special_request
             ? data.travel.mumukshuGroup[0].special_request
