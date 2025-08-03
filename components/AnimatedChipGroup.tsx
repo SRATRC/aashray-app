@@ -1,0 +1,165 @@
+import React, { useRef, useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, Animated, Dimensions, ScrollView } from 'react-native';
+
+interface ChipData {
+  title: string;
+  icon: React.ReactElement;
+}
+
+interface AnimatedChipGroupProps {
+  chips: ChipData[];
+  selectedChip: string;
+  handleChipPress: (chipTitle: string) => void;
+  containerStyles?: string;
+  chipContainerStyles?: string;
+  textStyles?: string;
+}
+
+interface ChipItemProps {
+  item: ChipData;
+  isSelected: boolean;
+  onPress: () => void;
+  chipContainerStyles?: string;
+  textStyles?: string;
+}
+
+const ChipItem: React.FC<ChipItemProps> = ({
+  item,
+  isSelected,
+  onPress,
+  chipContainerStyles = '',
+  textStyles = '',
+}) => {
+  const [textWidth, setTextWidth] = useState(0);
+  const animatedWidth = useRef(new Animated.Value(48)).current;
+  const textOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const totalWidth = isSelected ? Math.max(48, textWidth + 60) : 48;
+
+    Animated.parallel([
+      Animated.spring(animatedWidth, {
+        toValue: totalWidth,
+        tension: 170,
+        friction: 12,
+        useNativeDriver: false,
+      }),
+      Animated.timing(textOpacity, {
+        toValue: isSelected ? 1 : 0,
+        duration: isSelected ? 120 : 80,
+        delay: isSelected ? 30 : 0,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [isSelected, textWidth]);
+
+  const icon = React.cloneElement(item.icon, {
+    color: isSelected ? 'white' : '#9CA3AF',
+  });
+
+  return (
+    <Animated.View
+      style={{
+        width: animatedWidth,
+        height: 48,
+        marginRight: 8,
+      }}>
+      <TouchableOpacity
+        className={`h-full flex-row items-center justify-center rounded-[12px] ${
+          isSelected ? 'bg-secondary px-4' : 'bg-gray-200 px-0'
+        } ${chipContainerStyles}`}
+        activeOpacity={0.7}
+        onPress={onPress}>
+        {icon}
+
+        {/* Hidden text for measuring width */}
+        <Text
+          className={`absolute font-pmedium text-white opacity-0 ${textStyles}`}
+          onLayout={(event) => {
+            const { width } = event.nativeEvent.layout;
+            if (width !== textWidth) setTextWidth(width);
+          }}>
+          {item.title}
+        </Text>
+
+        {/* Animated visible text */}
+        {isSelected && (
+          <Animated.View
+            style={{
+              opacity: textOpacity,
+              marginLeft: 8,
+            }}>
+            <Text className={`font-pmedium text-white ${textStyles}`}>{item.title}</Text>
+          </Animated.View>
+        )}
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+const AnimatedChipGroup: React.FC<AnimatedChipGroupProps> = ({
+  chips,
+  selectedChip,
+  handleChipPress,
+  containerStyles = '',
+  chipContainerStyles = '',
+  textStyles = '',
+}) => {
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [chipLayouts, setChipLayouts] = useState<{ [key: string]: { x: number; width: number } }>(
+    {}
+  );
+
+  // Scroll to selected chip when it changes
+  useEffect(() => {
+    if (selectedChip && chipLayouts[selectedChip] && scrollViewRef.current) {
+      const selectedLayout = chipLayouts[selectedChip];
+      const screenWidth = Dimensions.get('window').width;
+
+      // Calculate scroll position to center the selected chip
+      const chipCenter = selectedLayout.x + selectedLayout.width / 2;
+      const scrollToX = chipCenter - screenWidth / 2;
+
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({
+          x: Math.max(0, scrollToX),
+          animated: true,
+        });
+      }, 50); // Wait for expansion animation
+    }
+  }, [selectedChip, chipLayouts]);
+
+  const handleLayout = (chipTitle: string, event: any) => {
+    const { x, width } = event.nativeEvent.layout;
+    setChipLayouts((prev) => ({
+      ...prev,
+      [chipTitle]: { x, width },
+    }));
+  };
+
+  return (
+    <View className={`mt-5 ${containerStyles}`}>
+      <ScrollView
+        ref={scrollViewRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingRight: 16 }}>
+        <View className="flex-row">
+          {chips.map((chip) => (
+            <View key={chip.title} onLayout={(event) => handleLayout(chip.title, event)}>
+              <ChipItem
+                item={chip}
+                isSelected={selectedChip === chip.title}
+                onPress={() => handleChipPress(chip.title)}
+                chipContainerStyles={chipContainerStyles}
+                textStyles={textStyles}
+              />
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
+  );
+};
+
+export default AnimatedChipGroup;
