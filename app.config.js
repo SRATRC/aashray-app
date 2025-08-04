@@ -3,7 +3,7 @@ export default {
     name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
-    version: '1.1.21',
+    version: '1.1.23',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     userInterfaceStyle: 'automatic',
@@ -135,5 +135,8 @@ export default {
       },
     },
     owner: 'vitraagvigyaan',
+  },
+  experiments: {
+    buildCacheProvider: 'eas',
   },
 };

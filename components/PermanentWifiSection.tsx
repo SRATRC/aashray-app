@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import Toast from 'react-native-toast-message';
@@ -243,8 +243,8 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
           </Text>
         </View>
 
-        <TouchableOpacity onPress={onInfoPress} className="rounded-full p-1.5" activeOpacity={0.7}>
-          <Feather name="info" size={20} color="#9CA3AF" />
+        <TouchableOpacity onPress={onInfoPress} className="p-1.5" activeOpacity={0.7}>
+          <Ionicons name="help-circle-sharp" size={28} color={colors.orange} />
         </TouchableOpacity>
       </View>
 

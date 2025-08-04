@@ -7,6 +7,7 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
+import CustomModal from '../CustomModal';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { icons, status } from '@/constants';
@@ -24,6 +25,8 @@ const RoomBookingCancellation: React.FC = () => {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const tabBarPadding = useTabBarPadding();
 
   const fetchRooms = async ({ pageParam = 1 }: { pageParam?: number }) => {
@@ -201,12 +204,10 @@ const RoomBookingCancellation: React.FC = () => {
             text="Cancel Booking"
             containerStyles="mt-5 py-3 mx-1 flex-1"
             textStyles="text-sm text-white"
-            handlePress={() =>
-              cancelBookingMutation.mutate({
-                bookingid: item.bookingid,
-                bookedFor: item.bookedFor,
-              })
-            }
+            handlePress={() => {
+              setSelectedBooking(item);
+              setShowCancelModal(true);
+            }}
           />
         )}
     </ExpandableItem>
@@ -279,6 +280,27 @@ const RoomBookingCancellation: React.FC = () => {
           if (hasNextPage) fetchNextPage();
         }}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
+      />
+      <CustomModal
+        visible={showCancelModal}
+        onClose={() => {
+          setShowCancelModal(false);
+          setSelectedBooking(null);
+        }}
+        title="Cancel Booking"
+        message="Are you sure you want to cancel this room booking?"
+        btnText="Yes, Cancel"
+        showActionButton={true}
+        btnOnPress={() => {
+          if (selectedBooking) {
+            cancelBookingMutation.mutate({
+              bookingid: selectedBooking.bookingid,
+              bookedFor: selectedBooking.bookedFor,
+            });
+            setShowCancelModal(false);
+            setSelectedBooking(null);
+          }
+        }}
       />
     </View>
   );

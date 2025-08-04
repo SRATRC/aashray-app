@@ -40,14 +40,13 @@ const ChipItem: React.FC<ChipItemProps> = ({
     Animated.parallel([
       Animated.spring(animatedWidth, {
         toValue: totalWidth,
-        tension: 170,
-        friction: 12,
+        tension: 150,
+        friction: 8,
         useNativeDriver: false,
       }),
       Animated.timing(textOpacity, {
         toValue: isSelected ? 1 : 0,
-        duration: isSelected ? 120 : 80,
-        delay: isSelected ? 30 : 0,
+        duration: isSelected ? 200 : 150,
         useNativeDriver: true,
       }),
     ]).start();
@@ -66,15 +65,31 @@ const ChipItem: React.FC<ChipItemProps> = ({
       }}>
       <TouchableOpacity
         className={`h-full flex-row items-center justify-center rounded-[12px] ${
-          isSelected ? 'bg-secondary px-4' : 'bg-gray-200 px-0'
+          isSelected ? 'bg-secondary px-4' : 'bg-gray-200'
         } ${chipContainerStyles}`}
         activeOpacity={0.7}
         onPress={onPress}>
-        {icon}
+        {/* Fixed icon container */}
+        <View
+          style={{
+            width: 24,
+            height: 24,
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden', // This prevents icon overflow
+          }}>
+          {icon}
+        </View>
 
         {/* Hidden text for measuring width */}
         <Text
-          className={`absolute font-pmedium text-white opacity-0 ${textStyles}`}
+          className={`font-pmedium text-white ${textStyles}`}
+          style={{
+            position: 'absolute',
+            left: -1000,
+            top: -1000,
+          }}
+          numberOfLines={1}
           onLayout={(event) => {
             const { width } = event.nativeEvent.layout;
             if (width !== textWidth) setTextWidth(width);
@@ -88,8 +103,11 @@ const ChipItem: React.FC<ChipItemProps> = ({
             style={{
               opacity: textOpacity,
               marginLeft: 8,
+              maxWidth: textWidth,
             }}>
-            <Text className={`font-pmedium text-white ${textStyles}`}>{item.title}</Text>
+            <Text className={`font-pmedium text-white ${textStyles}`} numberOfLines={1}>
+              {item.title}
+            </Text>
           </Animated.View>
         )}
       </TouchableOpacity>
@@ -125,7 +143,7 @@ const AnimatedChipGroup: React.FC<AnimatedChipGroupProps> = ({
           x: Math.max(0, scrollToX),
           animated: true,
         });
-      }, 50); // Wait for expansion animation
+      }, 50); // Back to original timing
     }
   }, [selectedChip, chipLayouts]);
 

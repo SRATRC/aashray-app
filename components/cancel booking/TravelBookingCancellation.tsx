@@ -7,6 +7,7 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
+import CustomModal from '../CustomModal';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { icons, status } from '@/constants';
 import { useAuthStore } from '@/stores';
@@ -24,6 +25,8 @@ const TravelBookingCancellation = () => {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const tabBarPadding = useTabBarPadding();
 
   const fetchTravels = async ({ pageParam = 1 }) => {
@@ -202,7 +205,8 @@ const TravelBookingCancellation = () => {
                 containerStyles={'mt-5 py-3 mx-1 flex-1'}
                 textStyles={'text-sm text-white'}
                 handlePress={() => {
-                  cancelBookingMutation.mutate(item.bookingid);
+                  setSelectedBooking(item);
+                  setShowCancelModal(true);
                 }}
               />
             )}
@@ -276,6 +280,24 @@ const TravelBookingCancellation = () => {
           if (hasNextPage) fetchNextPage();
         }}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
+      />
+      <CustomModal
+        visible={showCancelModal}
+        onClose={() => {
+          setShowCancelModal(false);
+          setSelectedBooking(null);
+        }}
+        title="Cancel Booking"
+        message="Are you sure you want to cancel this travel booking?"
+        btnText="Yes, Cancel"
+        showActionButton={true}
+        btnOnPress={() => {
+          if (selectedBooking) {
+            cancelBookingMutation.mutate(selectedBooking.bookingid);
+            setShowCancelModal(false);
+            setSelectedBooking(null);
+          }
+        }}
       />
     </View>
   );
