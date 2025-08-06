@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -8,6 +8,7 @@ import moment from 'moment';
 import { colors } from '@/constants';
 import CustomButton from '@/components/CustomButton';
 import CustomErrorMessage from '@/components/CustomErrorMessage';
+import CustomModal from '@/components/CustomModal';
 
 interface PermanentWifiData {
   id: string;
@@ -25,6 +26,8 @@ interface PermanentWifiSectionProps {
   isSubmitting: boolean;
   onRequestCode: () => void;
   onInfoPress: () => void;
+  onResetCode?: (id: string) => void;
+  isResettingCode?: boolean;
 }
 
 const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
@@ -34,7 +37,11 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
   isSubmitting,
   onRequestCode,
   onInfoPress,
+  onResetCode,
+  isResettingCode = false,
 }) => {
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [selectedCodeId, setSelectedCodeId] = useState<string>('');
   const copyToClipboard = async (text: string) => {
     await Clipboard.setStringAsync(text);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -101,13 +108,31 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
             <Text className="font-pregular text-sm text-gray-600">Permanent WiFi Code</Text>
             <Text className="font-psemibold text-lg text-black">{item.code}</Text>
           </View>
-          <TouchableOpacity
-            onPress={() => item.code && copyToClipboard(item.code)}
-            className={`h-10 w-10 items-center justify-center rounded-full bg-white ${
-              Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-            }`}>
-            <Ionicons name="copy-outline" size={20} color={colors.gray_400} />
-          </TouchableOpacity>
+          <View className="flex-row gap-x-2">
+            <TouchableOpacity
+              onPress={() => {
+                setSelectedCodeId(item.id);
+                setShowResetModal(true);
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }}
+              disabled={isResettingCode}
+              className={`h-10 w-10 items-center justify-center rounded-full bg-white ${
+                Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
+              }`}>
+              {isResettingCode ? (
+                <ActivityIndicator size="small" color={colors.orange} />
+              ) : (
+                <MaterialIcons name="refresh" size={20} color={colors.gray_400} />
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => item.code && copyToClipboard(item.code)}
+              className={`h-10 w-10 items-center justify-center rounded-full bg-white ${
+                Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
+              }`}>
+              <Ionicons name="copy-outline" size={20} color={colors.gray_400} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -274,6 +299,26 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
           {shouldShowRequestButton() && renderRequestButton()}
         </View>
       )}
+
+      {/* Reset Confirmation Modal */}
+      <CustomModal
+        visible={showResetModal}
+        onClose={() => setShowResetModal(false)}
+        title="Reset WiFi Code"
+        scrollable={false}
+        btnOnPress={() => {
+          setShowResetModal(false);
+          onResetCode?.(selectedCodeId);
+        }}>
+        <View className="px-1">
+          <View className="rounded-xl border border-orange-200 bg-orange-50 p-4">
+            <Text className="font-pregular text-sm leading-6 text-orange-700">
+              Are you sure you want to reset your permanent WiFi code? A new code request will be
+              sent to the admin, and you'll need to reconnect your device with the new code.
+            </Text>
+          </View>
+        </View>
+      </CustomModal>
     </View>
   );
 };
