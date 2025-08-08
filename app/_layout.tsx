@@ -85,7 +85,10 @@ const AppNavigator = () => {
       let targetRoute = '';
       let routeId = '';
 
-      if (path.startsWith('/adhyayan/')) {
+      if (path.startsWith('/adhyayan/feedback/')) {
+        routeId = path.split('/adhyayan/feedback/')[1];
+        targetRoute = `/adhyayan/feedback/${routeId}`;
+      } else if (path.startsWith('/adhyayan/')) {
         routeId = path.split('/adhyayan/')[1];
         targetRoute = `/adhyayan/${routeId}`;
       } else if (path.startsWith('/utsav/')) {

@@ -6,6 +6,7 @@ const AdhyayanDetailsLayout = () => {
     <>
       <Stack>
         <Stack.Screen name="[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="feedback/[id]" options={{ headerShown: false }} />
       </Stack>
     </>
   );

@@ -12,6 +12,7 @@ import { FlashList } from '@shopify/flash-list';
 import { icons, status } from '@/constants';
 import { useAuthStore } from '@/stores';
 import { useTabBarPadding } from '@/hooks/useTabBarPadding';
+import { useRouter } from 'expo-router';
 import CustomButton from '../CustomButton';
 import handleAPICall from '@/utils/HandleApiCall';
 import ExpandableItem from '../ExpandableItem';
@@ -23,6 +24,7 @@ import moment from 'moment';
 
 const AdhyayanBookingCancellation = () => {
   const { user } = useAuthStore();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -173,18 +175,37 @@ const AdhyayanBookingCancellation = () => {
           <Text className="font-pregular text-gray-400">Charge:</Text>
           <Text className="font-pmedium text-black">₹ {item.amount}</Text>
         </View>
-        {moment(item.start_date).diff(moment().format('YYYY-MM-DD')) > 0 &&
-          ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
-            <CustomButton
-              text="Cancel Booking"
-              containerStyles={'mt-5 py-3 mx-1 flex-1'}
-              textStyles={'text-sm text-white'}
-              handlePress={() => {
-                setSelectedBooking(item);
-                setShowCancelModal(true);
-              }}
-            />
-          )}
+        {/* Actions Row */}
+        {((moment(item.start_date).diff(moment().format('YYYY-MM-DD')) > 0 &&
+          ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status)) ||
+          item?.showFeedback) && (
+          <View className="mt-5 flex-row gap-x-3 px-1">
+            {moment(item.start_date).diff(moment().format('YYYY-MM-DD')) > 0 &&
+              ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
+                <CustomButton
+                  text="Cancel Booking"
+                  containerStyles={'py-3 flex-1'}
+                  textStyles={'text-sm text-white'}
+                  handlePress={() => {
+                    setSelectedBooking(item);
+                    setShowCancelModal(true);
+                  }}
+                />
+              )}
+            {item?.showFeedback && (
+              <CustomButton
+                text="Give Feedback"
+                containerStyles={'py-3 flex-1'}
+                textStyles={'text-sm text-white'}
+                bgcolor={'bg-secondary'}
+                handlePress={() => {
+                  const shibirId = item.shibir_id ?? item.id;
+                  router.push(`/adhyayan/feedback/${shibirId}`);
+                }}
+              />
+            )}
+          </View>
+        )}
       </View>
     </ExpandableItem>
   );
