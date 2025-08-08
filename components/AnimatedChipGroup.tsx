@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Animated, Dimensions, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, ScrollView } from 'react-native';
 
 interface ChipData {
   title: string;
@@ -123,56 +123,22 @@ const AnimatedChipGroup: React.FC<AnimatedChipGroupProps> = ({
   chipContainerStyles = '',
   textStyles = '',
 }) => {
-  const scrollViewRef = useRef<ScrollView>(null);
-  const [chipLayouts, setChipLayouts] = useState<{ [key: string]: { x: number; width: number } }>(
-    {}
-  );
-
-  // Scroll to selected chip when it changes
-  useEffect(() => {
-    if (selectedChip && chipLayouts[selectedChip] && scrollViewRef.current) {
-      const selectedLayout = chipLayouts[selectedChip];
-      const screenWidth = Dimensions.get('window').width;
-
-      // Calculate scroll position to center the selected chip
-      const chipCenter = selectedLayout.x + selectedLayout.width / 2;
-      const scrollToX = chipCenter - screenWidth / 2;
-
-      setTimeout(() => {
-        scrollViewRef.current?.scrollTo({
-          x: Math.max(0, scrollToX),
-          animated: true,
-        });
-      }, 50); // Back to original timing
-    }
-  }, [selectedChip, chipLayouts]);
-
-  const handleLayout = (chipTitle: string, event: any) => {
-    const { x, width } = event.nativeEvent.layout;
-    setChipLayouts((prev) => ({
-      ...prev,
-      [chipTitle]: { x, width },
-    }));
-  };
-
   return (
     <View className={`mt-5 ${containerStyles}`}>
       <ScrollView
-        ref={scrollViewRef}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingRight: 16 }}>
         <View className="flex-row">
           {chips.map((chip) => (
-            <View key={chip.title} onLayout={(event) => handleLayout(chip.title, event)}>
-              <ChipItem
-                item={chip}
-                isSelected={selectedChip === chip.title}
-                onPress={() => handleChipPress(chip.title)}
-                chipContainerStyles={chipContainerStyles}
-                textStyles={textStyles}
-              />
-            </View>
+            <ChipItem
+              key={chip.title}
+              item={chip}
+              isSelected={selectedChip === chip.title}
+              onPress={() => handleChipPress(chip.title)}
+              chipContainerStyles={chipContainerStyles}
+              textStyles={textStyles}
+            />
           ))}
         </View>
       </ScrollView>
