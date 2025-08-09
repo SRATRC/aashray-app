@@ -350,7 +350,10 @@ const FeedbackScreen: React.FC = () => {
   if (isValidating) {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-        <PageHeader title="Adhyayan Feedback" />
+        <PageHeader
+          title="Adhyayan Feedback"
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
+        />
         {/* Shimmer Loading UI */}
         <View className="animate-pulse p-6">
           {/* Ratings Shimmer */}
@@ -381,7 +384,10 @@ const FeedbackScreen: React.FC = () => {
   if (validationError) {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-        <PageHeader title="Adhyayan Feedback" />
+        <PageHeader
+          title="Adhyayan Feedback"
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
+        />
         <View className="flex-1 items-center justify-center px-6">
           <Ionicons name="warning-outline" size={48} color="#DC2626" />
           <Text className="mb-2 mt-4 text-center font-psemibold text-xl text-gray-900">
@@ -395,7 +401,10 @@ const FeedbackScreen: React.FC = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <PageHeader title="Adhyayan Feedback" />
+      <PageHeader
+        title="Adhyayan Feedback"
+        onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
+      />
       <KeyboardAwareScrollView
         bottomOffset={62}
         style={{ flex: 1 }}
