@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { Alert, View, Text, TouchableOpacity } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { Alert, View, Text, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -120,32 +120,53 @@ const AdhyayanFeedbackForm: React.FC<{
         errorMessage="Required"
       />
 
-      <FieldLabel label="Raj Adhyayan Interest" required helper="Let us know your interest level" />
-      <View className="mt-2 flex-row gap-x-3">
+      <FieldLabel
+        label="Raj Adhyayan Interest"
+        required
+        helper="Let us know if you are interested in participating in future Raj Adhyayans"
+      />
+      <View className="mt-3 flex-row gap-x-4">
         <TouchableOpacity
-          className={`flex-1 rounded-xl border px-4 py-3 ${
-            value.raj_adhyayan_interest === false
-              ? 'border-secondary bg-secondary/10'
-              : 'border-gray-200 bg-white'
-          }`}
-          activeOpacity={0.9}
-          onPress={() => onChange({ ...value, raj_adhyayan_interest: false })}>
-          <View className="flex-row items-center justify-center gap-x-2">
-            <Ionicons name="thumbs-down" size={18} color={colors.gray_600} />
-            <Text className="font-pmedium text-gray-800">Not Interested</Text>
+          className={`flex-1 rounded-2xl px-6 py-5 ${
+            value.raj_adhyayan_interest === true
+              ? 'bg-green-500'
+              : 'border border-gray-200 bg-white'
+          } ${Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'}`}
+          activeOpacity={0.8}
+          onPress={() => onChange({ ...value, raj_adhyayan_interest: true })}>
+          <View className="items-center">
+            <Ionicons
+              name="heart"
+              size={28}
+              color={value.raj_adhyayan_interest === true ? '#FFFFFF' : '#6B7280'}
+            />
+            <Text
+              className={`mt-2 font-pbold text-base ${
+                value.raj_adhyayan_interest === true ? 'text-white' : 'text-gray-700'
+              }`}>
+              I'm In!
+            </Text>
           </View>
         </TouchableOpacity>
+
         <TouchableOpacity
-          className={`flex-1 rounded-xl border px-4 py-3 ${
-            value.raj_adhyayan_interest === true
-              ? 'border-secondary bg-secondary/10'
-              : 'border-gray-200 bg-white'
-          }`}
-          activeOpacity={0.9}
-          onPress={() => onChange({ ...value, raj_adhyayan_interest: true })}>
-          <View className="flex-row items-center justify-center gap-x-2">
-            <Ionicons name="thumbs-up" size={18} color={colors.gray_600} />
-            <Text className="font-pmedium text-gray-800">Interested</Text>
+          className={`flex-1 rounded-2xl px-6 py-5 ${
+            value.raj_adhyayan_interest === false ? 'bg-red-500' : 'border border-gray-200 bg-white'
+          } ${Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'}`}
+          activeOpacity={0.8}
+          onPress={() => onChange({ ...value, raj_adhyayan_interest: false })}>
+          <View className="items-center">
+            <Ionicons
+              name="close-outline"
+              size={28}
+              color={value.raj_adhyayan_interest === false ? '#FFFFFF' : '#6B7280'}
+            />
+            <Text
+              className={`mt-2 font-pbold text-base ${
+                value.raj_adhyayan_interest === false ? 'text-white' : 'text-gray-700'
+              }`}>
+              Not Now
+            </Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -228,11 +249,46 @@ const FeedbackScreen: React.FC = () => {
   const [form, setForm] = useState<AdhyayanFeedbackData>(getInitialFeedbackForm());
   const [submitting, setSubmitting] = useState(false);
   const [showValidation, setShowValidation] = useState(false);
+  const [isValidating, setIsValidating] = useState(true);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const shibirId = useMemo(() => {
     const parsed = parseInt(Array.isArray(id) ? id[0] : (id as string), 10);
     return Number.isFinite(parsed) ? parsed : null;
   }, [id]);
+
+  // Validate feedback access on mount
+  useEffect(() => {
+    if (!user?.cardno || shibirId === null) {
+      setValidationError('Invalid shibir or user information');
+      setIsValidating(false);
+      return;
+    }
+
+    const validateFeedbackAccess = async () => {
+      setIsValidating(true);
+      await new Promise((resolve, reject) => {
+        handleAPICall(
+          'GET',
+          '/adhyayan/feedback/validate',
+          { shibir_id: shibirId, cardno: user.cardno },
+          null,
+          () => resolve(true),
+          () => {
+            setIsValidating(false);
+          },
+          (err) => {
+            setValidationError(
+              err?.message || 'You are not authorized to submit feedback for this shibir'
+            );
+          }
+        );
+      });
+      setValidationError(null);
+    };
+
+    validateFeedbackAccess();
+  }, [shibirId, user?.cardno, router]);
 
   const valid = useMemo(() => {
     return (
@@ -291,8 +347,54 @@ const FeedbackScreen: React.FC = () => {
     }
   };
 
+  if (isValidating) {
+    return (
+      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+        <PageHeader title="Adhyayan Feedback" />
+        {/* Shimmer Loading UI */}
+        <View className="animate-pulse p-6">
+          {/* Ratings Shimmer */}
+          <View className="mb-6">
+            <View className="mb-2 h-6 w-1/2 rounded-lg bg-gray-200" />
+            <View className="flex-row gap-x-2">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <View key={n} className="h-7 w-7 rounded-full bg-gray-200" />
+              ))}
+            </View>
+          </View>
+
+          {/* Text Inputs Shimmer */}
+          {[1, 2, 3, 4].map((n) => (
+            <View key={n} className="mb-6">
+              <View className="mb-2 h-6 w-3/4 rounded-lg bg-gray-200" />
+              <View className="h-24 rounded-xl bg-gray-200" />
+            </View>
+          ))}
+
+          {/* Submit Button Shimmer */}
+          <View className="mt-4 h-[62px] w-full rounded-xl bg-gray-200" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (validationError) {
+    return (
+      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+        <PageHeader title="Adhyayan Feedback" />
+        <View className="flex-1 items-center justify-center px-6">
+          <Ionicons name="warning-outline" size={48} color="#DC2626" />
+          <Text className="mb-2 mt-4 text-center font-psemibold text-xl text-gray-900">
+            Access Denied
+          </Text>
+          <Text className="mb-6 text-center text-base text-gray-600">{validationError}</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-white">
       <PageHeader title="Adhyayan Feedback" />
       <KeyboardAwareScrollView
         bottomOffset={62}

@@ -49,6 +49,11 @@ export default {
             {
               scheme: 'https',
               host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/adhyayan/feedback',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
               pathPrefix: '/event',
             },
             {
