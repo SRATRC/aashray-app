@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Alert, View, Text, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import { Alert, View, Text, TouchableOpacity, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -44,27 +44,22 @@ const StarRating: React.FC<{
   return (
     <View className="mt-2 flex-row items-center gap-x-2">
       {[1, 2, 3, 4, 5].map((n) => (
-        <Text key={n} onPress={() => onChange(n)}>
+        <TouchableOpacity key={n} onPress={() => onChange(n)} activeOpacity={0.8}>
           <Ionicons
             name={n <= current ? 'star' : 'star-outline'}
             size={size}
             color={colors.orange}
           />
-        </Text>
+        </TouchableOpacity>
       ))}
     </View>
   );
 };
 
-const FieldLabel: React.FC<{ label: string; required?: boolean; helper?: string }> = ({
-  label,
-  required,
-  helper,
-}) => (
+const FieldLabel: React.FC<{ label: string; helper?: string }> = ({ label, helper }) => (
   <View className="mt-5">
     <View className="flex-row items-baseline gap-x-1">
       <Text className="font-pmedium text-base text-gray-700">{label}</Text>
-      {required && <Text className="font-pregular text-sm text-red-500">*</Text>}
     </View>
     {helper ? <Text className="mt-1 font-pregular text-xs text-gray-500">{helper}</Text> : null}
   </View>
@@ -92,14 +87,14 @@ const AdhyayanFeedbackForm: React.FC<{
 
   return (
     <View className={`w-full ${containerStyles}`}>
-      <FieldLabel label="Swadhyay Karta Rating" required />
+      <FieldLabel label="Swadhyay Karta Rating" />
       <StarRating
         value={value.swadhay_karta_rating}
         onChange={(n) => onChange({ ...value, swadhay_karta_rating: n })}
       />
       <ErrorText show={fieldError(!value.swadhay_karta_rating)} />
 
-      <FieldLabel label="Personal Interaction Rating" required />
+      <FieldLabel label="Personal Interaction Rating" />
       <StarRating
         value={value.personal_interaction_rating}
         onChange={(n) => onChange({ ...value, personal_interaction_rating: n })}
@@ -111,18 +106,14 @@ const AdhyayanFeedbackForm: React.FC<{
         placeholder="Share your suggestions"
         value={value.swadhay_karta_suggestions}
         handleChangeText={(t: string) => onChange({ ...value, swadhay_karta_suggestions: t })}
-        multiline
-        numberOfLines={3}
         otherStyles="mt-5"
         inputStyles="font-pmedium text-base"
-        containerStyles="bg-gray-100"
         error={fieldError(!value.swadhay_karta_suggestions)}
         errorMessage="Required"
       />
 
       <FieldLabel
         label="Raj Adhyayan Interest"
-        required
         helper="Let us know if you are interested in participating in future Raj Adhyayans"
       />
       <View className="mt-3 flex-row gap-x-4">
@@ -177,11 +168,8 @@ const AdhyayanFeedbackForm: React.FC<{
         placeholder="What future topics interest you?"
         value={value.future_topics}
         handleChangeText={(t: string) => onChange({ ...value, future_topics: t })}
-        multiline
-        numberOfLines={2}
         otherStyles="mt-5"
         inputStyles="font-pmedium text-base"
-        containerStyles="bg-gray-100"
         error={fieldError(!value.future_topics)}
         errorMessage="Required"
       />
@@ -191,11 +179,8 @@ const AdhyayanFeedbackForm: React.FC<{
         placeholder="What did you love the most?"
         value={value.loved_most}
         handleChangeText={(t: string) => onChange({ ...value, loved_most: t })}
-        multiline
-        numberOfLines={2}
         otherStyles="mt-5"
         inputStyles="font-pmedium text-base"
-        containerStyles="bg-gray-100"
         error={fieldError(!value.loved_most)}
         errorMessage="Required"
       />
@@ -205,23 +190,20 @@ const AdhyayanFeedbackForm: React.FC<{
         placeholder="What can be improved?"
         value={value.improvement_suggestions}
         handleChangeText={(t: string) => onChange({ ...value, improvement_suggestions: t })}
-        multiline
-        numberOfLines={3}
         otherStyles="mt-5"
         inputStyles="font-pmedium text-base"
-        containerStyles="bg-gray-100"
         error={fieldError(!value.improvement_suggestions)}
         errorMessage="Required"
       />
 
-      <FieldLabel label="Food Rating" required />
+      <FieldLabel label="Food Rating" />
       <StarRating
         value={value.food_rating}
         onChange={(n) => onChange({ ...value, food_rating: n })}
       />
       <ErrorText show={fieldError(!value.food_rating)} />
 
-      <FieldLabel label="Stay Rating" required />
+      <FieldLabel label="Stay Rating" />
       <StarRating
         value={value.stay_rating}
         onChange={(n) => onChange({ ...value, stay_rating: n })}

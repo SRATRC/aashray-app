@@ -8,7 +8,7 @@ export default function BlurTabBarBackground() {
       // System chrome material automatically adapts to the system's theme
       // and matches the native tab bar appearance on iOS.
       tint="light"
-      intensity={80}
+      intensity={90}
       style={StyleSheet.absoluteFill}
     />
   );
