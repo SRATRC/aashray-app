@@ -8,7 +8,6 @@ import {
   Modal,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -23,6 +22,7 @@ import RNDateTimePicker from '@react-native-community/datetimepicker';
 import PageHeader from '@/components/PageHeader';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
+import ErrorText from '@/components/ErrorText';
 
 const fetchCountries = () => {
   return new Promise((resolve, reject) => {
@@ -89,9 +89,11 @@ const CompleteProfile = () => {
   const setUser = useAuthStore((state) => state.setUser);
   const logout = useAuthStore((state) => state.logout);
 
-  const router = useRouter();
+  const [showValidation, setShowValidation] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const fieldError = (cond: boolean) => showValidation && cond;
 
   const initialFormState = {
     issuedto: user?.issuedto || '',
@@ -154,11 +156,19 @@ const CompleteProfile = () => {
       form.state &&
       form.city &&
       form.pin &&
-      form.center
+      form.center &&
+      form.mobno.toString().length === 10 &&
+      form.pin.toString().length === 6 &&
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
     );
   };
 
   const submit = async () => {
+    if (!isFormValid()) {
+      setShowValidation(true);
+      return;
+    }
+
     setIsSubmitting(true);
     const onSuccess = (data: any) => {
       setUser(data.data);
@@ -300,6 +310,8 @@ const CompleteProfile = () => {
                 keyboardType="default"
                 placeholder="Enter Your Name"
                 containerStyles={'bg-gray-100'}
+                error={fieldError(!form.issuedto)}
+                errorMessage="Name is required"
               />
 
               <FormField
@@ -312,6 +324,8 @@ const CompleteProfile = () => {
                 placeholder="Enter Your Phone Number"
                 maxLength={10}
                 containerStyles={'bg-gray-100'}
+                error={fieldError(!form.mobno || form.mobno.toString().length !== 10)}
+                errorMessage="Mobile Number is required"
               />
 
               <FormField
@@ -324,6 +338,8 @@ const CompleteProfile = () => {
                 placeholder="Enter Your Email ID"
                 maxLength={100}
                 containerStyles={'bg-gray-100'}
+                error={fieldError(!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))}
+                errorMessage="Email is required"
               />
 
               <CustomSelectBottomSheet
@@ -336,6 +352,7 @@ const CompleteProfile = () => {
                   setForm({ ...form, idType: val });
                 }}
               />
+              <ErrorText show={fieldError(form.idType == '')} message="ID Type is required" />
 
               <FormField
                 text="Enter ID Number"
@@ -346,6 +363,8 @@ const CompleteProfile = () => {
                 keyboardType="default"
                 placeholder="Enter Your ID Number"
                 containerStyles={'bg-gray-100'}
+                error={fieldError(!form.idNo)}
+                errorMessage="Government ID is required"
               />
 
               <FormDisplayField
@@ -355,6 +374,7 @@ const CompleteProfile = () => {
                 backgroundColor={'bg-gray-100'}
                 onPress={() => setDatePickerVisibility(true)}
               />
+              <ErrorText show={fieldError(form.dob == '')} message="Date of Birth is required" />
 
               {isDatePickerVisible && (
                 <RNDateTimePicker
@@ -386,6 +406,7 @@ const CompleteProfile = () => {
                 selectedValue={form.gender}
                 onValueChange={(val: any) => setForm({ ...form, gender: val })}
               />
+              <ErrorText show={fieldError(form.gender == '')} message="Gender is required" />
 
               <CustomSelectBottomSheet
                 className="mt-7"
@@ -403,6 +424,7 @@ const CompleteProfile = () => {
                 onRetry={fetchCentres}
                 saveKeyInsteadOfValue={false}
               />
+              <ErrorText show={fieldError(form.center == '')} message="Center is required" />
 
               <FormField
                 text="Address"
@@ -416,6 +438,8 @@ const CompleteProfile = () => {
                 placeholder="Enter Your Address"
                 maxLength={200}
                 containerStyles={'bg-gray-100'}
+                error={fieldError(!form.address)}
+                errorMessage="Address is required"
               />
 
               <CustomSelectBottomSheet
@@ -435,42 +459,55 @@ const CompleteProfile = () => {
                 onRetry={fetchCountries}
                 saveKeyInsteadOfValue={false}
               />
+              <ErrorText show={fieldError(form.country == '')} message="Country is required" />
 
               {selectedCountry && (
-                <CustomSelectBottomSheet
-                  className="mt-7"
-                  label="State"
-                  placeholder="Select State"
-                  options={states}
-                  selectedValue={form.state}
-                  onValueChange={(val: any) => {
-                    setForm({ ...form, state: val, city: '' });
-                    setSelectedState(val);
-                  }}
-                  searchable={true}
-                  searchPlaceholder="Search States..."
-                  noResultsText="No States Found"
-                  isLoading={isStatesLoading}
-                  onRetry={() => fetchStates(selectedCountry)}
-                  saveKeyInsteadOfValue={false}
-                />
+                <>
+                  <CustomSelectBottomSheet
+                    className="mt-7"
+                    label="State"
+                    placeholder="Select State"
+                    options={states}
+                    selectedValue={form.state}
+                    onValueChange={(val: any) => {
+                      setForm({ ...form, state: val, city: '' });
+                      setSelectedState(val);
+                    }}
+                    searchable={true}
+                    searchPlaceholder="Search States..."
+                    noResultsText="No States Found"
+                    isLoading={isStatesLoading}
+                    onRetry={() => fetchStates(selectedCountry)}
+                    saveKeyInsteadOfValue={false}
+                  />
+                  <ErrorText
+                    show={fieldError(selectedCountry && form.state == '')}
+                    message="State is required"
+                  />
+                </>
               )}
 
               {selectedState && (
-                <CustomSelectBottomSheet
-                  className="mt-7"
-                  label="City"
-                  placeholder="Select City"
-                  options={cities}
-                  selectedValue={form.city}
-                  onValueChange={(val: any) => setForm({ ...form, city: val })}
-                  searchable={true}
-                  searchPlaceholder="Search Cities..."
-                  noResultsText="No Cities Found"
-                  isLoading={isCitiesLoading}
-                  onRetry={() => fetchCities(selectedCountry, selectedState)}
-                  saveKeyInsteadOfValue={false}
-                />
+                <>
+                  <CustomSelectBottomSheet
+                    className="mt-7"
+                    label="City"
+                    placeholder="Select City"
+                    options={cities}
+                    selectedValue={form.city}
+                    onValueChange={(val: any) => setForm({ ...form, city: val })}
+                    searchable={true}
+                    searchPlaceholder="Search Cities..."
+                    noResultsText="No Cities Found"
+                    isLoading={isCitiesLoading}
+                    onRetry={() => fetchCities(selectedCountry, selectedState)}
+                    saveKeyInsteadOfValue={false}
+                  />
+                  <ErrorText
+                    show={fieldError(selectedCountry && selectedState && form.city == '')}
+                    message="City is required"
+                  />
+                </>
               )}
 
               <FormField
@@ -483,6 +520,8 @@ const CompleteProfile = () => {
                 placeholder="Enter Your Pin Code"
                 maxLength={6}
                 containerStyles={'bg-gray-100'}
+                error={fieldError(!form.pin || form.pin.toString().length !== 6)}
+                errorMessage="Pin Code is required"
               />
 
               <CustomButton
@@ -490,7 +529,6 @@ const CompleteProfile = () => {
                 handlePress={submit}
                 containerStyles={`mt-7 mb-10 min-h-[62px] ${Platform.OS == 'android' && 'mb-3'}`}
                 isLoading={isSubmitting}
-                isDisabled={!isFormValid()}
               />
             </View>
           </SafeAreaView>

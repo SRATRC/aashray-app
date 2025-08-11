@@ -10,6 +10,7 @@ import PageHeader from '@/components/PageHeader';
 import FormField from '@/components/FormField';
 import CustomButton from '@/components/CustomButton';
 import handleAPICall from '@/utils/HandleApiCall';
+import ErrorText from '@/components/ErrorText';
 
 export type AdhyayanFeedbackData = {
   swadhay_karta_rating: number | null;
@@ -65,9 +66,6 @@ const FieldLabel: React.FC<{ label: string; helper?: string }> = ({ label, helpe
   </View>
 );
 
-const ErrorText: React.FC<{ show?: boolean }> = ({ show }) =>
-  show ? <Text className="ml-1 mt-1 font-pregular text-sm text-red-600">Required</Text> : null;
-
 const AdhyayanFeedbackForm: React.FC<{
   value: AdhyayanFeedbackData;
   onChange: (data: AdhyayanFeedbackData) => void;
@@ -92,14 +90,20 @@ const AdhyayanFeedbackForm: React.FC<{
         value={value.swadhay_karta_rating}
         onChange={(n) => onChange({ ...value, swadhay_karta_rating: n })}
       />
-      <ErrorText show={fieldError(!value.swadhay_karta_rating)} />
+      <ErrorText
+        show={fieldError(!value.swadhay_karta_rating)}
+        message="Swadhyay Karta Rating is required "
+      />
 
-      <FieldLabel label="Personal Interaction Rating" />
+      <FieldLabel label="Swadhyay Karta Interaction Rating" />
       <StarRating
         value={value.personal_interaction_rating}
         onChange={(n) => onChange({ ...value, personal_interaction_rating: n })}
       />
-      <ErrorText show={fieldError(!value.personal_interaction_rating)} />
+      <ErrorText
+        show={fieldError(!value.personal_interaction_rating)}
+        message="Swadhyay Karta Interaction Rating is required"
+      />
 
       <FormField
         text="Swadhyay Karta Suggestions"
@@ -161,7 +165,10 @@ const AdhyayanFeedbackForm: React.FC<{
           </View>
         </TouchableOpacity>
       </View>
-      <ErrorText show={fieldError(value.raj_adhyayan_interest === null)} />
+      <ErrorText
+        show={fieldError(value.raj_adhyayan_interest === null)}
+        message="Providing interest feedback is required"
+      />
 
       <FormField
         text="Future Topics"
@@ -201,14 +208,14 @@ const AdhyayanFeedbackForm: React.FC<{
         value={value.food_rating}
         onChange={(n) => onChange({ ...value, food_rating: n })}
       />
-      <ErrorText show={fieldError(!value.food_rating)} />
+      <ErrorText show={fieldError(!value.food_rating)} message="Food Rating is required" />
 
       <FieldLabel label="Stay Rating" />
       <StarRating
         value={value.stay_rating}
         onChange={(n) => onChange({ ...value, stay_rating: n })}
       />
-      <ErrorText show={fieldError(!value.stay_rating)} />
+      <ErrorText show={fieldError(!value.stay_rating)} message="Stay Rating is required" />
 
       <CustomButton
         text="Submit Feedback"
