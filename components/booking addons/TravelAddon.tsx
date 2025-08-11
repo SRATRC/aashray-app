@@ -2,14 +2,13 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, Image } from 'react-native';
 import { icons, dropdowns } from '@/constants';
 import { useAuthStore, useBookingStore } from '@/stores';
-import { useQuery } from '@tanstack/react-query';
+import { useUtsavDate } from '@/hooks/useUtsavDate';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
 import moment from 'moment';
 import FormDisplayField from '../FormDisplayField';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import handleAPICall from '@/utils/HandleApiCall';
 
 interface TravelAddonProps {
   travelForm: any;
@@ -34,48 +33,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
     travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()
   );
 
-  // Add these new functions for utsav checking
-  const fetchUtsavs = async ({ pageParam = 1 }) => {
-    return new Promise((resolve, reject) => {
-      handleAPICall(
-        'GET',
-        '/utsav/upcoming',
-        {
-          cardno: user.cardno,
-          page: pageParam,
-        },
-        null,
-        (res: any) => {
-          resolve(Array.isArray(res.data) ? res.data : []);
-        },
-        () => reject(new Error('Failed to fetch utsavs'))
-      );
-    });
-  };
-
-  const { data: utsavData } = useQuery({
-    queryKey: ['utsavs', user.cardno],
-    queryFn: () => fetchUtsavs({ pageParam: 1 }),
-    staleTime: 1000 * 60 * 30,
-    enabled: !!travelForm.date,
-  });
-
-  const isUtsavDate = useCallback(
-    (selectedDate: string) => {
-      if (!utsavData || !selectedDate) return false;
-
-      const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
-
-      const monthDataArray = utsavData.pages?.[0] || [];
-
-      return monthDataArray.some((monthData: any) =>
-        monthData.data.some(
-          (utsav: any) => formattedDate === utsav.utsav_start || formattedDate === utsav.utsav_end
-        )
-      );
-    },
-    [utsavData]
-  );
+  const { isUtsavDate } = useUtsavDate();
 
   const getLocationOptions = useCallback(
     (selectedDate: string) => {
