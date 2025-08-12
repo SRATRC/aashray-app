@@ -8,7 +8,6 @@ import handleAPICall from '@/utils/HandleApiCall';
 import CustomErrorMessage from '@/components/CustomErrorMessage';
 import PermanentWifiSection from '@/components/PermanentWifiSection';
 import TemporaryWifiSection from '@/components/TemporaryWifiSection';
-import CustomModal from '@/components/CustomModal';
 import * as Haptics from 'expo-haptics';
 import * as Linking from 'expo-linking';
 

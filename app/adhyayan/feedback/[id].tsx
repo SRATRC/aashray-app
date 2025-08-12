@@ -85,7 +85,7 @@ const AdhyayanFeedbackForm: React.FC<{
 
   return (
     <View className={`w-full ${containerStyles}`}>
-      <FieldLabel label="Swadhyay Karta Rating" />
+      <FieldLabel label="How would you rate the Swadhay Karta's session?" />
       <StarRating
         value={value.swadhay_karta_rating}
         onChange={(n) => onChange({ ...value, swadhay_karta_rating: n })}
@@ -95,7 +95,7 @@ const AdhyayanFeedbackForm: React.FC<{
         message="Swadhyay Karta Rating is required "
       />
 
-      <FieldLabel label="Swadhyay Karta Interaction Rating" />
+      <FieldLabel label="How was your personal interaction with the swadhay karta?" />
       <StarRating
         value={value.personal_interaction_rating}
         onChange={(n) => onChange({ ...value, personal_interaction_rating: n })}
@@ -106,7 +106,7 @@ const AdhyayanFeedbackForm: React.FC<{
       />
 
       <FormField
-        text="Swadhyay Karta Suggestions"
+        text="Any suggestions for the swadhay karta to improve their skills/activity?"
         placeholder="Share your suggestions"
         value={value.swadhay_karta_suggestions}
         handleChangeText={(t: string) => onChange({ ...value, swadhay_karta_suggestions: t })}
@@ -116,10 +116,7 @@ const AdhyayanFeedbackForm: React.FC<{
         errorMessage="Required"
       />
 
-      <FieldLabel
-        label="Raj Adhyayan Interest"
-        helper="Let us know if you are interested in participating in future Raj Adhyayans"
-      />
+      <FieldLabel label="Would you be interested to attend Raj Adhyayan in the future?" />
       <View className="mt-3 flex-row gap-x-4">
         <TouchableOpacity
           className={`flex-1 rounded-2xl px-6 py-5 ${
@@ -171,8 +168,8 @@ const AdhyayanFeedbackForm: React.FC<{
       />
 
       <FormField
-        text="Future Topics"
-        placeholder="What future topics interest you?"
+        text="Any topics would you like us to take Raj Adhyayan on in future?"
+        placeholder="What topics would interest you in future?"
         value={value.future_topics}
         handleChangeText={(t: string) => onChange({ ...value, future_topics: t })}
         otherStyles="mt-5"
@@ -182,7 +179,7 @@ const AdhyayanFeedbackForm: React.FC<{
       />
 
       <FormField
-        text="Loved Most"
+        text="What did you love the most about this Raj Adhyayan?"
         placeholder="What did you love the most?"
         value={value.loved_most}
         handleChangeText={(t: string) => onChange({ ...value, loved_most: t })}
@@ -193,7 +190,7 @@ const AdhyayanFeedbackForm: React.FC<{
       />
 
       <FormField
-        text="Improvement Suggestions"
+        text="Any other scope of improvement?"
         placeholder="What can be improved?"
         value={value.improvement_suggestions}
         handleChangeText={(t: string) => onChange({ ...value, improvement_suggestions: t })}
@@ -203,14 +200,14 @@ const AdhyayanFeedbackForm: React.FC<{
         errorMessage="Required"
       />
 
-      <FieldLabel label="Food Rating" />
+      <FieldLabel label="How was the food at the bhojanalay?" />
       <StarRating
         value={value.food_rating}
         onChange={(n) => onChange({ ...value, food_rating: n })}
       />
       <ErrorText show={fieldError(!value.food_rating)} message="Food Rating is required" />
 
-      <FieldLabel label="Stay Rating" />
+      <FieldLabel label="How was your stay at Research Centre?" />
       <StarRating
         value={value.stay_rating}
         onChange={(n) => onChange({ ...value, stay_rating: n })}

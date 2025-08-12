@@ -331,7 +331,10 @@ const Profile: React.FC = () => {
             <View className="flex-row items-start justify-between">
               <Text className="font-psemibold text-lg text-gray-700">Available Credits</Text>
               <TouchableOpacity
-                onPress={() => setCreditsInfoModalVisible(true)}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setCreditsInfoModalVisible(true);
+                }}
                 className="rounded-full p-1.5"
                 activeOpacity={0.7}>
                 <Feather name="info" size={20} color="#9CA3AF" />
