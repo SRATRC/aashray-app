@@ -292,7 +292,7 @@ const EventBooking = () => {
                 : `${moment(item.utsav_start).format('MMM DD')} - ${moment(item.utsav_end).format('MMM DD, YYYY')}`}
             </Text>
           </View>
-          {item.status == status.STATUS_CLOSED && (
+          {item.utsav_status == status.STATUS_CLOSED && (
             <View className="rounded-full bg-orange-100 px-2 py-1">
               <Text className="font-pmedium text-xs text-orange-600">Waitlist</Text>
             </View>
@@ -344,7 +344,7 @@ const EventBooking = () => {
 
         <View className="mb-4 border-t border-gray-200 pt-4">
           <CustomButton
-            text={item.status == status.STATUS_CLOSED ? 'Join Waitlist' : 'Register Now'}
+            text={item.utsav_status == status.STATUS_CLOSED ? 'Join Waitlist' : 'Register Now'}
             handlePress={() => {
               const packageOptions = item.packages.map((packageItem: any) => ({
                 key: packageItem.package_id,
@@ -360,7 +360,7 @@ const EventBooking = () => {
               toggleModal();
             }}
             containerStyles="min-h-[48px] rounded-xl"
-            bgcolor={item.status == status.STATUS_CLOSED ? 'bg-orange-500' : 'bg-secondary'}
+            bgcolor={item.utsav_status == status.STATUS_CLOSED ? 'bg-orange-500' : 'bg-secondary'}
             textStyles="font-psemibold text-white text-base"
             isLoading={isSubmitting}
           />

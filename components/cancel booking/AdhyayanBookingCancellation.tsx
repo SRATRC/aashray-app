@@ -130,85 +130,92 @@ const AdhyayanBookingCancellation = () => {
     }
   };
 
-  const renderItem = ({ item }: any) => (
-    <ExpandableItem
-      visibleContent={
-        <View className="flex flex-row items-center gap-x-4">
-          <Image source={icons.adhyayan} className="h-10 w-10 items-center" resizeMode="contain" />
-          <View className="flex-col gap-y-2">
-            <BookingStatusDisplay
-              bookingStatus={item.status}
-              transactionStatus={item.transaction_status}
+  const renderItem = ({ item }: any) => {
+    const bookedForSomeone = item.bookedBy && user.cardno == item.bookedBy;
+    return (
+      <ExpandableItem
+        visibleContent={
+          <View className="flex flex-row items-center gap-x-4">
+            <Image
+              source={icons.adhyayan}
+              className="h-10 w-10 items-center"
+              resizeMode="contain"
             />
+            <View className="flex-col gap-y-2">
+              <BookingStatusDisplay
+                bookingStatus={item.status}
+                transactionStatus={item.transaction_status}
+              />
 
-            <View className="flex-col">
-              <Text className="font-pmedium text-gray-700">{item.shibir_name}</Text>
-              <Text className="font-pmedium text-secondary-100">
-                {moment(item.start_date).format('Do MMMM')} -{' '}
-                {moment(item.end_date).format('Do MMMM, YYYY')}
-              </Text>
-              {item.bookedBy && user.cardno == item.bookedBy && (
-                <View className="flex-row items-center gap-x-2">
-                  <Text className="font-pmedium">Booked For:</Text>
-                  <Text className="font-pmedium text-secondary-100">{item.name}</Text>
-                </View>
-              )}
+              <View className="flex-col">
+                <Text className="font-pmedium text-gray-700">{item.shibir_name}</Text>
+                <Text className="font-pmedium text-secondary-100">
+                  {moment(item.start_date).format('Do MMMM')} -{' '}
+                  {moment(item.end_date).format('Do MMMM, YYYY')}
+                </Text>
+                {bookedForSomeone && (
+                  <View className="flex-row items-center gap-x-2">
+                    <Text className="font-pmedium">Booked For:</Text>
+                    <Text className="font-pmedium text-secondary-100">{item.name}</Text>
+                  </View>
+                )}
+              </View>
             </View>
           </View>
-        </View>
-      }
-      containerStyles={'mt-3'}>
-      <HorizontalSeparator />
-      <View className="mt-3">
-        <View className="flex flex-row items-center gap-x-2 px-2">
-          <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Swadhyay Karta:</Text>
-          <Text className="font-pmedium text-black">{item.speaker}</Text>
-        </View>
-        <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
-          <Image source={icons.marker} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Location:</Text>
-          <Text className="font-pmedium text-black">{item.location}</Text>
-        </View>
-        <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
-          <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Charge:</Text>
-          <Text className="font-pmedium text-black">₹ {item.amount}</Text>
-        </View>
-        {/* Actions Row */}
-        {((moment(item.start_date).diff(moment().format('YYYY-MM-DD')) > 0 &&
-          ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status)) ||
-          item?.showFeedback) && (
-          <View className="mt-5 flex-row gap-x-3 px-1">
-            {moment(item.start_date).diff(moment().format('YYYY-MM-DD')) > 0 &&
-              ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
+        }
+        containerStyles={'mt-3'}>
+        <HorizontalSeparator />
+        <View className="mt-3">
+          <View className="flex flex-row items-center gap-x-2 px-2">
+            <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
+            <Text className="font-pregular text-gray-400">Swadhyay Karta:</Text>
+            <Text className="font-pmedium text-black">{item.speaker}</Text>
+          </View>
+          <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
+            <Image source={icons.marker} className="h-4 w-4" resizeMode="contain" />
+            <Text className="font-pregular text-gray-400">Location:</Text>
+            <Text className="font-pmedium text-black">{item.location}</Text>
+          </View>
+          <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
+            <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
+            <Text className="font-pregular text-gray-400">Charge:</Text>
+            <Text className="font-pmedium text-black">₹ {item.amount}</Text>
+          </View>
+          {/* Actions Row */}
+          {((moment(item.start_date).diff(moment().format('YYYY-MM-DD')) > 0 &&
+            ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status)) ||
+            item?.showFeedback) && (
+            <View className="mt-5 flex-row gap-x-3 px-1">
+              {moment(item.start_date).diff(moment().format('YYYY-MM-DD')) > 0 &&
+                ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
+                  <CustomButton
+                    text="Cancel Booking"
+                    containerStyles={'py-3 flex-1'}
+                    textStyles={'text-sm text-white'}
+                    handlePress={() => {
+                      setSelectedBooking(item);
+                      setShowCancelModal(true);
+                    }}
+                  />
+                )}
+              {item?.showFeedback && !bookedForSomeone && (
                 <CustomButton
-                  text="Cancel Booking"
+                  text="Give Feedback"
                   containerStyles={'py-3 flex-1'}
                   textStyles={'text-sm text-white'}
+                  bgcolor={'bg-secondary'}
                   handlePress={() => {
-                    setSelectedBooking(item);
-                    setShowCancelModal(true);
+                    const shibirId = item.shibir_id ?? item.id;
+                    router.push(`/adhyayan/feedback/${shibirId}`);
                   }}
                 />
               )}
-            {item?.showFeedback && (
-              <CustomButton
-                text="Give Feedback"
-                containerStyles={'py-3 flex-1'}
-                textStyles={'text-sm text-white'}
-                bgcolor={'bg-secondary'}
-                handlePress={() => {
-                  const shibirId = item.shibir_id ?? item.id;
-                  router.push(`/adhyayan/feedback/${shibirId}`);
-                }}
-              />
-            )}
-          </View>
-        )}
-      </View>
-    </ExpandableItem>
-  );
+            </View>
+          )}
+        </View>
+      </ExpandableItem>
+    );
+  };
 
   const renderFooter = () => (
     <View className="items-center">

@@ -150,9 +150,9 @@ const EventBookingCancellation = () => {
         </View>
         {item.stay && (
           <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
-            <Image source={icons.room} className="h-4 w-4" resizeMode="contain" />
-            <Text className="font-pregular text-gray-400">Stay: </Text>
-            <Text className="font-pmedium text-black">₹ {item.stay}</Text>
+            <Image source={icons.roomNumber} className="h-4 w-4" resizeMode="contain" />
+            <Text className="font-pregular text-gray-400">Room Number: </Text>
+            <Text className="font-pmedium text-black">{item.stay}</Text>
           </View>
         )}
         <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
