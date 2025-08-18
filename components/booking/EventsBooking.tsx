@@ -15,7 +15,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
 import { status, types } from '@/constants';
 import { useAuthStore, useBookingStore } from '@/stores';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useTabBarPadding } from '@/hooks/useTabBarPadding';
@@ -89,11 +89,9 @@ const EventBooking = () => {
   const router: any = useRouter();
   const tabBarPadding = useTabBarPadding();
 
-  useEffect(
-    useCallback(() => {
-      setIsSubmitting(false);
-    }, [])
-  );
+  useEffect(() => {
+    setIsSubmitting(false);
+  }, []);
 
   const user = useAuthStore((state) => state.user);
   const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
@@ -105,17 +103,35 @@ const EventBooking = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const toggleModal = () => {
-    setIsModalVisible(!isModalVisible);
-    if (isModalVisible) {
-      // Only reset when closing the modal
-      setSelfForm(INITIAL_SELF_FORM);
-      setGuestForm(INITIAL_GUEST_FORM);
-      setMumukshuForm(INITIAL_MUMUKSHU_FORM);
-      setPackages([]);
-    }
+    setIsModalVisible((prev) => {
+      const wasOpen = prev;
+      const next = !prev;
+      if (wasOpen) {
+        // Only reset when closing the modal
+        setSelfForm(INITIAL_SELF_FORM);
+        setGuestForm(INITIAL_GUEST_FORM);
+        setMumukshuForm(INITIAL_MUMUKSHU_FORM);
+        setPackages([]);
+      }
+      return next;
+    });
   };
 
   const [selectedChip, setSelectedChip] = useState('Self');
+
+  // Reset transient UI state when the screen regains focus to avoid stale modals/forms causing issues
+  useFocusEffect(
+    useCallback(() => {
+      setIsModalVisible(false);
+      setSelectedItem(null);
+      setSelfForm(INITIAL_SELF_FORM);
+      setGuestForm(INITIAL_GUEST_FORM);
+      setMumukshuForm(INITIAL_MUMUKSHU_FORM);
+      setSelectedChip('Self');
+      setIsSubmitting(false);
+      return undefined;
+    }, [])
+  );
   const handleChipClick = (chip: any) => {
     setSelectedChip(chip);
   };
@@ -240,12 +256,14 @@ const EventBooking = () => {
   };
 
   const fetchUtsavs = async ({ pageParam = 1 }) => {
+    const cardno = user?.cardno;
+    if (!cardno) return [];
     return new Promise((resolve, reject) => {
       handleAPICall(
         'GET',
         '/utsav/upcoming',
         {
-          cardno: user.cardno,
+          cardno,
           page: pageParam,
         },
         null,
@@ -259,7 +277,7 @@ const EventBooking = () => {
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch }: any =
     useInfiniteQuery({
-      queryKey: ['utsavs', user.cardno],
+      queryKey: ['utsavs', user?.cardno],
       queryFn: fetchUtsavs,
       initialPageParam: 1,
       staleTime: 1000 * 60 * 30,
@@ -267,6 +285,8 @@ const EventBooking = () => {
         if (!lastPage || lastPage.length === 0) return undefined;
         return pages.length + 1;
       },
+      enabled: !!user?.cardno,
+      gcTime: 1000 * 60 * 30,
     });
 
   const renderItem = ({ item }: any) => (
@@ -793,7 +813,9 @@ const EventBooking = () => {
         stickySectionHeadersEnabled={false}
         nestedScrollEnabled={true}
         renderItem={renderItem}
-        keyExtractor={(item) => item.utsav_id.toString()}
+        keyExtractor={(item) =>
+          item?.utsav_id != null ? String(item.utsav_id) : String(item?.id ?? '0')
+        }
         renderSectionHeader={renderSectionHeader}
         ListEmptyComponent={() => (
           <View className="h-full flex-1 items-center justify-center pt-40">
