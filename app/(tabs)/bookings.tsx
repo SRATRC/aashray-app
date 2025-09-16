@@ -10,37 +10,19 @@ import FoodBookingCancellation from '@/components/cancel booking/FoodBookingCanc
 import TravelBookingCancellation from '@/components/cancel booking/TravelBookingCancellation';
 import AdhyayanBookingCancellation from '@/components/cancel booking/AdhyayanBookingCancellation';
 import EventBookingCancellation from '@/components/cancel booking/EventBookingCancellation';
+import CustomChipGroup from '@/components/CustomChipGroup';
 
 const BookingCategories = () => {
   const queryClient = useQueryClient();
   const [selectedChip, setSelectedChip] = useState<string>(types.booking_type_adhyayan);
 
-  const CHIPS = useMemo(() => {
-    const iconProps = { size: 20 };
-
-    return [
-      {
-        title: types.booking_type_adhyayan,
-        icon: <FontAwesome5 name="book-reader" {...iconProps} />,
-      },
-      {
-        title: types.booking_type_room,
-        icon: <MaterialIcons name="hotel" {...iconProps} />,
-      },
-      {
-        title: types.booking_type_food,
-        icon: <Ionicons name="fast-food" {...iconProps} />,
-      },
-      {
-        title: types.booking_type_travel,
-        icon: <FontAwesome6 name="car-side" {...iconProps} />,
-      },
-      {
-        title: types.booking_type_event,
-        icon: <MaterialIcons name="celebration" {...iconProps} />,
-      },
-    ];
-  }, []);
+  const CHIPS = [
+    types.booking_type_adhyayan,
+    types.booking_type_room,
+    types.booking_type_food,
+    types.booking_type_travel,
+    types.booking_type_event,
+  ];
 
   const handleChipClick = (chipTitle: string) => {
     setSelectedChip(chipTitle);
@@ -81,7 +63,7 @@ const BookingCategories = () => {
       <View className="w-full px-4">
         <Text className="mt-6 font-psemibold text-2xl">{`${selectedChip} Booking`}</Text>
 
-        <AnimatedChipGroup
+        <CustomChipGroup
           chips={CHIPS}
           selectedChip={selectedChip}
           handleChipPress={handleChipClick}

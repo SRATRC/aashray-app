@@ -254,6 +254,7 @@ const profileDetails = () => {
             onValueChange={(val: any) => {
               setForm({ ...form, idType: val });
             }}
+            saveKeyInsteadOfValue={false}
           />
 
           <FormField
@@ -278,19 +279,19 @@ const profileDetails = () => {
           <DateTimePickerModal
             isVisible={isDatePickerVisible}
             mode="date"
-            date={form.dob ? new Date(form.dob) : new Date('1950-01-01')}
+            date={form.dob ? new Date(form.dob) : new Date(1900, 0, 1)}
             onConfirm={(date) => {
-              setForm({
-                ...form,
-                dob: date.toISOString().split('T')[0],
-              });
+              setForm((prev) => ({
+                ...prev,
+                dob: date.toISOString(),
+              }));
               setDatePickerVisibility(false);
             }}
             onCancel={() => {
               setDatePickerVisibility(false);
             }}
-            maximumDate={moment().toDate()}
-            minimumDate={new Date('1900-01-01')}
+            maximumDate={new Date()}
+            minimumDate={new Date(1900, 0, 1)}
           />
 
           <CustomSelectBottomSheet

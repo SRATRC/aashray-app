@@ -1,74 +1,45 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons, FontAwesome6, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { types } from '@/constants';
 import { useAuthStore } from '@/stores';
-import AnimatedChipGroup from '@/components/AnimatedChipGroup';
 import RoomBooking from '@/components/booking/RoomBooking';
 import FoodBooking from '@/components/booking/FoodBooking';
 import TravelBooking from '@/components/booking/TravelBooking';
 import AdhyayanBooking from '@/components/booking/AdhyayanBooking';
 import EventsBooking from '@/components/booking/EventsBooking';
 import FlatBooking from '@/components/booking/FlatBooking';
+import CustomChipGroup from '@/components/CustomChipGroup';
 
 const BookingCategories = () => {
   const { user } = useAuthStore();
 
   const availableChips = useMemo(() => {
-    const iconProps = { size: 20 };
-
-    const baseBookingTypes = [
-      {
-        title: types.booking_type_adhyayan,
-        icon: <FontAwesome5 name="book-reader" {...iconProps} />,
-      },
-      {
-        title: types.booking_type_room,
-        icon: <MaterialIcons name="hotel" {...iconProps} />,
-      },
-      {
-        title: types.booking_type_food,
-        icon: <Ionicons name="fast-food" {...iconProps} />,
-      },
-      {
-        title: types.booking_type_travel,
-        icon: <FontAwesome6 name="car-side" {...iconProps} />,
-      },
-      {
-        title: types.booking_type_event,
-        icon: <MaterialIcons name="celebration" {...iconProps} />,
-      },
+    const baseChips = [
+      types.booking_type_adhyayan,
+      types.booking_type_room,
+      types.booking_type_food,
+      types.booking_type_travel,
+      types.booking_type_event,
     ];
-
-    if (
-      user?.isFlatOwner &&
-      !baseBookingTypes.some((chip) => chip.title === types.booking_type_flat)
-    ) {
-      baseBookingTypes.push({
-        title: types.booking_type_flat,
-        icon: <MaterialIcons name="apartment" {...iconProps} />,
-      });
+    if (user?.isFlatOwner && !baseChips.includes(types.booking_type_flat)) {
+      return [...baseChips, types.booking_type_flat];
     }
-
-    return baseBookingTypes;
+    return baseChips;
   }, [user?.isFlatOwner]);
 
   const [selectedChip, setSelectedChip] = useState(() => {
-    const adhyayanChip = availableChips.find((chip) => chip.title === types.booking_type_adhyayan);
-    if (adhyayanChip) {
-      return adhyayanChip.title;
+    if (availableChips.includes(types.booking_type_adhyayan)) {
+      return types.booking_type_adhyayan;
     }
-    return availableChips.length > 0 ? availableChips[0].title : undefined;
+    return availableChips.length > 0 ? availableChips[0] : undefined;
   });
 
-  const handleChipClick = (chipTitle: string) => {
-    setSelectedChip(chipTitle);
+  const handleChipClick = (chip: any) => {
+    setSelectedChip(chip);
   };
 
   if (selectedChip === undefined) {
-    // Handle the case where there are no available chips, or a default cannot be determined.
-    // This could be rendering an error message or a loading state.
     return (
       <View className="my-6 w-full items-center justify-center px-4">
         <Text className="font-psemibold text-lg">No booking categories available.</Text>
@@ -81,7 +52,7 @@ const BookingCategories = () => {
       <View className="w-full px-4">
         <Text className="mt-6 font-psemibold text-2xl">{`${selectedChip} Booking`}</Text>
 
-        <AnimatedChipGroup
+        <CustomChipGroup
           chips={availableChips}
           selectedChip={selectedChip}
           handleChipPress={handleChipClick}

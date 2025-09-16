@@ -381,18 +381,18 @@ const CompleteProfile = () => {
                   themeVariant="light"
                   mode="date"
                   display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  value={form.dob ? moment(form.dob).toDate() : new Date()}
-                  maximumDate={moment().toDate()}
+                  value={form.dob ? new Date(form.dob) : new Date(1900, 0, 1)}
+                  maximumDate={new Date()}
+                  minimumDate={new Date(1900, 0, 1)}
                   onChange={(event, date) => {
                     if (Platform.OS === 'android') {
                       setDatePickerVisibility(false);
                     }
-
                     if (date) {
-                      setForm({
-                        ...form,
+                      setForm((prev) => ({
+                        ...prev,
                         dob: moment(date).format('YYYY-MM-DD'),
-                      });
+                      }));
                     }
                   }}
                 />
