@@ -9,10 +9,7 @@ export default {
     userInterfaceStyle: 'automatic',
     assetBundlePatterns: ['**/*'],
     ios: {
-      icon: {
-        dark: './assets/images/ios-dark.png',
-        light: './assets/images/icon.png',
-      },
+      icon: './assets/icon.icon',
       supportsTablet: true,
       package: 'org.vitraagvigyaan.aashray',
       bundleIdentifier: 'org.vitraagvigyaan.aashray',
