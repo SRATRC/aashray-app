@@ -1,7 +1,7 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { Tabs } from 'expo-router';
-import { AntDesign, FontAwesome, FontAwesome6, Ionicons } from '@expo/vector-icons';
+import { FontAwesome, FontAwesome6, Ionicons } from '@expo/vector-icons';
 import { QrModal } from '@/components/QrModal';
 import { HapticTab } from '@/components/HapticTab';
 import BlurTabBarBackground from '@/components/TabBarBackground';
@@ -40,7 +40,7 @@ const TabsLayout: React.FC = () => {
           options={{
             title: 'Book Now',
             headerShown: false,
-            tabBarIcon: ({ color }) => <AntDesign name="pluscircle" size={24} color={color} />,
+            tabBarIcon: ({ color }) => <FontAwesome6 name="circle-plus" size={24} color={color} />,
           }}
         />
         <Tabs.Screen

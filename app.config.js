@@ -130,6 +130,7 @@ export default {
           },
         },
       ],
+      'expo-font',
     ],
     extra: {
       router: {

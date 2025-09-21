@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 const IMAGE_CACHE_DIR = FileSystem.cacheDirectory + 'image-cache/';
 
