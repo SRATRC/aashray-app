@@ -19,7 +19,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useTabBarPadding } from '@/hooks/useTabBarPadding';
-import { SafeAreaView as SafeAreaViewContext } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../CustomButton';
 import handleAPICall from '@/utils/HandleApiCall';
 import moment from 'moment';
@@ -411,7 +411,7 @@ const EventBooking = () => {
         statusBarTranslucent={true}
         transparent={false}
         onRequestClose={toggleModal}>
-        <SafeAreaViewContext className="flex-1 bg-white" edges={['top']}>
+        <SafeAreaView className="flex-1 bg-white" edges={['top']}>
           <KeyboardAwareScrollView
             bottomOffset={62}
             style={{ flex: 1, backgroundColor: 'white' }}
@@ -798,7 +798,7 @@ const EventBooking = () => {
               </View>
             </View>
           </KeyboardAwareScrollView>
-        </SafeAreaViewContext>
+        </SafeAreaView>
       </Modal>
 
       <SectionList
