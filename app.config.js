@@ -3,16 +3,13 @@ export default {
     name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
-    version: '1.1.27',
+    version: '1.1.28',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     userInterfaceStyle: 'automatic',
     assetBundlePatterns: ['**/*'],
     ios: {
-      icon: {
-        dark: './assets/images/ios-dark.png',
-        light: './assets/images/icon.png',
-      },
+      icon: './assets/images/icon.icon',
       supportsTablet: true,
       package: 'org.vitraagvigyaan.aashray',
       bundleIdentifier: 'org.vitraagvigyaan.aashray',
@@ -30,6 +27,7 @@ export default {
     android: {
       package: 'org.vitraagvigyaan.aashray',
       edgeToEdgeEnabled: true,
+      predictiveBackGestureEnabled: true,
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
         monochromeImage: './assets/images/adaptive-icon.png',
@@ -91,6 +89,7 @@ export default {
           },
           ios: {
             useFrameworks: 'static',
+            buildReactNativeFromSource: true,
           },
         },
       ],
