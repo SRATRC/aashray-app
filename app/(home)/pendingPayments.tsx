@@ -5,6 +5,8 @@ import {
   RefreshControl,
   ActivityIndicator,
   Image,
+  InteractionManager,
+  Platform,
 } from 'react-native';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -320,15 +322,19 @@ const PendingPayments = () => {
   }, [pendingPayments, allSelected, isPaymentAllowed, isTransactionExpired]);
 
   const proceedWithPayment = async () => {
+    // Dismiss the modal first (if shown) to avoid native modal conflicts
     setShowInternationalWarning(false);
+
+    // Prevent double invocations while in-flight
+    if (isSubmitting) return;
     setIsSubmitting(true);
+
     try {
-      const paymentData = selectedPayments.map((payment) => {
-        return {
-          bookingid: payment.bookingid,
-          category: payment.category,
-        };
-      });
+      const paymentData = selectedPayments.map((payment) => ({
+        bookingid: payment.bookingid,
+        category: payment.category,
+      }));
+
       const result = (await processPaymentMutation.mutateAsync(paymentData)) as any;
 
       if (result.data?.amount === 0) {
@@ -338,57 +344,64 @@ const PendingPayments = () => {
           swipeable: false,
         });
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      } else {
-        const options = {
-          key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,
-          name: 'Vitraag Vigyaan Aashray',
-          image: 'https://vitraagvigyaan.org/img/logo.png',
-          description: `Payment for ${selectedPayments.length} item${selectedPayments.length > 1 ? 's' : ''}`,
-          amount: result.data.amount,
-          currency: 'INR',
-          order_id: result.data.id,
-          prefill: {
-            email: user.email,
-            contact: user.mobno,
-            name: user.issuedto,
-          },
-          theme: { color: colors.orange },
-        };
-
-        RazorpayCheckout.open(options)
-          .then((_rzrpayData: any) => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            Toast.show({
-              type: 'success',
-              text1: 'Payment successful',
-              swipeable: false,
-            });
-            queryClient.invalidateQueries({
-              queryKey: ['transactions', user.cardno, 'pending,cash pending,failed'],
-              refetchType: 'all',
-              exact: true,
-            });
-            router.replace('/paymentConfirmation');
-          })
-          .catch((_error: any) => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-            router.replace('/paymentFailed');
-          });
+        return;
       }
-    } catch (error: any) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+
+      const options = {
+        key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,
+        name: 'Vitraag Vigyaan Aashray',
+        image: 'https://vitraagvigyaan.org/img/logo.png',
+        description: `Payment for ${selectedPayments.length} item${selectedPayments.length > 1 ? 's' : ''}`,
+        amount: result.data.amount,
+        currency: 'INR',
+        order_id: result.data.id,
+        prefill: {
+          email: user.email,
+          contact: user.mobno,
+          name: user.issuedto,
+        },
+        theme: { color: colors.orange },
+      } as const;
+
+      // Ensure RN Modal has fully dismissed and UI interactions have settled
+      await new Promise<void>((resolve) =>
+        InteractionManager.runAfterInteractions(() => resolve())
+      );
+      await new Promise((resolve) => setTimeout(resolve, Platform.OS === 'android' ? 200 : 100));
+
+      await RazorpayCheckout.open(options);
+
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Toast.show({
-        type: 'error',
-        text1: 'Failed to process payment',
-        text2: error.message || 'Please try again',
+        type: 'success',
+        text1: 'Payment successful',
         swipeable: false,
       });
+      queryClient.invalidateQueries({
+        queryKey: ['transactions', user.cardno, 'pending,cash pending,failed'],
+        refetchType: 'all',
+        exact: true,
+      });
+      router.replace('/paymentConfirmation');
+    } catch (error: any) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      if (error?.message) {
+        Toast.show({
+          type: 'error',
+          text1: 'Failed to process payment',
+          text2: error.message,
+          swipeable: false,
+        });
+      }
+      router.replace('/paymentFailed');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleProceedToPayment = async () => {
+    if (isSubmitting) return; // guard
+
     if (!isPaymentAllowed) {
       Toast.show({
         type: 'error',
@@ -965,6 +978,7 @@ const PendingPayments = () => {
               handlePress={proceedWithPayment}
               containerStyles="min-h-[44px]"
               textStyles="font-psemibold text-sm text-white"
+              isLoading={isSubmitting}
             />
           </View>
         </View>
