@@ -45,6 +45,24 @@ const TravelBooking = () => {
 
   const otherLocation = dropdowns.LOCATION_LIST.find((loc) => loc.key === 'other');
 
+  // Helper function to check if pickup or drop location requires arrival time
+  const requiresArrivalTime = (pickup: string, drop: string) => {
+    return (
+      (pickup &&
+        dropdowns.LOCATION_LIST.find(
+          (loc) =>
+            loc.value === pickup &&
+            (loc.key.toLowerCase().includes('railway') || loc.key.toLowerCase().includes('airport'))
+        )) ||
+      (drop &&
+        dropdowns.LOCATION_LIST.find(
+          (loc) =>
+            loc.value === drop &&
+            (loc.key.toLowerCase().includes('railway') || loc.key.toLowerCase().includes('airport'))
+        ))
+    );
+  };
+
   if (user.res_status == status.STATUS_GUEST) {
     CHIPS = ['Self'];
   }
@@ -79,21 +97,7 @@ const TravelBooking = () => {
   });
 
   const isSelfFormValid = () => {
-    const requiresTime =
-      (travelForm.pickup &&
-        dropdowns.LOCATION_LIST.find(
-          (loc: { value: string }) =>
-            loc.value === travelForm.pickup &&
-            (loc.value.toLowerCase().includes('railway') ||
-              loc.value.toLowerCase().includes('airport'))
-        )) ||
-      (travelForm.drop &&
-        dropdowns.LOCATION_LIST.find(
-          (loc: { value: string }) =>
-            loc.value === travelForm.drop &&
-            (loc.value.toLowerCase().includes('railway') ||
-              loc.value.toLowerCase().includes('airport'))
-        ));
+    const requiresTime = requiresArrivalTime(travelForm.pickup, travelForm.drop);
 
     if (travelForm.type == dropdowns.BOOKING_TYPE_LIST[1].value && !travelForm.total_people) {
       return false;
@@ -181,21 +185,7 @@ const TravelBooking = () => {
     return (
       mumukshuForm.date &&
       mumukshuForm.mumukshus.every((mumukshu) => {
-        const requiresTime =
-          (mumukshu.pickup &&
-            dropdowns.LOCATION_LIST.find(
-              (loc) =>
-                loc.value === mumukshu.pickup &&
-                (loc.key.toLowerCase().includes('railway') ||
-                  loc.key.toLowerCase().includes('airport'))
-            )) ||
-          (mumukshu.drop &&
-            dropdowns.LOCATION_LIST.find(
-              (loc) =>
-                loc.value === mumukshu.drop &&
-                (loc.key.toLowerCase().includes('railway') ||
-                  loc.key.toLowerCase().includes('airport'))
-            ));
+        const requiresTime = requiresArrivalTime(mumukshu.pickup, mumukshu.drop);
 
         if (mumukshu.type == dropdowns.BOOKING_TYPE_LIST[1].value && !mumukshu.total_people) {
           return false;
@@ -302,21 +292,22 @@ const TravelBooking = () => {
               options={getLocationOptions(travelForm.date)}
               selectedValue={travelForm.pickup}
               onValueChange={(val: any) => {
+                let newDrop = travelForm.drop;
                 if (val === 'Research Centre') {
                   // If selecting Research Centre as pickup, drop must be something else
-                  setTravelForm({
-                    ...travelForm,
-                    pickup: val,
-                    drop: travelForm.drop === 'Research Centre' ? '' : travelForm.drop,
-                  });
+                  newDrop = travelForm.drop === 'Research Centre' ? '' : travelForm.drop;
                 } else {
                   // If selecting anything else as pickup, drop must be Research Centre
-                  setTravelForm({
-                    ...travelForm,
-                    pickup: val,
-                    drop: 'Research Centre',
-                  });
+                  newDrop = 'Research Centre';
                 }
+
+                setTravelForm({
+                  ...travelForm,
+                  pickup: val,
+                  drop: newDrop,
+                  // Clear arrival_time if the new pickup/drop combination doesn't require it
+                  arrival_time: requiresArrivalTime(val, newDrop) ? travelForm.arrival_time : '',
+                });
               }}
               saveKeyInsteadOfValue={false}
             />
@@ -328,39 +319,27 @@ const TravelBooking = () => {
               options={getLocationOptions(travelForm.date)}
               selectedValue={travelForm.drop}
               onValueChange={(val: any) => {
+                let newPickup = travelForm.pickup;
                 if (val === 'Research Centre') {
                   // If selecting Research Centre as drop, pickup must be something else
-                  setTravelForm({
-                    ...travelForm,
-                    drop: val,
-                    pickup: travelForm.pickup === 'Research Centre' ? '' : travelForm.pickup,
-                  });
+                  newPickup = travelForm.pickup === 'Research Centre' ? '' : travelForm.pickup;
                 } else {
                   // If selecting anything else as drop, pickup must be Research Centre
-                  setTravelForm({
-                    ...travelForm,
-                    drop: val,
-                    pickup: 'Research Centre',
-                  });
+                  newPickup = 'Research Centre';
                 }
+
+                setTravelForm({
+                  ...travelForm,
+                  drop: val,
+                  pickup: newPickup,
+                  // Clear arrival_time if the new pickup/drop combination doesn't require it
+                  arrival_time: requiresArrivalTime(newPickup, val) ? travelForm.arrival_time : '',
+                });
               }}
               saveKeyInsteadOfValue={false}
             />
 
-            {(travelForm.pickup &&
-              dropdowns.LOCATION_LIST.find(
-                (loc: { value: string }) =>
-                  loc.value === travelForm.pickup &&
-                  (loc.value.toLowerCase().includes('railway') ||
-                    loc.value.toLowerCase().includes('airport'))
-              )) ||
-            (travelForm.drop &&
-              dropdowns.LOCATION_LIST.find(
-                (loc: { value: string }) =>
-                  loc.value === travelForm.drop &&
-                  (loc.value.toLowerCase().includes('railway') ||
-                    loc.value.toLowerCase().includes('airport'))
-              )) ? (
+            {requiresArrivalTime(travelForm.pickup, travelForm.drop) ? (
               <>
                 <FormDisplayField
                   text="Flight/Train Time"
@@ -476,7 +455,13 @@ const TravelBooking = () => {
                     placeholder="Select Pickup Location"
                     options={getLocationOptions(mumukshuForm.date)}
                     selectedValue={mumukshuForm.mumukshus[index].pickup}
-                    onValueChange={(val: any) => handleMumukshuFormChange(index, 'pickup', val)}
+                    onValueChange={(val: any) => {
+                      handleMumukshuFormChange(index, 'pickup', val);
+                      // Clear arrival_time if the new pickup/drop combination doesn't require it
+                      if (!requiresArrivalTime(val, mumukshuForm.mumukshus[index].drop)) {
+                        handleMumukshuFormChange(index, 'arrival_time', '');
+                      }
+                    }}
                     saveKeyInsteadOfValue={false}
                   />
 
@@ -486,24 +471,20 @@ const TravelBooking = () => {
                     placeholder="Select Drop Location"
                     options={getLocationOptions(mumukshuForm.date)}
                     selectedValue={mumukshuForm.mumukshus[index].drop}
-                    onValueChange={(val: any) => handleMumukshuFormChange(index, 'drop', val)}
+                    onValueChange={(val: any) => {
+                      handleMumukshuFormChange(index, 'drop', val);
+                      // Clear arrival_time if the new pickup/drop combination doesn't require it
+                      if (!requiresArrivalTime(mumukshuForm.mumukshus[index].pickup, val)) {
+                        handleMumukshuFormChange(index, 'arrival_time', '');
+                      }
+                    }}
                     saveKeyInsteadOfValue={false}
                   />
 
-                  {(mumukshuForm.mumukshus[index].pickup &&
-                    dropdowns.LOCATION_LIST.find(
-                      (loc) =>
-                        loc.value === mumukshuForm.mumukshus[index].pickup &&
-                        (loc.key.toLowerCase().includes('railway') ||
-                          loc.key.toLowerCase().includes('airport'))
-                    )) ||
-                  (mumukshuForm.mumukshus[index].drop &&
-                    dropdowns.LOCATION_LIST.find(
-                      (loc) =>
-                        loc.value === mumukshuForm.mumukshus[index].drop &&
-                        (loc.key.toLowerCase().includes('railway') ||
-                          loc.key.toLowerCase().includes('airport'))
-                    )) ? (
+                  {requiresArrivalTime(
+                    mumukshuForm.mumukshus[index].pickup,
+                    mumukshuForm.mumukshus[index].drop
+                  ) ? (
                     <>
                       <FormDisplayField
                         text="Flight/Train Time"
