@@ -1,6 +1,7 @@
-import { View, Text, ScrollView, Platform } from 'react-native';
+import { View, Text, ScrollView, Platform, TouchableOpacity } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useAuthStore, useBookingStore } from '@/src/stores';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/src/constants';
@@ -15,7 +16,9 @@ import MumukshuRoomBookingDetails from '@/src/components/booking details cards/M
 import MumukshuTravelBookingDetails from '@/src/components/booking details cards/MumukshuTravelBookingDetails';
 import MumukshuFoodBookingDetails from '@/src/components/booking details cards/MumukshuFoodBookingDetails';
 import MumukshuEventBookingDetails from '@/src/components/booking details cards/MumukshuEventBookingDetails';
+import MumukshuFlatBookingDetails from '@/src/components/booking details cards/MumukshuFlatBookingDetails';
 import CustomModal from '@/src/components/CustomModal';
+import ChargeBreakdownBottomSheet from '@/src/components/ChargeBreakdownBottomSheet';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import * as Haptics from 'expo-haptics';
@@ -26,6 +29,14 @@ interface ValidationData {
   travelDetails?: { charge: number; availableCredits?: number };
   adhyayanDetails?: Array<{ charge: number; availableCredits?: number }>;
   utsavDetails?: Array<{ charge: number; availableCredits?: number }>;
+  flatDetails?: Array<{
+    mumukshu: string;
+    flatno: number;
+    nights: number;
+    charge: number;
+    availableCredits?: number;
+    status: string;
+  }>;
   totalCharge: number;
 }
 
@@ -38,8 +49,27 @@ const mumukshuBookingConfirmation = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPayLaterModal, setShowPayLaterModal] = useState(false);
+  const flatChargeBottomSheetRef = useRef<BottomSheetModal>(null);
 
   const transformedData = prepareMumukshuRequestBody(user, mumukshuData);
+
+  // Helper function to enrich flat details with mumukshu names from stored data
+  const enrichFlatDetailsWithNames = (flatDetails: any[]) => {
+    if (!flatDetails || !mumukshuData.flat?.mumukshuGroup) return flatDetails;
+
+    return flatDetails.map((flatDetail) => {
+      // Find the matching mumukshu from the stored form data by cardno
+      const matchingMumukshu = mumukshuData.flat.mumukshuGroup.find(
+        (m: any) => m.cardno === flatDetail.mumukshu
+      );
+
+      // Add the issuedto field if found
+      return {
+        ...flatDetail,
+        issuedto: matchingMumukshu?.issuedto || null,
+      };
+    });
+  };
 
   const fetchValidation = useCallback(async () => {
     return new Promise<ValidationData>((resolve, reject) => {
@@ -72,6 +102,16 @@ const mumukshuBookingConfirmation = () => {
     retry: false,
     enabled: !!user.cardno,
   });
+
+  // Enrich validation data with mumukshu names from stored form data
+  const enrichedValidationData = validationData
+    ? {
+        ...validationData,
+        flatDetails: validationData.flatDetails
+          ? enrichFlatDetailsWithNames(validationData.flatDetails)
+          : validationData.flatDetails,
+      }
+    : validationData;
 
   // Force refetch validation when screen comes into focus
   useFocusEffect(
@@ -116,6 +156,7 @@ const mumukshuBookingConfirmation = () => {
         {mumukshuData.food && <MumukshuFoodBookingDetails containerStyles={'mt-2'} />}
         {mumukshuData.travel && <MumukshuTravelBookingDetails containerStyles={'mt-2'} />}
         {mumukshuData.utsav && <MumukshuEventBookingDetails containerStyles={'mt-2'} />}
+        {mumukshuData.flat && <MumukshuFlatBookingDetails containerStyles={'mt-2'} />}
 
         {validationData && validationData.totalCharge > 0 && (
           <View className="mt-4 w-full px-4">
@@ -298,6 +339,63 @@ const mumukshuBookingConfirmation = () => {
                       return null;
                     })()}
 
+                  {/* Flat Charge Section */}
+                  {enrichedValidationData?.flatDetails &&
+                    enrichedValidationData.flatDetails.length > 0 &&
+                    (() => {
+                      const totalCharge = enrichedValidationData.flatDetails.reduce(
+                        (total: number, flat: { charge: number }) => total + flat.charge,
+                        0
+                      );
+                      const totalCredits = enrichedValidationData.flatDetails.reduce(
+                        (total: number, flat: { charge: number; availableCredits?: number }) =>
+                          total + (flat.availableCredits || 0),
+                        0
+                      );
+
+                      if (totalCharge > 0) {
+                        return (
+                          <View className="border-b border-gray-200 pb-3">
+                            <TouchableOpacity
+                              onPress={() => flatChargeBottomSheetRef.current?.present()}
+                              activeOpacity={0.7}>
+                              <View className="flex-row items-center justify-between">
+                                <Text
+                                  className="font-pregular text-base text-gray-700"
+                                  style={{
+                                    borderBottomWidth: 1,
+                                    borderBottomColor: '#6B7280',
+                                    borderStyle: 'dashed',
+                                  }}>
+                                  Flat Charge
+                                </Text>
+                                <View className="items-end">
+                                  <Text
+                                    className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
+                                    ₹{totalCharge.toLocaleString('en-IN')}
+                                  </Text>
+                                  {totalCredits > 0 && (
+                                    <>
+                                      <Text className="font-pregular text-xs text-green-600">
+                                        −₹{totalCredits.toLocaleString('en-IN')} credit
+                                      </Text>
+                                      <Text className="mt-0.5 font-pmedium text-base text-black">
+                                        ₹
+                                        {Math.max(0, totalCharge - totalCredits).toLocaleString(
+                                          'en-IN'
+                                        )}
+                                      </Text>
+                                    </>
+                                  )}
+                                </View>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
+                        );
+                      }
+                      return null;
+                    })()}
+
                   {/* Total section */}
                   <View className="pt-2">
                     {(() => {
@@ -314,6 +412,11 @@ const mumukshuBookingConfirmation = () => {
                           0
                         ) || 0) +
                         (validationData.utsavDetails?.reduce(
+                          (sum: number, item: { availableCredits?: number }) =>
+                            sum + (item.availableCredits || 0),
+                          0
+                        ) || 0) +
+                        (enrichedValidationData?.flatDetails?.reduce(
                           (sum: number, item: { availableCredits?: number }) =>
                             sum + (item.availableCredits || 0),
                           0
@@ -515,6 +618,38 @@ const mumukshuBookingConfirmation = () => {
             </View>
           </View>
         </CustomModal>
+
+        {/* Flat Charge Breakdown Bottom Sheet */}
+        {enrichedValidationData?.flatDetails && enrichedValidationData.flatDetails.length > 0 && (
+          <ChargeBreakdownBottomSheet
+            ref={flatChargeBottomSheetRef}
+            title="Flat Charge Breakdown"
+            subtitle="Charges per Mumukshu:"
+            items={enrichedValidationData.flatDetails}
+            itemRenderer={(item, index) => (
+              <View
+                key={index}
+                className={`flex-row items-center justify-between py-2 ${
+                  index !== enrichedValidationData.flatDetails!.length - 1
+                    ? 'border-b border-gray-200'
+                    : ''
+                }`}>
+                <View className="flex-1">
+                  <Text className="font-pmedium text-sm text-gray-900">
+                    {item.issuedto || `Card: ${item.mumukshu}`}
+                  </Text>
+                  <Text className="mt-1 font-pregular text-xs text-gray-600">
+                    {item.nights} {item.nights === 1 ? 'night' : 'nights'}
+                  </Text>
+                </View>
+                <View className="items-end">
+                  <Text className="font-psemibold text-base text-gray-900">₹{item.charge}</Text>
+                </View>
+              </View>
+            )}
+            emptyMessage="No flat charge details available."
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );

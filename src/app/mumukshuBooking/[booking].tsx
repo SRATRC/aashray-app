@@ -13,6 +13,7 @@ import MumukshuRoomBookingDetails from '@/src/components/booking details cards/M
 import MumukshuAdhyayanBookingDetails from '@/src/components/booking details cards/MumukshuAdhyayanBookingDetails';
 import MumukshuTravelBookingDetails from '@/src/components/booking details cards/MumukshuTravelBookingDetails';
 import MumukshuEventBookingDetails from '@/src/components/booking details cards/MumukshuEventBookingDetails';
+import MumukshuFlatBookingDetails from '@/src/components/booking details cards/MumukshuFlatBookingDetails';
 import MumukshuRoomAddon from '@/src/components/booking addons/MumukshuRoomAddon';
 import MumukshuFoodAddon from '@/src/components/booking addons/MumukshuFoodAddon';
 import MumukshuAdhyayanAddon from '@/src/components/booking addons/MumukshuAdhyayanAddon';
@@ -117,6 +118,7 @@ const MumukshuAddons = () => {
     const fromTravel =
       mumukshuData.travel?.mumukshuGroup?.flatMap((group: any) => group.mumukshus || []) || [];
     const fromUtsav = mumukshuData.utsav?.mumukshus || [];
+    const fromFlat = mumukshuData.flat?.mumukshuGroup || [];
 
     // Use the non-empty array, prioritizing the primary booking type based on the current page
     let result = [];
@@ -129,6 +131,8 @@ const MumukshuAddons = () => {
       result = fromTravel;
     } else if (booking === types.EVENT_DETAILS_TYPE && fromUtsav.length > 0) {
       result = fromUtsav;
+    } else if (booking === types.FLAT_DETAILS_TYPE && fromFlat.length > 0) {
+      result = fromFlat;
     } else {
       // Use the first non-empty array
       result =
@@ -142,7 +146,9 @@ const MumukshuAddons = () => {
                 ? fromFood
                 : fromUtsav.length > 0
                   ? fromUtsav
-                  : [];
+                  : fromFlat.length > 0
+                    ? fromFlat
+                    : [];
     }
 
     return result;
@@ -714,6 +720,9 @@ const MumukshuAddons = () => {
         {booking === types.EVENT_DETAILS_TYPE && (
           <MumukshuEventBookingDetails containerStyles="mt-2" />
         )}
+        {booking === types.FLAT_DETAILS_TYPE && (
+          <MumukshuFlatBookingDetails containerStyles="mt-2" />
+        )}
 
         {booking === types.EVENT_DETAILS_TYPE && (
           <View className="mx-4 mb-2 mt-4 rounded-lg border-2 border-amber-300 bg-amber-50 p-4">
@@ -740,7 +749,7 @@ const MumukshuAddons = () => {
               <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
 
               {/* MUMUKSHU ROOM BOOKING COMPONENT */}
-              {booking !== types.ROOM_DETAILS_TYPE && (
+              {![types.ROOM_DETAILS_TYPE, types.FLAT_DETAILS_TYPE].includes(booking as string) && (
                 <MumukshuRoomAddon
                   roomForm={roomForm}
                   setRoomForm={setRoomForm}

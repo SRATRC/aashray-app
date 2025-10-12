@@ -11,6 +11,7 @@ import CustomButton from '@/src/components/CustomButton';
 import PageHeader from '@/src/components/PageHeader';
 import GuestRoomBookingDetails from '@/src/components/booking details cards/GuestRoomBookingDetails';
 import GuestAdhyayanBookingDetails from '@/src/components/booking details cards/GuestAdhyayanBookingDetails';
+import GuestFlatBookingDetails from '@/src/components/booking details cards/GuestFlatBookingDetails';
 import GuestRoomAddon from '@/src/components/booking addons/GuestRoomAddon';
 import GuestFoodAddon from '@/src/components/booking addons/GuestFoodAddon';
 import GuestAdhyayanAddon from '@/src/components/booking addons/GuestAdhyayanAddon';
@@ -264,6 +265,9 @@ const GuestAddons = () => {
           }
           if (booking !== types.EVENT_DETAILS_TYPE) {
             delete cleanedData.utsav;
+          }
+          if (booking !== types.FLAT_DETAILS_TYPE) {
+            delete cleanedData.flat;
           }
 
           // Always remove food addon as it's never a main booking type
@@ -526,6 +530,7 @@ const GuestAddons = () => {
         {booking === types.ADHYAYAN_DETAILS_TYPE && (
           <GuestAdhyayanBookingDetails containerStyles="mt-2" />
         )}
+        {booking === types.FLAT_DETAILS_TYPE && <GuestFlatBookingDetails containerStyles="mt-2" />}
         {booking === types.EVENT_DETAILS_TYPE && (
           <GuestEventBookingDetails containerStyles="mt-2" />
         )}

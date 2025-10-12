@@ -12,7 +12,7 @@ const cleanStateSlice = (prev, bookingType, item) => {
     const updated = { ...prevData, [bookingType]: itemData, primary: bookingType };
 
     // Clean up other booking types
-    ['room', 'travel', 'food', 'adhyayan', 'utsav', 'validationData']
+    ['room', 'travel', 'food', 'adhyayan', 'utsav', 'flat', 'validationData']
       .filter((key) => key !== bookingType)
       .forEach((key) => delete updated[key]);
 
@@ -58,7 +58,7 @@ const safeObjectMerge = (target, source) => {
 
 // Helper to validate booking type
 const isValidBookingType = (bookingType) => {
-  const validTypes = ['room', 'travel', 'food', 'adhyayan', 'utsav'];
+  const validTypes = ['room', 'travel', 'food', 'adhyayan', 'utsav', 'flat'];
   return typeof bookingType === 'string' && validTypes.includes(bookingType);
 };
 

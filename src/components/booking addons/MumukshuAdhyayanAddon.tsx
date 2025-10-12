@@ -36,8 +36,9 @@ const MumukshuAdhyayanAddon: React.FC<MumukshuAdhyayanAddonProps> = ({
         '/adhyayan/getrange',
         {
           cardno: user.cardno,
-          start_date: mumukshuData.room?.startDay || mumukshuData.travel?.date,
-          end_date: mumukshuData.room?.endDay,
+          start_date:
+            mumukshuData.room?.startDay || mumukshuData.travel?.date || mumukshuData.flat?.startDay,
+          end_date: mumukshuData.room?.endDay || mumukshuData.flat?.endDay,
         },
         null,
         (res: any) => {

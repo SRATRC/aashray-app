@@ -350,7 +350,7 @@ const Profile: React.FC = () => {
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-x-3">
                   <FontAwesome name="bed" size={20} color="#4B5563" />
-                  <Text className="font-pmedium text-base text-gray-700">Room / Flat</Text>
+                  <Text className="font-pmedium text-base text-gray-700">Stay</Text>
                 </View>
                 <Text className="font-psemibold text-base text-gray-800">
                   {user?.credits?.room || 0}

@@ -149,6 +149,15 @@ export const prepareGuestRequestBody = (user, input) => {
             guests: primaryData.guestGroup.map((guest) => guest.cardno),
           },
         };
+      case 'flat':
+        return {
+          booking_type: 'flat',
+          details: {
+            checkin_date: primaryData.startDay,
+            checkout_date: primaryData.endDay,
+            guests: primaryData.guestGroup.map((guest) => guest.cardno),
+          },
+        };
       case 'utsav':
         return {
           booking_type: 'utsav',
@@ -199,6 +208,15 @@ export const prepareGuestRequestBody = (user, input) => {
               booking_type: key,
               details: {
                 shibir_ids: [input[key].adhyayan.id],
+                guests: input[key].guests.map((guest) => guest.cardno),
+              },
+            };
+          case 'flat':
+            return {
+              booking_type: key,
+              details: {
+                checkin_date: input[key].startDay,
+                checkout_date: input[key].endDay,
                 guests: input[key].guests.map((guest) => guest.cardno),
               },
             };
@@ -327,6 +345,15 @@ export const prepareMumukshuRequestBody = (user, input) => {
             mumukshuGroup: transformMumukshuGroup(primaryData.mumukshuGroup),
           },
         };
+      case 'flat':
+        return {
+          booking_type: 'flat',
+          details: {
+            checkin_date: primaryData.startDay,
+            checkout_date: primaryData.endDay,
+            mumukshus: transformMumukshuGroup(primaryData.mumukshuGroup),
+          },
+        };
       case 'utsav':
         return {
           booking_type: 'utsav',
@@ -386,6 +413,15 @@ export const prepareMumukshuRequestBody = (user, input) => {
               details: {
                 date: input[key].date,
                 mumukshuGroup: transformMumukshuGroup(input[key].mumukshuGroup),
+              },
+            };
+          case 'flat':
+            return {
+              booking_type: key,
+              details: {
+                checkin_date: input[key].startDay,
+                checkout_date: input[key].endDay,
+                mumukshus: input[key].mumukshus.map((mumukshu) => mumukshu.cardno),
               },
             };
           case 'validationData':

@@ -2,8 +2,8 @@ import { View, Text, Alert } from 'react-native';
 import React, { useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/src/stores';
-import { colors } from '@/src/constants';
+import { useAuthStore, useBookingStore } from '@/src/stores';
+import { types } from '@/src/constants';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import CustomCalender from '../CustomCalender';
 import CustomChipGroup from '../CustomChipGroup';
@@ -11,10 +11,6 @@ import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomButton from '../CustomButton';
 import GuestForm from '../GuestForm';
 import handleAPICall from '@/src/utils/HandleApiCall';
-import * as Haptics from 'expo-haptics';
-// @ts-ignore
-import RazorpayCheckout from 'react-native-razorpay';
-import Toast from 'react-native-toast-message';
 import moment from 'moment';
 
 const CHIPS = ['Mumukshus', 'Guest'];
@@ -44,6 +40,8 @@ const INITIAL_GUEST_FORM = {
 
 const FlatBooking = () => {
   const { user } = useAuthStore();
+  const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
+  const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
   const router = useRouter();
   const tabBarPadding = useTabBarPadding();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -135,55 +133,15 @@ const FlatBooking = () => {
     });
   };
 
-  const handleRazorpayPayment = (paymentData: any) => {
-    if (paymentData.amount == 0) {
-      Alert.alert('Success', 'Booking Successful');
-      if (selectedChip === CHIPS[0]) {
-        setMumukshuForm(INITIAL_MUMUKSHU_FORM);
-      } else {
-        setGuestForm(INITIAL_GUEST_FORM);
-      }
-      setIsSubmitting(false);
-    } else {
-      const options = {
-        key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,
-        name: 'Vitraag Vigyaan Aashray',
-        image: 'https://vitraagvigyaan.org/img/logo.png',
-        description: 'Payment for Flat Booking',
-        amount: paymentData.amount.toString(),
-        currency: 'INR',
-        order_id: paymentData.id.toString(),
-        prefill: {
-          email: user.email.toString(),
-          contact: user.mobno.toString(),
-          name: user.issuedto.toString(),
-        },
-        theme: { color: colors.orange },
-      };
+  function transformMumukshuData(inputData: any) {
+    const { startDay, endDay, mumukshus } = inputData;
 
-      RazorpayCheckout.open(options)
-        .then((_rzrpayData: any) => {
-          if (selectedChip === CHIPS[0]) {
-            setMumukshuForm(INITIAL_MUMUKSHU_FORM);
-          } else {
-            setGuestForm(INITIAL_GUEST_FORM);
-          }
-          setIsSubmitting(false);
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          Toast.show({
-            type: 'success',
-            text1: 'Payment successful',
-            swipeable: false,
-          });
-          router.replace('/paymentConfirmation');
-        })
-        .catch((_error: any) => {
-          setIsSubmitting(false);
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-          router.replace('/paymentFailed');
-        });
-    }
-  };
+    return {
+      startDay,
+      endDay,
+      mumukshuGroup: mumukshus.map((mumukshu: any) => mumukshu),
+    };
+  }
 
   return (
     <View className="mt-3 w-full flex-1">
@@ -258,26 +216,12 @@ const FlatBooking = () => {
                 setIsSubmitting(false);
                 return;
               }
-              await handleAPICall(
-                'POST',
-                '/stay/flat',
-                { cardno: user.cardno },
-                mumukshuForm,
-                async (res: any) => {
-                  // Check if response contains payment data
-                  if (res.data && (res.data.amount !== undefined || res.data.id !== undefined)) {
-                    handleRazorpayPayment(res.data);
-                  } else {
-                    // No payment data - just show success
-                    Alert.alert('Success', 'Booking Successful');
-                    setMumukshuForm(INITIAL_MUMUKSHU_FORM);
-                    setIsSubmitting(false);
-                  }
-                },
-                () => {
-                  setIsSubmitting(false);
-                }
-              );
+
+              // Transform and save flat booking data
+              const flatData = transformMumukshuData(mumukshuForm);
+              await updateMumukshuBooking('flat', flatData);
+              router.push(`/mumukshuBooking/${types.FLAT_DETAILS_TYPE}`);
+              setIsSubmitting(false);
             }
 
             if (selectedChip == CHIPS[1]) {
@@ -300,7 +244,7 @@ const FlatBooking = () => {
                     const matchingApiGuest = res.guests.find(
                       (apiGuest: any) => apiGuest.issuedto === formGuest.name
                     );
-                    return matchingApiGuest ? matchingApiGuest.cardno : formGuest.cardno;
+                    return matchingApiGuest ? matchingApiGuest.cardno : (formGuest as any).cardno;
                   });
 
                   // Create the updated form object directly
@@ -311,37 +255,24 @@ const FlatBooking = () => {
 
                   // Update the state
                   await new Promise((resolve) => {
-                    setGuestForm((prev) => {
+                    setGuestForm(() => {
                       const newForm = updatedGuestForm;
                       resolve(newForm);
                       return newForm;
                     });
                   });
 
-                  // Use the updated form object directly, not the state
-                  await handleAPICall(
-                    'POST',
-                    '/guest/flat',
-                    { cardno: user.cardno },
-                    updatedGuestForm,
-                    async (res: any) => {
-                      // Check if response contains payment data
-                      if (
-                        res.data &&
-                        (res.data.amount !== undefined || res.data.id !== undefined)
-                      ) {
-                        handleRazorpayPayment(res.data);
-                      } else {
-                        // No payment data - just show success
-                        Alert.alert('Success', 'Booking Successful');
-                        setGuestForm(INITIAL_GUEST_FORM);
-                        setIsSubmitting(false);
-                      }
-                    },
-                    () => {
-                      setIsSubmitting(false);
-                    }
-                  );
+                  // Transform and save guest flat booking data
+                  const transformedData = {
+                    startDay: updatedGuestForm.startDay,
+                    endDay: updatedGuestForm.endDay,
+                    guestGroup: updatedGuestForm.guests,
+                  };
+
+                  await updateGuestBooking('flat', transformedData);
+                  setGuestForm(INITIAL_GUEST_FORM);
+                  router.push(`/guestBooking/${types.FLAT_DETAILS_TYPE}`);
+                  setIsSubmitting(false);
                 },
                 () => {
                   setIsSubmitting(false);
