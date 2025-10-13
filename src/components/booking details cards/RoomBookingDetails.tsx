@@ -19,7 +19,7 @@ const RoomBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyle
     ? countStatusesForField(data?.validationData, 'roomDetails')
     : {};
 
-  console.log(JSON.stringify(data));
+  console.log('DATA: ', JSON.stringify(data));
 
   return (
     <PrimaryAddonBookingCard containerStyles={containerStyles} title="Raj Sharan Booking">
@@ -52,21 +52,23 @@ const RoomBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyle
         <Image source={icons.ac} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Room Type: </Text>
         <Text className="font-pmedium text-black">
-          {data.room.roomType === 'ac' ? 'AC ROOM' : 'Non AC ROOM'}
+          {data.room.mumukshuGroup[0].roomType == 'ac' ? 'AC ROOM' : 'Non AC ROOM'}
         </Text>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
         <Image source={icons.elder} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Ground Floor Booking:</Text>
         <Text className="font-pmedium text-black">
-          {data.room.floorType === 'SC' ? 'Ground Floor' : 'Any Floor'}
+          {data.room.mumukshuGroup[0].floorType === 'SC' ? 'Ground Floor' : 'Any Floor'}
         </Text>
       </View>
-      {data.room.charge && (
-        <View className="flex flex-row gap-x-2 px-6 pb-4">
+      {data.validationData?.roomDetails[0]?.charge && (
+        <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
           <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
           <Text className="font-pregular text-gray-400">Charges:</Text>
-          <Text className="font-pmedium text-black">₹ {data.room.charge}</Text>
+          <Text className="font-pmedium text-black">
+            ₹ {data.validationData?.roomDetails[0]?.charge}
+          </Text>
         </View>
       )}
     </PrimaryAddonBookingCard>
