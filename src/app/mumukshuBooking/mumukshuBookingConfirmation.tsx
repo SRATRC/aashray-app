@@ -25,10 +25,52 @@ import * as Haptics from 'expo-haptics';
 
 // Define validation data type
 interface ValidationData {
-  roomDetails?: Array<{ charge: number; availableCredits?: number }>;
-  travelDetails?: { charge: number; availableCredits?: number };
-  adhyayanDetails?: Array<{ charge: number; availableCredits?: number }>;
-  utsavDetails?: Array<{ charge: number; availableCredits?: number }>;
+  roomDetails?: Array<{
+    mumukshu?: string;
+    roomno?: number;
+    nights?: number;
+    charge: number;
+    availableCredits?: number;
+    issuedto?: string;
+    [key: string]: any;
+  }>;
+  foodDetails?: Array<{
+    mumukshu?: string;
+    mealTypes?: string;
+    dates?: string;
+    charge: number;
+    availableCredits?: number;
+    issuedto?: string;
+    [key: string]: any;
+  }>;
+  travelDetails?: {
+    mumukshu?: string;
+    pickup?: string;
+    drop?: string;
+    date?: string;
+    charge: number;
+    availableCredits?: number;
+    issuedto?: string;
+    [key: string]: any;
+  };
+  adhyayanDetails?: Array<{
+    mumukshu?: string;
+    shibirName?: string;
+    dates?: string;
+    charge: number;
+    availableCredits?: number;
+    issuedto?: string;
+    [key: string]: any;
+  }>;
+  utsavDetails?: Array<{
+    mumukshu?: string;
+    eventName?: string;
+    dates?: string;
+    charge: number;
+    availableCredits?: number;
+    issuedto?: string;
+    [key: string]: any;
+  }>;
   flatDetails?: Array<{
     mumukshu: string;
     flatno: number;
@@ -36,6 +78,7 @@ interface ValidationData {
     charge: number;
     availableCredits?: number;
     status: string;
+    issuedto?: string;
   }>;
   totalCharge: number;
 }
@@ -49,27 +92,65 @@ const mumukshuBookingConfirmation = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPayLaterModal, setShowPayLaterModal] = useState(false);
+
+  // Bottom sheet refs for room and flat charges
+  const roomChargeBottomSheetRef = useRef<BottomSheetModal>(null);
   const flatChargeBottomSheetRef = useRef<BottomSheetModal>(null);
 
   const transformedData = prepareMumukshuRequestBody(user, mumukshuData);
 
-  // Helper function to enrich flat details with mumukshu names from stored data
-  const enrichFlatDetailsWithNames = (flatDetails: any[]) => {
-    if (!flatDetails || !mumukshuData.flat?.mumukshuGroup) return flatDetails;
+  // Generic helper function to enrich details with mumukshu names from stored data
+  const enrichDetailsWithNames = (
+    details: any[] | any,
+    mumukshuGroup: any[],
+    isArray: boolean = true
+  ) => {
+    if (!details || !mumukshuGroup) return details;
 
-    return flatDetails.map((flatDetail) => {
+    const enrichItem = (item: any) => {
       // Find the matching mumukshu from the stored form data by cardno
-      const matchingMumukshu = mumukshuData.flat.mumukshuGroup.find(
-        (m: any) => m.cardno === flatDetail.mumukshu
-      );
+      const matchingMumukshu = mumukshuGroup.find((m: any) => m.cardno === item.mumukshu);
 
       // Add the issuedto field if found
       return {
-        ...flatDetail,
+        ...item,
         issuedto: matchingMumukshu?.issuedto || null,
       };
-    });
+    };
+
+    return isArray ? (details as any[]).map(enrichItem) : enrichItem(details);
   };
+
+  // Helper function to calculate nights between two dates
+  const calculateNights = (startDay: string, endDay: string): number => {
+    if (!startDay || !endDay) return 0;
+    const start = new Date(startDay);
+    const end = new Date(endDay);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  // Specific enrichment functions for room and flat booking types
+  const enrichRoomDetailsWithNames = (roomDetails: any[]) => {
+    // Room booking has nested structure: mumukshuGroup[].mumukshus[]
+    // We need to flatten it to get all mumukshus
+    const allMumukshus =
+      mumukshuData.room?.mumukshuGroup?.flatMap((group: any) => group.mumukshus || []) || [];
+
+    // Calculate nights from stored booking data
+    const nights = calculateNights(mumukshuData.room?.startDay, mumukshuData.room?.endDay);
+
+    // Enrich with names and add nights to each item
+    const enrichedDetails = enrichDetailsWithNames(roomDetails, allMumukshus, true);
+    return enrichedDetails.map((item: any) => ({
+      ...item,
+      nights: nights,
+    }));
+  };
+
+  const enrichFlatDetailsWithNames = (flatDetails: any[]) =>
+    enrichDetailsWithNames(flatDetails, mumukshuData.flat?.mumukshuGroup, true);
 
   const fetchValidation = useCallback(async () => {
     return new Promise<ValidationData>((resolve, reject) => {
@@ -103,10 +184,13 @@ const mumukshuBookingConfirmation = () => {
     enabled: !!user.cardno,
   });
 
-  // Enrich validation data with mumukshu names from stored form data
+  // Enrich validation data with mumukshu names from stored form data (only for room and flat)
   const enrichedValidationData = validationData
     ? {
         ...validationData,
+        roomDetails: validationData.roomDetails
+          ? enrichRoomDetailsWithNames(validationData.roomDetails)
+          : validationData.roomDetails,
         flatDetails: validationData.flatDetails
           ? enrichFlatDetailsWithNames(validationData.flatDetails)
           : validationData.flatDetails,
@@ -167,14 +251,14 @@ const mumukshuBookingConfirmation = () => {
               }`}>
               <View className="p-4">
                 <View className="flex-col gap-y-3">
-                  {validationData.roomDetails &&
-                    validationData.roomDetails.length > 0 &&
+                  {enrichedValidationData?.roomDetails &&
+                    enrichedValidationData.roomDetails.length > 0 &&
                     (() => {
-                      const totalCharge = validationData.roomDetails.reduce(
+                      const totalCharge = enrichedValidationData.roomDetails.reduce(
                         (total: number, room: { charge: number }) => total + room.charge,
                         0
                       );
-                      const totalCredits = validationData.roomDetails.reduce(
+                      const totalCredits = enrichedValidationData.roomDetails.reduce(
                         (total: number, room: { charge: number; availableCredits?: number }) =>
                           total + (room.availableCredits || 0),
                         0
@@ -183,30 +267,40 @@ const mumukshuBookingConfirmation = () => {
                       if (totalCharge > 0) {
                         return (
                           <View className="border-b border-gray-200 pb-3">
-                            <View className="flex-row items-center justify-between">
-                              <Text className="font-pregular text-base text-gray-700">
-                                Room Charge
-                              </Text>
-                              <View className="items-end">
+                            <TouchableOpacity
+                              onPress={() => roomChargeBottomSheetRef.current?.present()}
+                              activeOpacity={0.7}>
+                              <View className="flex-row items-center justify-between">
                                 <Text
-                                  className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
-                                  ₹{totalCharge.toLocaleString('en-IN')}
+                                  className="font-pregular text-base text-gray-700"
+                                  style={{
+                                    borderBottomWidth: 1,
+                                    borderBottomColor: '#6B7280',
+                                    borderStyle: 'dashed',
+                                  }}>
+                                  Room Charge
                                 </Text>
-                                {totalCredits > 0 && (
-                                  <>
-                                    <Text className="font-pregular text-xs text-green-600">
-                                      −₹{totalCredits.toLocaleString('en-IN')} credit
-                                    </Text>
-                                    <Text className="mt-0.5 font-pmedium text-base text-black">
-                                      ₹
-                                      {Math.max(0, totalCharge - totalCredits).toLocaleString(
-                                        'en-IN'
-                                      )}
-                                    </Text>
-                                  </>
-                                )}
+                                <View className="items-end">
+                                  <Text
+                                    className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
+                                    ₹{totalCharge.toLocaleString('en-IN')}
+                                  </Text>
+                                  {totalCredits > 0 && (
+                                    <>
+                                      <Text className="font-pregular text-xs text-green-600">
+                                        −₹{totalCredits.toLocaleString('en-IN')} credit
+                                      </Text>
+                                      <Text className="mt-0.5 font-pmedium text-base text-black">
+                                        ₹
+                                        {Math.max(0, totalCharge - totalCredits).toLocaleString(
+                                          'en-IN'
+                                        )}
+                                      </Text>
+                                    </>
+                                  )}
+                                </View>
                               </View>
-                            </View>
+                            </TouchableOpacity>
                           </View>
                         );
                       }
@@ -400,27 +494,42 @@ const mumukshuBookingConfirmation = () => {
                   <View className="pt-2">
                     {(() => {
                       const totalCredits =
-                        (validationData.roomDetails?.reduce(
-                          (sum: number, item: { availableCredits?: number }) =>
-                            sum + (item.availableCredits || 0),
-                          0
-                        ) || 0) +
-                        (validationData.travelDetails?.availableCredits || 0) +
-                        (validationData.adhyayanDetails?.reduce(
-                          (sum: number, item: { availableCredits?: number }) =>
-                            sum + (item.availableCredits || 0),
-                          0
-                        ) || 0) +
-                        (validationData.utsavDetails?.reduce(
-                          (sum: number, item: { availableCredits?: number }) =>
-                            sum + (item.availableCredits || 0),
-                          0
-                        ) || 0) +
-                        (enrichedValidationData?.flatDetails?.reduce(
-                          (sum: number, item: { availableCredits?: number }) =>
-                            sum + (item.availableCredits || 0),
-                          0
-                        ) || 0);
+                        (Array.isArray(enrichedValidationData?.roomDetails)
+                          ? enrichedValidationData.roomDetails.reduce(
+                              (sum: number, item: { availableCredits?: number }) =>
+                                sum + (item.availableCredits || 0),
+                              0
+                            )
+                          : 0) +
+                        (Array.isArray(validationData?.foodDetails)
+                          ? validationData.foodDetails.reduce(
+                              (sum: number, item: { availableCredits?: number }) =>
+                                sum + (item.availableCredits || 0),
+                              0
+                            )
+                          : 0) +
+                        (validationData?.travelDetails?.availableCredits || 0) +
+                        (Array.isArray(validationData?.adhyayanDetails)
+                          ? validationData.adhyayanDetails.reduce(
+                              (sum: number, item: { availableCredits?: number }) =>
+                                sum + (item.availableCredits || 0),
+                              0
+                            )
+                          : 0) +
+                        (Array.isArray(validationData?.utsavDetails)
+                          ? validationData.utsavDetails.reduce(
+                              (sum: number, item: { availableCredits?: number }) =>
+                                sum + (item.availableCredits || 0),
+                              0
+                            )
+                          : 0) +
+                        (Array.isArray(enrichedValidationData?.flatDetails)
+                          ? enrichedValidationData.flatDetails.reduce(
+                              (sum: number, item: { availableCredits?: number }) =>
+                                sum + (item.availableCredits || 0),
+                              0
+                            )
+                          : 0);
 
                       return (
                         <>
@@ -618,6 +727,38 @@ const mumukshuBookingConfirmation = () => {
             </View>
           </View>
         </CustomModal>
+
+        {/* Room Charge Breakdown Bottom Sheet */}
+        {enrichedValidationData?.roomDetails && enrichedValidationData.roomDetails.length > 0 && (
+          <ChargeBreakdownBottomSheet
+            ref={roomChargeBottomSheetRef}
+            title="Room Charge Breakdown"
+            subtitle="Charges per Mumukshu:"
+            items={enrichedValidationData.roomDetails}
+            itemRenderer={(item, index) => (
+              <View
+                key={index}
+                className={`flex-row items-center justify-between py-2 ${
+                  index !== enrichedValidationData.roomDetails!.length - 1
+                    ? 'border-b border-gray-200'
+                    : ''
+                }`}>
+                <View className="flex-1">
+                  <Text className="font-pmedium text-sm text-gray-900">
+                    {item.issuedto || `Card: ${item.mumukshu}`}
+                  </Text>
+                  <Text className="mt-1 font-pregular text-xs text-gray-600">
+                    {item.nights ? `${item.nights} ${item.nights === 1 ? 'night' : 'nights'}` : ''}
+                  </Text>
+                </View>
+                <View className="items-end">
+                  <Text className="font-psemibold text-base text-gray-900">₹{item.charge}</Text>
+                </View>
+              </View>
+            )}
+            emptyMessage="No room charge details available."
+          />
+        )}
 
         {/* Flat Charge Breakdown Bottom Sheet */}
         {enrichedValidationData?.flatDetails && enrichedValidationData.flatDetails.length > 0 && (
