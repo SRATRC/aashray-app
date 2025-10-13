@@ -42,7 +42,7 @@ const SegmentedControl: React.FC<SegmentedControlProps> = ({
     Animated.timing(translateValue, {
       toValue: index * segmentWidth,
       duration: 200,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start();
   };
 
