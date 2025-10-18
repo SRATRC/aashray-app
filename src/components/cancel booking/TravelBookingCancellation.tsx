@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { icons, status } from '@/src/constants';
+import { colors, icons, status } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
 import { FlashList } from '@shopify/flash-list';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
@@ -20,6 +20,7 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import BookingStatusDisplay from '../BookingStatusDisplay';
 import moment from 'moment';
+import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 
 const TravelBookingCancellation = () => {
   const { user } = useAuthStore();
@@ -186,8 +187,19 @@ const TravelBookingCancellation = () => {
         {item.comments && (
           <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
             <Image source={icons.request} className="h-4 w-4" resizeMode="contain" />
-            <Text className="font-pregular text-gray-400">Comments:</Text>
-            <Text className="font-pmedium text-black">{item.comments}</Text>
+            <View className="flex-row items-center gap-x-2">
+              <Text className="font-pregular text-gray-400">Comments:</Text>
+              <Text className="mx-1 flex-1 font-pmedium text-black">{item.comments}</Text>
+            </View>
+          </View>
+        )}
+        {item.admin_comments && (
+          <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
+            <MaterialCommunityIcons name="shield-account" size={17} color={colors.gray_400} />
+            <View className="flex-row items-center gap-x-2">
+              <Text className="font-pregular text-gray-400">Admin Comments:</Text>
+              <Text className="mx-1 flex-1 font-pmedium text-black">{item.admin_comments}</Text>
+            </View>
           </View>
         )}
         {item.amount && (

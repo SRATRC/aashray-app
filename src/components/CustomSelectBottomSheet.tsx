@@ -333,6 +333,9 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
     if ((options && options.length > 0) || isLoading) {
       setSearchQuery('');
       setFilteredOptions(options || []);
+
+      setEnabled(false);
+
       setModalVisible(true);
       if (multiSelect) setTempSelectedValues([...selectedValues]);
 
@@ -342,7 +345,7 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
         useNativeDriver: true,
       }).start();
     }
-  }, [options, isLoading, multiSelect, selectedValues, slideAnim]);
+  }, [options, isLoading, multiSelect, selectedValues, slideAnim, setEnabled]);
 
   const closeBottomSheet = useCallback(() => {
     // Use keyboard controller's static dismiss method
@@ -353,8 +356,9 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
       useNativeDriver: true,
     }).start(() => {
       setModalVisible(false);
+      setEnabled(true);
     });
-  }, [slideAnim, height]);
+  }, [slideAnim, height, setEnabled]);
 
   // Improved handleSelect to ensure instant visual feedback
   const handleSelect = useCallback(

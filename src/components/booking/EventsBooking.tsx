@@ -780,7 +780,7 @@ const EventBooking = () => {
                     setSelectedChip('Self');
                     toggleModal();
                   }}
-                  text={'Confirm Booking'}
+                  text={'Continue'}
                   bgcolor="bg-secondary"
                   containerStyles="mb-6 py-3 rounded-xl"
                   textStyles={'text-base text-white font-psemibold'}
