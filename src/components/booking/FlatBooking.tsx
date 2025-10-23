@@ -43,6 +43,7 @@ const FlatBooking = () => {
   const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
   const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
   const setGuestInfo = useBookingStore((state) => state.setGuestInfo);
+  const setMumukshuInfo = useBookingStore((state) => state.setMumukshuInfo);
   const router = useRouter();
   const tabBarPadding = useTabBarPadding();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -219,6 +220,11 @@ const FlatBooking = () => {
               }
 
               // Transform and save flat booking data
+              const mumukshuInfoArray = mumukshuForm.mumukshus.map((mumukshu: any) => ({
+                cardno: mumukshu.cardno,
+                name: mumukshu.issuedto,
+              }));
+              setMumukshuInfo(mumukshuInfoArray);
               const flatData = transformMumukshuData(mumukshuForm);
               await updateMumukshuBooking('flat', flatData);
               router.push(`/mumukshuBooking/${types.FLAT_DETAILS_TYPE}`);

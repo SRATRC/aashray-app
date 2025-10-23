@@ -41,6 +41,7 @@ const TravelBooking = () => {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
+  const setMumukshuInfo = useBookingStore((state) => state.setMumukshuInfo);
   const tabBarPadding = useTabBarPadding();
 
   const otherLocation = dropdowns.LOCATION_LIST.find((loc) => loc.key === 'other');
@@ -605,6 +606,11 @@ const TravelBooking = () => {
                 setIsSubmitting(false);
                 return;
               }
+              const mumukshuInfoArray = mumukshuForm.mumukshus.map((mumukshu: any) => ({
+                cardno: mumukshu.cardno,
+                name: mumukshu.issuedto,
+              }));
+              setMumukshuInfo(mumukshuInfoArray);
               const temp = transformMumukshuData(mumukshuForm);
               await updateMumukshuBooking('travel', temp);
               router.push(`/mumukshuBooking/${types.TRAVEL_DETAILS_TYPE}`);

@@ -57,6 +57,8 @@ const AdhyayanBooking = () => {
   const user = useAuthStore((state) => state.user);
   const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
   const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
+  const setGuestInfo = useBookingStore((state) => state.setGuestInfo);
+  const setMumukshuInfo = useBookingStore((state) => state.setMumukshuInfo);
   const tabBarPadding = useTabBarPadding();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -449,6 +451,12 @@ const AdhyayanBooking = () => {
                             guests: guestForm.guests,
                           },
                           async (res: any) => {
+                            const guestInfoArray = res.guests.map((apiGuest: any) => ({
+                              cardno: apiGuest.cardno,
+                              name: apiGuest.issuedto || apiGuest.name,
+                            }));
+                            setGuestInfo(guestInfoArray);
+
                             guestForm.guests = res.guests;
                             const transformedData = transformGuestData(guestForm);
 
@@ -464,6 +472,12 @@ const AdhyayanBooking = () => {
                           }
                         );
                       } else {
+                        const guestInfoArray = guestForm.guests.map((apiGuest: any) => ({
+                          cardno: apiGuest.cardno,
+                          name: apiGuest.issuedto || apiGuest.name,
+                        }));
+                        setGuestInfo(guestInfoArray);
+
                         const transformedData = transformGuestData(guestForm);
 
                         await updateGuestBooking('adhyayan', transformedData);
@@ -479,6 +493,12 @@ const AdhyayanBooking = () => {
                         Alert.alert('Fill all Fields');
                         return;
                       }
+
+                      const mumukshuInfoArray = mumukshuForm.mumukshus.map((mumukshu: any) => ({
+                        cardno: mumukshu.cardno,
+                        name: mumukshu.issuedto,
+                      }));
+                      setMumukshuInfo(mumukshuInfoArray);
 
                       const temp = transformMumukshuData(mumukshuForm);
 

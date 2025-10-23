@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Platform, TouchableOpacity } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useAuthStore, useBookingStore } from '@/src/stores';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -89,6 +89,7 @@ const mumukshuBookingConfirmation = () => {
   const user = useAuthStore((state) => state.user);
   const mumukshuData = useBookingStore((state) => state.mumukshuData);
   const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
+  const mumukshuInfo = useBookingStore((state) => state.mumukshuInfo);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPayLaterModal, setShowPayLaterModal] = useState(false);
@@ -121,36 +122,25 @@ const mumukshuBookingConfirmation = () => {
     return isArray ? (details as any[]).map(enrichItem) : enrichItem(details);
   };
 
-  // Helper function to calculate nights between two dates
-  const calculateNights = (startDay: string, endDay: string): number => {
-    if (!startDay || !endDay) return 0;
-    const start = new Date(startDay);
-    const end = new Date(endDay);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
-  // Specific enrichment functions for room and flat booking types
   const enrichRoomDetailsWithNames = (roomDetails: any[]) => {
-    // Room booking has nested structure: mumukshuGroup[].mumukshus[]
-    // We need to flatten it to get all mumukshus
-    const allMumukshus =
-      mumukshuData.room?.mumukshuGroup?.flatMap((group: any) => group.mumukshus || []) || [];
-
-    // Calculate nights from stored booking data
-    const nights = calculateNights(mumukshuData.room?.startDay, mumukshuData.room?.endDay);
-
-    // Enrich with names and add nights to each item
-    const enrichedDetails = enrichDetailsWithNames(roomDetails, allMumukshus, true);
-    return enrichedDetails.map((item: any) => ({
-      ...item,
-      nights: nights,
-    }));
+    return roomDetails.map((item: any) => {
+      const matchingMumukshu = mumukshuInfo.find((g: any) => g.cardno === item.mumukshu);
+      return {
+        ...item,
+        name: matchingMumukshu?.name || null,
+      };
+    });
   };
 
-  const enrichFlatDetailsWithNames = (flatDetails: any[]) =>
-    enrichDetailsWithNames(flatDetails, mumukshuData.flat?.mumukshuGroup, true);
+  const enrichFlatDetailsWithNames = (flatDetails: any[]) => {
+    return flatDetails.map((item: any) => {
+      const matchingMumukshu = mumukshuInfo.find((g: any) => g.cardno === item.mumukshu);
+      return {
+        ...item,
+        name: matchingMumukshu?.name || null,
+      };
+    });
+  };
 
   const fetchValidation = useCallback(async () => {
     return new Promise<ValidationData>((resolve, reject) => {
@@ -745,11 +735,13 @@ const mumukshuBookingConfirmation = () => {
                 }`}>
                 <View className="flex-1">
                   <Text className="font-pmedium text-sm text-gray-900">
-                    {item.issuedto || `Card: ${item.mumukshu}`}
+                    {item.name || `Card: ${item.mumukshu}`}
                   </Text>
-                  <Text className="mt-1 font-pregular text-xs text-gray-600">
-                    {item.nights ? `${item.nights} ${item.nights === 1 ? 'night' : 'nights'}` : ''}
-                  </Text>
+                  {item.nights && (
+                    <Text className="mt-1 font-pregular text-xs text-gray-600">
+                      {`${item.nights} ${item.nights === 1 ? 'night' : 'nights'}`}
+                    </Text>
+                  )}
                 </View>
                 <View className="items-end">
                   <Text className="font-psemibold text-base text-gray-900">₹{item.charge}</Text>
@@ -777,11 +769,13 @@ const mumukshuBookingConfirmation = () => {
                 }`}>
                 <View className="flex-1">
                   <Text className="font-pmedium text-sm text-gray-900">
-                    {item.issuedto || `Card: ${item.mumukshu}`}
+                    {item.name || `Card: ${item.mumukshu}`}
                   </Text>
-                  <Text className="mt-1 font-pregular text-xs text-gray-600">
-                    {item.nights} {item.nights === 1 ? 'night' : 'nights'}
-                  </Text>
+                  {item.nights && (
+                    <Text className="mt-1 font-pregular text-xs text-gray-600">
+                      {`${item.nights} ${item.nights === 1 ? 'night' : 'nights'}`}
+                    </Text>
+                  )}
                 </View>
                 <View className="items-end">
                   <Text className="font-psemibold text-base text-gray-900">₹{item.charge}</Text>

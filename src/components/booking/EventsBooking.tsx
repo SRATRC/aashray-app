@@ -96,6 +96,8 @@ const EventBooking = () => {
   const user = useAuthStore((state) => state.user);
   const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
   const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
+  const setGuestInfo = useBookingStore((state) => state.setGuestInfo);
+  const setMumukshuInfo = useBookingStore((state) => state.setMumukshuInfo);
 
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [packages, setPackages] = useState<any[]>([]);
@@ -732,6 +734,12 @@ const EventBooking = () => {
                               })
                             );
 
+                            const guestInfoArray = mergedGuests.map((apiGuest: any) => ({
+                              cardno: apiGuest.cardno,
+                              name: apiGuest.issuedto || apiGuest.name,
+                            }));
+                            setGuestInfo(guestInfoArray);
+
                             setGuestForm((prev) => ({
                               ...prev,
                               guests: mergedGuests,
@@ -772,6 +780,12 @@ const EventBooking = () => {
                         ...mumukshuForm,
                         utsav: selectedItem,
                       };
+
+                      const mumukshuInfoArray = mumukshuForm.mumukshus.map((mumukshu: any) => ({
+                        cardno: mumukshu.cardno,
+                        name: mumukshu.issuedto,
+                      }));
+                      setMumukshuInfo(mumukshuInfoArray);
 
                       await updateMumukshuBooking('utsav', updatedForm);
                       router.push(`/mumukshuBooking/${types.EVENT_DETAILS_TYPE}`);

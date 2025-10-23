@@ -41,58 +41,15 @@ const guestBookingConfirmation = () => {
   const transformedData = prepareGuestRequestBody(user, guestData);
   console.log('CONFIRM TRANSFORMED DATA: ', JSON.stringify(transformedData));
 
-  // Helper function to calculate nights between two dates
-  const calculateNights = (startDay: string, endDay: string): number => {
-    if (!startDay || !endDay) return 0;
-    const start = new Date(startDay);
-    const end = new Date(endDay);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
-  // Generic helper function to enrich details with guest names from stored data
-  const enrichDetailsWithNames = (
-    details: any[] | any,
-    guestGroup: any[],
-    isArray: boolean = true
-  ) => {
-    if (!details || !guestGroup) return details;
-
-    const enrichItem = (item: any) => {
-      // Find the matching guest from the stored form data by cardno
-      const matchingGuest = guestGroup.find((g: any) => g.cardno === item.guest);
-
-      // Add the name field if found
+  const enrichRoomDetailsWithNames = (roomDetails: any[]) => {
+    // Use guestInfo from store to map cardno to name/issuedto
+    return roomDetails.map((item: any) => {
+      const matchingGuest = guestInfo.find((g: any) => g.cardno === item.mumukshu);
       return {
         ...item,
-        name: matchingGuest?.name || matchingGuest?.issuedto || null,
+        name: matchingGuest?.name || null,
       };
-    };
-
-    return isArray ? (details as any[]).map(enrichItem) : enrichItem(details);
-  };
-
-  // Specific enrichment functions for room and adhyayan booking types
-  const enrichRoomDetailsWithNames = (roomDetails: any[]) => {
-    // Room booking has nested structure: guestGroup[].guests[]
-    // We need to flatten it to get all guests
-    const allGuests = guestData.room?.guestGroup?.flatMap((group: any) => group.guests || []) || [];
-
-    // Calculate nights from stored booking data
-    const nights = calculateNights(guestData.room?.startDay, guestData.room?.endDay);
-
-    // Enrich with names and add nights to each item
-    const enrichedDetails = enrichDetailsWithNames(roomDetails, allGuests, true);
-    return enrichedDetails.map((item: any) => ({
-      ...item,
-      nights: nights,
-    }));
-  };
-
-  const enrichAdhyayanDetailsWithNames = (adhyayanDetails: any[]) => {
-    const allGuests = guestData.adhyayan?.guests || [];
-    return enrichDetailsWithNames(adhyayanDetails, allGuests, true);
+    });
   };
 
   const enrichFlatDetailsWithNames = (flatDetails: any[]) => {
@@ -143,9 +100,6 @@ const guestBookingConfirmation = () => {
         roomDetails: validationData.roomDetails
           ? enrichRoomDetailsWithNames(validationData.roomDetails)
           : validationData.roomDetails,
-        adhyayanDetails: validationData.adhyayanDetails
-          ? enrichAdhyayanDetailsWithNames(validationData.adhyayanDetails)
-          : validationData.adhyayanDetails,
         flatDetails: validationData.flatDetails
           ? enrichFlatDetailsWithNames(validationData.flatDetails)
           : validationData.flatDetails,
@@ -669,9 +623,11 @@ const guestBookingConfirmation = () => {
                   <Text className="font-pmedium text-sm text-gray-900">
                     {item.name || `Guest: ${item.guest}`}
                   </Text>
-                  <Text className="mt-1 font-pregular text-xs text-gray-600">
-                    {item.nights ? `${item.nights} ${item.nights === 1 ? 'night' : 'nights'}` : ''}
-                  </Text>
+                  {item.nights && (
+                    <Text className="mt-1 font-pregular text-xs text-gray-600">
+                      {`${item.nights} ${item.nights === 1 ? 'night' : 'nights'}`}
+                    </Text>
+                  )}
                 </View>
                 <View className="items-end">
                   <Text className="font-psemibold text-base text-gray-900">₹{item.charge}</Text>

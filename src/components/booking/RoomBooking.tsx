@@ -79,6 +79,8 @@ const RoomBooking = () => {
   const tabBarPadding = useTabBarPadding();
   const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
   const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
+  const setGuestInfo = useBookingStore((state) => state.setGuestInfo);
+  const setMumukshuInfo = useBookingStore((state) => state.setMumukshuInfo);
 
   const [resetKey, setResetKey] = useState(0);
 
@@ -409,7 +411,6 @@ const RoomBooking = () => {
                         setIsSubmitting(false);
                         return;
                       }
-
                       const temp = transformMumukshuResponse({
                         startDay: multiDayForm.startDay,
                         endDay: multiDayForm.endDay,
@@ -489,6 +490,12 @@ const RoomBooking = () => {
                             guests: guestForm.guests,
                           },
                           async (res: any) => {
+                            const guestInfoArray = res.guests.map((apiGuest: any) => ({
+                              cardno: apiGuest.cardno,
+                              name: apiGuest.issuedto || apiGuest.name,
+                            }));
+                            setGuestInfo(guestInfoArray);
+
                             const updatedGuests = guestForm.guests.map((formGuest) => {
                               const matchingApiGuest = res.guests.find(
                                 (apiGuest: any) => apiGuest.issuedto === formGuest.name
@@ -579,6 +586,12 @@ const RoomBooking = () => {
                         setModalVisible(true);
                         return;
                       }
+                      const mumukshuInfoArray = mumukshuForm.mumukshus.map((mumukshu: any) => ({
+                        cardno: mumukshu.cardno,
+                        name: mumukshu.issuedto,
+                      }));
+                      setMumukshuInfo(mumukshuInfoArray);
+
                       const temp = transformMumukshuResponse(mumukshuForm);
 
                       updateMumukshuBooking('room', temp);
