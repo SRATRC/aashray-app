@@ -5,6 +5,7 @@ import { useQueries } from '@tanstack/react-query';
 import { useAuthStore } from '@/src/stores';
 import FormField from './FormField';
 import handleAPICall from '../utils/HandleApiCall';
+import { cleanPhoneNumber } from '../utils/phoneUtils';
 
 interface OtherMumukshuFormProps {
   mumukshuForm: any;
@@ -123,11 +124,18 @@ const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
             <FormField
               text="Phone Number"
               value={mumukshu.mobno}
-              handleChangeText={(e: any) => handleMumukshuFormChange(index, 'mobno', e)}
+              handleChangeText={(e: any) => {
+                // const cleaned = cleanPhoneNumber(e);
+                // if (cleaned.length <= 10) {
+                //   handleMumukshuFormChange(index, 'mobno', cleaned);
+                // }
+                handleMumukshuFormChange(index, 'mobno', e);
+              }}
               otherStyles="mt-7"
               inputStyles="font-pmedium text-base"
               keyboardType="number-pad"
               placeholder="Enter Mumukshu's Phone Number"
+              // maxLength={20}
               maxLength={10}
               containerStyles="bg-gray-100"
               additionalText={data?.issuedto}

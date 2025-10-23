@@ -42,6 +42,7 @@ const FlatBooking = () => {
   const { user } = useAuthStore();
   const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
   const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
+  const setGuestInfo = useBookingStore((state) => state.setGuestInfo);
   const router = useRouter();
   const tabBarPadding = useTabBarPadding();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -240,9 +241,17 @@ const FlatBooking = () => {
                   guests: guestForm.guests,
                 },
                 async (res: any) => {
+                  // Store guest information (cardno and name/issuedto) in the store
+                  const guestInfoArray = res.guests.map((apiGuest: any) => ({
+                    cardno: apiGuest.cardno,
+                    name: apiGuest.issuedto || apiGuest.name,
+                  }));
+                  setGuestInfo(guestInfoArray);
+
                   const updatedGuests = guestForm.guests.map((formGuest) => {
                     const matchingApiGuest = res.guests.find(
-                      (apiGuest: any) => apiGuest.issuedto === formGuest.name
+                      (apiGuest: any) =>
+                        apiGuest.issuedto === formGuest.name || apiGuest.name === formGuest.name
                     );
                     return matchingApiGuest ? matchingApiGuest.cardno : (formGuest as any).cardno;
                   });
@@ -266,7 +275,7 @@ const FlatBooking = () => {
                   const transformedData = {
                     startDay: updatedGuestForm.startDay,
                     endDay: updatedGuestForm.endDay,
-                    guestGroup: updatedGuestForm.guests,
+                    guests: updatedGuestForm.guests,
                   };
 
                   await updateGuestBooking('flat', transformedData);

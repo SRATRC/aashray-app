@@ -526,13 +526,13 @@ const GuestAddons = () => {
         keyboardShouldPersistTaps="handled">
         <PageHeader title="Guest Booking Details" />
 
+        {booking === types.EVENT_DETAILS_TYPE && (
+          <GuestEventBookingDetails containerStyles="mt-2" />
+        )}
+        {booking === types.FLAT_DETAILS_TYPE && <GuestFlatBookingDetails containerStyles="mt-2" />}
         {booking === types.ROOM_DETAILS_TYPE && <GuestRoomBookingDetails containerStyles="mt-2" />}
         {booking === types.ADHYAYAN_DETAILS_TYPE && (
           <GuestAdhyayanBookingDetails containerStyles="mt-2" />
-        )}
-        {booking === types.FLAT_DETAILS_TYPE && <GuestFlatBookingDetails containerStyles="mt-2" />}
-        {booking === types.EVENT_DETAILS_TYPE && (
-          <GuestEventBookingDetails containerStyles="mt-2" />
         )}
 
         {booking === types.EVENT_DETAILS_TYPE && (
@@ -560,7 +560,7 @@ const GuestAddons = () => {
               <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
 
               {/* GUEST ROOM BOOKING COMPONENT */}
-              {booking !== types.ROOM_DETAILS_TYPE && (
+              {![types.ROOM_DETAILS_TYPE, types.FLAT_DETAILS_TYPE].includes(booking) && (
                 <GuestRoomAddon
                   roomForm={roomForm}
                   setRoomForm={setRoomForm}

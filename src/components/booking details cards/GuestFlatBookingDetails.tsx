@@ -49,7 +49,7 @@ const GuestFlatBookingDetails: React.FC<{ containerStyles: any }> = ({ container
         <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Booked For:</Text>
         <Text className="font-pmedium text-black">
-          {guestData?.flat?.guestGroup?.length || 0} Guests
+          {guestData?.flat?.guests?.length || 0} Guests
         </Text>
       </View>
       {guestData.flat.charge && (
@@ -64,4 +64,3 @@ const GuestFlatBookingDetails: React.FC<{ containerStyles: any }> = ({ container
 };
 
 export default GuestFlatBookingDetails;
-

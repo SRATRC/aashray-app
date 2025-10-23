@@ -155,7 +155,7 @@ export const prepareGuestRequestBody = (user, input) => {
           details: {
             checkin_date: primaryData.startDay,
             checkout_date: primaryData.endDay,
-            guests: primaryData.guestGroup.map((guest) => guest.cardno),
+            guests: primaryData.guests,
           },
         };
       case 'utsav':
@@ -208,15 +208,6 @@ export const prepareGuestRequestBody = (user, input) => {
               booking_type: key,
               details: {
                 shibir_ids: [input[key].adhyayan.id],
-                guests: input[key].guests.map((guest) => guest.cardno),
-              },
-            };
-          case 'flat':
-            return {
-              booking_type: key,
-              details: {
-                checkin_date: input[key].startDay,
-                checkout_date: input[key].endDay,
                 guests: input[key].guests.map((guest) => guest.cardno),
               },
             };

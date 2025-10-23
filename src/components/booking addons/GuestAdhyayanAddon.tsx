@@ -36,8 +36,8 @@ const GuestAdhyayanAddon: React.FC<GuestAdhyayanAddonProps> = ({
         '/adhyayan/getrange',
         {
           cardno: user.cardno,
-          start_date: guestData.room?.startDay,
-          end_date: guestData.room?.endDay,
+          start_date: guestData.room?.startDay || guestData.flat?.startDay,
+          end_date: guestData.room?.endDay || guestData.flat?.endDay,
         },
         null,
         (res: any) => {

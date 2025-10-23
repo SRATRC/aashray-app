@@ -67,6 +67,7 @@ export const useBookingStore = create((set, get) => ({
   data: {}, // Main booking data
   guestData: {}, // Guest booking data
   mumukshuData: {}, // Mumukshu booking data
+  guestInfo: [], // Array to store guest information (cardno, name/issuedto)
 
   /* ---------- Booking Actions ---------- */
 
@@ -118,6 +119,19 @@ export const useBookingStore = create((set, get) => ({
       }
     } catch (error) {
       console.error('Error in setMumukshuData:', error);
+    }
+  },
+
+  // Setter for guest info
+  setGuestInfo: (guestInfo) => {
+    try {
+      if (Array.isArray(guestInfo)) {
+        set({ guestInfo });
+      } else {
+        console.warn('setGuestInfo expects an array');
+      }
+    } catch (error) {
+      console.error('Error in setGuestInfo:', error);
     }
   },
 
@@ -251,6 +265,7 @@ export const useBookingStore = create((set, get) => ({
         data: {},
         guestData: {},
         mumukshuData: {},
+        guestInfo: [],
       });
     } catch (error) {
       console.error('Error clearing all booking data:', error);
