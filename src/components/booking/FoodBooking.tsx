@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Alert, Text, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useAuthStore } from '@/src/stores';
 import { colors, dropdowns, status } from '@/src/constants';
 import { FontAwesome } from '@expo/vector-icons';
@@ -194,15 +195,16 @@ const FoodBooking = () => {
 
   return (
     <View className="mt-3 w-full flex-1">
-      <ScrollView
-        className="flex-1"
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 8,
           paddingBottom: tabBarPadding + 20,
         }}
         showsVerticalScrollIndicator={false}
-        alwaysBounceVertical={false}>
+        alwaysBounceVertical={false}
+        keyboardShouldPersistTaps="handled">
         <BookingNote />
         <CustomCalender
           type={'period'}
@@ -569,7 +571,7 @@ const FoodBooking = () => {
             />
           </View>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
       <CustomModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}

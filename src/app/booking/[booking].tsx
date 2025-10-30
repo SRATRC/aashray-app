@@ -12,13 +12,13 @@ import PageHeader from '@/src/components/PageHeader';
 import RoomBookingDetails from '@/src/components/booking details cards/RoomBookingDetails';
 import TravelBookingDetails from '@/src/components/booking details cards/TravelBookingDetails';
 import AdhyayanBookingDetails from '@/src/components/booking details cards/AdhyayanBookingDetails';
+import EventBookingDetails from '@/src/components/booking details cards/EventBookingDetails';
 import RoomAddon from '@/src/components/booking addons/RoomAddon';
 import FoodAddon from '@/src/components/booking addons/FoodAddon';
 import AdhyayanAddon from '@/src/components/booking addons/AdhyayanAddon';
 import TravelAddon from '@/src/components/booking addons/TravelAddon';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '@/src/components/CustomModal';
-import EventBookingDetails from '@/src/components/booking details cards/EventBookingDetails';
 
 // Transform simple form to mumukshu format for API compatibility
 const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string) => {

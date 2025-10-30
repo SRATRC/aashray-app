@@ -1,7 +1,8 @@
-import { View, Alert, Text, ScrollView } from 'react-native';
+import { View, Alert, Text } from 'react-native';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { types, dropdowns, status } from '@/src/constants';
 import { useAuthStore, useBookingStore } from '@/src/stores';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
@@ -323,16 +324,16 @@ const RoomBooking = () => {
 
   return (
     <View className="mt-3 w-full flex-1">
-      <ScrollView
-        key={resetKey}
-        className="flex-1"
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 8,
           paddingBottom: tabBarPadding + 20,
         }}
         showsVerticalScrollIndicator={false}
-        alwaysBounceVertical={false}>
+        alwaysBounceVertical={false}
+        keyboardShouldPersistTaps="handled">
         <View>
           <SegmentedControl
             segments={SWITCH_OPTIONS}
@@ -801,7 +802,7 @@ const RoomBooking = () => {
             </View>
           )}
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <CustomModal
         visible={modalVisible}
