@@ -5,5 +5,6 @@ import ticketbg from '../assets/images/ticketbg.png';
 import banner from '../assets/images/banner.png';
 import sadFace from '../assets/images/sad-face.png';
 import sratrcLogo from '../assets/images/sratrc-logo.png';
+import vvTra from '../assets/images/vv-transparent.png';
 
-export default { icon, adaptiveLogo, logo, ticketbg, banner, sadFace, sratrcLogo };
+export default { icon, adaptiveLogo, logo, ticketbg, banner, sadFace, sratrcLogo, vvTra };

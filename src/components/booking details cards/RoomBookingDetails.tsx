@@ -1,11 +1,12 @@
 import { View, Text, Image, ScrollView } from 'react-native';
-import { icons, status } from '@/src/constants';
+import { colors, icons, status } from '@/src/constants';
 import { countStatusesForField } from '@/src/utils/BookingValidationStatusCounter';
 import { useBookingStore } from '@/src/stores';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomTag from '../CustomTag';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import moment from 'moment';
+import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 
 const RoomBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const data = useBookingStore((state) => state.mumukshuData);
@@ -49,20 +50,20 @@ const RoomBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyle
       <HorizontalSeparator otherStyles={'mb-4'} />
 
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Image source={icons.ac} className="h-4 w-4" resizeMode="contain" />
+        <MaterialCommunityIcons name="air-conditioner" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Room Type: </Text>
         <Text className="font-pmedium text-black">
           {data.room.mumukshuGroup[0].roomType == 'ac' ? 'AC ROOM' : 'Non AC ROOM'}
         </Text>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Image source={icons.elder} className="h-4 w-4" resizeMode="contain" />
+        <MaterialIcons name="elderly" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Ground Floor Booking:</Text>
         <Text className="font-pmedium text-black">
           {data.room.mumukshuGroup[0].floorType === 'SC' ? 'Ground Floor' : 'Any Floor'}
         </Text>
       </View>
-      {data.validationData?.roomDetails[0]?.charge && (
+      {/* {data.validationData?.roomDetails[0]?.charge && (
         <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
           <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
           <Text className="font-pregular text-gray-400">Charges:</Text>
@@ -70,7 +71,7 @@ const RoomBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyle
             ₹ {data.validationData?.roomDetails[0]?.charge}
           </Text>
         </View>
-      )}
+      )} */}
     </PrimaryAddonBookingCard>
   );
 };

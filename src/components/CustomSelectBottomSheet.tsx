@@ -21,7 +21,7 @@ import {
   useKeyboardController,
 } from 'react-native-keyboard-controller';
 import { colors } from '../constants';
-import AntDesign from '@expo/vector-icons/AntDesign';
+import { Ionicons, AntDesign } from '@expo/vector-icons';
 // @ts-ignore
 import { debounce } from 'lodash';
 
@@ -96,11 +96,8 @@ const SelectItem = memo(
           style={{
             fontSize: 16,
             fontFamily: 'Poppins-Medium',
-            color: colors.gray_400,
-            ...(isSelected && {
-              color: colors.orange,
-              fontWeight: '500',
-            }),
+            color: isSelected ? colors.orange : colors.gray_400,
+            fontWeight: isSelected ? '500' : '400',
           }}>
           {item.value}
         </Text>
@@ -159,7 +156,7 @@ const SearchInputComponent = memo<SearchInputComponentProps>(
           paddingHorizontal: 12,
           paddingVertical: Platform.OS === 'ios' ? 8 : 0,
         }}>
-        <AntDesign name="search1" size={20} color={colors.gray_400} style={{ marginRight: 8 }} />
+        <Ionicons name="search" size={20} color={colors.gray_400} style={{ marginRight: 8 }} />
         <TextInput
           ref={inputRef}
           value={value}
@@ -285,24 +282,58 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
     return true;
   }, []);
 
+  const hasInvalidSelection = useCallback((): boolean => {
+    if (!options || options.length === 0 || isLoading) return false;
+
+    if (multiSelect) {
+      // Check if any selected value doesn't exist in options
+      return selectedValues.some(
+        (val) => !options.find((o) => (saveKeyInsteadOfValue ? o.key === val : o.value === val))
+      );
+    } else {
+      // Check if selectedValue exists but doesn't match any option
+      if (!isValueSelected(selectedValue)) return false;
+      return !options.find((o) =>
+        saveKeyInsteadOfValue ? o.key === selectedValue : o.value === selectedValue
+      );
+    }
+  }, [
+    options,
+    isLoading,
+    multiSelect,
+    selectedValues,
+    selectedValue,
+    saveKeyInsteadOfValue,
+    isValueSelected,
+  ]);
+
   const getDisplayText = useCallback((): string => {
     if (isLoading) return loadingText;
     if (!options || options.length === 0) return 'No options available';
 
     if (multiSelect) {
       if (selectedValues.length === 0) return placeholder;
-      if (selectedValues.length === 1) {
+
+      const validValues = selectedValues.filter((val) =>
+        options.find((o) => (saveKeyInsteadOfValue ? o.key === val : o.value === val))
+      );
+
+      if (validValues.length === 0) {
+        return 'Invalid selection - tap to update';
+      }
+
+      if (validValues.length === 1) {
         const option = options.find((opt) =>
-          saveKeyInsteadOfValue ? opt.key === selectedValues[0] : opt.value === selectedValues[0]
+          saveKeyInsteadOfValue ? opt.key === validValues[0] : opt.value === validValues[0]
         );
         return option ? option.value : placeholder;
       }
 
-      if (selectedValues.length > maxSelectedDisplay) {
-        return `${selectedValues.length} items selected`;
+      if (validValues.length > maxSelectedDisplay) {
+        return `${validValues.length} items selected`;
       }
 
-      return selectedValues
+      return validValues
         .map((val) => {
           const opt = options.find((o) =>
             saveKeyInsteadOfValue ? o.key === val : o.value === val
@@ -312,10 +343,16 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
         .filter((v) => v !== '')
         .join(', ');
     } else {
-      const selectedOption = options.find((o) =>
-        saveKeyInsteadOfValue ? o.key === selectedValue : o.value === selectedValue
-      );
-      return selectedOption ? selectedOption.value : placeholder;
+      if (isValueSelected(selectedValue)) {
+        const selectedOption = options.find((o) =>
+          saveKeyInsteadOfValue ? o.key === selectedValue : o.value === selectedValue
+        );
+        if (!selectedOption) {
+          return 'Invalid selection - tap to update';
+        }
+        return selectedOption.value;
+      }
+      return placeholder;
     }
   }, [
     isLoading,
@@ -327,6 +364,7 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
     maxSelectedDisplay,
     saveKeyInsteadOfValue,
     selectedValue,
+    isValueSelected,
   ]);
 
   const openBottomSheet = useCallback(() => {
@@ -486,7 +524,7 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
     if (!options || options.length === 0) {
       return (
         <View className="items-center justify-center py-8">
-          <AntDesign name="exclamationcircleo" size={32} color={colors.gray_400} />
+          <AntDesign name="exclamation-circle" size={32} color={colors.gray_400} />
           <Text
             style={{
               marginTop: 12,
@@ -525,7 +563,7 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
     if (searchable && searchQuery && filteredOptions.length === 0) {
       return (
         <View className="items-center justify-center py-8">
-          <AntDesign name="search1" size={32} color={colors.gray_400} />
+          <Ionicons name="search" size={32} color={colors.gray_400} />
           <Text
             style={{
               marginTop: 12,
@@ -585,22 +623,41 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
         disabled={!isLoading && (!options || options.length === 0)}
         style={{
           minHeight: 60,
-          borderWidth: 0,
+          borderWidth: hasInvalidSelection() ? 1 : 0,
+          borderColor: hasInvalidSelection() ? '#EF4444' : 'transparent',
           opacity: !isLoading && (!options || options.length === 0) ? 0.6 : 1,
         }}>
-        <Text
-          className={`mr-2 flex-1 font-pmedium text-base ${
-            (isLoading ||
-              (multiSelect ? selectedValues.length === 0 : !isValueSelected(selectedValue))) &&
-            'text-gray-400'
-          }`}
-          numberOfLines={1}>
-          {getDisplayText()}
-        </Text>
+        <View className="mr-2 flex-1 flex-row items-center">
+          {hasInvalidSelection() && (
+            <AntDesign
+              name="exclamation-circle"
+              size={16}
+              color="#EF4444"
+              style={{ marginRight: 6 }}
+            />
+          )}
+          <Text
+            className={`flex-1 font-pmedium text-base`}
+            style={{
+              color: hasInvalidSelection()
+                ? '#EF4444'
+                : isLoading ||
+                    (multiSelect ? selectedValues.length === 0 : !isValueSelected(selectedValue))
+                  ? colors.gray_400
+                  : colors.black_100,
+            }}
+            numberOfLines={1}>
+            {getDisplayText()}
+          </Text>
+        </View>
         {isLoading ? (
           <ActivityIndicator size="small" color={colors.gray_400} />
         ) : (
-          <AntDesign name="down" size={16} color={colors.gray_400} />
+          <AntDesign
+            name="down"
+            size={16}
+            color={hasInvalidSelection() ? '#EF4444' : colors.gray_400}
+          />
         )}
       </TouchableOpacity>
 

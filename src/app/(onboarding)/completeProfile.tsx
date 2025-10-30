@@ -158,7 +158,8 @@ const CompleteProfile = () => {
       form.pin &&
       form.center &&
       form.mobno.toString().length === 10 &&
-      form.pin.toString().length === 6 &&
+      form.pin &&
+      /^[A-Za-z0-9\s\-]{4,8}$/.test(form.pin.toString()) &&
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
     );
   };
@@ -235,7 +236,7 @@ const CompleteProfile = () => {
           </View>
 
           <View className="flex-1 items-center justify-center">
-            <Text className="mb-2 text-sm text-gray-500">Step 2 of 2</Text>
+            <Text className="mb-2 text-sm text-gray-500">Step 2</Text>
             <View
               style={{
                 width: '80%',
@@ -381,7 +382,11 @@ const CompleteProfile = () => {
                   themeVariant="light"
                   mode="date"
                   display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  value={form.dob ? new Date(form.dob) : new Date(1900, 0, 1)}
+                  value={
+                    form.dob
+                      ? moment(form.dob, 'YYYY-MM-DD').toDate()
+                      : moment(new Date(), 'YYYY-MM-DD').toDate()
+                  }
                   maximumDate={new Date()}
                   minimumDate={new Date(1900, 0, 1)}
                   onChange={(event, date) => {
@@ -512,7 +517,7 @@ const CompleteProfile = () => {
 
               <FormField
                 text="Pin Code"
-                value={form.pin ? form.pin.toString() : ''}
+                value={form.pin || ''}
                 handleChangeText={(e: any) => setForm({ ...form, pin: e })}
                 otherStyles="mt-7"
                 inputStyles="font-pmedium text-base"

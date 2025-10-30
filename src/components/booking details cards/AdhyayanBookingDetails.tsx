@@ -1,6 +1,7 @@
 import { View, Text, Image, ScrollView } from 'react-native';
-import { icons } from '@/src/constants';
+import { colors, icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
+import { MaterialCommunityIcons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomTag from '../CustomTag';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
@@ -50,19 +51,19 @@ const AdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ containerS
       <HorizontalSeparator otherStyles={'mb-4'} />
 
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Image source={icons.description} className="h-4 w-4" resizeMode="contain" />
+        <MaterialCommunityIcons name="text-long" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Name:</Text>
         <Text className="flex-1 font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
           {data.adhyayan.adhyayan.name}
         </Text>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
+        <FontAwesome5 name="chalkboard-teacher" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Swadhyay Karta:</Text>
         <Text className="font-pmedium text-black">{data.adhyayan.adhyayan.speaker}</Text>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Image source={icons.marker} className="h-4 w-4" resizeMode="contain" />
+        <MaterialIcons name="location-on" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Location:</Text>
         <Text className="flex-1 font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
           {data.adhyayan.adhyayan.location}

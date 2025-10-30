@@ -1,5 +1,5 @@
 import { View, Text, Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome, FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { colors, icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
 import HorizontalSeparator from '../HorizontalSeparator';
@@ -31,12 +31,12 @@ const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerSt
       <HorizontalSeparator otherStyles={'mb-4'} />
 
       <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
-        <Image source={icons.car} className="h-4 w-4" resizeMode="contain" />
+        <FontAwesome5 name="car" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Booking Type:</Text>
         <Text className="font-pmedium text-black">{data.travel.mumukshuGroup[0].type}</Text>
       </View>
       <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
-        <Image source={icons.marker} className="h-4 w-4" resizeMode="contain" />
+        <MaterialIcons name="location-on" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">
           {data.travel.mumukshuGroup[0].pickup == 'Research Centre' ? 'Drop Point' : 'Pickup Point'}
         </Text>
@@ -47,7 +47,7 @@ const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerSt
         </Text>
       </View>
       <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
-        <Image source={icons.luggage} className="h-4 w-4" resizeMode="contain" />
+        <FontAwesome5 name="luggage-cart" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Luggage:</Text>
         <Text className="font-pmedium text-black">
           {data.travel.mumukshuGroup[0].luggage.length > 0
@@ -56,7 +56,7 @@ const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerSt
         </Text>
       </View>
       <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
-        <Image source={icons.request} className="h-4 w-4" resizeMode="contain" />
+        <FontAwesome name="comment" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Comments:</Text>
         <Text className="flex-1 font-pmedium text-black" numberOfLines={1}>
           {data.travel.mumukshuGroup[0].special_request

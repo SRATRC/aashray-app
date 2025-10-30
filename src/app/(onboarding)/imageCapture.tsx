@@ -90,7 +90,7 @@ const ImageCaptureOnboarding: React.FC = () => {
 
           {/* Step Content */}
           <View className="flex-1 items-center justify-center">
-            <Text className="mb-2 text-sm text-gray-500">Step 1 of 2</Text>
+            <Text className="mb-2 text-sm text-gray-500">Step 1</Text>
             <View
               style={{
                 width: '80%',

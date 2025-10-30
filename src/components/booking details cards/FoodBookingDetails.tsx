@@ -1,8 +1,9 @@
 import { View, Text, Image, Platform } from 'react-native';
-import { icons } from '@/src/constants';
+import { colors, icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
 import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 const FoodBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const data = useBookingStore((state) => state.mumukshuData);
@@ -33,19 +34,19 @@ const FoodBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyle
         <HorizontalSeparator otherStyles={'mb-4'} />
 
         <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-          <Image source={icons.meal} className="h-4 w-4" resizeMode="contain" />
+          <Ionicons name="fast-food" size={14} color={colors.gray_400} />
           <Text className="font-pregular text-gray-400">Meals:</Text>
           <Text className="font-pmedium text-black">{meals}</Text>
         </View>
         <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-          <Image source={icons.spice} className="h-4 w-4" resizeMode="contain" />
+          <MaterialCommunityIcons name="chili-mild" size={14} color={colors.gray_400} />
           <Text className="font-pregular text-gray-400">Spice Level:</Text>
           <Text className="font-pmedium text-black">
             {data.food.spicy ? 'Regular' : 'Non Spicy'}
           </Text>
         </View>
         <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-          <Image source={icons.hightea} className="h-4 w-4" resizeMode="contain" />
+          <MaterialCommunityIcons name="kettle-steam" size={14} color={colors.gray_400} />
           <Text className="font-pregular text-gray-400">High Tea:</Text>
           <Text className="font-pmedium text-black">{data.food.mumukshuGroup[0].hightea}</Text>
         </View>

@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/src/stores';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
-import { Feather, FontAwesome, Ionicons } from '@expo/vector-icons';
+import { Feather, FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useBottomTabOverflow } from '@/src/components/TabBarBackground';
 import getCachedImageUri, { invalidateCachedImage } from '@/src/utils/imageCache';
 import { useQuickImagePicker } from '@/src/hooks/useQuickImagePicker';
@@ -374,6 +374,16 @@ const Profile: React.FC = () => {
                 </View>
                 <Text className="font-psemibold text-base text-gray-800">
                   {user?.credits?.food || 0}
+                </Text>
+              </View>
+              {/* Utsav Credits */}
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-x-3">
+                  <MaterialIcons name="festival" size={20} color="#4B5563" />
+                  <Text className="font-pmedium text-base text-gray-700">Utsav</Text>
+                </View>
+                <Text className="font-psemibold text-base text-gray-800">
+                  {user?.credits?.utsav || 0}
                 </Text>
               </View>
             </View>

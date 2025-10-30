@@ -17,30 +17,27 @@ const PasswordResetModal = ({ visible, onClose, email }: any) => {
       visible={visible}
       onRequestClose={onClose}
       statusBarTranslucent={true}>
-      <View className="flex-1 items-center justify-center bg-black/50">
-        <View className="w-[85%] max-w-[400px] items-center rounded-3xl bg-white p-8 shadow-md">
-          <View className="mb-5 rounded-full bg-secondary-50 p-5">
-            <Image source={images.logo} className="h-[50px] w-[50px]" resizeMode="contain" />
+      <View className="flex-1 items-center justify-center bg-black/50 px-6">
+        <View className="w-full max-w-[400px] items-center rounded-2xl bg-white p-8 shadow-xl">
+          <View className="mb-6 h-16 w-16 items-center justify-center rounded-full bg-secondary-50">
+            <Image source={images.logo} className="h-10 w-10" resizeMode="contain" />
           </View>
 
-          <Text className="mb-4 font-psemibold text-2xl text-gray-800">Check Your Email</Text>
+          <Text className="mb-3 font-psemibold text-2xl text-gray-900">Check Your Email</Text>
 
-          <Text className="mb-1 text-center font-pregular text-base text-gray-600">
+          <Text className="mb-2 text-center font-pregular text-sm text-gray-600">
             We've sent a temporary password to:
           </Text>
 
-          <Text className="mb-4 text-center font-pmedium text-base text-secondary">{email}</Text>
-
-          <Text className="mb-6 text-center font-pregular text-sm text-gray-600">
-            We have emailed a temporary password to you. Please use it to sign in and then change
-            your password.
+          <Text className="mb-5 text-center font-pmedium text-base text-secondary-100">
+            {email}
           </Text>
 
-          <CustomButton
-            containerStyles="w-full mb-4 px-8 py-3"
-            text="Got It"
-            handlePress={onClose}
-          />
+          <Text className="mb-8 text-center font-pregular text-sm text-gray-600">
+            Please use it to sign in and then change your password from your profile.
+          </Text>
+
+          <CustomButton containerStyles="w-full h-12" text="Got It" handlePress={onClose} />
         </View>
       </View>
     </Modal>
@@ -124,58 +121,87 @@ const SignIn = () => {
   return (
     <SafeAreaView className="h-full bg-white">
       <KeyboardAwareScrollView
-        bottomOffset={62}
-        style={{ flex: 1 }}
-        keyboardShouldPersistTaps="handled">
-        <View className="my-6 min-h-[83vh] w-full justify-center px-4">
-          <Image source={images.logo} className="h-[80px] w-[80px]" resizeMode="contain" />
-          <Text className="text-semibold mt-5 font-psemibold text-2xl text-black">
-            Welcome to SRATRC
-          </Text>
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingHorizontal: 24,
+          paddingTop: 32,
+          paddingBottom: 32,
+        }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+        <View className="items-center">
+          <Image source={images.vvTra} className="h-[80px] w-[80px]" resizeMode="contain" />
+        </View>
 
-          <FormField
-            text="Phone Number"
-            value={form.phone}
-            handleChangeText={(e: any) => setForm({ ...form, phone: e })}
-            otherStyles="mt-7"
-            inputStyles="font-pmedium text-base text-black"
-            keyboardType="number-pad"
-            placeholder="Enter Your Phone Number"
-            maxLength={10}
-          />
-
-          <FormField
-            text="Password"
-            value={form.password}
-            handleChangeText={(e: any) => setForm({ ...form, password: e })}
-            otherStyles="mt-7"
-            inputStyles="font-pmedium text-base text-black"
-            keyboardType="default"
-            placeholder="Enter Your Password"
-            isPassword={true}
-          />
-
-          <View className="mt-2 flex flex-row items-center justify-end">
-            <TouchableOpacity onPress={handleForgotPassword}>
-              <Text className="font-pmedium text-sm text-secondary">Forgot Password?</Text>
-            </TouchableOpacity>
+        <View className="flex-1 justify-center">
+          <View className="mb-10">
+            <Text className="mb-2 text-center font-psemibold text-3xl text-gray-900">
+              Jai Sadgurudev Vandan!
+            </Text>
+            <Text className="text-center font-pregular text-base text-gray-600">
+              Sign in to your account
+            </Text>
           </View>
 
-          <CustomButton
-            text="Sign In"
-            handlePress={submit}
-            containerStyles="mt-7 min-h-[62px]"
-            isLoading={isSubmitting}
-            isDisabled={form.phone.length !== 10 || !form.password}
-          />
+          <View>
+            <FormField
+              text="Phone Number"
+              value={form.phone}
+              handleChangeText={(e: any) => setForm({ ...form, phone: e })}
+              otherStyles="mb-5"
+              inputStyles="font-pmedium text-base text-black"
+              keyboardType="number-pad"
+              placeholder="10-digit phone number"
+              maxLength={10}
+            />
 
-          {/* Password Reset Modal */}
-          <PasswordResetModal
-            visible={modalVisible}
-            onClose={() => setModalVisible(false)}
-            email={resetEmail}
-          />
+            <FormField
+              text="Password"
+              value={form.password}
+              handleChangeText={(e: any) => setForm({ ...form, password: e })}
+              otherStyles="mb-3"
+              inputStyles="font-pmedium text-base text-black"
+              keyboardType="default"
+              placeholder="Enter your password"
+              isPassword={true}
+            />
+
+            <View className="mb-7 flex flex-row items-center justify-end">
+              <TouchableOpacity onPress={handleForgotPassword} activeOpacity={0.7} className="py-2">
+                <Text className="font-pmedium text-sm text-secondary-100">Forgot password?</Text>
+              </TouchableOpacity>
+            </View>
+
+            <CustomButton
+              text="Sign In"
+              handlePress={submit}
+              containerStyles="h-14 mb-8"
+              isLoading={isSubmitting}
+              isDisabled={form.phone.length !== 10 || !form.password}
+            />
+
+            {/* Divider - Closer to button */}
+            {/* <View className="mb-6 flex flex-row items-center">
+              <View className="h-[1px] flex-1 bg-gray-200" />
+              <Text className="mx-4 font-pregular text-sm text-gray-500">or</Text>
+              <View className="h-[1px] flex-1 bg-gray-200" />
+            </View> */}
+
+            {/* Sign Up CTA */}
+            {/* <View className="flex flex-row items-center justify-center">
+              <Text className="font-pregular text-sm text-gray-600">New to SRATRC? </Text>
+              <TouchableOpacity activeOpacity={0.7}>
+                <Text className="font-psemibold text-sm text-secondary-100">Create account</Text>
+              </TouchableOpacity>
+            </View> */}
+          </View>
         </View>
+
+        <PasswordResetModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          email={resetEmail}
+        />
       </KeyboardAwareScrollView>
     </SafeAreaView>
   );
