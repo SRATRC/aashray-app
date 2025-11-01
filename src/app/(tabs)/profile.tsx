@@ -532,7 +532,7 @@ const Profile: React.FC = () => {
             <View>
               <Text className="mb-2 font-psemibold text-base text-gray-800">How to Use?</Text>
               <Text className="font-pregular text-sm leading-5 text-gray-600">
-                When you make a booking for a Room / Flat, Travel and Guest Food, any available
+                When you make a booking for a Room / Flat, Utsav and Guest Food, any available
                 credits in your account will be automatically applied at checkout.
               </Text>
             </View>

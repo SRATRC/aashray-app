@@ -404,7 +404,7 @@ const profileDetails = () => {
           <CustomButton
             text="Update Profile"
             handlePress={submit}
-            containerStyles={`mt-7 mb-10 min-h-[62px] ${Platform.OS == 'android' && 'mb-3'}`}
+            containerStyles={`mt-7 min-h-[62px] ${Platform.OS == 'android' && 'mb-3'}`}
             isLoading={isSubmitting}
             isDisabled={!isFormModified() || !isFormValid()}
           />
