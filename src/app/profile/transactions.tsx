@@ -17,6 +17,7 @@ import PageHeader from '@/src/components/PageHeader';
 import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import moment from 'moment';
+import { ShadowBox } from '@/src/components/ShadowBox';
 
 const Transactions = () => {
   const { user } = useAuthStore();
@@ -72,7 +73,6 @@ const Transactions = () => {
           paddingBottom: 20,
         }}
         data={data?.pages?.flatMap((page: any) => page) || []}
-        estimatedItemSize={140}
         showsVerticalScrollIndicator={false}
         renderItem={renderItem}
         ListEmptyComponent={() => (
@@ -209,16 +209,7 @@ const TransactionItem = ({ item }: { item: any }) => {
   };
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.6}
-      className="mb-3 rounded-xl border border-gray-200 bg-white"
-      style={{
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
-        shadowRadius: 3,
-        elevation: 1,
-      }}>
+    <ShadowBox className="mb-3 rounded-xl border border-gray-200 bg-white">
       <View className="p-4">
         {/* Header Section */}
         <View className="mb-3 flex-row items-start justify-between">
@@ -339,7 +330,7 @@ const TransactionItem = ({ item }: { item: any }) => {
           </View>
         </View>
       </View>
-    </TouchableOpacity>
+    </ShadowBox>
   );
 };
 

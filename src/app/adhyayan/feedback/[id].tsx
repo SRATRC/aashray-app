@@ -11,6 +11,7 @@ import FormField from '@/src/components/FormField';
 import CustomButton from '@/src/components/CustomButton';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import ErrorText from '@/src/components/ErrorText';
+import { ShadowBox } from '@/src/components/ShadowBox';
 
 export type AdhyayanFeedbackData = {
   swadhay_karta_rating: number | null;
@@ -114,17 +115,18 @@ const AdhyayanFeedbackForm: React.FC<{
         inputStyles="font-pmedium text-base"
         error={fieldError(!value.swadhay_karta_suggestions)}
         errorMessage="Required"
+        useNeomorphic
       />
 
       <FieldLabel label="Would you be interested to attend Raj Adhyayan in the future?" />
       <View className="mt-3 flex-row gap-x-4">
-        <TouchableOpacity
+        <ShadowBox
           className={`flex-1 rounded-2xl px-6 py-5 ${
             value.raj_adhyayan_interest === true
               ? 'bg-green-500'
               : 'border border-gray-200 bg-white'
-          } ${Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'}`}
-          activeOpacity={0.8}
+          }`}
+          interactive={true}
           onPress={() => onChange({ ...value, raj_adhyayan_interest: true })}>
           <View className="items-center">
             <Ionicons
@@ -139,13 +141,13 @@ const AdhyayanFeedbackForm: React.FC<{
               I'm In!
             </Text>
           </View>
-        </TouchableOpacity>
+        </ShadowBox>
 
-        <TouchableOpacity
+        <ShadowBox
           className={`flex-1 rounded-2xl px-6 py-5 ${
             value.raj_adhyayan_interest === false ? 'bg-red-500' : 'border border-gray-200 bg-white'
-          } ${Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'}`}
-          activeOpacity={0.8}
+          }`}
+          interactive
           onPress={() => onChange({ ...value, raj_adhyayan_interest: false })}>
           <View className="items-center">
             <Ionicons
@@ -160,7 +162,7 @@ const AdhyayanFeedbackForm: React.FC<{
               Not Now
             </Text>
           </View>
-        </TouchableOpacity>
+        </ShadowBox>
       </View>
       <ErrorText
         show={fieldError(value.raj_adhyayan_interest === null)}
@@ -176,6 +178,7 @@ const AdhyayanFeedbackForm: React.FC<{
         inputStyles="font-pmedium text-base"
         error={fieldError(!value.future_topics)}
         errorMessage="Required"
+        useNeomorphic
       />
 
       <FormField
@@ -187,6 +190,7 @@ const AdhyayanFeedbackForm: React.FC<{
         inputStyles="font-pmedium text-base"
         error={fieldError(!value.loved_most)}
         errorMessage="Required"
+        useNeomorphic
       />
 
       <FormField
@@ -198,6 +202,7 @@ const AdhyayanFeedbackForm: React.FC<{
         inputStyles="font-pmedium text-base"
         error={fieldError(!value.improvement_suggestions)}
         errorMessage="Required"
+        useNeomorphic
       />
 
       <FieldLabel label="How was the food at the bhojanalay?" />

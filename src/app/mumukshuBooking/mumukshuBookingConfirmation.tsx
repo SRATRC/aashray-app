@@ -1,9 +1,10 @@
-import { View, Text, ScrollView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useAuthStore, useBookingStore } from '@/src/stores';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ShadowBox } from '@/src/components/ShadowBox';
 import { colors } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
 import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
@@ -235,10 +236,7 @@ const mumukshuBookingConfirmation = () => {
         {validationData && validationData.totalCharge > 0 && (
           <View className="mt-4 w-full px-4">
             <Text className="mb-3 font-psemibold text-xl text-secondary">Charges</Text>
-            <View
-              className={`rounded-2xl bg-white ${
-                Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-              }`}>
+            <ShadowBox className="rounded-2xl bg-white">
               <View className="p-4">
                 <View className="flex-col gap-y-3">
                   {enrichedValidationData?.roomDetails &&
@@ -561,7 +559,7 @@ const mumukshuBookingConfirmation = () => {
                   </View>
                 </View>
               </View>
-            </View>
+            </ShadowBox>
           </View>
         )}
 

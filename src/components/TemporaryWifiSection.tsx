@@ -6,6 +6,7 @@ import Toast from 'react-native-toast-message';
 import CustomButton from '@/src/components/CustomButton';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
+import { ShadowBox } from './ShadowBox';
 
 interface TemporaryWifiCode {
   id?: string;
@@ -43,34 +44,26 @@ const TemporaryWifiSection: React.FC<TemporaryWifiSectionProps> = ({
   const isAtMaxLimit = validCodes.length >= maxCodes;
 
   const renderCodeItem = (code: TemporaryWifiCode, index: number) => (
-    <View
-      key={code.id || index}
-      className={`mx-4 mt-3 rounded-2xl bg-white ${
-        Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-      }`}>
+    <ShadowBox key={code.id || index} className="mx-4 mt-3 rounded-2xl bg-white">
       <View className="rounded-xl p-4">
         <View className="flex-row items-center justify-between">
           <View className="flex-1">
             <Text className="font-pregular text-sm text-gray-600">Temporary WiFi Code</Text>
             <Text className="font-psemibold text-lg text-black">{code.password}</Text>
           </View>
-          <TouchableOpacity
+          <ShadowBox
             onPress={() => copyToClipboard(code.password)}
-            className={`h-10 w-10 items-center justify-center rounded-full bg-white ${
-              Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-            }`}>
+            interactive
+            className="h-10 w-10 items-center justify-center rounded-full bg-white">
             <Ionicons name="copy-outline" size={20} color={colors.gray_400} />
-          </TouchableOpacity>
+          </ShadowBox>
         </View>
       </View>
-    </View>
+    </ShadowBox>
   );
 
   const renderEmptyState = () => (
-    <View
-      className={`mx-4 rounded-2xl bg-white p-6 ${
-        Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-      }`}>
+    <ShadowBox className="mx-4 rounded-2xl bg-white p-6">
       <View className="items-center">
         <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-gray-100">
           <Text className="text-2xl">📱</Text>
@@ -87,7 +80,7 @@ const TemporaryWifiSection: React.FC<TemporaryWifiSectionProps> = ({
           isLoading={isGenerating}
         />
       </View>
-    </View>
+    </ShadowBox>
   );
 
   const renderLoadingState = () => (

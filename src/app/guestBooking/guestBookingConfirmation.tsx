@@ -21,6 +21,7 @@ import ChargeBreakdownBottomSheet from '@/src/components/ChargeBreakdownBottomSh
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import * as Haptics from 'expo-haptics';
+import { ShadowBox } from '@/src/components/ShadowBox';
 
 const guestBookingConfirmation = () => {
   const router = useRouter();
@@ -153,10 +154,7 @@ const guestBookingConfirmation = () => {
         {validationData && validationData.totalCharge > 0 && (
           <View className="mt-4 w-full px-4">
             <Text className="mb-3 font-psemibold text-xl text-secondary">Charges</Text>
-            <View
-              className={`rounded-2xl bg-white ${
-                Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-              }`}>
+            <ShadowBox className="rounded-2xl bg-white">
               <View className="p-4">
                 <View className="flex-col gap-y-3">
                   {enrichedValidationData?.roomDetails &&
@@ -455,7 +453,7 @@ const guestBookingConfirmation = () => {
                   </View>
                 </View>
               </View>
-            </View>
+            </ShadowBox>
           </View>
         )}
 

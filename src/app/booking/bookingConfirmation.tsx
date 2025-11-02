@@ -19,6 +19,7 @@ import RazorpayCheckout from 'react-native-razorpay';
 import CustomModal from '@/src/components/CustomModal';
 import EventBookingDetails from '@/src/components/booking details cards/EventBookingDetails';
 import * as Haptics from 'expo-haptics';
+import { ShadowBox } from '@/src/components/ShadowBox';
 
 // Define validation data type
 interface ValidationData {
@@ -114,10 +115,7 @@ const bookingConfirmation = () => {
           <View className="mt-4 w-full px-4">
             <Text className="mb-3 font-psemibold text-xl text-secondary">Charges</Text>
 
-            <View
-              className={`rounded-2xl bg-white ${
-                Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-              }`}>
+            <ShadowBox className="rounded-2xl bg-white" interactive={false}>
               <View className="p-4">
                 <View className="flex-col gap-y-3">
                   {validationData.roomDetails &&
@@ -353,7 +351,7 @@ const bookingConfirmation = () => {
                   </View>
                 </View>
               </View>
-            </View>
+            </ShadowBox>
           </View>
         )}
 

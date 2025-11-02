@@ -119,7 +119,7 @@ const SignIn = () => {
   };
 
   return (
-    <SafeAreaView className="h-full bg-white">
+    <SafeAreaView className="h-full bg-gray-100">
       <KeyboardAwareScrollView
         contentContainerStyle={{
           flexGrow: 1,
@@ -153,17 +153,19 @@ const SignIn = () => {
               keyboardType="number-pad"
               placeholder="10-digit phone number"
               maxLength={10}
+              useNeomorphic={true}
             />
 
             <FormField
               text="Password"
               value={form.password}
               handleChangeText={(e: any) => setForm({ ...form, password: e })}
+              placeholder="Enter your password"
               otherStyles="mb-3"
               inputStyles="font-pmedium text-base text-black"
               keyboardType="default"
-              placeholder="Enter your password"
               isPassword={true}
+              useNeomorphic={true}
             />
 
             <View className="mb-7 flex flex-row items-center justify-end">

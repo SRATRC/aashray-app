@@ -1,4 +1,5 @@
-import { View, Text, Platform } from 'react-native';
+import { View, Text } from 'react-native';
+import { ShadowBox } from './ShadowBox';
 import React from 'react';
 
 interface PrimaryAddonBookingCardProps {
@@ -15,12 +16,7 @@ const PrimaryAddonBookingCard: React.FC<PrimaryAddonBookingCardProps> = ({
   return (
     <View className={`w-full px-4 ${containerStyles}`}>
       <Text className="font-psemibold text-xl text-secondary">{title}</Text>
-      <View
-        className={`mt-4 flex flex-col rounded-2xl bg-white ${
-          Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-        }`}>
-        {children}
-      </View>
+      <ShadowBox className="mt-4 flex flex-col rounded-2xl bg-white">{children}</ShadowBox>
     </View>
   );
 };

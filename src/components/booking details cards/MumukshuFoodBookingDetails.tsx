@@ -3,6 +3,7 @@ import { icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
 import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
+import { ShadowBox } from '../ShadowBox';
 
 const MumukshuFoodBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const mumukshuData = useBookingStore((store) => store.mumukshuData);
@@ -13,10 +14,7 @@ const MumukshuFoodBookingDetails: React.FC<{ containerStyles: any }> = ({ contai
   return (
     <View className={`w-full px-4 ${containerStyles}`}>
       <Text className="font-psemibold text-xl text-secondary">Raj Prasad Booking</Text>
-      <View
-        className={`mt-4 flex flex-col rounded-2xl bg-white ${
-          Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-        }`}>
+      <ShadowBox className="mt-4 flex flex-col rounded-2xl bg-white">
         <View className="flex flex-row items-center gap-x-4 p-4">
           <Image source={icons.food} className="h-10 w-10" resizeMode="contain" />
           <View className="w-full flex-1">
@@ -41,7 +39,7 @@ const MumukshuFoodBookingDetails: React.FC<{ containerStyles: any }> = ({ contai
             Mumukshus
           </Text>
         </View>
-      </View>
+      </ShadowBox>
     </View>
   );
 };

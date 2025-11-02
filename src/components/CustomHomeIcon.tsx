@@ -1,5 +1,6 @@
-import { View, Text, Image, TouchableWithoutFeedback, Platform } from 'react-native';
+import { View, Text, Image, TouchableWithoutFeedback } from 'react-native';
 import React, { FC } from 'react';
+import { ShadowBox } from './ShadowBox';
 
 interface CustomHomeIconProps {
   image: any;
@@ -13,14 +14,9 @@ const CustomHomeIcon: FC<CustomHomeIconProps> = ({ image, title, onPress, contai
     <View className={`mr-2 ${containerStyles || ''}`}>
       <TouchableWithoutFeedback onPress={onPress}>
         <View className="w-[76px] items-center justify-center">
-          <View
-            className={`rounded-xl bg-white p-2 ${
-              Platform.OS === 'ios'
-                ? 'bg-white shadow-lg shadow-gray-200'
-                : 'bg-white shadow-2xl shadow-gray-400'
-            }`}>
+          <ShadowBox interactive={false} className="rounded-xl bg-white p-2">
             <Image source={image} className="h-12 w-12" />
-          </View>
+          </ShadowBox>
           <Text
             className="mt-2 text-center font-pregular text-[10px] text-black"
             adjustsFontSizeToFit

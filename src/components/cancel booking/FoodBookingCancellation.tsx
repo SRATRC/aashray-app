@@ -23,6 +23,7 @@ import CustomEmptyMessage from '../CustomEmptyMessage';
 import BottomSheetFilter from '../BottomSheetFilter';
 import moment from 'moment';
 import * as Haptics from 'expo-haptics';
+import { ShadowBox } from '../ShadowBox';
 
 const FOOD_TYPE_LIST = [
   { key: 'breakfast', value: 'Breakfast' },
@@ -224,8 +225,9 @@ export default function FoodBookingCancellation() {
     );
 
     return (
-      <TouchableOpacity
-        disabled={!isCancellable}
+      <ShadowBox
+        interactive
+        isDisabled={!isCancellable}
         onPress={() => {
           if (!isCancellable) return;
 
@@ -256,10 +258,7 @@ export default function FoodBookingCancellation() {
           }
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }}
-        activeOpacity={isCancellable ? 0.98 : 1}
-        className={`mb-3 rounded-xl ${!isCancellable ? 'border border-neutral-200 bg-neutral-50' : 'border border-neutral-200 bg-white'} ${
-          Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-        }`}>
+        className={`mb-3 rounded-xl ${!isCancellable ? 'border border-neutral-200 bg-neutral-50' : 'border border-neutral-200 bg-white'}`}>
         {/* Main content */}
         <View className="p-4">
           <View className="flex-row items-center justify-between">
@@ -343,7 +342,7 @@ export default function FoodBookingCancellation() {
         {isSelected && (
           <View className="absolute bottom-0 left-0 top-0 w-1 rounded-l-xl bg-secondary" />
         )}
-      </TouchableOpacity>
+      </ShadowBox>
     );
   };
 
@@ -450,10 +449,7 @@ export default function FoodBookingCancellation() {
       <View
         className={`absolute bottom-0 left-0 right-0 ${Platform.OS === 'ios' ? 'pb-8' : 'pb-4'} px-4`}
         style={{ paddingBottom: Platform.OS === 'ios' ? tabBarHeight + 20 : 20 }}>
-        <View
-          className={`flex-row gap-x-3 rounded-2xl bg-white p-4 ${
-            Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-          }`}>
+        <ShadowBox className="flex-row gap-x-3 rounded-2xl bg-white p-4">
           <View className="flex-1">
             <Text className="font-pmedium text-sm text-gray-600">
               {selectedItems.length} of {cancellableItems.length} selected
@@ -486,7 +482,7 @@ export default function FoodBookingCancellation() {
               </View>
             )}
           </TouchableOpacity>
-        </View>
+        </ShadowBox>
       </View>
     );
   };
@@ -501,7 +497,6 @@ export default function FoodBookingCancellation() {
           paddingTop: 8,
         }}
         data={data?.pages?.flat()}
-        estimatedItemSize={150}
         showsVerticalScrollIndicator={false}
         renderItem={renderItem}
         ListHeaderComponent={renderHeader}

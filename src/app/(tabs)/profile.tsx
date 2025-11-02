@@ -20,6 +20,7 @@ import { Feather, FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icon
 import { useBottomTabOverflow } from '@/src/components/TabBarBackground';
 import getCachedImageUri, { invalidateCachedImage } from '@/src/utils/imageCache';
 import { useQuickImagePicker } from '@/src/hooks/useQuickImagePicker';
+import { ShadowBox } from '@/src/components/ShadowBox';
 import Toast from 'react-native-toast-message';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import FormField from '@/src/components/FormField';
@@ -235,14 +236,13 @@ const Profile: React.FC = () => {
     const isDisabled = isLogoutItem && isLogoutLoading;
 
     return (
-      <TouchableOpacity
-        className={`mb-5 rounded-2xl p-4 ${
-          Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-        } mx-4 flex flex-row items-center justify-between bg-white ${
+      <ShadowBox
+        className={`mx-4 mb-5 flex flex-row items-center justify-between rounded-2xl bg-white p-4 ${
           isDisabled ? 'opacity-50' : ''
         }`}
+        interactive
         onPress={item.onPress}
-        disabled={isDisabled}>
+        isDisabled={isDisabled}>
         <View className="flex-row items-center gap-x-4">
           <Image
             source={item.icon}
@@ -261,7 +261,7 @@ const Profile: React.FC = () => {
             <Image source={icons.yellowArrowRight} className="h-3 w-3" resizeMode="contain" />
           </View>
         )}
-      </TouchableOpacity>
+      </ShadowBox>
     );
   };
 
@@ -304,7 +304,7 @@ const Profile: React.FC = () => {
 
           <TouchableOpacity
             onPress={pickAndUpload}
-            className="absolute bottom-[5px] right-[5px] h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-secondary shadow-lg shadow-black/20"
+            className="absolute bottom-[5px] right-[5px] h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-secondary"
             activeOpacity={0.8}
             disabled={isUploading}>
             <Feather name="edit-2" size={14} color="white" />
@@ -323,10 +323,7 @@ const Profile: React.FC = () => {
         </Text>
 
         <View className="mt-8 w-full px-4">
-          <View
-            className={`rounded-3xl border border-gray-200/80 bg-white p-6 ${
-              Platform.OS === 'ios' ? 'shadow-lg shadow-gray-100/80' : 'shadow-2xl shadow-gray-200'
-            }`}>
+          <ShadowBox className="rounded-3xl border border-gray-200/80 bg-white p-6">
             {/* Header */}
             <View className="flex-row items-start justify-between">
               <Text className="font-psemibold text-lg text-gray-700">Available Credits</Text>
@@ -387,7 +384,7 @@ const Profile: React.FC = () => {
                 </Text>
               </View>
             </View>
-          </View>
+          </ShadowBox>
         </View>
       </View>
     );
@@ -416,7 +413,6 @@ const Profile: React.FC = () => {
           data={profileList}
           renderItem={renderItem}
           ListHeaderComponent={renderHeader}
-          estimatedItemSize={6}
           refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refreshUserData} />}
         />
 
@@ -456,6 +452,7 @@ const Profile: React.FC = () => {
                   containerStyles="bg-gray-100 border-gray-200"
                   inputStyles="font-pmedium text-base text-black"
                   isPassword={true}
+                  useNeomorphic
                 />
 
                 <FormField

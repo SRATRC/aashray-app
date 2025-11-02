@@ -3,7 +3,7 @@ export default {
     name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
-    version: '1.1.30',
+    version: '1.1.31',
     orientation: 'portrait',
     icon: './src/assets/images/icon.png',
     userInterfaceStyle: 'automatic',
@@ -143,5 +143,6 @@ export default {
   },
   experiments: {
     buildCacheProvider: 'eas',
+    reactCompiler: true,
   },
 };

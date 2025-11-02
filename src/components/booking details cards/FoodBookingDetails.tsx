@@ -1,9 +1,10 @@
-import { View, Text, Image, Platform } from 'react-native';
+import { View, Text, Image } from 'react-native';
 import { colors, icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
+import { ShadowBox } from '../ShadowBox';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 const FoodBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const data = useBookingStore((state) => state.mumukshuData);
@@ -16,10 +17,7 @@ const FoodBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyle
   return (
     <View className={`w-full px-4 ${containerStyles}`}>
       <Text className="font-psemibold text-xl text-secondary">Raj Prasad Booking</Text>
-      <View
-        className={`mt-4 flex flex-col rounded-2xl bg-white ${
-          Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-        }`}>
+      <ShadowBox className="mt-4 flex flex-col rounded-2xl bg-white">
         <View className="flex flex-row items-center gap-x-4 p-4">
           <Image source={icons.food} className="h-10 w-10" resizeMode="contain" />
           <View className="w-full flex-1">
@@ -50,7 +48,7 @@ const FoodBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyle
           <Text className="font-pregular text-gray-400">High Tea:</Text>
           <Text className="font-pmedium text-black">{data.food.mumukshuGroup[0].hightea}</Text>
         </View>
-      </View>
+      </ShadowBox>
     </View>
   );
 };

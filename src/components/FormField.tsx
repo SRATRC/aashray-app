@@ -23,6 +23,7 @@ interface FormFieldProps {
   error?: boolean;
   errorMessage?: string;
   isLoading?: boolean;
+  useNeomorphic?: boolean; // NEW PROP
 }
 
 const FormField: React.FC<FormFieldProps> = ({
@@ -46,6 +47,7 @@ const FormField: React.FC<FormFieldProps> = ({
   error = false,
   errorMessage,
   isLoading = false,
+  useNeomorphic = false, // NEW PROP - defaults to false for backward compatibility
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -61,11 +63,21 @@ const FormField: React.FC<FormFieldProps> = ({
       baseStyles += ' border-2 border-blue-300 bg-blue-50';
     } else {
       baseStyles += ' focus:border-secondary';
-      baseStyles += containerStyles
-        ? ` ${containerStyles}`
-        : Platform.OS === 'ios'
-          ? ' bg-white shadow-lg shadow-gray-200'
-          : ' bg-white shadow-2xl shadow-gray-400';
+      if (containerStyles) {
+        baseStyles += ` ${containerStyles}`;
+      } else if (useNeomorphic) {
+        // NEOMORPHIC STYLING
+        baseStyles +=
+          Platform.OS === 'ios'
+            ? ' bg-white border border-gray-200 shadow-md shadow-gray-300'
+            : ' bg-white border border-gray-200 shadow-lg shadow-gray-400';
+      } else {
+        // ORIGINAL STYLING
+        baseStyles +=
+          Platform.OS === 'ios'
+            ? ' bg-white shadow-lg shadow-gray-200'
+            : ' bg-white shadow-2xl shadow-gray-400';
+      }
     }
 
     return baseStyles;

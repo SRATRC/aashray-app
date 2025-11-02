@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@/src/constants';
+import { ShadowBox } from './ShadowBox';
 import CustomButton from '@/src/components/CustomButton';
 import CustomErrorMessage from '@/src/components/CustomErrorMessage';
 import CustomModal from '@/src/components/CustomModal';
@@ -109,29 +110,27 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
             <Text className="font-psemibold text-lg text-black">{item.code}</Text>
           </View>
           <View className="flex-row gap-x-2">
-            <TouchableOpacity
+            <ShadowBox
               onPress={() => {
                 setSelectedCodeId(item.id);
                 setShowResetModal(true);
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               }}
-              disabled={isResettingCode}
-              className={`h-10 w-10 items-center justify-center rounded-full bg-white ${
-                Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-              }`}>
+              interactive
+              isDisabled={isResettingCode}
+              className="h-10 w-10 items-center justify-center rounded-full bg-white">
               {isResettingCode ? (
                 <ActivityIndicator size="small" color={colors.orange} />
               ) : (
                 <MaterialIcons name="refresh" size={20} color={colors.gray_400} />
               )}
-            </TouchableOpacity>
-            <TouchableOpacity
+            </ShadowBox>
+            <ShadowBox
               onPress={() => item.code && copyToClipboard(item.code)}
-              className={`h-10 w-10 items-center justify-center rounded-full bg-white ${
-                Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-              }`}>
+              interactive
+              className="h-10 w-10 items-center justify-center rounded-full bg-white">
               <Ionicons name="copy-outline" size={20} color={colors.gray_400} />
-            </TouchableOpacity>
+            </ShadowBox>
           </View>
         </View>
       </View>
@@ -193,24 +192,17 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
   );
 
   const renderWifiItem = (item: PermanentWifiData, index: number) => (
-    <View
-      key={item.id || index}
-      className={`mb-4 rounded-2xl bg-white p-6 ${
-        Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-      }`}>
+    <ShadowBox key={item.id || index} className="mb-4 rounded-2xl bg-white p-6">
       {renderStatusBadge(item.status, index)}
 
       {item.status === 'approved' && item.code && renderApprovedCode(item)}
       {item.status === 'pending' && renderPendingStatus(item)}
       {item.status === 'rejected' && renderRejectedStatus(item)}
-    </View>
+    </ShadowBox>
   );
 
   const renderEmptyState = () => (
-    <View
-      className={`mx-4 rounded-2xl bg-white p-6 ${
-        Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-      }`}>
+    <ShadowBox className="mx-4 rounded-2xl bg-white p-6">
       <View className="items-center">
         <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-gray-100">
           <Text className="text-2xl">📶</Text>
@@ -227,17 +219,14 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
           isLoading={isSubmitting}
         />
       </View>
-    </View>
+    </ShadowBox>
   );
 
   const renderRequestButton = () => {
     const allRejected = data?.every((item) => item.status === 'rejected') || false;
 
     return (
-      <View
-        className={`mt-4 rounded-2xl bg-white p-6 ${
-          Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-        }`}>
+      <ShadowBox className="mt-4 rounded-2xl bg-white p-6">
         <View className="items-center">
           <Text className="mb-4 text-center font-pmedium text-black">
             {allRejected ? 'Request New Permanent Code' : 'Request Permanent Code'}
@@ -250,7 +239,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
             isLoading={isSubmitting}
           />
         </View>
-      </View>
+      </ShadowBox>
     );
   };
 
@@ -275,22 +264,16 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
 
       {/* Content */}
       {isLoading ? (
-        <View
-          className={`mx-4 items-center justify-center rounded-2xl bg-white p-8 ${
-            Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-          }`}>
+        <ShadowBox className="mx-4 items-center justify-center rounded-2xl bg-white p-8">
           <ActivityIndicator size="large" color={colors.orange} />
           <Text className="mt-3 font-pregular text-sm text-gray-600">
             Loading permanent code...
           </Text>
-        </View>
+        </ShadowBox>
       ) : isError ? (
-        <View
-          className={`mx-4 rounded-2xl bg-white p-6 ${
-            Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-          }`}>
+        <ShadowBox className="mx-4 rounded-2xl bg-white p-6">
           <CustomErrorMessage />
-        </View>
+        </ShadowBox>
       ) : !data || data.length === 0 ? (
         renderEmptyState()
       ) : (

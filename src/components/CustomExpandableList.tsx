@@ -1,6 +1,7 @@
-import { View, Text, TouchableOpacity, Image, FlatList, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Image, FlatList } from 'react-native';
 import React, { useState } from 'react';
 import { icons } from '../constants';
+import { ShadowBox } from './ShadowBox';
 import CustomButton from './CustomButton';
 
 const CustomExpandableList: React.FC<{ data: any }> = ({ data }) => {
@@ -25,10 +26,7 @@ const ExpandableListItem: React.FC<{ item: any }> = ({ item }) => {
   };
 
   return (
-    <View
-      className={`mb-5 rounded-2xl bg-white p-3 ${
-        Platform.OS === 'ios' ? 'shadow-lg shadow-gray-200' : 'shadow-2xl shadow-gray-400'
-      }`}>
+    <ShadowBox className="mb-5 rounded-2xl bg-white p-3">
       <TouchableOpacity onPress={toggleExpand} className="flex-row justify-between overflow-hidden">
         <View>
           <Text className="font-psemibold text-secondary">{item.date}</Text>
@@ -69,7 +67,7 @@ const ExpandableListItem: React.FC<{ item: any }> = ({ item }) => {
           )}
         </View>
       )}
-    </View>
+    </ShadowBox>
   );
 };
 

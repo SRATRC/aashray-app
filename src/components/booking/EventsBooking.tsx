@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Modal,
   ScrollView,
-  Platform,
   Alert,
   RefreshControl,
   Keyboard,
@@ -20,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ShadowBox } from '../ShadowBox';
 import CustomButton from '../CustomButton';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import moment from 'moment';
@@ -292,19 +292,7 @@ const EventBooking = () => {
     });
 
   const renderItem = ({ item }: any) => (
-    <View
-      className="mx-1 mb-2 mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg shadow-gray-400"
-      style={{
-        ...(Platform.OS === 'ios' && {
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.15,
-          shadowRadius: 12,
-        }),
-        ...(Platform.OS === 'android' && {
-          elevation: 8,
-        }),
-      }}>
+    <ShadowBox className="mx-1 mb-2 mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white">
       <View className="px-5 py-4">
         <View className="mb-2 flex-row items-center justify-between">
           <View className="rounded-full bg-secondary/10 px-3 py-1">
@@ -388,7 +376,7 @@ const EventBooking = () => {
           />
         </View>
       </View>
-    </View>
+    </ShadowBox>
   );
 
   const renderSectionHeader = ({ section: { title } }: { section: { title: any } }) => (
