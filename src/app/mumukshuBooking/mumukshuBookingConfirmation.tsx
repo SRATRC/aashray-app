@@ -259,13 +259,7 @@ const mumukshuBookingConfirmation = () => {
                               onPress={() => roomChargeBottomSheetRef.current?.present()}
                               activeOpacity={0.7}>
                               <View className="flex-row items-center justify-between">
-                                <Text
-                                  className="font-pregular text-base text-gray-700"
-                                  style={{
-                                    borderBottomWidth: 1,
-                                    borderBottomColor: '#6B7280',
-                                    borderStyle: 'dashed',
-                                  }}>
+                                <Text className="border-b border-dashed border-gray-500 font-pregular text-base text-gray-700">
                                   Room Charge
                                 </Text>
                                 <View className="items-end">
