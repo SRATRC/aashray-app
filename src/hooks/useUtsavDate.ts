@@ -1,0 +1,61 @@
+import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useAuthStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
+import moment from 'moment';
+
+const fetchUtsavs = async ({ pageParam = 1, cardno }: { pageParam?: number; cardno: string }) => {
+  return new Promise((resolve, reject) => {
+    handleAPICall(
+      'GET',
+      '/utsav/upcoming',
+      {
+        cardno,
+        page: pageParam,
+      },
+      null,
+      (res: any) => {
+        resolve(Array.isArray(res.data) ? res.data : []);
+      },
+      () => reject(new Error('Failed to fetch utsavs'))
+    );
+  });
+};
+
+export const useUtsavDate = () => {
+  const user = useAuthStore((state) => state.user);
+
+  const { data: utsavData } = useQuery({
+    queryKey: ['utsavs-flat', user.cardno],
+    queryFn: () => fetchUtsavs({ pageParam: 1, cardno: user.cardno }),
+    staleTime: 1000 * 60 * 30, // 30 minutes
+    enabled: !!user.cardno,
+  });
+
+  const isUtsavDate = useCallback(
+    (selectedDate: string) => {
+      if (!utsavData || !selectedDate) return false;
+
+      const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
+
+      // Normalize data in case react-query returns an infiniteQuery cache shape { pages: [...] }
+      const months = Array.isArray(utsavData)
+        ? utsavData
+        : (utsavData as any)?.pages?.flat?.() ?? [];
+
+      return months.some((monthData: any) =>
+        monthData?.data?.some((utsav: any) =>
+          moment(formattedDate).isBetween(
+            moment(utsav.utsav_start, 'YYYY-MM-DD'),
+            moment(utsav.utsav_end, 'YYYY-MM-DD'),
+            undefined,
+            '[]'
+          )
+        )
+      );
+    },
+    [utsavData]
+  );
+
+  return { isUtsavDate, utsavData };
+};

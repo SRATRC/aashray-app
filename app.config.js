@@ -3,13 +3,13 @@ export default {
     name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
-    version: '1.1.27',
+    version: '1.1.31',
     orientation: 'portrait',
-    icon: './assets/images/icon.png',
+    icon: './src/assets/images/icon.png',
     userInterfaceStyle: 'automatic',
     assetBundlePatterns: ['**/*'],
     ios: {
-      icon: './assets/icon.icon',
+      icon: './src/assets/images/icon.icon',
       supportsTablet: true,
       package: 'org.vitraagvigyaan.aashray',
       bundleIdentifier: 'org.vitraagvigyaan.aashray',
@@ -27,9 +27,10 @@ export default {
     android: {
       package: 'org.vitraagvigyaan.aashray',
       edgeToEdgeEnabled: true,
+      predictiveBackGestureEnabled: true,
       adaptiveIcon: {
-        foregroundImage: './assets/images/adaptive-icon.png',
-        monochromeImage: './assets/images/adaptive-icon.png',
+        foregroundImage: './src/assets/images/adaptive-icon.png',
+        monochromeImage: './src/assets/images/adaptive-icon.png',
         backgroundColor: '#ffffff',
       },
       googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
@@ -88,6 +89,7 @@ export default {
           },
           ios: {
             useFrameworks: 'static',
+            buildReactNativeFromSource: true,
           },
         },
       ],
@@ -102,7 +104,7 @@ export default {
       [
         'expo-notifications',
         {
-          icon: './assets/images/logo.png',
+          icon: './src/assets/images/logo.png',
           enableBackgroundRemoteNotifications: true,
         },
       ],
@@ -110,9 +112,9 @@ export default {
         'expo-splash-screen',
         {
           backgroundColor: '#ffffff',
-          image: './assets/images/logo.png',
+          image: './src/assets/images/logo.png',
           dark: {
-            image: './assets/images/logo.png',
+            image: './src/assets/images/logo.png',
             backgroundColor: '#000000',
           },
           imageWidth: 200,
@@ -127,6 +129,7 @@ export default {
           },
         },
       ],
+      'expo-font',
     ],
     extra: {
       router: {
@@ -140,5 +143,6 @@ export default {
   },
   experiments: {
     buildCacheProvider: 'eas',
+    reactCompiler: true,
   },
 };
