@@ -95,27 +95,35 @@ const SignIn = () => {
       return;
     }
 
-    setIsSubmitting(true);
-
-    const onSuccess = async (data: any) => {
-      setResetEmail(data?.data.email);
-      setModalVisible(true);
-    };
-
-    const onFinally = () => {
-      setIsSubmitting(false);
-    };
-
-    await handleAPICall(
-      'POST',
-      '/client/forgotPassword',
-      null,
+    Alert.alert('Are you sure?', 'Are you sure you want to reset your password?', [
+      { text: 'Cancel', style: 'destructive' },
       {
-        mobno: form.phone,
+        text: 'Continue',
+        style: 'default',
+        onPress: async () => {
+          setIsSubmitting(true);
+          const onSuccess = async (data: any) => {
+            setResetEmail(data?.data.email);
+            setModalVisible(true);
+          };
+
+          const onFinally = () => {
+            setIsSubmitting(false);
+          };
+
+          await handleAPICall(
+            'POST',
+            '/client/forgotPassword',
+            null,
+            {
+              mobno: form.phone,
+            },
+            onSuccess,
+            onFinally
+          );
+        },
       },
-      onSuccess,
-      onFinally
-    );
+    ]);
   };
 
   return (
