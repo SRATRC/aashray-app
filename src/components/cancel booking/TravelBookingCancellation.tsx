@@ -7,6 +7,7 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { colors, icons, status } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
@@ -20,7 +21,6 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import BookingStatusDisplay from '../BookingStatusDisplay';
 import moment from 'moment';
-import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 
 const TravelBookingCancellation = () => {
   const { user } = useAuthStore();
@@ -202,13 +202,16 @@ const TravelBookingCancellation = () => {
             </View>
           </View>
         )}
-        {item.amount && (
+        {item?.amount ? (
           <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
-            <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
+            {icons?.charge && (
+              <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
+            )}
             <Text className="font-pregular text-gray-400">Charge:</Text>
-            <Text className="font-pmedium text-black">₹ {item.amount}</Text>
+            <Text className="font-pmedium text-black">₹ {String(item.amount)}</Text>
           </View>
-        )}
+        ) : null}
+
         <View>
           {moment(item.date).diff(moment().format('YYYY-MM-DD')) > 0 &&
             ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
@@ -245,7 +248,6 @@ const TravelBookingCancellation = () => {
         }}
         showsVerticalScrollIndicator={false}
         data={data?.pages?.flatMap((page: any) => page) || []}
-        estimatedItemSize={113}
         renderItem={renderItem}
         ListEmptyComponent={() => (
           <View className="h-full flex-1 items-center justify-center pt-40">

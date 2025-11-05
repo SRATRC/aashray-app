@@ -231,7 +231,6 @@ const RoomBookingCancellation: React.FC = () => {
         }}
         showsVerticalScrollIndicator={false}
         data={data?.pages?.flatMap((page: any) => page) || []}
-        estimatedItemSize={99}
         renderItem={renderItem}
         ListEmptyComponent={() => (
           <View className="h-full flex-1 items-center justify-center pt-40">

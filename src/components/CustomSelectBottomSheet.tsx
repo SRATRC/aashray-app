@@ -60,7 +60,6 @@ interface CustomSelectBottomSheetProps {
   searchable?: boolean;
   searchPlaceholder?: string;
   noResultsText?: string;
-  estimatedItemSize?: number;
 }
 
 // Optimized item component with improved memo implementation
@@ -207,7 +206,6 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
   searchable = false,
   searchPlaceholder = 'Search...',
   noResultsText = 'No matching options found',
-  estimatedItemSize = 60,
 }) => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -747,7 +745,7 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
                           isKeyboardVisible
                             ? height * 0.25 // Smaller height when keyboard is visible
                             : height * 0.4, // Full height when keyboard is hidden
-                          filteredOptions.length * estimatedItemSize
+                          filteredOptions.length
                         ),
                       }}>
                       <FlashList
@@ -755,7 +753,6 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
                         data={filteredOptions}
                         renderItem={renderItem}
                         keyExtractor={keyExtractor}
-                        estimatedItemSize={estimatedItemSize}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={{
                           paddingHorizontal: 8,

@@ -135,7 +135,7 @@ const AdhyayanBookingCancellation = () => {
     return (
       <ExpandableItem
         visibleContent={
-          <View className="flex flex-row items-center gap-x-4">
+          <View className="flex-1 flex-shrink flex-row items-center gap-x-4">
             <Image
               source={icons.adhyayan}
               className="h-10 w-10 items-center"
@@ -235,7 +235,6 @@ const AdhyayanBookingCancellation = () => {
         }}
         showsVerticalScrollIndicator={false}
         data={data?.pages?.flatMap((page: any) => page) || []}
-        estimatedItemSize={109}
         renderItem={renderItem}
         ListEmptyComponent={() => (
           <View className="h-full flex-1 items-center justify-center pt-40">

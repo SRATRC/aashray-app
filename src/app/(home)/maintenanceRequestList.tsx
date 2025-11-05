@@ -181,7 +181,6 @@ const maintenanceRequestList = () => {
         contentContainerStyle={{ padding: 10 }}
         data={data?.pages?.flatMap((page: any) => page) || []}
         showsVerticalScrollIndicator={false}
-        estimatedItemSize={115}
         renderItem={renderItem}
         ListHeaderComponent={renderHeader}
         ListFooterComponent={renderFooter}

@@ -126,7 +126,7 @@ const EventBookingCancellation = () => {
       visibleContent={
         <View className="flex flex-row items-center gap-x-4">
           <Image source={icons.events} className="h-10 w-10 items-center" resizeMode="contain" />
-          <View className="flex-col gap-y-2">
+          <View className="flex-1 flex-shrink flex-col gap-y-2">
             <BookingStatusDisplay
               bookingStatus={item.status}
               transactionStatus={item.transaction_status}
@@ -146,7 +146,7 @@ const EventBookingCancellation = () => {
         <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
           <Image source={icons.luggage} className="h-4 w-4" resizeMode="contain" />
           <Text className="font-pregular text-gray-400">Package: </Text>
-          <Text className="font-pmedium text-black">{item.package_name}</Text>
+          <Text className="flex-1 flex-shrink font-pmedium text-black">{item.package_name}</Text>
         </View>
         {item.stay && (
           <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
@@ -155,11 +155,13 @@ const EventBookingCancellation = () => {
             <Text className="font-pmedium text-black">{item.stay}</Text>
           </View>
         )}
-        <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
-          <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Charge: </Text>
-          <Text className="font-pmedium text-black">₹ {item.amount}</Text>
-        </View>
+        {item.amount && (
+          <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
+            <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
+            <Text className="font-pregular text-gray-400">Charge: </Text>
+            <Text className="font-pmedium text-black">₹ {item.amount}</Text>
+          </View>
+        )}
         <View>
           {moment(item.date).diff(moment().format('YYYY-MM-DD')) > 0 &&
             ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
@@ -196,7 +198,6 @@ const EventBookingCancellation = () => {
         }}
         showsVerticalScrollIndicator={false}
         data={data?.pages?.flatMap((page: any) => page) || []}
-        estimatedItemSize={113}
         renderItem={renderItem}
         ListEmptyComponent={() => (
           <View className="h-full flex-1 items-center justify-center pt-40">
