@@ -740,13 +740,9 @@ const CustomSelectBottomSheet: React.FC<CustomSelectBottomSheetProps> = ({
                   filteredOptions.length > 0 && (
                     <View
                       style={{
-                        // Adjust height based on keyboard presence using boolean state
-                        height: Math.min(
-                          isKeyboardVisible
-                            ? height * 0.25 // Smaller height when keyboard is visible
-                            : height * 0.4, // Full height when keyboard is hidden
-                          filteredOptions.length
-                        ),
+                        height: isKeyboardVisible
+                          ? Math.min(height * 0.25, filteredOptions.length * 60)
+                          : Math.min(height * 0.4, filteredOptions.length * 60),
                       }}>
                       <FlashList
                         ref={flashListRef}
