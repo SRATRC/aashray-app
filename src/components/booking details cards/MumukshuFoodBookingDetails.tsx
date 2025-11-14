@@ -1,9 +1,10 @@
-import { View, Text, Image, Platform } from 'react-native';
-import { icons } from '@/src/constants';
+import { View, Text, Image } from 'react-native';
+import { colors, icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
+import { Ionicons } from '@expo/vector-icons';
+import { ShadowBox } from '../ShadowBox';
 import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
-import { ShadowBox } from '../ShadowBox';
 
 const MumukshuFoodBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const mumukshuData = useBookingStore((store) => store.mumukshuData);
@@ -29,7 +30,7 @@ const MumukshuFoodBookingDetails: React.FC<{ containerStyles: any }> = ({ contai
         <HorizontalSeparator otherStyles={'mb-4'} />
 
         <View className="flex flex-row items-center gap-x-1 px-6 pb-4">
-          <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
+          <Ionicons name="people" size={16} color={colors.gray_400} />
           <Text className="font-pregular text-gray-400">Booked For:</Text>
           <Text className="font-pmedium text-black">
             {mumukshuData.food.mumukshuGroup.reduce(

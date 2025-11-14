@@ -13,7 +13,6 @@ import { useAuthStore } from '@/src/stores';
 import { useQuickImagePicker } from '@/src/hooks/useQuickImagePicker';
 import CustomButton from '@/src/components/CustomButton';
 import handleAPICall from '@/src/utils/HandleApiCall';
-import Toast from 'react-native-toast-message';
 
 const ImageCaptureOnboarding: React.FC = () => {
   const user = useAuthStore((state) => state.user);
@@ -22,27 +21,18 @@ const ImageCaptureOnboarding: React.FC = () => {
   const { pickAndUpload, isUploading, uploadProgress, uploadError } = useQuickImagePicker();
 
   const handleLogout = async () => {
-    try {
-      const onSuccess = async () => {
-        logout();
-      };
+    const onSuccess = async () => {
+      logout();
+    };
 
-      await handleAPICall(
-        'GET',
-        '/client/logout',
-        { cardno: user?.cardno },
-        null,
-        onSuccess,
-        () => {}
-      );
-    } catch (error: any) {
-      Toast.show({
-        type: 'error',
-        text1: 'An error occurred!',
-        text2: error.message,
-        swipeable: false,
-      });
-    }
+    await handleAPICall(
+      'GET',
+      '/client/logout',
+      { cardno: user?.cardno },
+      null,
+      onSuccess,
+      () => {}
+    );
   };
 
   const renderUploadButton = () => {

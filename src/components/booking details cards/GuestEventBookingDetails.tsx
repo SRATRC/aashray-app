@@ -1,7 +1,7 @@
 import { View, Text, Image } from 'react-native';
 import { colors, icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
-import { FontAwesome5, FontAwesome } from '@expo/vector-icons';
+import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import HorizontalSeparator from '../HorizontalSeparator';
 import moment from 'moment';
@@ -63,7 +63,7 @@ const GuestEventBookingDetails: React.FC<{ containerStyles: any }> = ({ containe
         </Text>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <FontAwesome name="user" size={14} color={colors.gray_400} />
+        <Ionicons name="people" size={16} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Booked For:</Text>
         <Text className="font-pmedium text-black">
           {guestData.utsav.guestGroup?.length || guestData.utsav.guests?.length} Guests

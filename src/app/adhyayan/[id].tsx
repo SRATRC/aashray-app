@@ -278,7 +278,7 @@ const AdhyayanDetails = () => {
         // Transform self booking to mumukshu format
         const mumukshuFormatData = transformSelfAdhyayanToMumukshu(user, adhyayan);
         await updateMumukshuBooking('adhyayan', mumukshuFormatData);
-        if (adhyayan.location !== 'Research Centre') router.push('/booking/bookingConfirmation');
+        if (adhyayan.location !== 'Research Centre') router.push('/booking/bookingReview');
         else router.push(`/booking/${types.ADHYAYAN_DETAILS_TYPE}`);
       }
       if (selectedChip == CHIPS[1]) {
@@ -313,7 +313,7 @@ const AdhyayanDetails = () => {
               setGuestForm(INITIAL_GUEST_FORM);
 
               if (adhyayan.location !== 'Research Centre')
-                router.push('/guestBooking/bookingConfirmation');
+                router.push('/guestBooking/bookingReview');
               else router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
             },
             () => {
@@ -328,8 +328,7 @@ const AdhyayanDetails = () => {
 
           await updateGuestBooking('adhyayan', transformedData);
           setGuestForm(INITIAL_GUEST_FORM);
-          if (adhyayan.location !== 'Research Centre')
-            router.push('/guestBooking/guestBookingConfirmation');
+          if (adhyayan.location !== 'Research Centre') router.push('/guestBooking/bookingReview');
           else router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
           setIsSubmitting(false);
         }
@@ -347,8 +346,7 @@ const AdhyayanDetails = () => {
         });
 
         await updateMumukshuBooking('adhyayan', temp);
-        if (adhyayan.location !== 'Research Centre')
-          router.push('/mumukshuBooking/mumukshuBookingConfirmation');
+        if (adhyayan.location !== 'Research Centre') router.push('/mumukshuBooking/bookingReview');
         else router.push(`/mumukshuBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
       }
       setSelectedChip('Self');

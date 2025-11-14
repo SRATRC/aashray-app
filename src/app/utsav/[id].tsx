@@ -473,7 +473,7 @@ const UtsavPage = () => {
               setGuestForm(INITIAL_GUEST_FORM);
 
               if (utsav.utsav_location !== 'Research Centre')
-                router.push('/guestBooking/bookingConfirmation');
+                router.push('/guestBooking/bookingReview');
               else router.push(`/guestBooking/${types.EVENT_DETAILS_TYPE}`);
             },
             () => {
@@ -484,7 +484,7 @@ const UtsavPage = () => {
           await updateGuestBooking('utsav', guestForm);
           setGuestForm(INITIAL_GUEST_FORM);
           if (utsav.utsav_location !== 'Research Centre')
-            router.push('/guestBooking/guestBookingConfirmation');
+            router.push('/guestBooking/bookingReview');
           else router.push(`/guestBooking/${types.EVENT_DETAILS_TYPE}`);
           setIsSubmitting(false);
         }

@@ -1,6 +1,7 @@
 import { View, Text, Image } from 'react-native';
-import { icons } from '@/src/constants';
+import { colors, icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
+import { Ionicons } from '@expo/vector-icons';
 import HorizontalSeparator from '../HorizontalSeparator';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import CustomTag from '../CustomTag';
@@ -30,7 +31,7 @@ const MumukshuTravelBookingDetail: React.FC<{ containerStyles: any }> = ({ conta
       <HorizontalSeparator otherStyles={'mb-4'} />
 
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
+        <Ionicons name="people" size={16} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Booked For:</Text>
         <Text className="font-pmedium text-black">
           {mumukshuData?.travel?.mumukshuGroup?.reduce(

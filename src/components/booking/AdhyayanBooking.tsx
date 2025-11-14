@@ -421,7 +421,7 @@ const AdhyayanBooking = () => {
 
                       await updateMumukshuBooking('adhyayan', temp);
                       if (selectedItem.location !== 'Research Centre')
-                        router.push('/booking/bookingConfirmation');
+                        router.push('/booking/bookingReview');
                       else router.push(`/booking/${types.ADHYAYAN_DETAILS_TYPE}`);
                     }
                     if (selectedChip == CHIPS[1]) {
@@ -453,7 +453,7 @@ const AdhyayanBooking = () => {
                             setGuestForm(INITIAL_GUEST_FORM);
 
                             if (selectedItem.location !== 'Research Centre')
-                              router.push('/guestBooking/guestBookingConfirmation');
+                              router.push('/guestBooking/bookingReview');
                             else router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
                           },
                           () => {
@@ -472,7 +472,7 @@ const AdhyayanBooking = () => {
                         await updateGuestBooking('adhyayan', transformedData);
                         setGuestForm(INITIAL_GUEST_FORM);
                         if (selectedItem.location !== 'Research Centre')
-                          router.push('/guestBooking/guestBookingConfirmation');
+                          router.push('/guestBooking/bookingReview');
                         else router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
                         setIsSubmitting(false);
                       }
@@ -493,7 +493,7 @@ const AdhyayanBooking = () => {
 
                       await updateMumukshuBooking('adhyayan', temp);
                       if (selectedItem.location !== 'Research Centre')
-                        router.push('/mumukshuBooking/mumukshuBookingConfirmation');
+                        router.push('/mumukshuBooking/bookingReview');
                       else router.push(`/mumukshuBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
                     }
                     setSelectedItem(null);

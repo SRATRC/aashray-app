@@ -1,7 +1,8 @@
 import { View, Text, Image, ScrollView } from 'react-native';
-import { icons, status } from '@/src/constants';
+import { colors, icons, status } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
 import { countStatusesForField } from '@/src/utils/BookingValidationStatusCounter';
+import { Ionicons } from '@expo/vector-icons';
 import HorizontalSeparator from '../HorizontalSeparator';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import CustomTag from '../CustomTag';
@@ -46,19 +47,19 @@ const GuestFlatBookingDetails: React.FC<{ containerStyles: any }> = ({ container
       <HorizontalSeparator otherStyles={'mb-4'} />
 
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
+        <Ionicons name="people" size={16} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Booked For:</Text>
         <Text className="font-pmedium text-black">
           {guestData?.flat?.guests?.length || 0} Guests
         </Text>
       </View>
-      {guestData.flat.charge && (
+      {/* {guestData.flat.charge && (
         <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
           <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
           <Text className="font-pregular text-gray-400">Charges:</Text>
           <Text className="font-pmedium text-black">₹ {guestData.flat.charge}</Text>
         </View>
-      )}
+      )} */}
     </PrimaryAddonBookingCard>
   );
 };

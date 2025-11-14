@@ -19,6 +19,8 @@ import AdhyayanAddon from '@/src/components/booking addons/AdhyayanAddon';
 import TravelAddon from '@/src/components/booking addons/TravelAddon';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '@/src/components/CustomModal';
+import { FontAwesome } from '@expo/vector-icons';
+import { ShadowBox } from '@/src/components/ShadowBox';
 
 // Transform simple form to mumukshu format for API compatibility
 const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string) => {
@@ -111,11 +113,15 @@ const BookingDetails = () => {
       mumukshuData.room?.startDay ||
       mumukshuData.travel?.date ||
       (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.start_date) ||
+      mumukshuData.flat?.startDay ||
+      mumukshuData.utsav?.utsav?.utsav_start ||
       '';
 
     const endDate =
       mumukshuData.room?.endDay ||
       (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.end_date) ||
+      mumukshuData.flat?.endDay ||
+      mumukshuData.utsav?.utsav?.utsav_end ||
       '';
 
     return { startDate, endDate };
@@ -365,7 +371,7 @@ const BookingDetails = () => {
 
       // Navigate if no validation errors
       if (!hasValidationError) {
-        router.push('/booking/bookingConfirmation');
+        router.push('/booking/bookingReview');
       }
     } catch (error) {
       console.error('Error during submission:', error);
@@ -475,48 +481,46 @@ const BookingDetails = () => {
 
         {BookingDetailsComponent}
 
-        {booking === types.EVENT_DETAILS_TYPE && (
-          <View className="mx-4 mb-2 mt-4 rounded-lg border-2 border-amber-300 bg-amber-50 p-4">
-            <View className="flex-row items-start">
-              <View className="mr-3 mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-yellow-500">
-                <Text className="font-pbold text-xs text-white">i</Text>
-              </View>
-              <View className="flex-1">
-                <Text className="mb-2 font-psemibold text-base text-amber-800">
-                  IMPORTANT NOTICE
-                </Text>
-                <Text className="font-pregular text-sm leading-5 text-amber-800">
-                  For Early Arrival or Late Departure during events please book your stay, food and
-                  travel through add-ons below.
-                </Text>
-              </View>
-            </View>
+        {booking === types.EVENT_DETAILS_TYPE ? (
+          <View className="m-4 flex-row items-start gap-x-3 rounded-lg border border-amber-300 bg-amber-50 p-3">
+            <FontAwesome
+              name="info-circle"
+              size={16}
+              color="#b45309"
+              style={{ alignSelf: 'center' }}
+            />
+            <Text className="flex-1 font-pregular text-sm text-amber-800">
+              For Early Arrival or Late Departure during events please book your stay, food and
+              travel through add-ons below.
+            </Text>
           </View>
+        ) : (
+          <View className="mt-4" />
         )}
 
         <View className="w-full px-4">
-          <View>
-            <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
-            {renderAddons()}
-          </View>
-
-          <CustomButton
-            text="Confirm"
-            handlePress={handleSubmit}
-            containerStyles="mb-8 min-h-[62px] mt-6"
-            isLoading={isSubmitting}
-          />
+          <Text className="mb-2 font-psemibold text-xl text-secondary">Add Ons</Text>
+          {renderAddons()}
         </View>
-
-        {validationDataError && (
-          <CustomModal
-            visible={true}
-            onClose={handleCloseValidationModal}
-            message={validationDataError.message}
-            btnText="Okay"
-          />
-        )}
       </KeyboardAwareScrollView>
+
+      <ShadowBox className="w-full border-t border-gray-200 bg-white px-4 py-4">
+        <CustomButton
+          text="Continue"
+          handlePress={handleSubmit}
+          containerStyles="min-h-[52px] mb-8"
+          isLoading={isSubmitting}
+        />
+      </ShadowBox>
+
+      {validationDataError && (
+        <CustomModal
+          visible={true}
+          onClose={handleCloseValidationModal}
+          message={validationDataError.message}
+          btnText="Okay"
+        />
+      )}
     </SafeAreaView>
   );
 };

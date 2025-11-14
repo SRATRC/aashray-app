@@ -53,6 +53,8 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           date:
             mumukshuData.room?.startDay ||
             (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.start_date) ||
+            mumukshuData.flat?.startDay ||
+            mumukshuData.utsav?.utsav?.utsav_start ||
             '',
           pickup: '',
           drop: '',

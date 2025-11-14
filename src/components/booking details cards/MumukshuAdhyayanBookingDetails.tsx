@@ -1,10 +1,11 @@
 import { View, Text, Image, ScrollView } from 'react-native';
-import { icons } from '@/src/constants';
+import { colors, icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
 import HorizontalSeparator from '../HorizontalSeparator';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import CustomTag from '../CustomTag';
 import moment from 'moment';
+import { FontAwesome5, FontAwesome6, Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 const MumukshuAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({
   containerStyles,
@@ -54,7 +55,7 @@ const MumukshuAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({
       <HorizontalSeparator otherStyles={'mb-4'} />
 
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Image source={icons.description} className="h-4 w-4" resizeMode="contain" />
+        <FontAwesome6 name="book-bookmark" size={14} color={colors.gray_400} />
         <Text className="font-pmedium text-gray-400">Name:</Text>
         <View className="flex-1">
           <Text className="font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
@@ -63,24 +64,24 @@ const MumukshuAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({
         </View>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
+        <FontAwesome5 name="chalkboard-teacher" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Swadhyay Karta:</Text>
         <Text className="font-pmedium text-black">{mumukshuData.adhyayan.adhyayan.speaker}</Text>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Image source={icons.marker} className="h-4 w-4" resizeMode="contain" />
+        <MaterialIcons name="location-on" size={18} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Location:</Text>
         <Text className="font-pmedium text-black">{mumukshuData.adhyayan.adhyayan.location}</Text>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
+        <FontAwesome5 name="rupee-sign" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Charges:</Text>
         <Text className="font-pmedium text-black">
           ₹ {mumukshuData.adhyayan.adhyayan.amount}/person
         </Text>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
+        <Ionicons name="people" size={16} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Booked For: </Text>
         <Text className="font-pmedium text-black">
           {mumukshuData.adhyayan.mumukshuGroup?.length || mumukshuData.adhyayan.mumukshus?.length}{' '}

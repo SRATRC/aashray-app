@@ -1,7 +1,7 @@
-import { BASE_URL } from '../constants';
 import axios from 'axios';
-import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
+import Toast from 'react-native-toast-message';
+import { BASE_URL } from '../constants';
 
 const handleAPICall = async (
   method,
@@ -16,7 +16,7 @@ const handleAPICall = async (
     const url = `${BASE_URL}${endpoint}`;
 
     let data = body;
-    let headers = {};
+    const headers = {};
 
     if (body?.image) {
       const formData = new FormData();
@@ -37,11 +37,11 @@ const handleAPICall = async (
     console.log('------------');
 
     const res = await axios({
-      method: method,
-      url: url,
-      params: params,
-      data: data,
-      headers: headers,
+      method,
+      url,
+      params,
+      data,
+      headers,
       // timeout: 10000,
       validateStatus: () => true,
     });

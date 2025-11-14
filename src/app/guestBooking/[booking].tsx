@@ -7,6 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
 import { prepareGuestRequestBody } from '@/src/utils/preparingRequestBody';
+import { FontAwesome } from '@expo/vector-icons';
+import { ShadowBox } from '@/src/components/ShadowBox';
 import CustomButton from '@/src/components/CustomButton';
 import PageHeader from '@/src/components/PageHeader';
 import GuestRoomBookingDetails from '@/src/components/booking details cards/GuestRoomBookingDetails';
@@ -94,14 +96,14 @@ const GuestAddons = () => {
       guestData.room?.startDay ||
       guestData.food?.startDay ||
       guestData.adhyayan?.adhyayan?.start_date ||
-      guestData.utsav?.utsav?.start_date ||
+      guestData.utsav?.utsav?.utsav_start ||
       '';
 
     const endDate =
       guestData.room?.endDay ||
       guestData.food?.endDay ||
       guestData.adhyayan?.adhyayan?.end_date ||
-      guestData.utsav?.utsav?.end_date ||
+      guestData.utsav?.utsav?.utsav_end ||
       '';
 
     return { startDate, endDate };
@@ -452,44 +454,42 @@ const GuestAddons = () => {
     setIsSubmitting(true);
     let hasValidationError = false;
 
-    try {
-      // Validate and set Room Form data
-      if (booking !== types.ROOM_DETAILS_TYPE && addonOpen.room) {
-        if (!validateRoomForm()) {
-          Alert.alert('Please fill all the room booking fields');
-          hasValidationError = true;
-          return;
-        }
-        setGuestData((prev: any) => ({ ...prev, room: roomForm }));
+    // Validate and set Room Form data
+    if (booking !== types.ROOM_DETAILS_TYPE && addonOpen.room) {
+      if (!validateRoomForm()) {
+        Alert.alert('Please fill all the room booking fields');
+        hasValidationError = true;
+        return;
       }
-
-      // Validate and set Food Form data
-      if (addonOpen.food) {
-        if (!validateFoodForm()) {
-          Alert.alert('Please fill all the food booking fields');
-          hasValidationError = true;
-          return;
-        }
-        setGuestData((prev: any) => ({ ...prev, food: foodForm }));
-      }
-
-      // Validate and set Adhyayan Form data
-      if (booking !== types.ADHYAYAN_DETAILS_TYPE && isAdhyayanFormEmpty()) {
-        if (!validateAdhyayanForm()) {
-          Alert.alert('Please fill all the adhyayan booking fields');
-          hasValidationError = true;
-          return;
-        }
-        setGuestData((prev: any) => ({ ...prev, adhyayan: adhyayanForm }));
-      }
-
-      // If no validation errors, navigate to confirmation page
-      if (!hasValidationError) {
-        router.push('/guestBooking/guestBookingConfirmation');
-      }
-    } finally {
-      setIsSubmitting(false);
+      setGuestData((prev: any) => ({ ...prev, room: roomForm }));
     }
+
+    // Validate and set Food Form data
+    if (addonOpen.food) {
+      if (!validateFoodForm()) {
+        Alert.alert('Please fill all the food booking fields');
+        hasValidationError = true;
+        return;
+      }
+      setGuestData((prev: any) => ({ ...prev, food: foodForm }));
+    }
+
+    // Validate and set Adhyayan Form data
+    if (booking !== types.ADHYAYAN_DETAILS_TYPE && isAdhyayanFormEmpty()) {
+      if (!validateAdhyayanForm()) {
+        Alert.alert('Please fill all the adhyayan booking fields');
+        hasValidationError = true;
+        return;
+      }
+      setGuestData((prev: any) => ({ ...prev, adhyayan: adhyayanForm }));
+    }
+
+    // If no validation errors, navigate to confirmation page
+    if (!hasValidationError) {
+      router.push('/guestBooking/bookingReview');
+    }
+
+    setIsSubmitting(false);
   }, [
     booking,
     isRoomFormEmpty,
@@ -504,14 +504,6 @@ const GuestAddons = () => {
     setGuestData,
     router,
   ]);
-
-  // Check if Adhyayan is in Research Centre
-  const isAdhyayanInResearchCentre = useMemo(() => {
-    return (
-      booking === types.ADHYAYAN_DETAILS_TYPE &&
-      guestData.adhyayan?.adhyayan?.location !== 'Research Centre'
-    );
-  }, [booking, guestData.adhyayan]);
 
   // Handle validation error modal close
   const handleCloseValidationModal = useCallback(() => {
@@ -535,90 +527,86 @@ const GuestAddons = () => {
           <GuestAdhyayanBookingDetails containerStyles="mt-2" />
         )}
 
-        {booking === types.EVENT_DETAILS_TYPE && (
-          <View className="mx-4 mb-2 mt-4 rounded-lg border-2 border-amber-300 bg-amber-50 p-4">
-            <View className="flex-row items-start">
-              <View className="mr-3 mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-yellow-500">
-                <Text className="font-pbold text-xs text-white">i</Text>
-              </View>
-              <View className="flex-1">
-                <Text className="mb-2 font-psemibold text-base text-amber-800">
-                  IMPORTANT NOTICE
-                </Text>
-                <Text className="font-pregular text-sm leading-5 text-amber-800">
-                  For Early Arrival or Late Departure during events please book your stay, food and
-                  travel through add-ons below.
-                </Text>
-              </View>
-            </View>
+        {booking === types.EVENT_DETAILS_TYPE ? (
+          <View className="m-4 flex-row items-start gap-x-3 rounded-lg border border-amber-300 bg-amber-50 p-3">
+            <FontAwesome
+              name="info-circle"
+              size={16}
+              color="#b45309"
+              style={{ alignSelf: 'center' }}
+            />
+            <Text className="flex-1 font-pregular text-sm text-amber-800">
+              For Early Arrival or Late Departure during events please book your stay, food and
+              travel through add-ons below.
+            </Text>
           </View>
+        ) : (
+          <View className="mt-4" />
         )}
 
         <View className="w-full px-4">
-          {!isAdhyayanInResearchCentre && (
-            <View>
-              <Text className="mb-2 mt-4 font-psemibold text-xl text-secondary">Add Ons</Text>
+          <Text className="mb-2 font-psemibold text-xl text-secondary">Add Ons</Text>
 
-              {/* GUEST ROOM BOOKING COMPONENT */}
-              {![types.ROOM_DETAILS_TYPE, types.FLAT_DETAILS_TYPE].includes(booking) && (
-                <GuestRoomAddon
-                  roomForm={roomForm}
-                  setRoomForm={setRoomForm}
-                  addRoomForm={addRoomForm}
-                  reomveRoomForm={removeRoomForm}
-                  updateRoomForm={updateRoomForm}
-                  INITIAL_ROOM_FORM={createInitialRoomForm()}
-                  guest_dropdown={guest_dropdown}
-                  isDatePickerVisible={isDatePickerVisible}
-                  setDatePickerVisibility={toggleDatePicker}
-                  onToggle={(isOpen) => toggleAddon('room', isOpen)}
-                />
-              )}
-
-              {/* GUEST FOOD BOOKING COMPONENT */}
-              <GuestFoodAddon
-                foodForm={foodForm}
-                setFoodForm={setFoodForm}
-                addFoodForm={addFoodForm}
-                resetFoodForm={resetFoodForm}
-                reomveFoodForm={removeFoodForm}
-                updateFoodForm={updateFoodForm}
-                guest_dropdown={guest_dropdown}
-                isDatePickerVisible={isDatePickerVisible}
-                setDatePickerVisibility={toggleDatePicker}
-                onToggle={(isOpen) => toggleAddon('food', isOpen)}
-              />
-
-              {/* GUEST ADHYAYAN BOOKING COMPONENT */}
-              {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking) && (
-                <GuestAdhyayanAddon
-                  adhyayanForm={adhyayanForm}
-                  setAdhyayanForm={setAdhyayanForm}
-                  updateAdhyayanForm={updateAdhyayanForm}
-                  INITIAL_ADHYAYAN_FORM={createInitialAdhyayanForm()}
-                  guest_dropdown={guest_dropdown}
-                />
-              )}
-            </View>
+          {/* GUEST ROOM BOOKING COMPONENT */}
+          {![types.ROOM_DETAILS_TYPE, types.FLAT_DETAILS_TYPE].includes(booking) && (
+            <GuestRoomAddon
+              roomForm={roomForm}
+              setRoomForm={setRoomForm}
+              addRoomForm={addRoomForm}
+              reomveRoomForm={removeRoomForm}
+              updateRoomForm={updateRoomForm}
+              INITIAL_ROOM_FORM={createInitialRoomForm()}
+              guest_dropdown={guest_dropdown}
+              isDatePickerVisible={isDatePickerVisible}
+              setDatePickerVisibility={toggleDatePicker}
+              onToggle={(isOpen) => toggleAddon('room', isOpen)}
+            />
           )}
 
-          <CustomButton
-            text="Confirm"
-            handlePress={handleSubmit}
-            containerStyles="mb-8 min-h-[62px] mt-6"
-            isLoading={isSubmitting}
+          {/* GUEST FOOD BOOKING COMPONENT */}
+          <GuestFoodAddon
+            foodForm={foodForm}
+            setFoodForm={setFoodForm}
+            addFoodForm={addFoodForm}
+            resetFoodForm={resetFoodForm}
+            reomveFoodForm={removeFoodForm}
+            updateFoodForm={updateFoodForm}
+            guest_dropdown={guest_dropdown}
+            isDatePickerVisible={isDatePickerVisible}
+            setDatePickerVisibility={toggleDatePicker}
+            onToggle={(isOpen) => toggleAddon('food', isOpen)}
           />
-        </View>
 
-        {validationDataError && (
-          <CustomModal
-            visible={true}
-            onClose={handleCloseValidationModal}
-            message={validationDataError.message}
-            btnText="Okay"
-          />
-        )}
+          {/* GUEST ADHYAYAN BOOKING COMPONENT */}
+          {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking) && (
+            <GuestAdhyayanAddon
+              adhyayanForm={adhyayanForm}
+              setAdhyayanForm={setAdhyayanForm}
+              updateAdhyayanForm={updateAdhyayanForm}
+              INITIAL_ADHYAYAN_FORM={createInitialAdhyayanForm()}
+              guest_dropdown={guest_dropdown}
+            />
+          )}
+        </View>
       </KeyboardAwareScrollView>
+
+      <ShadowBox className="w-full border-t border-gray-200 bg-white px-4 py-4">
+        <CustomButton
+          text="Continue"
+          handlePress={handleSubmit}
+          containerStyles="min-h-[52px] mb-8"
+          isLoading={isSubmitting}
+        />
+      </ShadowBox>
+
+      {validationDataError && (
+        <CustomModal
+          visible={true}
+          onClose={handleCloseValidationModal}
+          message={validationDataError.message}
+          btnText="Okay"
+        />
+      )}
     </SafeAreaView>
   );
 };

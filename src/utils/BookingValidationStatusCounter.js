@@ -1,14 +1,14 @@
 export const countStatusesForField = (apiResponse, fieldName) => {
   if (!apiResponse[fieldName]) {
     return {
-      error: `Field "${fieldName}" not found in the response`
+      error: `Field "${fieldName}" not found in the response`,
     };
   }
 
   const fieldData = apiResponse[fieldName];
   if (!Array.isArray(fieldData)) {
     return {
-      error: `Field "${fieldName}" is not an array`
+      error: `Field "${fieldName}" is not an array`,
     };
   }
 

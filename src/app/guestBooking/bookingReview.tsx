@@ -1,6 +1,6 @@
-import { View, Text, ScrollView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useAuthStore, useBookingStore } from '@/src/stores';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { colors } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
 import { prepareGuestRequestBody } from '@/src/utils/preparingRequestBody';
 import { Ionicons } from '@expo/vector-icons';
+import { ShadowBox } from '@/src/components/ShadowBox';
 import GuestRoomBookingDetails from '@/src/components/booking details cards/GuestRoomBookingDetails';
 import GuestAdhyayanBookingDetails from '@/src/components/booking details cards/GuestAdhyayanBookingDetails';
 import GuestFoodBookingDetails from '@/src/components/booking details cards/GuestFoodBookingDetails';
@@ -21,9 +22,8 @@ import ChargeBreakdownBottomSheet from '@/src/components/ChargeBreakdownBottomSh
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import * as Haptics from 'expo-haptics';
-import { ShadowBox } from '@/src/components/ShadowBox';
 
-const guestBookingConfirmation = () => {
+const guestBookingReview = () => {
   const router = useRouter();
 
   const user = useAuthStore((state) => state.user);
@@ -107,6 +107,8 @@ const guestBookingConfirmation = () => {
       }
     : validationData;
 
+  console.log('ENRICHED VALIDATION DATA: ', JSON.stringify(enrichedValidationData));
+
   // Force refetch validation when screen comes into focus
   useFocusEffect(
     useCallback(() => {
@@ -136,18 +138,17 @@ const guestBookingConfirmation = () => {
     await handleAPICall('POST', '/guest/booking', null, payLaterPayload, onSuccess, onFinally);
   };
 
-  useEffect(() => {
-    console.log('VALIDATION DATA: ', validationData);
-  }, [validationData]);
-
   return (
     <SafeAreaView className="h-full bg-white" edges={['top', 'right', 'left']}>
-      <ScrollView alwaysBounceVertical={false} showsVerticalScrollIndicator={false}>
-        <PageHeader title="Payment Summary" />
+      <ScrollView
+        alwaysBounceVertical={false}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}>
+        <PageHeader title="Review Booking" />
 
+        {guestData.room && <GuestRoomBookingDetails containerStyles={'mt-2'} />}
         {guestData.utsav && <GuestEventBookingDetails containerStyles={'mt-2'} />}
         {guestData.flat && <GuestFlatBookingDetails containerStyles={'mt-2'} />}
-        {guestData.room && <GuestRoomBookingDetails containerStyles={'mt-2'} />}
         {guestData.adhyayan && <GuestAdhyayanBookingDetails containerStyles={'mt-2'} />}
         {guestData.food && <GuestFoodBookingDetails containerStyles={'mt-2'} />}
 
@@ -177,13 +178,7 @@ const guestBookingConfirmation = () => {
                               onPress={() => roomChargeBottomSheetRef.current?.present()}
                               activeOpacity={0.7}>
                               <View className="flex-row items-center justify-between">
-                                <Text
-                                  className="font-pregular text-base text-gray-700"
-                                  style={{
-                                    borderBottomWidth: 1,
-                                    borderBottomColor: '#6B7280',
-                                    borderStyle: 'dashed',
-                                  }}>
+                                <Text className="border-b border-dashed border-gray-500 font-pregular text-base text-gray-700">
                                   Room Charge
                                 </Text>
                                 <View className="items-end">
@@ -456,80 +451,45 @@ const guestBookingConfirmation = () => {
             </ShadowBox>
           </View>
         )}
+      </ScrollView>
 
-        <View className="mt-6 w-full px-4">
-          {validationData && validationData.totalCharge > 0 ? (
-            <View className="mb-8 flex-row gap-x-4">
-              <CustomButton
-                text="Pay Now"
-                handlePress={async () => {
-                  setIsSubmitting(true);
-                  const onSuccess = (data: any) => {
-                    if (data.data?.amount == 0) router.replace('/bookingConfirmation');
-                    else {
-                      var options = {
-                        key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
-                        name: 'Vitraag Vigyaan Aashray',
-                        image: 'https://vitraagvigyaan.org/img/logo.png',
-                        description: 'Payment for Vitraag Vigyaan Aashray',
-                        amount: `${data.data.amount}`,
-                        currency: 'INR',
-                        order_id: `${data.data.id}`,
-                        prefill: {
-                          email: `${user.email}`,
-                          contact: `${user.mobno}`,
-                          name: `${user.issuedto}`,
-                        },
-                        theme: { color: colors.orange },
-                      };
-                      RazorpayCheckout.open(options)
-                        .then((_rzrpayData: any) => {
-                          setIsSubmitting(false);
-                          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                          router.replace('/paymentConfirmation');
-                        })
-                        .catch((_error: any) => {
-                          setIsSubmitting(false);
-                          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-                          router.replace('/paymentFailed');
-                        });
-                    }
-                  };
-
-                  const onFinally = () => {
-                    setIsSubmitting(false);
-                  };
-
-                  await handleAPICall(
-                    'POST',
-                    '/guest/booking',
-                    null,
-                    transformedData,
-                    onSuccess,
-                    onFinally
-                  );
-                }}
-                containerStyles="flex-1 min-h-[52px]"
-                isLoading={isSubmitting}
-                isDisabled={!validationData}
-                variant="solid"
-              />
-              <CustomButton
-                text="Pay Later"
-                handlePress={() => setShowPayLaterModal(true)}
-                containerStyles="flex-1 min-h-[52px]"
-                isLoading={isSubmitting}
-                isDisabled={!validationData}
-                variant="outline"
-              />
-            </View>
-          ) : (
+      <ShadowBox className="w-full border-t border-gray-200 bg-white px-4 py-4">
+        {validationData && validationData.totalCharge > 0 ? (
+          <View className="mb-8 flex-row gap-x-4">
             <CustomButton
-              text="Book"
+              text="Pay Now"
               handlePress={async () => {
                 setIsSubmitting(true);
-                const onSuccess = () => {
-                  router.replace('/bookingConfirmation');
+                const onSuccess = (data: any) => {
+                  if (data.data?.amount == 0) router.replace('/bookingConfirmation');
+                  else {
+                    var options = {
+                      key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
+                      name: 'Vitraag Vigyaan Aashray',
+                      image: 'https://vitraagvigyaan.org/img/logo.png',
+                      description: 'Payment for Vitraag Vigyaan Aashray',
+                      amount: `${data.data.amount}`,
+                      currency: 'INR',
+                      order_id: `${data.data.id}`,
+                      prefill: {
+                        email: `${user.email}`,
+                        contact: `${user.mobno}`,
+                        name: `${user.issuedto}`,
+                      },
+                      theme: { color: colors.orange },
+                    };
+                    RazorpayCheckout.open(options)
+                      .then((_rzrpayData: any) => {
+                        setIsSubmitting(false);
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        router.replace('/paymentConfirmation');
+                      })
+                      .catch((_error: any) => {
+                        setIsSubmitting(false);
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                        router.replace('/paymentFailed');
+                      });
+                  }
                 };
 
                 const onFinally = () => {
@@ -545,131 +505,166 @@ const guestBookingConfirmation = () => {
                   onFinally
                 );
               }}
-              containerStyles="mb-8 min-h-[52px]"
+              containerStyles="flex-1 min-h-[52px]"
               isLoading={isSubmitting}
               isDisabled={!validationData}
+              variant="solid"
             />
-          )}
-        </View>
+            <CustomButton
+              text="Pay Later"
+              handlePress={() => setShowPayLaterModal(true)}
+              containerStyles="flex-1 min-h-[52px]"
+              isLoading={isSubmitting}
+              isDisabled={!validationData}
+              variant="outline"
+            />
+          </View>
+        ) : (
+          <CustomButton
+            text="Confirm Booking"
+            handlePress={async () => {
+              setIsSubmitting(true);
+              const onSuccess = () => {
+                router.replace('/bookingConfirmation');
+              };
 
-        {validationDataError && (
-          <CustomModal
-            visible={true}
-            onClose={handleCloseValidationModal}
-            message={validationDataError.message}
-            btnText={'Okay'}
+              const onFinally = () => {
+                setIsSubmitting(false);
+              };
+
+              await handleAPICall(
+                'POST',
+                '/guest/booking',
+                null,
+                transformedData,
+                onSuccess,
+                onFinally
+              );
+            }}
+            containerStyles="mb-8 min-h-[52px]"
+            isLoading={isSubmitting}
+            isDisabled={!validationData}
           />
         )}
+      </ShadowBox>
 
+      {validationDataError && (
         <CustomModal
-          visible={showPayLaterModal}
-          onClose={() => setShowPayLaterModal(false)}
-          title="Pay Later Notice"
-          showActionButton={false}>
-          <View>
-            <View className="mb-4">
-              <View className="mb-4 items-center">
-                <View className="mb-3 h-16 w-16 items-center justify-center rounded-full bg-amber-100">
-                  <Ionicons name="time-outline" size={32} color="#F59E0B" />
-                </View>
-              </View>
+          visible={true}
+          onClose={handleCloseValidationModal}
+          message={validationDataError.message}
+          btnText={'Okay'}
+        />
+      )}
 
-              <Text className="mb-3 text-center font-pregular text-sm text-gray-700">
-                You are choosing to pay later for this booking.
-              </Text>
-
-              <View className="rounded-lg bg-amber-50 p-3">
-                <Text className="mb-2 font-pmedium text-xs text-amber-900">
-                  Important Information:
-                </Text>
-                <Text className="mb-1 font-pregular text-xs text-amber-800">
-                  Your booking will be temporary and you must complete the payment within 24 hours.
-                  After 24 hours, the booking will be automatically cancelled if payment is not
-                  received.
-                </Text>
+      <CustomModal
+        visible={showPayLaterModal}
+        onClose={() => setShowPayLaterModal(false)}
+        title="Pay Later Notice"
+        showActionButton={false}>
+        <View>
+          <View className="mb-4">
+            <View className="mb-4 items-center">
+              <View className="mb-3 h-16 w-16 items-center justify-center rounded-full bg-amber-100">
+                <Ionicons name="time-outline" size={32} color="#F59E0B" />
               </View>
             </View>
 
-            <View className="gap-y-3">
-              <CustomButton
-                text="I Understand, Proceed"
-                handlePress={handlePayLater}
-                containerStyles="min-h-[44px]"
-                textStyles="font-psemibold text-sm text-white"
-                isLoading={isSubmitting}
-              />
+            <Text className="mb-3 text-center font-pregular text-sm text-gray-700">
+              You are choosing to pay later for this booking.
+            </Text>
+
+            <View className="rounded-lg bg-amber-50 p-3">
+              <Text className="mb-2 font-pmedium text-xs text-amber-900">
+                Important Information:
+              </Text>
+              <Text className="mb-1 font-pregular text-xs text-amber-800">
+                Your booking will be temporary and you must complete the payment within 24 hours.
+                After 24 hours, the booking will be automatically cancelled if payment is not
+                received.
+              </Text>
             </View>
           </View>
-        </CustomModal>
 
-        {/* Room Charge Breakdown Bottom Sheet */}
-        {enrichedValidationData?.roomDetails && enrichedValidationData.roomDetails.length > 0 && (
-          <ChargeBreakdownBottomSheet
-            ref={roomChargeBottomSheetRef}
-            title="Room Charge Breakdown"
-            subtitle="Charges per Guest:"
-            items={enrichedValidationData.roomDetails}
-            itemRenderer={(item, index) => (
-              <View
-                key={index}
-                className={`flex-row items-center justify-between py-2 ${
-                  index !== enrichedValidationData.roomDetails!.length - 1
-                    ? 'border-b border-gray-200'
-                    : ''
-                }`}>
-                <View className="flex-1">
-                  <Text className="font-pmedium text-sm text-gray-900">
-                    {item.name || `Guest: ${item.guest}`}
-                  </Text>
-                  {item.nights && (
-                    <Text className="mt-1 font-pregular text-xs text-gray-600">
-                      {`${item.nights} ${item.nights === 1 ? 'night' : 'nights'}`}
-                    </Text>
-                  )}
-                </View>
-                <View className="items-end">
-                  <Text className="font-psemibold text-base text-gray-900">₹{item.charge}</Text>
-                </View>
-              </View>
-            )}
-            emptyMessage="No room charge details available."
-          />
-        )}
+          <View className="gap-y-3">
+            <CustomButton
+              text="I Understand, Proceed"
+              handlePress={handlePayLater}
+              containerStyles="min-h-[44px]"
+              textStyles="font-psemibold text-sm text-white"
+              isLoading={isSubmitting}
+            />
+          </View>
+        </View>
+      </CustomModal>
 
-        {/* Flat Charge Breakdown Bottom Sheet */}
-        {enrichedValidationData?.flatDetails && enrichedValidationData.flatDetails.length > 0 && (
-          <ChargeBreakdownBottomSheet
-            ref={flatChargeBottomSheetRef}
-            title="Flat Charge Breakdown"
-            subtitle="Charges per Guest:"
-            items={enrichedValidationData.flatDetails}
-            itemRenderer={(item, index) => (
-              <View
-                key={index}
-                className={`flex-row items-center justify-between py-2 ${
-                  index !== enrichedValidationData.flatDetails!.length - 1
-                    ? 'border-b border-gray-200'
-                    : ''
-                }`}>
-                <View className="flex-1">
-                  <Text className="font-pmedium text-sm text-gray-900">
-                    {item.name || `Card: ${item.guest}`}
-                  </Text>
+      {/* Room Charge Breakdown Bottom Sheet */}
+      {enrichedValidationData?.roomDetails && enrichedValidationData.roomDetails.length > 0 && (
+        <ChargeBreakdownBottomSheet
+          ref={roomChargeBottomSheetRef}
+          title="Room Charge Breakdown"
+          subtitle="Charges per Guest:"
+          items={enrichedValidationData.roomDetails}
+          itemRenderer={(item, index) => (
+            <View
+              key={index}
+              className={`flex-row items-center justify-between py-2 ${
+                index !== enrichedValidationData.roomDetails!.length - 1
+                  ? 'border-b border-gray-200'
+                  : ''
+              }`}>
+              <View className="flex-1">
+                <Text className="font-pmedium text-sm text-gray-900">
+                  {item.name || `Guest: ${item.guest}`}
+                </Text>
+                {item.nights && (
                   <Text className="mt-1 font-pregular text-xs text-gray-600">
-                    {item.nights} {item.nights === 1 ? 'night' : 'nights'}
+                    {`${item.nights} ${item.nights === 1 ? 'night' : 'nights'}`}
                   </Text>
-                </View>
-                <View className="items-end">
-                  <Text className="font-psemibold text-base text-gray-900">₹{item.charge}</Text>
-                </View>
+                )}
               </View>
-            )}
-            emptyMessage="No flat charge details available."
-          />
-        )}
-      </ScrollView>
+              <View className="items-end">
+                <Text className="font-psemibold text-base text-gray-900">₹{item.charge}</Text>
+              </View>
+            </View>
+          )}
+          emptyMessage="No room charge details available."
+        />
+      )}
+
+      {/* Flat Charge Breakdown Bottom Sheet */}
+      {enrichedValidationData?.flatDetails && enrichedValidationData.flatDetails.length > 0 && (
+        <ChargeBreakdownBottomSheet
+          ref={flatChargeBottomSheetRef}
+          title="Flat Charge Breakdown"
+          subtitle="Charges per Guest:"
+          items={enrichedValidationData.flatDetails}
+          itemRenderer={(item, index) => (
+            <View
+              key={index}
+              className={`flex-row items-center justify-between py-2 ${
+                index !== enrichedValidationData.flatDetails!.length - 1
+                  ? 'border-b border-gray-200'
+                  : ''
+              }`}>
+              <View className="flex-1">
+                <Text className="font-pmedium text-sm text-gray-900">
+                  {item.name || `Card: ${item.guest}`}
+                </Text>
+                <Text className="mt-1 font-pregular text-xs text-gray-600">
+                  {item.nights} {item.nights === 1 ? 'night' : 'nights'}
+                </Text>
+              </View>
+              <View className="items-end">
+                <Text className="font-psemibold text-base text-gray-900">₹{item.charge}</Text>
+              </View>
+            </View>
+          )}
+          emptyMessage="No flat charge details available."
+        />
+      )}
     </SafeAreaView>
   );
 };
 
-export default guestBookingConfirmation;
+export default guestBookingReview;

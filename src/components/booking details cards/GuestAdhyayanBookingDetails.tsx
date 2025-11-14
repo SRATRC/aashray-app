@@ -1,6 +1,7 @@
 import { View, Text, Image, ScrollView } from 'react-native';
-import { icons } from '@/src/constants';
+import { colors, icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
+import { FontAwesome5, FontAwesome6, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomTag from '../CustomTag';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
@@ -50,7 +51,7 @@ const GuestAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ conta
       <HorizontalSeparator otherStyles={'mb-4'} />
 
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Image source={icons.description} className="h-4 w-4" resizeMode="contain" />
+        <FontAwesome6 name="book-bookmark" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Name:</Text>
         <View className="flex-1">
           <Text className="font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
@@ -59,7 +60,7 @@ const GuestAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ conta
         </View>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
+        <FontAwesome5 name="chalkboard-teacher" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Swadhyay Karta:</Text>
         <View className="flex-1">
           <Text className="font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
@@ -68,7 +69,7 @@ const GuestAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ conta
         </View>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Image source={icons.marker} className="h-4 w-4" resizeMode="contain" />
+        <MaterialIcons name="location-on" size={18} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Location:</Text>
         <View className="flex-1">
           <Text className="font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
@@ -77,7 +78,7 @@ const GuestAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ conta
         </View>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
+        <FontAwesome5 name="rupee-sign" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Charges:</Text>
         <View className="flex-1">
           <Text className="font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">
@@ -86,7 +87,7 @@ const GuestAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ conta
         </View>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
+        <Ionicons name="people" size={16} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Booked For:</Text>
         <View className="flex-1">
           <Text className="font-pmedium text-black" numberOfLines={1} ellipsizeMode="tail">

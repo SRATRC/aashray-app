@@ -16,7 +16,7 @@ const simpleHash = (str: string): string => {
   if (str.length === 0) return '0';
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32bit integer
   }
   return Math.abs(hash).toString(16);
@@ -35,7 +35,7 @@ const getCachedImage = async (url: string): Promise<string | null> => {
     await ensureDirExists();
     const filename = getImageFilename(url);
     const fileInfo = await FileSystem.getInfoAsync(filename);
-    
+
     if (fileInfo.exists) {
       return filename;
     }
@@ -50,11 +50,7 @@ const getCachedImage = async (url: string): Promise<string | null> => {
 const downloadAndCacheImage = async (url: string): Promise<string> => {
   try {
     const filename = getImageFilename(url);
-    const downloadResumable = FileSystem.createDownloadResumable(
-      url,
-      filename,
-      {}
-    );
+    const downloadResumable = FileSystem.createDownloadResumable(url, filename, {});
 
     const result = await downloadResumable.downloadAsync();
     return result?.uri || url;
@@ -90,7 +86,7 @@ export const invalidateCachedImage = async (url: string): Promise<void> => {
   try {
     const filename = getImageFilename(url);
     const fileInfo = await FileSystem.getInfoAsync(filename);
-    
+
     if (fileInfo.exists) {
       await FileSystem.deleteAsync(filename, { idempotent: true });
       console.log('Invalidated cache for:', url);

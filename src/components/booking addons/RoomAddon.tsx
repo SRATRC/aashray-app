@@ -43,8 +43,14 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
           startDay:
             mumukshuData.travel?.date ||
             (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.start_date) ||
+            mumukshuData.flat?.startDay ||
+            mumukshuData.utsav?.utsav?.utsav_start ||
             '',
-          endDay: (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.end_date) || '',
+          endDay:
+            (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.end_date) ||
+            mumukshuData.flat?.endDay ||
+            mumukshuData.utsav?.utsav?.utsav_end ||
+            '',
         });
         setMumukshuData((prev: any) => {
           const { room, ...rest } = prev;

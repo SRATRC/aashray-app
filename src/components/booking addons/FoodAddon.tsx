@@ -41,10 +41,14 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
             mumukshuData.room?.startDay ||
             (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.start_date) ||
             mumukshuData.travel?.date ||
+            mumukshuData.flat?.startDay ||
+            mumukshuData.utsav?.utsav?.utsav_start ||
             '',
           endDay:
             mumukshuData.room?.endDay ||
             (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.end_date) ||
+            mumukshuData.flat?.endDay ||
+            mumukshuData.utsav?.utsav?.utsav_end ||
             '',
           meals: ['breakfast', 'lunch', 'dinner'],
           spicy: dropdowns.SPICE_LIST[0].key,

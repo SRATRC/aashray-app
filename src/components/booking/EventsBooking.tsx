@@ -696,7 +696,9 @@ const EventBooking = () => {
                         utsav: selectedItem,
                       };
                       await updateMumukshuBooking('utsav', updatedForm);
-                      router.push(`/booking/${types.EVENT_DETAILS_TYPE}`);
+                      if (selectedItem.utsav_location !== 'Research Centre')
+                        router.push('/booking/bookingReview');
+                      else router.push(`/booking/${types.EVENT_DETAILS_TYPE}`);
                     }
                     if (selectedChip == CHIPS[1]) {
                       if (!isGuestFormValid()) {
@@ -741,7 +743,7 @@ const EventBooking = () => {
                             setGuestForm(INITIAL_GUEST_FORM);
 
                             if (selectedItem.utsav_location !== 'Research Centre')
-                              router.push('/guestBooking/bookingConfirmation');
+                              router.push('/guestBooking/bookingReview');
                             else router.push(`/guestBooking/${types.EVENT_DETAILS_TYPE}`);
                           },
                           () => {
@@ -749,10 +751,16 @@ const EventBooking = () => {
                           }
                         );
                       } else {
+                        const guestInfoArray = guestForm.guests.map((guest: any) => ({
+                          cardno: guest.cardno,
+                          name: guest.issuedto || guest.name,
+                        }));
+                        setGuestInfo(guestInfoArray);
+
                         await updateGuestBooking('utsav', guestForm);
                         setGuestForm(INITIAL_GUEST_FORM);
                         if (selectedItem.utsav_location !== 'Research Centre')
-                          router.push('/guestBooking/guestBookingConfirmation');
+                          router.push('/guestBooking/bookingReview');
                         else router.push(`/guestBooking/${types.EVENT_DETAILS_TYPE}`);
                         setIsSubmitting(false);
                       }
@@ -776,7 +784,9 @@ const EventBooking = () => {
                       setMumukshuInfo(mumukshuInfoArray);
 
                       await updateMumukshuBooking('utsav', updatedForm);
-                      router.push(`/mumukshuBooking/${types.EVENT_DETAILS_TYPE}`);
+                      if (selectedItem.utsav_location !== 'Research Centre')
+                        router.push('/mumukshuBooking/bookingReview');
+                      else router.push(`/mumukshuBooking/${types.EVENT_DETAILS_TYPE}`);
                     }
                     setSelectedItem(null);
                     setSelectedChip('Self');

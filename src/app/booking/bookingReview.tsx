@@ -30,7 +30,7 @@ interface ValidationData {
   totalCharge: number;
 }
 
-const bookingConfirmation = () => {
+const bookingReview = () => {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const mumukshuData = useBookingStore((state) => state.mumukshuData);
@@ -102,8 +102,11 @@ const bookingConfirmation = () => {
 
   return (
     <SafeAreaView className="h-full bg-white" edges={['top', 'right', 'left']}>
-      <ScrollView alwaysBounceVertical={false} showsVerticalScrollIndicator={false}>
-        <PageHeader title="Payment Summary" />
+      <ScrollView
+        alwaysBounceVertical={false}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}>
+        <PageHeader title="Review Booking" />
 
         {mumukshuData.room && <RoomBookingDetails containerStyles={'mt-2'} />}
         {mumukshuData.travel && <TravelBookingDetails containerStyles={'mt-2'} />}
@@ -354,78 +357,43 @@ const bookingConfirmation = () => {
             </ShadowBox>
           </View>
         )}
+      </ScrollView>
 
-        <View className="mt-6 w-full px-4">
-          {validationData && validationData.totalCharge > 0 ? (
-            <View className="mb-8 flex-row gap-x-4">
-              <CustomButton
-                text="Pay Now"
-                handlePress={async () => {
-                  setIsSubmitting(true);
-
-                  const onSuccess = (data: any) => {
-                    var options = {
-                      key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,
-                      name: 'Vitraag Vigyaan Aashray',
-                      image: 'https://vitraagvigyaan.org/img/logo.png',
-                      description: 'Payment for Vitraag Vigyaan Aashray',
-                      amount: data.order.amount.toString(),
-                      currency: 'INR',
-                      order_id: data.order.id.toString(),
-                      prefill: {
-                        email: user.email.toString(),
-                        contact: user.mobno.toString(),
-                        name: user.issuedto.toString(),
-                      },
-                      theme: { color: colors.orange },
-                    };
-                    RazorpayCheckout.open(options)
-                      .then((_rzrpayData: any) => {
-                        setIsSubmitting(false);
-                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                        router.replace('/paymentConfirmation');
-                      })
-                      .catch((_error: any) => {
-                        setIsSubmitting(false);
-                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-                        router.replace('/paymentFailed');
-                      });
-                  };
-
-                  const onFinally = () => {
-                    setIsSubmitting(false);
-                  };
-
-                  await handleAPICall(
-                    'POST',
-                    '/mumukshu/booking',
-                    null,
-                    payload,
-                    onSuccess,
-                    onFinally
-                  );
-                }}
-                containerStyles="flex-1 min-h-[52px]"
-                isLoading={isSubmitting}
-                isDisabled={!validationData}
-                variant="solid"
-              />
-              <CustomButton
-                text="Pay Later"
-                handlePress={() => setShowPayLaterModal(true)}
-                containerStyles="flex-1 min-h-[52px]"
-                isLoading={isSubmitting}
-                isDisabled={!validationData}
-                variant="outline"
-              />
-            </View>
-          ) : (
+      <ShadowBox className="w-full border-t border-gray-200 bg-white px-4 py-4">
+        {validationData && validationData.totalCharge > 0 ? (
+          <View className="mb-8 flex-row gap-x-4">
             <CustomButton
-              text="Confirm"
+              text="Pay Now"
               handlePress={async () => {
                 setIsSubmitting(true);
-                const onSuccess = () => {
-                  router.replace('/bookingConfirmation');
+
+                const onSuccess = (data: any) => {
+                  var options = {
+                    key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,
+                    name: 'Vitraag Vigyaan Aashray',
+                    image: 'https://vitraagvigyaan.org/img/logo.png',
+                    description: 'Payment for Vitraag Vigyaan Aashray',
+                    amount: data.order.amount.toString(),
+                    currency: 'INR',
+                    order_id: data.order.id.toString(),
+                    prefill: {
+                      email: user.email.toString(),
+                      contact: user.mobno.toString(),
+                      name: user.issuedto.toString(),
+                    },
+                    theme: { color: colors.orange },
+                  };
+                  RazorpayCheckout.open(options)
+                    .then((_rzrpayData: any) => {
+                      setIsSubmitting(false);
+                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                      router.replace('/paymentConfirmation');
+                    })
+                    .catch((_error: any) => {
+                      setIsSubmitting(false);
+                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                      router.replace('/paymentFailed');
+                    });
                 };
 
                 const onFinally = () => {
@@ -441,65 +409,93 @@ const bookingConfirmation = () => {
                   onFinally
                 );
               }}
-              containerStyles="mb-8 min-h-[52px]"
+              containerStyles="flex-1 min-h-[52px]"
               isLoading={isSubmitting}
               isDisabled={!validationData}
+              variant="solid"
             />
-          )}
-        </View>
+            <CustomButton
+              text="Pay Later"
+              handlePress={() => setShowPayLaterModal(true)}
+              containerStyles="flex-1 min-h-[52px]"
+              isLoading={isSubmitting}
+              isDisabled={!validationData}
+              variant="outline"
+            />
+          </View>
+        ) : (
+          <CustomButton
+            text="Confirm"
+            handlePress={async () => {
+              setIsSubmitting(true);
+              const onSuccess = () => {
+                router.replace('/bookingConfirmation');
+              };
 
-        {validationDataError && (
-          <CustomModal
-            visible={true}
-            onClose={handleCloseValidationModal}
-            message={validationDataError.message}
-            btnText={'Okay'}
+              const onFinally = () => {
+                setIsSubmitting(false);
+              };
+
+              await handleAPICall('POST', '/mumukshu/booking', null, payload, onSuccess, onFinally);
+            }}
+            containerStyles="mb-8 min-h-[52px]"
+            isLoading={isSubmitting}
+            isDisabled={!validationData}
           />
         )}
+      </ShadowBox>
 
+      {validationDataError && (
         <CustomModal
-          visible={showPayLaterModal}
-          onClose={() => setShowPayLaterModal(false)}
-          title="Pay Later Notice"
-          showActionButton={false}>
-          <View>
-            <View className="mb-4">
-              <View className="mb-4 items-center">
-                <View className="mb-3 h-16 w-16 items-center justify-center rounded-full bg-amber-100">
-                  <Ionicons name="time-outline" size={32} color="#F59E0B" />
-                </View>
-              </View>
+          visible={true}
+          onClose={handleCloseValidationModal}
+          message={validationDataError.message}
+          btnText={'Okay'}
+        />
+      )}
 
-              <Text className="mb-3 text-center font-pregular text-sm text-gray-700">
-                You are choosing to pay later for this booking.
-              </Text>
-
-              <View className="rounded-lg bg-amber-50 p-3">
-                <Text className="mb-2 font-pmedium text-xs text-amber-900">
-                  Important Information:
-                </Text>
-                <Text className="mb-1 font-pregular text-xs text-amber-800">
-                  Your booking will be temporary and you must complete the payment within 24 hours.
-                  After 24 hours, the booking will be automatically cancelled if payment is not
-                  received.
-                </Text>
+      <CustomModal
+        visible={showPayLaterModal}
+        onClose={() => setShowPayLaterModal(false)}
+        title="Pay Later Notice"
+        showActionButton={false}>
+        <View>
+          <View className="mb-4">
+            <View className="mb-4 items-center">
+              <View className="mb-3 h-16 w-16 items-center justify-center rounded-full bg-amber-100">
+                <Ionicons name="time-outline" size={32} color="#F59E0B" />
               </View>
             </View>
 
-            <View className="gap-y-3">
-              <CustomButton
-                text="I Understand, Proceed"
-                handlePress={handlePayLater}
-                containerStyles="min-h-[44px]"
-                textStyles="font-psemibold text-sm text-white"
-                isLoading={isSubmitting}
-              />
+            <Text className="mb-3 text-center font-pregular text-sm text-gray-700">
+              You are choosing to pay later for this booking.
+            </Text>
+
+            <View className="rounded-lg bg-amber-50 p-3">
+              <Text className="mb-2 font-pmedium text-xs text-amber-900">
+                Important Information:
+              </Text>
+              <Text className="mb-1 font-pregular text-xs text-amber-800">
+                Your booking will be temporary and you must complete the payment within 24 hours.
+                After 24 hours, the booking will be automatically cancelled if payment is not
+                received.
+              </Text>
             </View>
           </View>
-        </CustomModal>
-      </ScrollView>
+
+          <View className="gap-y-3">
+            <CustomButton
+              text="I Understand, Proceed"
+              handlePress={handlePayLater}
+              containerStyles="min-h-[44px]"
+              textStyles="font-psemibold text-sm text-white"
+              isLoading={isSubmitting}
+            />
+          </View>
+        </View>
+      </CustomModal>
     </SafeAreaView>
   );
 };
 
-export default bookingConfirmation;
+export default bookingReview;

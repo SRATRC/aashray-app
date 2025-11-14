@@ -17,7 +17,7 @@ export default function mergeLists(list1, list2) {
   // Convert merged object back to array
   const finalList = Object.keys(mergedObj).map((title) => ({
     title,
-    data: mergedObj[title]
+    data: mergedObj[title],
   }));
 
   return finalList;

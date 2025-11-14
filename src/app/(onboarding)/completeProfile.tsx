@@ -21,7 +21,6 @@ import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import PageHeader from '@/src/components/PageHeader';
 import ErrorText from '@/src/components/ErrorText';
-import Toast from 'react-native-toast-message';
 import moment from 'moment';
 
 const fetchCountries = () => {
@@ -204,27 +203,18 @@ const CompleteProfile = () => {
   };
 
   const handleLogout = async () => {
-    try {
-      const onSuccess = async () => {
-        logout();
-      };
+    const onSuccess = async () => {
+      logout();
+    };
 
-      await handleAPICall(
-        'GET',
-        '/client/logout',
-        { cardno: user?.cardno },
-        null,
-        onSuccess,
-        () => {}
-      );
-    } catch (error: any) {
-      Toast.show({
-        type: 'error',
-        text1: 'An error occurred!',
-        text2: error.message,
-        swipeable: false,
-      });
-    }
+    await handleAPICall(
+      'GET',
+      '/client/logout',
+      { cardno: user?.cardno },
+      null,
+      onSuccess,
+      () => {}
+    );
   };
 
   return (
