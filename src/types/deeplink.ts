@@ -2,12 +2,16 @@ export enum DeepLinkType {
   ADHYAYAN = 'adhyayan',
   ADHYAYAN_FEEDBACK = 'adhyayan_feedback',
   UTSAV = 'utsav',
+  MENU = 'menu',
+  MAINTENANCE = 'maintenance',
+  PENDING_PAYMENT = 'pending_payment',
+  BOOKINGS = 'bookings',
   UNKNOWN = 'unknown',
 }
 
 export interface ParsedDeepLink {
   type: DeepLinkType;
-  id: string;
+  params: Record<string, string>;
   route: string;
 }
 
