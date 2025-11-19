@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/src/stores';
+import { status } from '@/src/constants';
 import PageHeader from '@/src/components/PageHeader';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomErrorMessage from '@/src/components/CustomErrorMessage';
@@ -13,6 +14,7 @@ import * as Linking from 'expo-linking';
 
 const wifi = () => {
   const { user } = useAuthStore();
+  const isResident = user.res_status === status.STATUS_RESIDENT;
 
   // State management
   const [refreshing, setRefreshing] = useState(false);
@@ -227,15 +229,18 @@ const wifi = () => {
           onInfoPress={handleInfoPress}
           onResetCode={handleResetPermanentCode}
           isResettingCode={isResettingCode}
+          allowRequest={!isResident}
         />
 
-        <TemporaryWifiSection
-          codes={wifiList}
-          isLoading={isLoading}
-          isGenerating={isSubmitting}
-          maxCodes={3}
-          onGenerateCode={handleGenerateCode}
-        />
+        {!isResident && (
+          <TemporaryWifiSection
+            codes={wifiList}
+            isLoading={isLoading}
+            isGenerating={isSubmitting}
+            maxCodes={3}
+            onGenerateCode={handleGenerateCode}
+          />
+        )}
       </ScrollView>
 
       <Modal

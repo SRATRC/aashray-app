@@ -29,6 +29,7 @@ interface PermanentWifiSectionProps {
   onInfoPress: () => void;
   onResetCode?: (id: string) => void;
   isResettingCode?: boolean;
+  allowRequest?: boolean;
 }
 
 const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
@@ -40,6 +41,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
   onInfoPress,
   onResetCode,
   isResettingCode = false,
+  allowRequest = true,
 }) => {
   const [showResetModal, setShowResetModal] = useState(false);
   const [selectedCodeId, setSelectedCodeId] = useState<string>('');
@@ -222,6 +224,20 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
     </ShadowBox>
   );
 
+  const renderEmptyStateNoRequest = () => (
+    <ShadowBox className="mx-4 rounded-2xl bg-white p-6">
+      <View className="items-center">
+        <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+          <Text className="text-2xl">📶</Text>
+        </View>
+        <Text className="mb-2 text-center font-pmedium text-black">No Permanent Code Yet</Text>
+        <Text className="mb-6 text-center font-pregular text-sm text-gray-500">
+          You do not have a permanent WiFi code.
+        </Text>
+      </View>
+    </ShadowBox>
+  );
+
   const renderRequestButton = () => {
     const allRejected = data?.every((item) => item.status === 'rejected') || false;
 
@@ -275,11 +291,15 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
           <CustomErrorMessage />
         </ShadowBox>
       ) : !data || data.length === 0 ? (
-        renderEmptyState()
+        allowRequest ? (
+          renderEmptyState()
+        ) : (
+          renderEmptyStateNoRequest()
+        )
       ) : (
         <View className="mx-4">
           {data.map((item, index) => renderWifiItem(item, index))}
-          {shouldShowRequestButton() && renderRequestButton()}
+          {shouldShowRequestButton() && allowRequest && renderRequestButton()}
         </View>
       )}
 
