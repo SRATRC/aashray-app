@@ -26,6 +26,7 @@ import CustomChipGroup from '@/src/components/CustomChipGroup';
 import GuestForm from '@/src/components/GuestForm';
 import OtherMumukshuForm from '@/src/components/OtherMumukshuForm';
 import HorizontalSeparator from '@/src/components/HorizontalSeparator';
+import CustomAlert from '@/src/components/CustomAlert';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
@@ -120,7 +121,7 @@ const AdhyayanDetails = () => {
       await Share.share(shareContent);
     } catch (error) {
       console.error('Error sharing:', error);
-      Alert.alert('Error', 'Failed to share. Please try again.');
+      CustomAlert.alert('Error', 'Failed to share. Please try again.');
     }
   };
 
@@ -283,7 +284,7 @@ const AdhyayanDetails = () => {
       }
       if (selectedChip == CHIPS[1]) {
         if (!isGuestFormValid()) {
-          Alert.alert('Fill all Fields');
+          CustomAlert.alert('Fill all Fields');
           setIsSubmitting(false);
           return;
         }
@@ -335,7 +336,7 @@ const AdhyayanDetails = () => {
       }
       if (selectedChip == CHIPS[2]) {
         if (!isMumukshuFormValid()) {
-          Alert.alert('Fill all Fields');
+          CustomAlert.alert('Fill all Fields');
           setIsSubmitting(false);
           return;
         }
@@ -353,7 +354,7 @@ const AdhyayanDetails = () => {
       toggleModal();
     } catch (error) {
       console.error('Booking error:', error);
-      Alert.alert('Error', 'Failed to process booking. Please try again.');
+      CustomAlert.alert('Error', 'Failed to process booking. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

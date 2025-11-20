@@ -261,11 +261,6 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
                   setDatePickerVisibility('travel_time', false);
                 }}
                 onCancel={() => setDatePickerVisibility('travel_time', false)}
-                minimumDate={
-                  travelForm.mumukshuGroup[index].date
-                    ? moment(travelForm.mumukshuGroup[index].date).toDate()
-                    : moment().toDate()
-                }
               />
             </>
           ) : null}

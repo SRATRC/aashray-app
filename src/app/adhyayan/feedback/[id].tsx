@@ -12,6 +12,7 @@ import CustomButton from '@/src/components/CustomButton';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import ErrorText from '@/src/components/ErrorText';
 import { ShadowBox } from '@/src/components/ShadowBox';
+import CustomAlert from '@/src/components/CustomAlert';
 
 export type AdhyayanFeedbackData = {
   swadhay_karta_rating: number | null;
@@ -329,7 +330,7 @@ const FeedbackScreen: React.FC = () => {
         );
       });
 
-      Alert.alert('Thank you!', 'Your feedback has been submitted successfully.');
+      CustomAlert.alert('Thank you!', 'Your feedback has been submitted successfully.');
       router.back();
     } catch (e: any) {
       // handleAPICall already shows a toast; optionally add alert

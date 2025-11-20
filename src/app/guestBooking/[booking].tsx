@@ -20,6 +20,7 @@ import GuestAdhyayanAddon from '@/src/components/booking addons/GuestAdhyayanAdd
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '@/src/components/CustomModal';
 import GuestEventBookingDetails from '@/src/components/booking details cards/GuestEventBookingDetails';
+import CustomAlert from '@/src/components/CustomAlert';
 
 // Define initial form structures
 const createInitialRoomForm = (existingData: any = null) => ({
@@ -457,7 +458,7 @@ const GuestAddons = () => {
     // Validate and set Room Form data
     if (booking !== types.ROOM_DETAILS_TYPE && addonOpen.room) {
       if (!validateRoomForm()) {
-        Alert.alert('Please fill all the room booking fields');
+        CustomAlert.alert('Please fill all the room booking fields');
         hasValidationError = true;
         return;
       }
@@ -467,7 +468,7 @@ const GuestAddons = () => {
     // Validate and set Food Form data
     if (addonOpen.food) {
       if (!validateFoodForm()) {
-        Alert.alert('Please fill all the food booking fields');
+        CustomAlert.alert('Please fill all the food booking fields');
         hasValidationError = true;
         return;
       }
@@ -477,7 +478,7 @@ const GuestAddons = () => {
     // Validate and set Adhyayan Form data
     if (booking !== types.ADHYAYAN_DETAILS_TYPE && isAdhyayanFormEmpty()) {
       if (!validateAdhyayanForm()) {
-        Alert.alert('Please fill all the adhyayan booking fields');
+        CustomAlert.alert('Please fill all the adhyayan booking fields');
         hasValidationError = true;
         return;
       }

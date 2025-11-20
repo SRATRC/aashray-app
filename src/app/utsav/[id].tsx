@@ -28,6 +28,7 @@ import OtherMumukshuForm from '@/src/components/OtherMumukshuForm';
 import HorizontalSeparator from '@/src/components/HorizontalSeparator';
 import FormField from '@/src/components/FormField';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
+import CustomAlert from '@/src/components/CustomAlert';
 
 // Types
 type Package = {
@@ -184,7 +185,7 @@ const UtsavPage = () => {
       await Share.share(shareContent);
     } catch (error) {
       console.error('Error sharing:', error);
-      Alert.alert('Error', 'Failed to share. Please try again.');
+      CustomAlert.alert('Error', 'Failed to share. Please try again.');
     }
   };
 
@@ -422,7 +423,7 @@ const UtsavPage = () => {
     try {
       if (selectedChip == CHIPS[0]) {
         if (!isSelfFormValid()) {
-          Alert.alert('Validation Error', 'Please fill all required fields');
+          CustomAlert.alert('Validation Error', 'Please fill all required fields');
           setIsSubmitting(false);
           return;
         }
@@ -434,7 +435,7 @@ const UtsavPage = () => {
       }
       if (selectedChip == CHIPS[1]) {
         if (!isGuestFormValid()) {
-          Alert.alert('Validation Error', 'Please fill all required fields');
+          CustomAlert.alert('Validation Error', 'Please fill all required fields');
           setIsSubmitting(false);
           return;
         }
@@ -491,7 +492,7 @@ const UtsavPage = () => {
       }
       if (selectedChip == CHIPS[2]) {
         if (!isMumukshuFormValid()) {
-          Alert.alert('Validation Error', 'Please fill all required fields');
+          CustomAlert.alert('Validation Error', 'Please fill all required fields');
           setIsSubmitting(false);
           return;
         }
@@ -508,7 +509,7 @@ const UtsavPage = () => {
       toggleModal();
     } catch (error) {
       console.error('Booking error:', error);
-      Alert.alert('Error', 'Failed to process booking. Please try again.');
+      CustomAlert.alert('Error', 'Failed to process booking. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

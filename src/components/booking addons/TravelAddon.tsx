@@ -220,7 +220,6 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
               setDatePickerVisibility('travel_time', false);
             }}
             onCancel={() => setDatePickerVisibility('travel_time', false)}
-            minimumDate={travelForm.date ? moment(travelForm.date).toDate() : moment().toDate()}
           />
         </>
       ) : null}

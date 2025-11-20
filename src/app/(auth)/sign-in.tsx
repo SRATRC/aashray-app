@@ -8,6 +8,7 @@ import { useNotification } from '@/src/context/NotificationContext';
 import FormField from '@/src/components/FormField';
 import CustomButton from '@/src/components/CustomButton';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import CustomAlert from '@/src/components/CustomAlert';
 
 const PasswordResetModal = ({ visible, onClose, email }: any) => {
   return (
@@ -61,7 +62,7 @@ const SignIn = () => {
     setIsSubmitting(true);
 
     if (!form.phone || form.phone.length < 10 || !form.password) {
-      Alert.alert('Error', 'Please fill the fields correctly');
+      CustomAlert.alert('Error', 'Please fill the fields correctly');
       setIsSubmitting(false);
       return;
     }
@@ -91,11 +92,11 @@ const SignIn = () => {
 
   const handleForgotPassword = async () => {
     if (!form.phone || form.phone.length !== 10) {
-      Alert.alert('Error', 'Please enter a valid phone number first');
+      CustomAlert.alert('Error', 'Please enter a valid phone number first');
       return;
     }
 
-    Alert.alert('Are you sure?', 'Are you sure you want to reset your password?', [
+    CustomAlert.alert('Are you sure?', 'Are you sure you want to reset your password?', [
       { text: 'Cancel', style: 'destructive' },
       {
         text: 'Continue',

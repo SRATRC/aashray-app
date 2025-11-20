@@ -28,6 +28,7 @@ import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import moment from 'moment';
+import CustomAlert from '../CustomAlert';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
@@ -426,7 +427,7 @@ const AdhyayanBooking = () => {
                     }
                     if (selectedChip == CHIPS[1]) {
                       if (!isGuestFormValid()) {
-                        Alert.alert('Fill all Fields');
+                        CustomAlert.alert('Fill all Fields');
                         return;
                       }
 
@@ -479,7 +480,7 @@ const AdhyayanBooking = () => {
                     }
                     if (selectedChip == CHIPS[2]) {
                       if (!isMumukshuFormValid()) {
-                        Alert.alert('Fill all Fields');
+                        CustomAlert.alert('Fill all Fields');
                         return;
                       }
 

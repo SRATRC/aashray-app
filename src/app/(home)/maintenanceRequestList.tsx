@@ -26,6 +26,7 @@ import CustomButton from '@/src/components/CustomButton';
 import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
 import moment from 'moment';
+import CustomAlert from '@/src/components/CustomAlert';
 
 const CHIPS = [
   types.MAINTENANCE_TYPE_ALL,
@@ -277,7 +278,7 @@ const maintenanceRequestList = () => {
                     form.area_of_work.trim() == ''
                   ) {
                     setIsSubmitting(false);
-                    Alert.alert('Please fill all fields');
+                    CustomAlert.alert('Please fill all fields');
                     return;
                   }
 
@@ -294,7 +295,7 @@ const maintenanceRequestList = () => {
                     setIsSubmitting(false);
                   };
                   const onError = (error: any) => {
-                    Alert.alert('Error', error.message);
+                    CustomAlert.alert('Error', error.message);
                   };
 
                   await handleAPICall(

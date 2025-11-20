@@ -20,6 +20,7 @@ import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
 import moment from 'moment';
 import * as Haptics from 'expo-haptics';
+import CustomAlert from '../CustomAlert';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
@@ -287,7 +288,7 @@ const FoodBooking = () => {
                 }
 
                 const onSuccess = (_data: any) => {
-                  Alert.alert('Booking Successful');
+                  CustomAlert.alert('Booking Successful');
                 };
 
                 const onError = (errorDetails: any) => {
@@ -553,7 +554,7 @@ const FoodBooking = () => {
                   null,
                   requestBody,
                   (_data: any) => {
-                    Alert.alert('Booking Successful');
+                    CustomAlert.alert('Booking Successful');
                   },
                   () => {
                     setIsSubmitting(false);

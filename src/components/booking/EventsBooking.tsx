@@ -29,6 +29,7 @@ import FormField from '../FormField';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
+import CustomAlert from '../CustomAlert';
 
 const CHIPS = ['Self', 'Guest', 'Mumukshus'];
 const ARRIVAL = [
@@ -672,7 +673,7 @@ const EventBooking = () => {
                     setIsSubmitting(true);
                     if (selectedChip == CHIPS[0]) {
                       if (!isSelfFormValid()) {
-                        Alert.alert('Validation Error', 'Please fill all required fields');
+                        CustomAlert.alert('Validation Error', 'Please fill all required fields');
                         setIsSubmitting(false);
                         return;
                       }
@@ -702,7 +703,7 @@ const EventBooking = () => {
                     }
                     if (selectedChip == CHIPS[1]) {
                       if (!isGuestFormValid()) {
-                        Alert.alert('Validation Error', 'Please fill all required fields');
+                        CustomAlert.alert('Validation Error', 'Please fill all required fields');
                         setIsSubmitting(false);
                         return;
                       }
@@ -767,7 +768,7 @@ const EventBooking = () => {
                     }
                     if (selectedChip == CHIPS[2]) {
                       if (!isMumukshuFormValid()) {
-                        Alert.alert('Validation Error', 'Please fill all required fields');
+                        CustomAlert.alert('Validation Error', 'Please fill all required fields');
                         setIsSubmitting(false);
                         return;
                       }

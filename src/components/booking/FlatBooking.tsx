@@ -12,6 +12,7 @@ import CustomButton from '../CustomButton';
 import GuestForm from '../GuestForm';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import moment from 'moment';
+import CustomAlert from '../CustomAlert';
 
 const CHIPS = ['Mumukshus', 'Guest'];
 const INITIAL_MUMUKSHU_FORM = {
@@ -214,7 +215,7 @@ const FlatBooking = () => {
             setIsSubmitting(true);
             if (selectedChip == CHIPS[0]) {
               if (!isMumukshuFormValid()) {
-                Alert.alert('Validation Error', 'Please fill all required fields');
+                CustomAlert.alert('Validation Error', 'Please fill all required fields');
                 setIsSubmitting(false);
                 return;
               }
@@ -233,7 +234,7 @@ const FlatBooking = () => {
 
             if (selectedChip == CHIPS[1]) {
               if (!isGuestFormValid()) {
-                Alert.alert('Validation Error', 'Please fill all required fields');
+                CustomAlert.alert('Validation Error', 'Please fill all required fields');
                 setIsSubmitting(false);
                 return;
               }

@@ -21,6 +21,7 @@ import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '@/src/components/CustomModal';
 import { FontAwesome } from '@expo/vector-icons';
 import { ShadowBox } from '@/src/components/ShadowBox';
+import CustomAlert from '@/src/components/CustomAlert';
 
 // Transform simple form to mumukshu format for API compatibility
 const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string) => {
@@ -325,7 +326,7 @@ const BookingDetails = () => {
 
       if (booking !== types.ROOM_DETAILS_TYPE && addonOpen.room) {
         if (!validateRoomForm()) {
-          Alert.alert('Please fill all the room fields');
+          CustomAlert.alert('Please fill all the room fields');
           hasValidationError = true;
           return;
         }
@@ -335,7 +336,7 @@ const BookingDetails = () => {
 
       if (addonOpen.food) {
         if (!validateFoodForm()) {
-          Alert.alert('Please fill all the required food fields');
+          CustomAlert.alert('Please fill all the required food fields');
           hasValidationError = true;
           return;
         }
@@ -345,7 +346,7 @@ const BookingDetails = () => {
 
       if (booking !== types.TRAVEL_DETAILS_TYPE && addonOpen.travel) {
         if (!validateTravelForm()) {
-          Alert.alert('Please fill all the travel fields');
+          CustomAlert.alert('Please fill all the travel fields');
           hasValidationError = true;
           return;
         }
@@ -375,7 +376,7 @@ const BookingDetails = () => {
       }
     } catch (error) {
       console.error('Error during submission:', error);
-      Alert.alert('An error occurred. Please try again.');
+      CustomAlert.alert('An error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

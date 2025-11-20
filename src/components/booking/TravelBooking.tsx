@@ -368,9 +368,6 @@ const TravelBooking = () => {
                     setDatePickerVisibility(false);
                   }}
                   onCancel={() => setDatePickerVisibility(false)}
-                  minimumDate={
-                    travelForm.date ? moment(travelForm.date).toDate() : moment().toDate()
-                  }
                 />
               </>
             ) : null}
@@ -517,9 +514,6 @@ const TravelBooking = () => {
                           setDatePickerVisibility(false);
                         }}
                         onCancel={() => setDatePickerVisibility(false)}
-                        minimumDate={
-                          mumukshuForm.date ? moment(mumukshuForm.date).toDate() : moment().toDate()
-                        }
                       />
                     </>
                   ) : null}

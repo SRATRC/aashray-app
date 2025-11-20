@@ -5,6 +5,8 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { dropdowns, types } from '@/src/constants';
+import { FontAwesome } from '@expo/vector-icons';
+import { ShadowBox } from '@/src/components/ShadowBox';
 import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
 import { useAuthStore, useBookingStore } from '@/src/stores';
 import PageHeader from '@/src/components/PageHeader';
@@ -20,8 +22,7 @@ import MumukshuAdhyayanAddon from '@/src/components/booking addons/MumukshuAdhya
 import MumukshuTravelAddon from '@/src/components/booking addons/MumukshuTravelAddon';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '@/src/components/CustomModal';
-import { FontAwesome } from '@expo/vector-icons';
-import { ShadowBox } from '@/src/components/ShadowBox';
+import CustomAlert from '@/src/components/CustomAlert';
 
 const MumukshuAddons = () => {
   const router = useRouter();
@@ -607,7 +608,7 @@ const MumukshuAddons = () => {
       // Validate and set Room Form data
       if (booking !== types.ROOM_DETAILS_TYPE && addonOpen.room) {
         if (!validateRoomForm()) {
-          Alert.alert('Please fill all the room booking fields');
+          CustomAlert.alert('Please fill all the room booking fields');
           hasValidationError = true;
           return;
         }
@@ -617,7 +618,7 @@ const MumukshuAddons = () => {
       // Validate and set Food Form data
       if (addonOpen.food) {
         if (!validateFoodForm()) {
-          Alert.alert('Please fill all the food booking fields');
+          CustomAlert.alert('Please fill all the food booking fields');
           hasValidationError = true;
           return;
         }
@@ -627,7 +628,7 @@ const MumukshuAddons = () => {
       // Validate and set Adhyayan Form data
       if (booking !== types.ADHYAYAN_DETAILS_TYPE && isAdhyayanFormEmpty()) {
         if (!validateAdhyayanForm()) {
-          Alert.alert('Please fill all the adhyayan booking fields');
+          CustomAlert.alert('Please fill all the adhyayan booking fields');
           hasValidationError = true;
           return;
         }
@@ -637,7 +638,7 @@ const MumukshuAddons = () => {
       // Validate and set Travel Form data
       if (booking !== types.TRAVEL_DETAILS_TYPE && addonOpen.travel) {
         if (!validateTravelForm()) {
-          Alert.alert('Please fill all travel fields');
+          CustomAlert.alert('Please fill all travel fields');
           hasValidationError = true;
           return;
         }

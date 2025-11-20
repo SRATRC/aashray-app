@@ -15,6 +15,7 @@ import CustomModal from '../CustomModal';
 import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
+import CustomAlert from '../CustomAlert';
 
 const SWITCH_OPTIONS = ['Select Dates', 'One Day Visit'];
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
@@ -649,7 +650,7 @@ const RoomBooking = () => {
                 text="Book Now"
                 handlePress={async () => {
                   if (!selectedDay) {
-                    Alert.alert('Please fill all fields');
+                    CustomAlert.alert('Please fill all fields');
                     setIsSubmitting(false);
                     return;
                   }
@@ -657,7 +658,7 @@ const RoomBooking = () => {
 
                   if (selectedChip == CHIPS[0]) {
                     const onSuccess = (_data: any) => {
-                      Alert.alert('Booking Successful');
+                      CustomAlert.alert('Booking Successful');
                     };
 
                     const onFinally = () => {
@@ -693,7 +694,7 @@ const RoomBooking = () => {
 
                   if (selectedChip == CHIPS[1]) {
                     if (!isSingleDayGuestFormValid()) {
-                      Alert.alert('Please fill all fields');
+                      CustomAlert.alert('Please fill all fields');
                       setIsSubmitting(false);
                       return;
                     }
@@ -739,7 +740,7 @@ const RoomBooking = () => {
                             },
                           },
                           (_data: any) => {
-                            Alert.alert('Booking Successful');
+                            CustomAlert.alert('Booking Successful');
                           },
                           () => {
                             setIsSubmitting(false);
@@ -754,7 +755,7 @@ const RoomBooking = () => {
 
                   if (selectedChip == CHIPS[2]) {
                     const onSuccess = (_data: any) => {
-                      Alert.alert('Booking Successful');
+                      CustomAlert.alert('Booking Successful');
                     };
 
                     const onFinally = () => {

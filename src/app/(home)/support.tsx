@@ -10,6 +10,7 @@ import FormField from '@/src/components/FormField';
 import CustomButton from '@/src/components/CustomButton';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import CustomAlert from '@/src/components/CustomAlert';
 
 const SERVICE_LIST = [
   { key: 'booking', value: 'Booking Related Issues' },
@@ -32,12 +33,12 @@ const SupportTicket = () => {
   const handleSubmit = async () => {
     // Validation
     if (form.service.trim() === '' || form.issue_description.trim() === '') {
-      Alert.alert('Error', 'Please fill all fields');
+      CustomAlert.alert('Error', 'Please fill all fields');
       return;
     }
 
     if (form.issue_description.length < 10) {
-      Alert.alert('Error', 'Please provide more details about your issue');
+      CustomAlert.alert('Error', 'Please provide more details about your issue');
       return;
     }
 
@@ -47,7 +48,7 @@ const SupportTicket = () => {
       // Invalidate relevant queries if needed
       await queryClient.invalidateQueries({ queryKey: ['support-tickets', user.cardno] });
 
-      Alert.alert(
+      CustomAlert.alert(
         'Success',
         'Your support ticket has been submitted successfully. We will get back to you soon.',
         [
@@ -68,7 +69,7 @@ const SupportTicket = () => {
     };
 
     const onError = (error: any) => {
-      Alert.alert('Error', error.message || 'Failed to submit support ticket');
+      CustomAlert.alert('Error', error.message || 'Failed to submit support ticket');
     };
 
     const onFinally = () => {
@@ -100,7 +101,7 @@ const SupportTicket = () => {
           title="Support Ticket"
           onPress={() => {
             if (form.service || form.issue_description) {
-              Alert.alert(
+              CustomAlert.alert(
                 'Discard Changes?',
                 'Are you sure you want to go back? Your changes will be lost.',
                 [
