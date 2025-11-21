@@ -10,6 +10,7 @@ interface ExpandableItemProps {
   backgroundColor?: any;
   shadowShown?: any;
   onToggle?: any;
+  rootClassName?: string;
 }
 
 const ExpandableItem: React.FC<ExpandableItemProps> = ({
@@ -19,6 +20,7 @@ const ExpandableItem: React.FC<ExpandableItemProps> = ({
   backgroundColor,
   shadowShown,
   onToggle,
+  rootClassName = 'mb-5',
 }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -33,7 +35,7 @@ const ExpandableItem: React.FC<ExpandableItemProps> = ({
 
   return (
     <View
-      className={`mb-5 rounded-2xl p-3 ${
+      className={`${rootClassName} rounded-2xl p-3 ${
         shadowShown == false
           ? ''
           : Platform.OS === 'ios'

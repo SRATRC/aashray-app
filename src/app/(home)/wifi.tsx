@@ -11,6 +11,8 @@ import PermanentWifiSection from '@/src/components/PermanentWifiSection';
 import TemporaryWifiSection from '@/src/components/TemporaryWifiSection';
 import * as Haptics from 'expo-haptics';
 import * as Linking from 'expo-linking';
+import ExpandableItem from '@/src/components/ExpandableItem';
+import HorizontalSeparator from '@/src/components/HorizontalSeparator';
 
 const wifi = () => {
   const { user } = useAuthStore();
@@ -251,7 +253,7 @@ const wifi = () => {
         <SafeAreaView className="h-full w-full bg-white">
           <PageHeader title={'WiFi Instructions'} iconName="times" onPress={handleCloseModal} />
           <ScrollView>
-            <View className="gap-y-8 p-4">
+            <View className="gap-y-2 p-4">
               {/* Important Notice */}
               <View className="rounded-xl border border-red-200 bg-red-50 p-4">
                 <View className="mb-2 flex-row items-center gap-x-2">
@@ -285,12 +287,15 @@ const wifi = () => {
               </View>
 
               {/* Android Instructions */}
-              <View className="gap-y-4">
-                <View className="flex-row items-center gap-x-2">
-                  <Text className="text-2xl">🤖</Text>
-                  <Text className="font-psemibold text-lg text-gray-900">Android Devices</Text>
-                </View>
-                <View className="rounded-xl border border-green-200 bg-green-50 p-4">
+              <ExpandableItem
+                rootClassName="mb-2"
+                visibleContent={
+                  <View className="flex-row items-center gap-x-2">
+                    <Text className="text-2xl">🤖</Text>
+                    <Text className="font-psemibold text-lg text-gray-900">Android Devices</Text>
+                  </View>
+                }>
+                <View className="mt-2 px-2 pb-2">
                   <Text className="mb-3 font-pmedium text-base text-green-800">
                     Steps to Connect:
                   </Text>
@@ -325,15 +330,18 @@ const wifi = () => {
                     </Text>
                   </View>
                 </View>
-              </View>
+              </ExpandableItem>
 
               {/* iOS Instructions */}
-              <View className="gap-y-4">
-                <View className="flex-row items-center gap-x-2">
-                  <Text className="text-2xl">🍎</Text>
-                  <Text className="font-psemibold text-lg text-gray-900">Apple Devices</Text>
-                </View>
-                <View className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <ExpandableItem
+                rootClassName="mb-2"
+                visibleContent={
+                  <View className="flex-row items-center gap-x-2">
+                    <Text className="text-2xl">🍎</Text>
+                    <Text className="font-psemibold text-lg text-gray-900">Apple Devices</Text>
+                  </View>
+                }>
+                <View className="mt-2 px-2 pb-2 pt-2">
                   <Text className="mb-3 font-pmedium text-base text-blue-800">
                     Steps to Connect:
                   </Text>
@@ -375,15 +383,18 @@ const wifi = () => {
                     </Text>
                   </View>
                 </View>
-              </View>
+              </ExpandableItem>
 
               {/* Video Help */}
-              <View className="gap-y-4">
-                <View className="flex-row items-center gap-x-2">
-                  <Text className="text-2xl">🎥</Text>
-                  <Text className="font-psemibold text-lg text-gray-900">Video Tutorial</Text>
-                </View>
-                <View className="rounded-xl border border-purple-200 bg-purple-50 p-4">
+              <ExpandableItem
+                rootClassName="mb-2"
+                visibleContent={
+                  <View className="flex-row items-center gap-x-2">
+                    <Text className="text-2xl">🎥</Text>
+                    <Text className="font-psemibold text-lg text-gray-900">Video Tutorial</Text>
+                  </View>
+                }>
+                <View className="mt-2 px-2 pb-2 pt-2">
                   <Text className="mb-3 font-pregular text-sm leading-6 text-purple-700">
                     If you're having trouble, please watch our video tutorial:
                   </Text>
@@ -397,16 +408,19 @@ const wifi = () => {
                     </Text>
                   </TouchableOpacity>
                 </View>
-              </View>
+              </ExpandableItem>
 
               {/* WiFi Code Types */}
-              <View className="gap-y-4">
-                <View className="flex-row items-center gap-x-2">
-                  <Text className="text-2xl">📶</Text>
-                  <Text className="font-psemibold text-lg text-gray-900">WiFi Code Types</Text>
-                </View>
-                <View className="gap-y-3">
-                  <View className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <ExpandableItem
+                rootClassName="mb-2"
+                visibleContent={
+                  <View className="flex-row items-center gap-x-2">
+                    <Text className="text-2xl">📶</Text>
+                    <Text className="font-psemibold text-lg text-gray-900">WiFi Code Types</Text>
+                  </View>
+                }>
+                <View className="mt-2 gap-y-3 px-2 pb-2 pt-2">
+                  <View>
                     <Text className="mb-1 font-pmedium text-base text-amber-800">
                       🔒 Permanent Code
                     </Text>
@@ -414,7 +428,7 @@ const wifi = () => {
                       Long-term access, requires admin approval, and is valid indefinitely.
                     </Text>
                   </View>
-                  <View className="mb-2 rounded-xl border border-cyan-200 bg-cyan-50 p-4">
+                  <View>
                     <Text className="mb-1 font-pmedium text-base text-cyan-800">
                       ⏱️ Temporary Code
                     </Text>
@@ -424,7 +438,7 @@ const wifi = () => {
                     </Text>
                   </View>
                 </View>
-              </View>
+              </ExpandableItem>
             </View>
           </ScrollView>
         </SafeAreaView>
