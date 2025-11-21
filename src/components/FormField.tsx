@@ -72,11 +72,11 @@ const FormField: React.FC<FormFieldProps> = ({
             ? ' bg-white border border-gray-200 shadow-md shadow-gray-300'
             : ' bg-white border border-gray-200 shadow-lg shadow-gray-400';
       } else {
-        // ORIGINAL STYLING
+        // ORIGINAL STYLING - UPDATED FOR CLEANER LOOK
         baseStyles +=
           Platform.OS === 'ios'
-            ? ' bg-white shadow-lg shadow-gray-200'
-            : ' bg-white shadow-2xl shadow-gray-400';
+            ? ' bg-white border border-gray-100 shadow-sm shadow-gray-200'
+            : ' bg-white border border-gray-100 shadow-sm shadow-gray-300';
       }
     }
 

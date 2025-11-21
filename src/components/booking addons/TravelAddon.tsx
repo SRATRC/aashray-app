@@ -79,7 +79,8 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
       containerStyles={'mt-3'}>
       <FormDisplayField
         text="Date"
-        value={travelForm.date ? moment(travelForm.date).format('Do MMMM YYYY') : 'Date'}
+        value={travelForm.date ? moment(travelForm.date).format('Do MMMM YYYY') : ''}
+        placeholder="Date"
         otherStyles="mt-7"
         backgroundColor="bg-gray-100"
         onPress={() => setDatePickerVisibility('travel', true)}
@@ -198,11 +199,8 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         <>
           <FormDisplayField
             text="Flight/Train Time"
-            value={
-              travelForm.arrival_time
-                ? moment(travelForm.arrival_time).format('h:mm a')
-                : 'Flight/Train Time'
-            }
+            value={travelForm.arrival_time ? moment(travelForm.arrival_time).format('h:mm a') : ''}
+            placeholder="Flight/Train Time"
             otherStyles="mt-5"
             inputStyles={'font-pmedium text-lg'}
             backgroundColor="bg-gray-100"

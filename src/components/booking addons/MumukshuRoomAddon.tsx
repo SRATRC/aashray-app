@@ -76,9 +76,8 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
       containerStyles={'mt-3'}>
       <FormDisplayField
         text="Checkin Date"
-        value={
-          roomForm.startDay ? moment(roomForm.startDay).format('Do MMMM YYYY') : 'Checkin Date'
-        }
+        value={roomForm.startDay ? moment(roomForm.startDay).format('Do MMMM YYYY') : ''}
+        placeholder="Checkin Date"
         otherStyles="mt-5"
         backgroundColor="bg-gray-100"
         onPress={() => setDatePickerVisibility('checkin', true)}
@@ -106,7 +105,8 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
 
       <FormDisplayField
         text="Checkout Date"
-        value={roomForm.endDay ? moment(roomForm.endDay).format('Do MMMM YYYY') : 'Checkout Date'}
+        value={roomForm.endDay ? moment(roomForm.endDay).format('Do MMMM YYYY') : ''}
+        placeholder="Checkout Date"
         otherStyles="mt-5"
         backgroundColor="bg-gray-100"
         onPress={() => {

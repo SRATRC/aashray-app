@@ -345,10 +345,9 @@ const TravelBooking = () => {
                 <FormDisplayField
                   text="Flight/Train Time"
                   value={
-                    travelForm.arrival_time
-                      ? moment(travelForm.arrival_time).format('h:mm a')
-                      : 'Flight/Train Time'
+                    travelForm.arrival_time ? moment(travelForm.arrival_time).format('h:mm a') : ''
                   }
+                  placeholder="Flight/Train Time"
                   otherStyles="mt-5"
                   inputStyles={'font-pmedium text-black text-lg'}
                   backgroundColor="bg-gray-100"
@@ -488,13 +487,12 @@ const TravelBooking = () => {
                         text="Flight/Train Time"
                         value={
                           mumukshuForm.mumukshus[index].arrival_time
-                            ? moment(mumukshuForm.mumukshus[index].arrival_time).format(
-                                'Do MMMM YYYY, h:mm a'
-                              )
-                            : 'Flight/Train Time'
+                            ? moment(mumukshuForm.mumukshus[index].arrival_time).format('h:mm a')
+                            : ''
                         }
+                        placeholder="Flight/Train Time"
                         otherStyles="mt-5"
-                        inputStyles={'font-pmedium text-gray-400 text-lg'}
+                        inputStyles={'font-pmedium text-black text-lg'}
                         backgroundColor="bg-gray-100"
                         onPress={() => {
                           setDatePickerVisibility(true);

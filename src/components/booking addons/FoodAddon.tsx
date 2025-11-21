@@ -70,7 +70,8 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
       containerStyles={'mt-3'}>
       <FormDisplayField
         text="Start Date"
-        value={foodForm.startDay ? moment(foodForm.startDay).format('Do MMMM YYYY') : 'Start Date'}
+        value={foodForm.startDay ? moment(foodForm.startDay).format('Do MMMM YYYY') : ''}
+        placeholder="Start Date"
         otherStyles="mt-5"
         backgroundColor="bg-gray-100"
         onPress={() => setDatePickerVisibility('foodStart', true)}
@@ -105,7 +106,8 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
 
       <FormDisplayField
         text="End Date"
-        value={foodForm.endDay ? moment(foodForm.endDay).format('Do MMMM YYYY') : 'End Date'}
+        value={foodForm.endDay ? moment(foodForm.endDay).format('Do MMMM YYYY') : ''}
+        placeholder="End Date"
         otherStyles="mt-5"
         backgroundColor="bg-gray-100"
         onPress={() => {

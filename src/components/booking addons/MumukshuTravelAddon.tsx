@@ -93,7 +93,8 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
       containerStyles={'mt-3'}>
       <FormDisplayField
         text="Date"
-        value={travelForm.date ? moment(travelForm.date).format('Do MMMM YYYY') : 'Date'}
+        value={travelForm.date ? moment(travelForm.date).format('Do MMMM YYYY') : ''}
+        placeholder="Date"
         otherStyles="mt-7"
         backgroundColor="bg-gray-100"
         onPress={() => setDatePickerVisibility('travel', true)}
@@ -238,8 +239,9 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
                 value={
                   travelForm.mumukshuGroup[index].arrival_time
                     ? moment(travelForm.mumukshuGroup[index].arrival_time).format('h:mm a')
-                    : 'Flight/Train Time'
+                    : ''
                 }
+                placeholder="Flight/Train Time"
                 otherStyles="mt-5"
                 inputStyles={'font-pmedium text-lg'}
                 backgroundColor="bg-gray-100"

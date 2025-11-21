@@ -270,7 +270,8 @@ const profileDetails = () => {
 
           <FormDisplayField
             text="Date of Birth"
-            value={form.dob ? moment(form.dob).format('Do MMMM YYYY') : 'Date of Birth'}
+            value={form.dob ? moment(form.dob).format('Do MMMM YYYY') : ''}
+            placeholder="Date of Birth"
             otherStyles="mt-7"
             backgroundColor={'bg-gray-100'}
             onPress={() => setDatePickerVisibility(true)}
