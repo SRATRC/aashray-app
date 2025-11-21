@@ -3,9 +3,10 @@ import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@/src/constants';
 import { ShadowBox } from './ShadowBox';
+import HorizontalSeparator from './HorizontalSeparator';
+import CustomAlert from './CustomAlert';
 import CustomButton from '@/src/components/CustomButton';
 import CustomErrorMessage from '@/src/components/CustomErrorMessage';
-import CustomModal from '@/src/components/CustomModal';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
@@ -43,8 +44,6 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
   isResettingCode = false,
   allowRequest = true,
 }) => {
-  const [showResetModal, setShowResetModal] = useState(false);
-  const [selectedCodeId, setSelectedCodeId] = useState<string>('');
   const copyToClipboard = async (text: string) => {
     await Clipboard.setStringAsync(text);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -94,7 +93,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
       <View className="mb-4 flex-row items-center justify-between">
         <View
           className={`flex-row items-center rounded-full px-3 py-1 ${config.bg} ${config.border} border`}>
-          <Text className={`font-pmedium text-sm ${config.text}`}>{config.label}</Text>
+          <Text className={`font-pmedium text-xs ${config.text}`}>{config.label}</Text>
         </View>
         {data && data.length > 1 && typeof index === 'number' && (
           <Text className="font-pregular text-xs text-gray-400">Request #{index + 1}</Text>
@@ -104,49 +103,63 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
   };
 
   const renderApprovedCode = (item: PermanentWifiData) => (
-    <View className="gap-y-2">
-      <View className="rounded-xl py-2">
-        <View className="flex-row items-center justify-between">
-          <View className="flex-1">
-            <Text className="font-pregular text-sm text-gray-600">Permanent WiFi Code</Text>
-            <Text className="font-psemibold text-lg text-black">{item.code}</Text>
-          </View>
-          <View className="flex-row gap-x-2">
-            <ShadowBox
-              onPress={() => {
-                setSelectedCodeId(item.id);
-                setShowResetModal(true);
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              }}
-              interactive
-              isDisabled={isResettingCode}
-              className="h-10 w-10 items-center justify-center rounded-full bg-white">
-              {isResettingCode ? (
-                <ActivityIndicator size="small" color={colors.orange} />
-              ) : (
-                <MaterialIcons name="refresh" size={20} color={colors.gray_400} />
-              )}
-            </ShadowBox>
-            <ShadowBox
-              onPress={() => item.code && copyToClipboard(item.code)}
-              interactive
-              className="h-10 w-10 items-center justify-center rounded-full bg-white">
-              <Ionicons name="copy-outline" size={20} color={colors.gray_400} />
-            </ShadowBox>
-          </View>
+    <View className="gap-y-3">
+      <View className="flex-row items-center justify-between">
+        <Text className="font-pregular text-xs text-gray-500">WiFi Code</Text>
+        <View className="rounded-full bg-green-50 px-2 py-0.5">
+          <Text className="font-pmedium text-[10px] text-green-700">Active</Text>
         </View>
       </View>
 
-      <View className="flex-row items-center">
-        <Text className="font-pregular text-sm text-gray-500">Approved on:</Text>
-        <Text className="ml-2 font-pmedium text-sm text-black">{formatDate(item.reviewed_at)}</Text>
+      <View className="flex-row items-center justify-between">
+        <Text className="font-pbold text-3xl tracking-wider text-black">{item.code}</Text>
+        <TouchableOpacity
+          onPress={() => item.code && copyToClipboard(item.code)}
+          className="flex-row items-center justify-center rounded-lg bg-secondary px-4 py-2"
+          activeOpacity={0.8}>
+          <Ionicons name="copy-outline" size={16} color="white" />
+          <Text className="ml-2 font-pmedium text-xs text-white">Copy</Text>
+        </TouchableOpacity>
       </View>
 
-      <View className="flex-row items-center">
-        <Text className="font-pregular text-sm text-gray-500">Validity:</Text>
-        <View className="ml-2 rounded-full bg-green-100 px-2 py-1">
-          <Text className="font-pmedium text-xs text-green-700">Permanent</Text>
-        </View>
+      <HorizontalSeparator />
+
+      <View className="mt-1 flex-row items-center justify-between">
+        <Text className="font-pregular text-xs text-gray-400">
+          Approved on <Text className="text-gray-600">{formatDate(item.reviewed_at)}</Text>
+        </Text>
+        <TouchableOpacity
+          onPress={() => {
+            CustomAlert.alert(
+              'Reset WiFi Code',
+              "Are you sure you want to reset your permanent WiFi code? A new code request will be sent to the admin, and you'll need to reconnect your device with the new code.",
+              [
+                {
+                  text: 'Cancel',
+                  style: 'cancel',
+                  onPress: () => {},
+                },
+                {
+                  text: 'Reset',
+                  style: 'destructive',
+                  onPress: () => onResetCode?.(item.id),
+                },
+              ]
+            );
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          }}
+          disabled={isResettingCode}
+          className="flex-row items-center"
+          activeOpacity={0.7}>
+          {isResettingCode ? (
+            <ActivityIndicator size="small" color={colors.gray_500} />
+          ) : (
+            <>
+              <MaterialIcons name="refresh" size={14} color={colors.gray_400} />
+              <Text className="ml-1 font-pregular text-xs text-gray-400">Reset</Text>
+            </>
+          )}
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -194,13 +207,15 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
   );
 
   const renderWifiItem = (item: PermanentWifiData, index: number) => (
-    <ShadowBox key={item.id || index} className="mb-4 rounded-2xl bg-white p-6">
-      {renderStatusBadge(item.status, index)}
+    <View
+      key={item.id || index}
+      className="mb-4 rounded-xl border border-gray-100 bg-white p-5 shadow-sm shadow-gray-200">
+      {item.status !== 'approved' && renderStatusBadge(item.status, index)}
 
       {item.status === 'approved' && item.code && renderApprovedCode(item)}
       {item.status === 'pending' && renderPendingStatus(item)}
       {item.status === 'rejected' && renderRejectedStatus(item)}
-    </ShadowBox>
+    </View>
   );
 
   const renderEmptyState = () => (
@@ -263,9 +278,6 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
     <View>
       {/* Section Header */}
       <View className="mb-6 flex-row items-center px-4">
-        <View className="mr-3 h-8 w-8 items-center justify-center rounded-full bg-purple-100">
-          <Text className="font-psemibold text-purple-600">🔒</Text>
-        </View>
         <View className="flex-1">
           <Text className="font-psemibold text-lg text-black">Permanent WiFi Code</Text>
           <Text className="font-pregular text-sm text-gray-500">
@@ -274,7 +286,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
         </View>
 
         <TouchableOpacity onPress={onInfoPress} className="p-1.5" activeOpacity={0.7}>
-          <Ionicons name="help-circle-sharp" size={28} color={colors.orange} />
+          <Ionicons name="help-circle-outline" size={28} color={colors.orange} />
         </TouchableOpacity>
       </View>
 
@@ -302,26 +314,6 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
           {shouldShowRequestButton() && allowRequest && renderRequestButton()}
         </View>
       )}
-
-      {/* Reset Confirmation Modal */}
-      <CustomModal
-        visible={showResetModal}
-        onClose={() => setShowResetModal(false)}
-        title="Reset WiFi Code"
-        scrollable={false}
-        btnOnPress={() => {
-          setShowResetModal(false);
-          onResetCode?.(selectedCodeId);
-        }}>
-        <View className="px-1">
-          <View className="rounded-xl border border-orange-200 bg-orange-50 p-4">
-            <Text className="font-pregular text-sm leading-6 text-orange-700">
-              Are you sure you want to reset your permanent WiFi code? A new code request will be
-              sent to the admin, and you'll need to reconnect your device with the new code.
-            </Text>
-          </View>
-        </View>
-      </CustomModal>
     </View>
   );
 };

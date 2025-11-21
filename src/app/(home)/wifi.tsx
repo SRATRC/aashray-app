@@ -4,15 +4,16 @@ import { useQuery } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/src/stores';
 import { status } from '@/src/constants';
+import { FontAwesome5, Fontisto } from '@expo/vector-icons';
 import PageHeader from '@/src/components/PageHeader';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomErrorMessage from '@/src/components/CustomErrorMessage';
 import PermanentWifiSection from '@/src/components/PermanentWifiSection';
 import TemporaryWifiSection from '@/src/components/TemporaryWifiSection';
+import ExpandableItem from '@/src/components/ExpandableItem';
+import Callout from '@/src/components/Callout';
 import * as Haptics from 'expo-haptics';
 import * as Linking from 'expo-linking';
-import ExpandableItem from '@/src/components/ExpandableItem';
-import HorizontalSeparator from '@/src/components/HorizontalSeparator';
 
 const wifi = () => {
   const { user } = useAuthStore();
@@ -206,7 +207,7 @@ const wifi = () => {
 
   if (isError && isPermanentError)
     return (
-      <SafeAreaView className="h-full bg-white">
+      <SafeAreaView className="h-full bg-white-100">
         <PageHeader title={'WiFi Passwords'} />
         <View className="flex-1 items-center justify-center px-4">
           <CustomErrorMessage />
@@ -215,7 +216,7 @@ const wifi = () => {
     );
 
   return (
-    <SafeAreaView className="h-full bg-white">
+    <SafeAreaView className="h-full bg-white-100">
       <PageHeader title={'WiFi Passwords'} />
 
       <ScrollView
@@ -250,195 +251,209 @@ const wifi = () => {
         visible={showInfoModal}
         presentationStyle="pageSheet"
         statusBarTranslucent={true}>
-        <SafeAreaView className="h-full w-full bg-white">
+        <SafeAreaView className="flex-1">
           <PageHeader title={'WiFi Instructions'} iconName="times" onPress={handleCloseModal} />
-          <ScrollView>
-            <View className="gap-y-2 p-4">
+          <ScrollView className="flex-1">
+            <View className="gap-y-2">
               {/* Important Notice */}
-              <View className="rounded-xl border border-red-200 bg-red-50 p-4">
-                <View className="mb-2 flex-row items-center gap-x-2">
-                  <Text className="text-2xl">⚠️</Text>
-                  <Text className="font-psemibold text-lg text-red-800">IMPORTANT NOTICE</Text>
+              <Callout
+                message="Please follow the instructions below VERY CAREFULLY for permanent WiFi codes."
+                overrideStyle="mx-4"
+              />
+
+              {/* Key Points Section */}
+              <View className="mx-4">
+                <Text className="font-psemibold text-base text-gray-900">Key Points</Text>
+                <View className="gap-y-3 px-4 py-3">
+                  <View className="flex-row gap-x-3">
+                    <Text className="text-gray-400">•</Text>
+                    <Text className="flex-1 font-pregular text-sm leading-5 text-gray-600">
+                      Each password is for{' '}
+                      <Text className="font-pbold text-gray-800">1 device only</Text>.
+                    </Text>
+                  </View>
+                  <View className="flex-row gap-x-3">
+                    <Text className="text-gray-400">•</Text>
+                    <Text className="flex-1 font-pregular text-sm leading-5 text-gray-600">
+                      If you do NOT activate within 7 days, your account will be{' '}
+                      <Text className="font-pbold text-gray-800">PERMANENTLY DELETED</Text>.
+                    </Text>
+                  </View>
+                  <View className="flex-row gap-x-3">
+                    <Text className="text-gray-400">•</Text>
+                    <Text className="flex-1 font-pregular text-sm leading-5 text-gray-600">
+                      If absent from SRATRC for more than 7 days, you'll need to re-enter your
+                      credentials.
+                    </Text>
+                  </View>
                 </View>
-                <Text className="font-pregular text-sm leading-6 text-red-700">
-                  Please follow the instructions below VERY CAREFULLY for permanent WiFi codes.
-                </Text>
               </View>
 
-              {/* Key Points */}
-              <View className="gap-y-4">
-                <View className="flex-row items-center gap-x-2">
-                  <Text className="text-2xl">🔑</Text>
-                  <Text className="font-psemibold text-lg text-gray-900">Key Points</Text>
-                </View>
-                <View className="gap-y-3 pl-2">
-                  <Text className="font-pregular text-sm leading-6 text-gray-700">
-                    • Each password is for <Text className="font-pbold">1 device only</Text>.
-                  </Text>
-                  <Text className="font-pregular text-sm leading-6 text-gray-700">
-                    • If you do NOT activate within 7 days, your account will be{' '}
-                    <Text className="font-pbold">PERMANENTLY DELETED</Text>.
-                  </Text>
-                  <Text className="font-pregular text-sm leading-6 text-gray-700">
-                    • If absent from SRATRC for more than 7 days, you'll need to re-enter your
-                    credentials.
-                  </Text>
-                </View>
+              {/* Instructions Group */}
+              <View className="flex-1 gap-y-3 p-4">
+                <Text className="font-psemibold text-base text-gray-900">Setup Guides</Text>
+
+                {/* Android Instructions */}
+                <ExpandableItem
+                  rootClassName="border-b border-gray-100"
+                  visibleContent={
+                    <View className="flex-row items-center gap-x-3 py-1">
+                      <View className="h-8 w-8 items-center justify-center rounded-full bg-green-50">
+                        <FontAwesome5 name="android" size={16} color="#16a34a" />
+                      </View>
+                      <Text className="font-pmedium text-base text-gray-900">Android Devices</Text>
+                    </View>
+                  }>
+                  <View className="px-2 pb-4 pt-2">
+                    <View className="gap-y-3">
+                      <Text className="font-pregular text-sm leading-6 text-gray-600">
+                        1. Connect to SRATRC Network (ignore any login page).
+                      </Text>
+                      <Text className="font-pregular text-sm leading-6 text-gray-600">
+                        2. Go to Settings → WiFi.
+                      </Text>
+                      <Text className="font-pregular text-sm leading-6 text-gray-600">
+                        3. Tap the 'i' or gear icon next to SRATRC.
+                      </Text>
+                      <Text className="font-pregular text-sm leading-6 text-gray-600">
+                        4. Find "Randomized MAC" or "Private MAC".
+                      </Text>
+                      <Text className="font-pregular text-sm leading-6 text-gray-600">
+                        5. Set to{' '}
+                        <Text className="font-pbold text-gray-800">"Use Phone/Device MAC"</Text>.
+                      </Text>
+                      <Text className="font-pregular text-sm leading-6 text-gray-600">
+                        6. Tap OK/Join and wait ~1 minute.
+                      </Text>
+                      <Text className="font-pregular text-sm leading-6 text-gray-600">
+                        7. Go to{' '}
+                        <Text
+                          onPress={() => Linking.openURL('http://portal.ruijienetworks.com')}
+                          className="font-pbold text-blue-600 underline">
+                          portal.ruijienetworks.com
+                        </Text>
+                        .
+                      </Text>
+                      <Text className="font-pregular text-sm leading-6 text-gray-600">
+                        8. Enter code & Login.
+                      </Text>
+                    </View>
+                  </View>
+                </ExpandableItem>
+
+                {/* iOS Instructions */}
+                <ExpandableItem
+                  rootClassName="border-b border-gray-100"
+                  visibleContent={
+                    <View className="flex-row items-center gap-x-3 py-1">
+                      <View className="h-8 w-8 items-center justify-center rounded-full bg-gray-100">
+                        <FontAwesome5 name="apple" size={18} color="#374151" />
+                      </View>
+                      <Text className="font-pmedium text-base text-gray-900">Apple Devices</Text>
+                    </View>
+                  }>
+                  <View className="px-2 pb-4 pt-2">
+                    <View className="gap-y-3">
+                      <Text className="font-pregular text-sm leading-6 text-gray-600">
+                        1. Connect to SRATRC Network.
+                      </Text>
+                      <Text className="font-pregular text-sm leading-6 text-gray-600">
+                        2. Go to Settings → WiFi → 'i' next to SRATRC.
+                      </Text>
+                      <Text className="font-pregular text-sm leading-6 text-gray-600">
+                        3. <Text className="font-pbold text-gray-800">UNCHECK</Text> "Private WiFi
+                        Address".
+                      </Text>
+                      <Text className="font-pregular text-sm leading-6 text-gray-600">
+                        4. <Text className="font-pbold text-gray-800">DISABLE</Text> "Limit IP
+                        Address Tracking".
+                      </Text>
+                      <Text className="font-pregular text-sm leading-6 text-gray-600">
+                        5. <Text className="font-pbold text-gray-800">ENABLE</Text> "Auto-Join" &
+                        "Auto-Login".
+                      </Text>
+                      <Text className="font-pregular text-sm leading-6 text-gray-600">
+                        6. Wait 10s, go back, open Safari.
+                      </Text>
+                      <Text className="font-pregular text-sm leading-6 text-gray-600">
+                        7. Go to{' '}
+                        <Text
+                          onPress={() => Linking.openURL('http://portal.ruijienetworks.com')}
+                          className="font-pbold text-blue-600 underline">
+                          portal.ruijienetworks.com
+                        </Text>
+                        .
+                      </Text>
+                      <Text className="font-pregular text-sm leading-6 text-gray-600">
+                        8. Enter code & Login.
+                      </Text>
+                    </View>
+                  </View>
+                </ExpandableItem>
+
+                {/* Video Help */}
+                <ExpandableItem
+                  rootClassName="border-b border-gray-100"
+                  visibleContent={
+                    <View className="flex-row items-center gap-x-3 py-1">
+                      <View className="h-8 w-8 items-center justify-center rounded-full bg-red-50">
+                        <FontAwesome5 name="youtube" size={14} color="#dc2626" />
+                      </View>
+                      <Text className="font-pmedium text-base text-gray-900">Video Tutorial</Text>
+                    </View>
+                  }>
+                  <View className="px-4 pb-4 pt-2">
+                    <TouchableOpacity
+                      onPress={() => {
+                        Linking.openURL('https://rebrand.ly/SRATRCresidentsWiFi');
+                      }}
+                      className="flex-row items-center justify-center rounded-lg bg-red-50 py-3 active:bg-red-100">
+                      <FontAwesome5
+                        name="play"
+                        size={12}
+                        color="#dc2626"
+                        style={{ marginRight: 8 }}
+                      />
+                      <Text className="font-pmedium text-sm text-red-700">Watch Video Guide</Text>
+                    </TouchableOpacity>
+                  </View>
+                </ExpandableItem>
+
+                {/* WiFi Code Types */}
+                <ExpandableItem
+                  rootClassName=""
+                  visibleContent={
+                    <View className="flex-row items-center gap-x-3 py-1">
+                      <View className="h-8 w-8 items-center justify-center rounded-full bg-blue-50">
+                        <Fontisto name="wifi-logo" size={14} color="#0284c7" />
+                      </View>
+                      <Text className="font-pmedium text-base text-gray-900">Code Types Info</Text>
+                    </View>
+                  }>
+                  <View className="gap-y-4 px-4 pb-4 pt-2">
+                    <View className="flex-row gap-x-3">
+                      <View className="mt-1 h-2 w-2 rounded-full bg-amber-500" />
+                      <View className="flex-1">
+                        <Text className="font-pmedium text-sm text-gray-900">Permanent Code</Text>
+                        <Text className="mt-0.5 font-pregular text-xs leading-5 text-gray-500">
+                          Long-term access, requires admin approval, valid indefinitely.
+                        </Text>
+                      </View>
+                    </View>
+                    <View className="flex-row gap-x-3">
+                      <View className="mt-1 h-2 w-2 rounded-full bg-cyan-500" />
+                      <View className="flex-1">
+                        <Text className="font-pmedium text-sm text-gray-900">Temporary Code</Text>
+                        <Text className="mt-0.5 font-pregular text-xs leading-5 text-gray-500">
+                          Short-term (24h), instant, max 3 codes allowed.
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </ExpandableItem>
               </View>
 
-              {/* Android Instructions */}
-              <ExpandableItem
-                rootClassName="mb-2"
-                visibleContent={
-                  <View className="flex-row items-center gap-x-2">
-                    <Text className="text-2xl">🤖</Text>
-                    <Text className="font-psemibold text-lg text-gray-900">Android Devices</Text>
-                  </View>
-                }>
-                <View className="mt-2 px-2 pb-2">
-                  <Text className="mb-3 font-pmedium text-base text-green-800">
-                    Steps to Connect:
-                  </Text>
-                  <View className="gap-y-2">
-                    <Text className="font-pregular text-sm leading-6 text-green-700">
-                      1. Connect to SRATRC Network (ignore any login page).
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-green-700">
-                      2. Go to Settings → WiFi.
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-green-700">
-                      3. Tap the 'i' or gear icon next to SRATRC.
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-green-700">
-                      4. Find the "Randomized MAC" or "Private MAC" option.
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-green-700">
-                      5. Set it to <Text className="font-pbold">"Use Phone/Device MAC"</Text>.
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-green-700">
-                      6. Tap OK/Join and wait for about 1 minute.
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-green-700">
-                      7. Open a browser and go to{' '}
-                      <Text className="font-pbold">portal.ruijienetworks.com</Text>.
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-green-700">
-                      8. Enter your code.
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-green-700">
-                      9. Agree to the terms and tap Login.
-                    </Text>
-                  </View>
-                </View>
-              </ExpandableItem>
-
-              {/* iOS Instructions */}
-              <ExpandableItem
-                rootClassName="mb-2"
-                visibleContent={
-                  <View className="flex-row items-center gap-x-2">
-                    <Text className="text-2xl">🍎</Text>
-                    <Text className="font-psemibold text-lg text-gray-900">Apple Devices</Text>
-                  </View>
-                }>
-                <View className="mt-2 px-2 pb-2 pt-2">
-                  <Text className="mb-3 font-pmedium text-base text-blue-800">
-                    Steps to Connect:
-                  </Text>
-                  <View className="gap-y-2">
-                    <Text className="font-pregular text-sm leading-6 text-blue-700">
-                      1. Connect to SRATRC Network.
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-blue-700">
-                      2. Go to Settings → WiFi.
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-blue-700">
-                      3. Tap the 'i' button next to SRATRC.
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-blue-700">
-                      4. <Text className="font-pbold">UNCHECK</Text> "Private WiFi Address".
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-blue-700">
-                      5. <Text className="font-pbold">DISABLE</Text> "Limit IP Address Tracking" (if
-                      available).
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-blue-700">
-                      6. <Text className="font-pbold">ENABLE</Text> "Auto-Join".
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-blue-700">
-                      7. <Text className="font-pbold">ENABLE</Text> "Auto-Login".
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-blue-700">
-                      8. Wait 10 seconds, then tap back.
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-blue-700">
-                      9. Open Safari and go to{' '}
-                      <Text className="font-pbold">portal.ruijienetworks.com</Text>.
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-blue-700">
-                      10. Enter your code.
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-blue-700">
-                      11. Agree to the terms and tap Login.
-                    </Text>
-                  </View>
-                </View>
-              </ExpandableItem>
-
-              {/* Video Help */}
-              <ExpandableItem
-                rootClassName="mb-2"
-                visibleContent={
-                  <View className="flex-row items-center gap-x-2">
-                    <Text className="text-2xl">🎥</Text>
-                    <Text className="font-psemibold text-lg text-gray-900">Video Tutorial</Text>
-                  </View>
-                }>
-                <View className="mt-2 px-2 pb-2 pt-2">
-                  <Text className="mb-3 font-pregular text-sm leading-6 text-purple-700">
-                    If you're having trouble, please watch our video tutorial:
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      Linking.openURL('https://rebrand.ly/SRATRCresidentsWiFi');
-                    }}
-                    className="rounded-lg bg-purple-100 p-3">
-                    <Text className="text-center font-pmedium text-sm text-purple-800">
-                      Watch Video Guide
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </ExpandableItem>
-
-              {/* WiFi Code Types */}
-              <ExpandableItem
-                rootClassName="mb-2"
-                visibleContent={
-                  <View className="flex-row items-center gap-x-2">
-                    <Text className="text-2xl">📶</Text>
-                    <Text className="font-psemibold text-lg text-gray-900">WiFi Code Types</Text>
-                  </View>
-                }>
-                <View className="mt-2 gap-y-3 px-2 pb-2 pt-2">
-                  <View>
-                    <Text className="mb-1 font-pmedium text-base text-amber-800">
-                      🔒 Permanent Code
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-amber-700">
-                      Long-term access, requires admin approval, and is valid indefinitely.
-                    </Text>
-                  </View>
-                  <View>
-                    <Text className="mb-1 font-pmedium text-base text-cyan-800">
-                      ⏱️ Temporary Code
-                    </Text>
-                    <Text className="font-pregular text-sm leading-6 text-cyan-700">
-                      Short-term access, instant generation, auto-expires, and a maximum of 3 codes
-                      are allowed.
-                    </Text>
-                  </View>
-                </View>
-              </ExpandableItem>
+              <View className="h-6" />
             </View>
           </ScrollView>
         </SafeAreaView>

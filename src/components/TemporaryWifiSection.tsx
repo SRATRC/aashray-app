@@ -44,22 +44,22 @@ const TemporaryWifiSection: React.FC<TemporaryWifiSectionProps> = ({
   const isAtMaxLimit = validCodes.length >= maxCodes;
 
   const renderCodeItem = (code: TemporaryWifiCode, index: number) => (
-    <ShadowBox key={code.id || index} className="mx-4 mt-3 rounded-2xl bg-white">
-      <View className="rounded-xl p-4">
-        <View className="flex-row items-center justify-between">
-          <View className="flex-1">
-            <Text className="font-pregular text-sm text-gray-600">Temporary WiFi Code</Text>
-            <Text className="font-psemibold text-lg text-black">{code.password}</Text>
-          </View>
-          <ShadowBox
-            onPress={() => copyToClipboard(code.password)}
-            interactive
-            className="h-10 w-10 items-center justify-center rounded-full bg-white">
-            <Ionicons name="copy-outline" size={20} color={colors.gray_400} />
-          </ShadowBox>
+    <View
+      key={code.id || index}
+      className="mx-4 mt-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm shadow-gray-200">
+      <View className="flex-row items-center justify-between">
+        <View className="flex-1">
+          <Text className="font-pregular text-xs text-gray-500">Temporary Code</Text>
+          <Text className="font-psemibold text-xl text-black">{code.password}</Text>
         </View>
+        <TouchableOpacity
+          onPress={() => copyToClipboard(code.password)}
+          className="h-10 w-10 items-center justify-center rounded-full bg-gray-50"
+          activeOpacity={0.7}>
+          <Ionicons name="copy-outline" size={20} color={colors.orange} />
+        </TouchableOpacity>
       </View>
-    </ShadowBox>
+    </View>
   );
 
   const renderEmptyState = () => (
@@ -107,9 +107,6 @@ const TemporaryWifiSection: React.FC<TemporaryWifiSectionProps> = ({
     <View>
       {/* Section Header */}
       <View className="mt-2 flex-row items-center p-4">
-        <View className="mr-3 h-8 w-8 items-center justify-center rounded-full bg-blue-100">
-          <Text className="font-psemibold text-blue-600">⏱️</Text>
-        </View>
         <View className="flex-1">
           <Text className="font-psemibold text-lg text-black">Temporary WiFi Codes</Text>
           <Text className="font-pregular text-sm text-gray-500">
