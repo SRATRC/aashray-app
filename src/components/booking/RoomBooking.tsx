@@ -103,6 +103,7 @@ const RoomBooking = () => {
       setMultiDayForm(INITIAL_MULTI_DAY_FORM);
 
       setResetKey((prevKey) => prevKey + 1);
+      setSelectedDay(undefined);
     }, [])
   );
 
@@ -346,6 +347,7 @@ const RoomBooking = () => {
           {value === SWITCH_OPTIONS[0] && (
             <View>
               <CustomCalender
+                key={resetKey}
                 type={'period'}
                 startDay={multiDayForm.startDay}
                 setStartDay={(day: any) => {
@@ -610,6 +612,7 @@ const RoomBooking = () => {
           {value === SWITCH_OPTIONS[1] && (
             <View>
               <CustomCalender
+                key={resetKey}
                 selectedDay={selectedDay}
                 setSelectedDay={(day: any) => setSelectedDay(day)}
               />
