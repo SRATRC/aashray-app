@@ -259,6 +259,7 @@ const wifi = () => {
               <Callout
                 message="Please follow the instructions below VERY CAREFULLY for permanent WiFi codes."
                 overrideStyle="mx-4"
+                variant="error"
               />
 
               {/* Key Points Section */}

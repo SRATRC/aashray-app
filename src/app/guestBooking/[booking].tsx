@@ -21,6 +21,7 @@ import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '@/src/components/CustomModal';
 import GuestEventBookingDetails from '@/src/components/booking details cards/GuestEventBookingDetails';
 import CustomAlert from '@/src/components/CustomAlert';
+import Callout from '@/src/components/Callout';
 
 // Define initial form structures
 const createInitialRoomForm = (existingData: any = null) => ({
@@ -529,18 +530,11 @@ const GuestAddons = () => {
         )}
 
         {booking === types.EVENT_DETAILS_TYPE ? (
-          <View className="m-4 flex-row items-start gap-x-3 rounded-lg border border-amber-300 bg-amber-50 p-3">
-            <FontAwesome
-              name="info-circle"
-              size={16}
-              color="#b45309"
-              style={{ alignSelf: 'center' }}
-            />
-            <Text className="flex-1 font-pregular text-sm text-amber-800">
-              For Early Arrival or Late Departure during events please book your stay, food and
-              travel through add-ons below.
-            </Text>
-          </View>
+          <Callout
+            variant="warning"
+            message="For Early Arrival or Late Departure during events please book your stay, food and travel through add-ons below."
+            overrideStyle="m-4"
+          />
         ) : (
           <View className="mt-4" />
         )}

@@ -529,15 +529,17 @@ const TravelBooking = () => {
                     maxSelectedDisplay={3}
                   />
 
-                  <CustomSelectBottomSheet
-                    className="mt-7"
-                    label="Leaving post adhyayan?"
-                    placeholder="Leaving post adhyayan?"
-                    options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
-                    selectedValue={mumukshuForm.mumukshus[index].adhyayan}
-                    onValueChange={(val: any) => handleMumukshuFormChange(index, 'adhyayan', val)}
-                    saveKeyInsteadOfValue={false}
-                  />
+                  {mumukshuForm.mumukshus[index].pickup == dropdowns.LOCATION_LIST[0].value && (
+                    <CustomSelectBottomSheet
+                      className="mt-7"
+                      label="Leaving post adhyayan?"
+                      placeholder="Leaving post adhyayan?"
+                      options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
+                      selectedValue={mumukshuForm.mumukshus[index].adhyayan}
+                      onValueChange={(val: any) => handleMumukshuFormChange(index, 'adhyayan', val)}
+                      saveKeyInsteadOfValue={false}
+                    />
+                  )}
 
                   <FormField
                     text="Comments"
