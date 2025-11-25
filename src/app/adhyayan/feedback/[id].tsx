@@ -6,13 +6,15 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/src/stores';
 import { colors } from '@/src/constants';
+import { ShadowBox } from '@/src/components/ShadowBox';
 import PageHeader from '@/src/components/PageHeader';
 import FormField from '@/src/components/FormField';
 import CustomButton from '@/src/components/CustomButton';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import ErrorText from '@/src/components/ErrorText';
-import { ShadowBox } from '@/src/components/ShadowBox';
 import CustomAlert from '@/src/components/CustomAlert';
+import CustomErrorMessage from '@/src/components/CustomErrorMessage';
+import Shimmer from '@/src/components/Shimmer';
 
 export type AdhyayanFeedbackData = {
   swadhay_karta_rating: number | null;
@@ -273,7 +275,8 @@ const FeedbackScreen: React.FC = () => {
             setValidationError(
               err?.message || 'You are not authorized to submit feedback for this shibir'
             );
-          }
+          },
+          false
         );
       });
       setValidationError(null);
@@ -305,91 +308,35 @@ const FeedbackScreen: React.FC = () => {
     }
 
     setSubmitting(true);
-    try {
-      await new Promise((resolve, reject) => {
-        handleAPICall(
-          'POST',
-          '/adhyayan/feedback',
-          null,
-          {
-            cardno: user!.cardno,
-            shibir_id: shibirId,
-            swadhay_karta_rating: form.swadhay_karta_rating,
-            personal_interaction_rating: form.personal_interaction_rating,
-            swadhay_karta_suggestions: form.swadhay_karta_suggestions,
-            raj_adhyayan_interest: form.raj_adhyayan_interest,
-            future_topics: form.future_topics,
-            loved_most: form.loved_most,
-            improvement_suggestions: form.improvement_suggestions,
-            food_rating: form.food_rating,
-            stay_rating: form.stay_rating,
-          },
-          () => resolve(true),
-          () => {},
-          (err) => reject(err)
-        );
-      });
 
-      CustomAlert.alert('Thank you!', 'Your feedback has been submitted successfully.');
-      router.back();
-    } catch (e: any) {
-      // handleAPICall already shows a toast; optionally add alert
-    } finally {
-      setSubmitting(false);
-    }
+    await new Promise((resolve, reject) => {
+      handleAPICall(
+        'POST',
+        '/adhyayan/feedback',
+        null,
+        {
+          cardno: user!.cardno,
+          shibir_id: shibirId,
+          swadhay_karta_rating: form.swadhay_karta_rating,
+          personal_interaction_rating: form.personal_interaction_rating,
+          swadhay_karta_suggestions: form.swadhay_karta_suggestions,
+          raj_adhyayan_interest: form.raj_adhyayan_interest,
+          future_topics: form.future_topics,
+          loved_most: form.loved_most,
+          improvement_suggestions: form.improvement_suggestions,
+          food_rating: form.food_rating,
+          stay_rating: form.stay_rating,
+        },
+        () => resolve(true),
+        () => {},
+        (err) => reject(err)
+      );
+    });
+
+    CustomAlert.alert('Thank you!', 'Your feedback has been submitted successfully.');
+    router.back();
+    setSubmitting(false);
   };
-
-  if (isValidating) {
-    return (
-      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-        <PageHeader
-          title="Adhyayan Feedback"
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
-        />
-        {/* Shimmer Loading UI */}
-        <View className="animate-pulse p-6">
-          {/* Ratings Shimmer */}
-          <View className="mb-6">
-            <View className="mb-2 h-6 w-1/2 rounded-lg bg-gray-200" />
-            <View className="flex-row gap-x-2">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <View key={n} className="h-7 w-7 rounded-full bg-gray-200" />
-              ))}
-            </View>
-          </View>
-
-          {/* Text Inputs Shimmer */}
-          {[1, 2, 3, 4].map((n) => (
-            <View key={n} className="mb-6">
-              <View className="mb-2 h-6 w-3/4 rounded-lg bg-gray-200" />
-              <View className="h-24 rounded-xl bg-gray-200" />
-            </View>
-          ))}
-
-          {/* Submit Button Shimmer */}
-          <View className="mt-4 h-[62px] w-full rounded-xl bg-gray-200" />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (validationError) {
-    return (
-      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-        <PageHeader
-          title="Adhyayan Feedback"
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
-        />
-        <View className="flex-1 items-center justify-center px-6">
-          <Ionicons name="warning-outline" size={48} color="#DC2626" />
-          <Text className="mb-2 mt-4 text-center font-psemibold text-xl text-gray-900">
-            Access Denied
-          </Text>
-          <Text className="mb-6 text-center text-base text-gray-600">{validationError}</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -397,19 +344,41 @@ const FeedbackScreen: React.FC = () => {
         title="Adhyayan Feedback"
         onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
       />
-      <KeyboardAwareScrollView
-        bottomOffset={62}
-        style={{ flex: 1 }}
-        keyboardShouldPersistTaps="handled">
-        <AdhyayanFeedbackForm
-          value={form}
-          onChange={setForm}
-          onSubmit={submit}
-          isSubmitting={submitting}
-          showValidation={showValidation}
-          containerStyles="px-4"
-        />
-      </KeyboardAwareScrollView>
+
+      {isValidating && (
+        <Shimmer.Container className="p-6">
+          <View className="mb-6">
+            <Shimmer.Line width="50%" height={24} className="mb-2" />
+            <Shimmer.Stars />
+          </View>
+
+          {[1, 2, 3, 4].map((n) => (
+            <Shimmer.TextArea key={n} className="mb-6" />
+          ))}
+
+          <Shimmer.Button className="mt-4" />
+        </Shimmer.Container>
+      )}
+
+      {validationError && (
+        <CustomErrorMessage errorTitle="Access Denied" errorMessage={validationError} />
+      )}
+
+      {!isValidating && !validationError && (
+        <KeyboardAwareScrollView
+          bottomOffset={62}
+          style={{ flex: 1 }}
+          keyboardShouldPersistTaps="handled">
+          <AdhyayanFeedbackForm
+            value={form}
+            onChange={setForm}
+            onSubmit={submit}
+            isSubmitting={submitting}
+            showValidation={showValidation}
+            containerStyles="px-4"
+          />
+        </KeyboardAwareScrollView>
+      )}
     </SafeAreaView>
   );
 };

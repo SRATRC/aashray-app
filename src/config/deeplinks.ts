@@ -41,7 +41,7 @@ export const DEEPLINK_ROUTES: DeeplinkRoute[] = [
     {
         name: DeepLinkType.PENDING_PAYMENT,
         pattern: '/pendingPayments',
-        target: '/ppendingPayments',
+        target: '/pendingPayments',
         authRequired: true,
     },
     {

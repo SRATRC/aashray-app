@@ -6,7 +6,6 @@ import {
   RefreshControl,
   TouchableOpacity,
   Modal,
-  Alert,
 } from 'react-native';
 import { useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,8 +24,8 @@ import FormField from '@/src/components/FormField';
 import CustomButton from '@/src/components/CustomButton';
 import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
-import moment from 'moment';
 import CustomAlert from '@/src/components/CustomAlert';
+import moment from 'moment';
 
 const CHIPS = [
   types.MAINTENANCE_TYPE_ALL,

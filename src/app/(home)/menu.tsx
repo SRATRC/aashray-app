@@ -82,25 +82,6 @@ const MenuPage = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#000000" />
-      </View>
-    );
-  }
-
-  if (isError) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>Unable to load menu</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
-          <Text style={styles.retryButtonText}>Try Again</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
   if (!menuData || Object.keys(menuData).length === 0) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -114,49 +95,69 @@ const MenuPage = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       <PageHeader title="Menu" onPress={() => router.back()} />
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#000000" />
-        }>
-        {Object.entries(menuData).map(([date, meals]) => {
-          const dateInfo = formatDate(date);
+      {isLoading && (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#000000" />
+        </View>
+      )}
 
-          return (
-            <View key={date} style={styles.daySection}>
-              {/* Date Header */}
-              <View style={styles.dateHeader}>
-                <Text style={[styles.dateText, dateInfo.isToday && styles.todayText]}>
-                  {dateInfo.display}
-                </Text>
-                {dateInfo.isToday && <View style={styles.todayIndicator} />}
-              </View>
+      {isError && (
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>Unable to load menu</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-              {/* Meals */}
-              {meals.map((meal, index) => {
-                const accentColor = getMealAccent(meal.meal);
+      {!menuData ||
+        (Object.keys(menuData).length === 0 && <CustomEmptyMessage message="No menu available" />)}
 
-                return (
-                  <View key={index} style={styles.mealCard}>
-                    <View style={[styles.mealAccent, { backgroundColor: accentColor }]} />
+      {!isLoading && !isError && menuData && (
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#000000" />
+          }>
+          {Object.entries(menuData).map(([date, meals]) => {
+            const dateInfo = formatDate(date);
 
-                    <View style={styles.mealContent}>
-                      <View style={styles.mealHeader}>
-                        <Text style={styles.mealType}>{meal.meal}</Text>
-                        <Text style={styles.mealTime}>{meal.time}</Text>
+            return (
+              <View key={date} style={styles.daySection}>
+                {/* Date Header */}
+                <View style={styles.dateHeader}>
+                  <Text style={[styles.dateText, dateInfo.isToday && styles.todayText]}>
+                    {dateInfo.display}
+                  </Text>
+                  {dateInfo.isToday && <View style={styles.todayIndicator} />}
+                </View>
+
+                {/* Meals */}
+                {meals.map((meal, index) => {
+                  const accentColor = getMealAccent(meal.meal);
+
+                  return (
+                    <View key={index} style={styles.mealCard}>
+                      <View style={[styles.mealAccent, { backgroundColor: accentColor }]} />
+
+                      <View style={styles.mealContent}>
+                        <View style={styles.mealHeader}>
+                          <Text style={styles.mealType}>{meal.meal}</Text>
+                          <Text style={styles.mealTime}>{meal.time}</Text>
+                        </View>
+
+                        <Text style={styles.menuItems}>{meal.name}</Text>
                       </View>
-
-                      <Text style={styles.menuItems}>{meal.name}</Text>
                     </View>
-                  </View>
-                );
-              })}
-            </View>
-          );
-        })}
-      </ScrollView>
+                  );
+                })}
+              </View>
+            );
+          })}
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 };

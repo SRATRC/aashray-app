@@ -300,7 +300,10 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
         </ShadowBox>
       ) : isError ? (
         <ShadowBox className="mx-4 rounded-2xl bg-white p-6">
-          <CustomErrorMessage />
+          <CustomErrorMessage
+            errorTitle="An Error Occurred"
+            errorMessage="Failed to load permanent WiFi code. Please try again later."
+          />
         </ShadowBox>
       ) : !data || data.length === 0 ? (
         allowRequest ? (

@@ -205,51 +205,50 @@ const wifi = () => {
     setShowInfoModal(false);
   };
 
-  if (isError && isPermanentError)
-    return (
-      <SafeAreaView className="h-full bg-white-100">
-        <PageHeader title={'WiFi Passwords'} />
-        <View className="flex-1 items-center justify-center px-4">
-          <CustomErrorMessage />
-        </View>
-      </SafeAreaView>
-    );
-
   return (
-    <SafeAreaView className="h-full bg-white-100">
+    <SafeAreaView className="h-full bg-white-100" edges={['top', 'left', 'right']}>
       <PageHeader title={'WiFi Passwords'} />
 
-      <ScrollView
-        className="flex-1"
-        keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-        <PermanentWifiSection
-          data={permanentWifiData}
-          isLoading={isPermanentLoading}
-          isError={isPermanentError}
-          isSubmitting={isPermanentSubmitting}
-          onRequestCode={handleRequestPermanentCode}
-          onInfoPress={handleInfoPress}
-          onResetCode={handleResetPermanentCode}
-          isResettingCode={isResettingCode}
-          allowRequest={!isResident}
-        />
+      {isError && isPermanentError && (
+        <View className="flex-1 items-center justify-center px-4">
+          <CustomErrorMessage errorTitle="An Error Occurred" errorMessage={error?.message} />
+        </View>
+      )}
 
-        {!isResident && (
-          <TemporaryWifiSection
-            codes={wifiList}
-            isLoading={isLoading}
-            isGenerating={isSubmitting}
-            maxCodes={3}
-            onGenerateCode={handleGenerateCode}
+      {!isError && !isPermanentError && (
+        <ScrollView
+          className="flex-1"
+          keyboardShouldPersistTaps="handled"
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+          <PermanentWifiSection
+            data={permanentWifiData}
+            isLoading={isPermanentLoading}
+            isError={isPermanentError}
+            isSubmitting={isPermanentSubmitting}
+            onRequestCode={handleRequestPermanentCode}
+            onInfoPress={handleInfoPress}
+            onResetCode={handleResetPermanentCode}
+            isResettingCode={isResettingCode}
+            allowRequest={!isResident}
           />
-        )}
-      </ScrollView>
+
+          {!isResident && (
+            <TemporaryWifiSection
+              codes={wifiList}
+              isLoading={isLoading}
+              isGenerating={isSubmitting}
+              maxCodes={3}
+              onGenerateCode={handleGenerateCode}
+            />
+          )}
+        </ScrollView>
+      )}
 
       <Modal
         animationType="slide"
         visible={showInfoModal}
         presentationStyle="pageSheet"
+        allowSwipeDismissal
         statusBarTranslucent={true}>
         <SafeAreaView className="flex-1">
           <PageHeader title={'WiFi Instructions'} iconName="times" onPress={handleCloseModal} />

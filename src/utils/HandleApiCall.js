@@ -10,7 +10,8 @@ const handleAPICall = async (
   body,
   successCallback,
   finallyCallback = () => {},
-  errorCallback = (error) => {}
+  errorCallback = (error) => {},
+  allowToast = true
 ) => {
   try {
     const url = `${BASE_URL}${endpoint}`;
@@ -65,14 +66,16 @@ const handleAPICall = async (
 
     console.log('ERROR: ', errorMessage);
 
-    Toast.show({
-      type: 'error',
-      text1: 'An error occurred!',
-      text2: errorMessage,
-      swipeable: false,
-      text1Style: { color: 'red' },
-      text2Style: { color: 'black', fontWeight: 'bold', fontSize: 14 },
-    });
+    if (allowToast) {
+      Toast.show({
+        type: 'error',
+        text1: 'An error occurred!',
+        text2: errorMessage,
+        swipeable: false,
+        text1Style: { color: 'red' },
+        text2Style: { color: 'black', fontWeight: 'bold', fontSize: 14 },
+      });
+    }
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
   } finally {

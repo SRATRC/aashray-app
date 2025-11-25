@@ -862,51 +862,46 @@ const PendingPayments = () => {
     isTransactionExpired,
   ]);
 
-  if (isLoading) {
-    return (
-      <SafeAreaView className="h-full bg-gray-50" edges={['top']}>
-        <PageHeader title="Pending Payments" />
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#F1AC09" />
-          <Text className="mt-3 font-pregular text-sm text-gray-600">Loading your payments...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (isError) {
-    return (
-      <SafeAreaView className="h-full bg-gray-50" edges={['top']}>
-        <PageHeader title="Pending Payments" />
-        <CustomErrorMessage />
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView className="h-full" edges={['top']}>
       <PageHeader title="Pending Payments" />
 
-      <FlashList
-        className="flex-grow"
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: 12,
-          paddingBottom: selectedPayments.length > 0 && isPaymentAllowed ? 120 + insets.bottom : 20,
-        }}
-        data={pendingPayments}
-        showsVerticalScrollIndicator={false}
-        renderItem={renderItem}
-        ListHeaderComponent={ListHeader}
-        ListEmptyComponent={
-          <View className="h-full flex-1 items-center justify-center pt-40">
-            <CustomEmptyMessage message={`Look at you,\nfinancially responsible superstar!`} />
-          </View>
-        }
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        keyExtractor={(item) => `${item.bookingid}-${item.category}-${item.createdAt}`}
-        extraData={[selectedPayments, isPaymentAllowed]}
-      />
+      {isError && (
+        <View className="flex-1 items-center justify-center">
+          <CustomErrorMessage errorTitle="Error" errorMessage="Failed to fetch pending payments" />
+        </View>
+      )}
+
+      {isLoading && (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#F1AC09" />
+          <Text className="mt-3 font-pregular text-sm text-gray-600">Loading your payments...</Text>
+        </View>
+      )}
+
+      {!isLoading && !isError && (
+        <FlashList
+          className="flex-grow"
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingTop: 12,
+            paddingBottom:
+              selectedPayments.length > 0 && isPaymentAllowed ? 120 + insets.bottom : 20,
+          }}
+          data={pendingPayments}
+          showsVerticalScrollIndicator={false}
+          renderItem={renderItem}
+          ListHeaderComponent={ListHeader}
+          ListEmptyComponent={
+            <View className="h-full flex-1 items-center justify-center pt-40">
+              <CustomEmptyMessage message={`Look at you,\nfinancially responsible superstar!`} />
+            </View>
+          }
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          keyExtractor={(item) => `${item.bookingid}-${item.category}-${item.createdAt}`}
+          extraData={[selectedPayments, isPaymentAllowed]}
+        />
+      )}
 
       {selectedPayments.length > 0 && isPaymentAllowed && (
         <View className="absolute bottom-0 left-0 right-0">
