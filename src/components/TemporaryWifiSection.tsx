@@ -1,12 +1,14 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/constants';
+import { ShadowBox } from './ShadowBox';
+import Shimmer from '@/src/components/Shimmer';
 import Toast from 'react-native-toast-message';
 import CustomButton from '@/src/components/CustomButton';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
-import { ShadowBox } from './ShadowBox';
+import CustomErrorMessage from './CustomErrorMessage';
 
 interface TemporaryWifiCode {
   id?: string;
@@ -18,6 +20,7 @@ interface TemporaryWifiCode {
 interface TemporaryWifiSectionProps {
   codes: TemporaryWifiCode[] | null;
   isLoading: boolean;
+  isError: boolean;
   isGenerating: boolean;
   maxCodes?: number;
   onGenerateCode: () => void;
@@ -26,6 +29,7 @@ interface TemporaryWifiSectionProps {
 const TemporaryWifiSection: React.FC<TemporaryWifiSectionProps> = ({
   codes,
   isLoading,
+  isError,
   isGenerating,
   maxCodes = 3,
   onGenerateCode,
@@ -84,10 +88,11 @@ const TemporaryWifiSection: React.FC<TemporaryWifiSectionProps> = ({
   );
 
   const renderLoadingState = () => (
-    <View className="items-center justify-center py-8">
-      <ActivityIndicator size="large" color={colors.orange} />
-      <Text className="mt-3 font-pregular text-sm text-gray-600">Loading codes...</Text>
-    </View>
+    <Shimmer.Container className="mx-4 mt-3 gap-y-3">
+      <Shimmer.Box height={80} borderRadius={12} />
+      <Shimmer.Box height={80} borderRadius={12} />
+      <Shimmer.Box height={80} borderRadius={12} />
+    </Shimmer.Container>
   );
 
   const renderGenerateButton = () => (
@@ -104,7 +109,7 @@ const TemporaryWifiSection: React.FC<TemporaryWifiSectionProps> = ({
   );
 
   return (
-    <View>
+    <View className="mb-10 flex-1">
       {/* Section Header */}
       <View className="mt-2 flex-row items-center p-4">
         <View className="flex-1">
@@ -120,8 +125,20 @@ const TemporaryWifiSection: React.FC<TemporaryWifiSectionProps> = ({
       {/* Content */}
       {isLoading ? (
         renderLoadingState()
+      ) : isError ? (
+        <ShadowBox className="mx-4 rounded-2xl bg-white p-6">
+          <CustomErrorMessage
+            errorTitle="An Error Occurred"
+            errorMessage="Failed to load temporary WiFi codes. Please try again later."
+          />
+        </ShadowBox>
       ) : validCodes.length === 0 ? (
-        renderEmptyState()
+        <ShadowBox className="mx-4 rounded-2xl bg-white p-6">
+          <CustomErrorMessage
+            errorTitle="An Error Occurred"
+            errorMessage="Failed to load temporary WiFi codes. Please try again later."
+          />
+        </ShadowBox>
       ) : (
         <>
           {/* Render all temporary codes */}

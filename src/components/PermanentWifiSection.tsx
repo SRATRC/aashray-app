@@ -7,6 +7,7 @@ import HorizontalSeparator from './HorizontalSeparator';
 import CustomAlert from './CustomAlert';
 import CustomButton from '@/src/components/CustomButton';
 import CustomErrorMessage from '@/src/components/CustomErrorMessage';
+import Shimmer from '@/src/components/Shimmer';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
@@ -275,7 +276,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
   };
 
   return (
-    <View>
+    <View className="flex-1">
       {/* Section Header */}
       <View className="mb-6 flex-row items-center px-4">
         <View className="flex-1">
@@ -292,12 +293,9 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
 
       {/* Content */}
       {isLoading ? (
-        <ShadowBox className="mx-4 items-center justify-center rounded-2xl bg-white p-8">
-          <ActivityIndicator size="large" color={colors.orange} />
-          <Text className="mt-3 font-pregular text-sm text-gray-600">
-            Loading permanent code...
-          </Text>
-        </ShadowBox>
+        <Shimmer.Container className="mx-4">
+          <Shimmer.Box height={150} borderRadius={12} />
+        </Shimmer.Container>
       ) : isError ? (
         <ShadowBox className="mx-4 rounded-2xl bg-white p-6">
           <CustomErrorMessage
@@ -312,10 +310,12 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
           renderEmptyStateNoRequest()
         )
       ) : (
-        <View className="mx-4">
-          {data.map((item, index) => renderWifiItem(item, index))}
-          {shouldShowRequestButton() && allowRequest && renderRequestButton()}
-        </View>
+        <ShadowBox className="mx-4 rounded-2xl bg-white p-6">
+          <CustomErrorMessage
+            errorTitle="An Error Occurred"
+            errorMessage="Failed to load permanent WiFi code. Please try again later."
+          />
+        </ShadowBox>
       )}
     </View>
   );
