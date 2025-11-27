@@ -23,7 +23,7 @@ import {
 import { colors } from '../constants';
 import { Ionicons, AntDesign } from '@expo/vector-icons';
 // @ts-ignore
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 
 // Define types
 interface Option {
