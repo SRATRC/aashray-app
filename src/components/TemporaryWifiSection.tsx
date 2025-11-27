@@ -133,12 +133,7 @@ const TemporaryWifiSection: React.FC<TemporaryWifiSectionProps> = ({
           />
         </ShadowBox>
       ) : validCodes.length === 0 ? (
-        <ShadowBox className="mx-4 rounded-2xl bg-white p-6">
-          <CustomErrorMessage
-            errorTitle="An Error Occurred"
-            errorMessage="Failed to load temporary WiFi codes. Please try again later."
-          />
-        </ShadowBox>
+        renderEmptyState()
       ) : (
         <>
           {/* Render all temporary codes */}

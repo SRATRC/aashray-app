@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  ActivityIndicator,
-  RefreshControl,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/src/stores';
 import { useRouter } from 'expo-router';
@@ -15,12 +7,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import PageHeader from '@/src/components/PageHeader';
 import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
+import Shimmer from '@/src/components/Shimmer';
+
+interface Meal {
+  _id: string;
+  meal: string;
+  name: string;
+  time?: string;
+}
+
+interface MenuData {
+  [date: string]: Meal[];
+}
 
 const MenuPage = () => {
   const { user } = useAuthStore();
   const router = useRouter();
 
-  const fetchMenu = async () => {
+  const fetchMenu = async (): Promise<MenuData> => {
     return new Promise((resolve, reject) => {
       handleAPICall(
         'GET',
@@ -82,82 +86,94 @@ const MenuPage = () => {
     }
   };
 
-  if (!menuData || Object.keys(menuData).length === 0) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <PageHeader title="Menu" onPress={() => router.back()} />
-        <CustomEmptyMessage message="No menu available" />
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <PageHeader title="Menu" onPress={() => router.back()} />
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#000000" />
+        }>
+        <PageHeader title="Menu" onPress={() => router.back()} />
 
-      {isLoading && (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#000000" />
-        </View>
-      )}
-
-      {isError && (
-        <View style={styles.centerContainer}>
-          <Text style={styles.errorText}>Unable to load menu</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
-            <Text style={styles.retryButtonText}>Try Again</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {!menuData ||
-        (Object.keys(menuData).length === 0 && <CustomEmptyMessage message="No menu available" />)}
-
-      {!isLoading && !isError && menuData && (
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#000000" />
-          }>
-          {Object.entries(menuData).map(([date, meals]) => {
-            const dateInfo = formatDate(date);
-
-            return (
-              <View key={date} style={styles.daySection}>
-                {/* Date Header */}
-                <View style={styles.dateHeader}>
-                  <Text style={[styles.dateText, dateInfo.isToday && styles.todayText]}>
-                    {dateInfo.display}
-                  </Text>
-                  {dateInfo.isToday && <View style={styles.todayIndicator} />}
+        {isLoading && (
+          <View>
+            <Shimmer.Container className="px-6 py-5">
+              {/* Day Section 1 */}
+              <View className="mb-10">
+                <Shimmer.Line width={120} height={32} className="mb-5" />
+                <View className="gap-y-4">
+                  <Shimmer.Box height={120} borderRadius={16} />
+                  <Shimmer.Box height={120} borderRadius={16} />
+                  <Shimmer.Box height={120} borderRadius={16} />
                 </View>
-
-                {/* Meals */}
-                {meals.map((meal, index) => {
-                  const accentColor = getMealAccent(meal.meal);
-
-                  return (
-                    <View key={index} style={styles.mealCard}>
-                      <View style={[styles.mealAccent, { backgroundColor: accentColor }]} />
-
-                      <View style={styles.mealContent}>
-                        <View style={styles.mealHeader}>
-                          <Text style={styles.mealType}>{meal.meal}</Text>
-                          <Text style={styles.mealTime}>{meal.time}</Text>
-                        </View>
-
-                        <Text style={styles.menuItems}>{meal.name}</Text>
-                      </View>
-                    </View>
-                  );
-                })}
               </View>
-            );
-          })}
-        </ScrollView>
-      )}
+
+              {/* Day Section 2 */}
+              <View className="mb-10">
+                <Shimmer.Line width={120} height={32} className="mb-5" />
+                <View className="gap-y-4">
+                  <Shimmer.Box height={120} borderRadius={16} />
+                  <Shimmer.Box height={120} borderRadius={16} />
+                </View>
+              </View>
+            </Shimmer.Container>
+          </View>
+        )}
+
+        {isError && (
+          <View style={styles.centerContainer}>
+            <Text style={styles.errorText}>Unable to load menu</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+              <Text style={styles.retryButtonText}>Try Again</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {(!menuData || Object.keys(menuData).length === 0) && !isLoading && !isError && (
+          <CustomEmptyMessage message="No menu available" />
+        )}
+
+        {!isLoading && !isError && menuData && Object.keys(menuData).length > 0 && (
+          <View className="px-6">
+            {Object.entries(menuData).map(([date, meals]) => {
+              const dateInfo = formatDate(date);
+
+              return (
+                <View key={date} className="mb-10">
+                  {/* Date Header */}
+                  <View style={styles.dateHeader}>
+                    <Text style={[styles.dateText, dateInfo.isToday && styles.todayText]}>
+                      {dateInfo.display}
+                    </Text>
+                    {dateInfo.isToday && <View style={styles.todayIndicator} />}
+                  </View>
+
+                  {/* Meals */}
+                  {meals.map((meal, index) => {
+                    const accentColor = getMealAccent(meal.meal);
+
+                    return (
+                      <View key={index} style={styles.mealCard}>
+                        <View style={[styles.mealAccent, { backgroundColor: accentColor }]} />
+
+                        <View style={styles.mealContent}>
+                          <View style={styles.mealHeader}>
+                            <Text style={styles.mealType}>{meal.meal}</Text>
+                            <Text style={styles.mealTime}>{meal.time}</Text>
+                          </View>
+
+                          <Text style={styles.menuItems}>{meal.name}</Text>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              );
+            })}
+          </View>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -176,13 +192,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-  },
-  daySection: {
-    marginBottom: 40,
   },
   dateHeader: {
     flexDirection: 'row',

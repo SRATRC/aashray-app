@@ -1,21 +1,18 @@
-import { View, Text, TouchableOpacity, Image, FlatList } from 'react-native';
 import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, Image, FlatList } from 'react-native';
 import { icons } from '../constants';
 import { ShadowBox } from './ShadowBox';
 import CustomButton from './CustomButton';
 
-const CustomExpandableList: React.FC<{ data: any }> = ({ data }) => {
-  const renderItem = ({ item }: any) => <ExpandableListItem item={item} />;
-
-  return (
-    <FlatList
-      className="px-4 py-6"
-      data={data}
-      renderItem={renderItem}
-      keyExtractor={(item) => item.id.toString()}
-    />
-  );
-};
+const renderItem = ({ item }: any) => <ExpandableListItem item={item} />;
+const CustomExpandableList: React.FC<{ data: any }> = ({ data }) => (
+  <FlatList
+    className="px-4 py-6"
+    data={data}
+    renderItem={renderItem}
+    keyExtractor={(item) => item.id.toString()}
+  />
+);
 
 const ExpandableListItem: React.FC<{ item: any }> = ({ item }) => {
   const [expanded, setExpanded] = useState(false);
