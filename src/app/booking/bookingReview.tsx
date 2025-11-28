@@ -100,6 +100,21 @@ const bookingReview = () => {
     await handleAPICall('POST', '/mumukshu/booking', null, payLaterPayload, onSuccess, onFinally);
   };
 
+  const totalCredits =
+    (validationData?.roomDetails?.reduce(
+      (sum: number, item: { availableCredits?: number }) => sum + (item.availableCredits || 0),
+      0
+    ) || 0) +
+    (validationData?.travelDetails?.availableCredits || 0) +
+    (validationData?.adhyayanDetails?.reduce(
+      (sum: number, item: { availableCredits?: number }) => sum + (item.availableCredits || 0),
+      0
+    ) || 0) +
+    (validationData?.utsavDetails?.reduce(
+      (sum: number, item: { availableCredits?: number }) => sum + (item.availableCredits || 0),
+      0
+    ) || 0);
+
   return (
     <SafeAreaView className="h-full bg-white" edges={['top', 'right', 'left']}>
       <ScrollView
@@ -295,62 +310,33 @@ const bookingReview = () => {
 
                   {/* Total section */}
                   <View className="pt-2">
-                    {(() => {
-                      const totalCredits =
-                        (validationData.roomDetails?.reduce(
-                          (sum: number, item: { availableCredits?: number }) =>
-                            sum + (item.availableCredits || 0),
-                          0
-                        ) || 0) +
-                        (validationData.travelDetails?.availableCredits || 0) +
-                        (validationData.adhyayanDetails?.reduce(
-                          (sum: number, item: { availableCredits?: number }) =>
-                            sum + (item.availableCredits || 0),
-                          0
-                        ) || 0) +
-                        (validationData.utsavDetails?.reduce(
-                          (sum: number, item: { availableCredits?: number }) =>
-                            sum + (item.availableCredits || 0),
-                          0
-                        ) || 0);
-
-                      return (
-                        <>
-                          {totalCredits > 0 && (
-                            <>
-                              <View className="mb-1 flex-row items-center justify-between">
-                                <Text className="font-pregular text-sm text-gray-500">
-                                  Subtotal
-                                </Text>
-                                <Text className="font-pregular text-sm text-gray-500">
-                                  ₹{validationData.totalCharge.toLocaleString('en-IN')}
-                                </Text>
-                              </View>
-                              <View className="mb-2 flex-row items-center justify-between">
-                                <Text className="font-pregular text-sm text-green-600">
-                                  Total Credits Applied
-                                </Text>
-                                <Text className="font-pregular text-sm text-green-600">
-                                  −₹{totalCredits.toLocaleString('en-IN')}
-                                </Text>
-                              </View>
-                            </>
-                          )}
-                          <View className="flex-row items-center justify-between">
-                            <Text className="font-psemibold text-xl text-gray-800">
-                              Total Charge
-                            </Text>
-                            <Text className="font-psemibold text-xl text-secondary">
-                              ₹
-                              {Math.max(
-                                0,
-                                validationData.totalCharge - totalCredits
-                              ).toLocaleString('en-IN')}
-                            </Text>
-                          </View>
-                        </>
-                      );
-                    })()}
+                    {totalCredits > 0 && (
+                      <>
+                        <View className="mb-1 flex-row items-center justify-between">
+                          <Text className="font-pregular text-sm text-gray-500">Subtotal</Text>
+                          <Text className="font-pregular text-sm text-gray-500">
+                            ₹{validationData.totalCharge.toLocaleString('en-IN')}
+                          </Text>
+                        </View>
+                        <View className="mb-2 flex-row items-center justify-between">
+                          <Text className="font-pregular text-sm text-green-600">
+                            Total Credits Applied
+                          </Text>
+                          <Text className="font-pregular text-sm text-green-600">
+                            −₹{totalCredits.toLocaleString('en-IN')}
+                          </Text>
+                        </View>
+                      </>
+                    )}
+                    <View className="flex-row items-center justify-between">
+                      <Text className="font-psemibold text-xl text-gray-800">Total Charge</Text>
+                      <Text className="font-psemibold text-xl text-secondary">
+                        ₹
+                        {Math.max(0, validationData.totalCharge - totalCredits).toLocaleString(
+                          'en-IN'
+                        )}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -360,7 +346,7 @@ const bookingReview = () => {
       </ScrollView>
 
       <ShadowBox className="w-full border-t border-gray-200 bg-white px-4 py-4">
-        {validationData && validationData.totalCharge > 0 ? (
+        {validationData && validationData.totalCharge - totalCredits > 0 ? (
           <View className="mb-8 flex-row gap-x-4">
             <CustomButton
               text="Pay Now"
