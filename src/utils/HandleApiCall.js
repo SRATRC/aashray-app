@@ -1,7 +1,8 @@
 import axios from 'axios';
-import * as Haptics from 'expo-haptics';
+import { BASE_URL, DEV_URL } from '../constants';
+import { useDevStore } from '../stores';
 import Toast from 'react-native-toast-message';
-import { BASE_URL } from '../constants';
+import * as Haptics from 'expo-haptics';
 
 const handleAPICall = async (
   method,
@@ -14,7 +15,23 @@ const handleAPICall = async (
   allowToast = true
 ) => {
   try {
-    const url = `${BASE_URL}${endpoint}`;
+    const { useDevBackend, devPrNumber } = useDevStore.getState();
+    let currentBaseUrl = BASE_URL;
+
+    if (useDevBackend) {
+      if (devPrNumber) {
+        currentBaseUrl = `https://aashray-backend-pr-${devPrNumber}.onrender.com/api/v1`;
+      } else {
+        currentBaseUrl = DEV_URL;
+      }
+    }
+
+    if (!currentBaseUrl) {
+      console.error('Base URL is undefined. Check your .env file and constants.');
+      throw new Error('Network configuration error: Base URL is missing.');
+    }
+
+    const url = `${currentBaseUrl}${endpoint}`;
 
     let data = body;
     const headers = {};

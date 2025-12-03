@@ -3,11 +3,18 @@ export default {
     name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
-    version: '1.1.38',
+    version: '1.1.39',
     orientation: 'portrait',
     icon: './src/assets/images/icon.png',
     userInterfaceStyle: 'automatic',
     assetBundlePatterns: ['**/*'],
+    updates: {
+      enabled: true,
+      fallbackToCacheTimeout: 0,
+    },
+    runtimeVersion: {
+      policy: 'sdkVersion',
+    },
     ios: {
       icon: './src/assets/images/icon.icon',
       supportsTablet: true,

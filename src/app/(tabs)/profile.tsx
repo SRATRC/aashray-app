@@ -9,11 +9,13 @@ import {
   Keyboard,
   RefreshControl,
   ActivityIndicator,
+  Switch,
+  TextInput,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { icons } from '@/src/constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthStore } from '@/src/stores';
+import { useAuthStore, useDevStore } from '@/src/stores';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { Feather, FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -26,6 +28,7 @@ import handleAPICall from '@/src/utils/HandleApiCall';
 import FormField from '@/src/components/FormField';
 import CustomModal from '@/src/components/CustomModal';
 import * as Haptics from 'expo-haptics';
+import * as Updates from 'expo-updates';
 
 const Profile: React.FC = () => {
   const user = useAuthStore((state) => state.user);
@@ -34,6 +37,7 @@ const Profile: React.FC = () => {
   const tabBarHeight = useBottomTabOverflow();
 
   const { pickAndUpload, isUploading, uploadProgress, uploadError } = useQuickImagePicker();
+  const { useDevBackend, setUseDevBackend, devPrNumber, setDevPrNumber } = useDevStore();
 
   const router: any = useRouter();
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
@@ -173,6 +177,19 @@ const Profile: React.FC = () => {
     );
   };
 
+  const handleToggleDevBackend = (value: boolean) => {
+    setUseDevBackend(value);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Toast.show({
+      type: 'success',
+      text1: 'Environment Updated',
+      text2: `Switched to ${value ? 'Development' : 'Production'}`,
+    });
+    refreshUserData().then(() => {
+      Updates.reloadAsync();
+    });
+  };
+
   const profileList: any = [
     {
       name: 'Profile Details',
@@ -195,6 +212,29 @@ const Profile: React.FC = () => {
         setPasswordModalVisible(true);
       },
     },
+    ...(user?.showDevelopmentDashboard
+      ? [
+          {
+            name: 'Use Development Backend',
+            icon: <MaterialIcons name="developer-mode" size={24} color="black" />,
+            type: 'switch',
+            value: useDevBackend,
+            onValueChange: handleToggleDevBackend,
+          },
+          ...(useDevBackend
+            ? [
+                {
+                  name: 'PR Number',
+                  icon: <FontAwesome name="code-fork" size={24} color="black" />,
+                  type: 'input',
+                  value: devPrNumber,
+                  onChangeText: setDevPrNumber,
+                  placeholder: 'Enter PR Number (e.g. 230)',
+                },
+              ]
+            : []),
+        ]
+      : []),
     {
       name: 'Logout',
       icon: icons.logout,
@@ -233,6 +273,8 @@ const Profile: React.FC = () => {
 
   const renderItem = ({ item }: { item: any }) => {
     const isLogoutItem = item.name === 'Logout';
+    const isSwitch = item.type === 'switch';
+    const isInput = item.type === 'input';
     const isDisabled = isLogoutItem && isLogoutLoading;
 
     return (
@@ -240,21 +282,43 @@ const Profile: React.FC = () => {
         className={`mx-4 mb-5 flex flex-row items-center justify-between rounded-2xl bg-white p-4 ${
           isDisabled ? 'opacity-50' : ''
         }`}
-        interactive
+        interactive={!isSwitch}
         onPress={item.onPress}
         isDisabled={isDisabled}>
         <View className="flex-row items-center gap-x-4">
-          <Image
-            source={item.icon}
-            className="h-6 w-6"
-            resizeMode="contain"
-            style={isDisabled ? { tintColor: '#9CA3AF' } : {}}
-          />
+          {React.isValidElement(item.icon) ? (
+            item.icon
+          ) : (
+            <Image
+              source={item.icon}
+              className="h-6 w-6"
+              resizeMode="contain"
+              style={isDisabled ? { tintColor: '#9CA3AF' } : {}}
+            />
+          )}
           <Text className={`font-pregular text-base ${isDisabled ? 'text-gray-400' : ''}`}>
             {item.name}
           </Text>
         </View>
-        {isLogoutItem && isLogoutLoading ? (
+        {isSwitch ? (
+          <Switch
+            value={item.value}
+            onValueChange={item.onValueChange}
+            trackColor={{ false: '#767577', true: '#FF9C01' }}
+            thumbColor={item.value ? '#fff' : '#f4f3f4'}
+          />
+        ) : isInput ? (
+          <View className="flex-1">
+            <TextInput
+              value={item.value}
+              onChangeText={item.onChangeText}
+              placeholder={item.placeholder}
+              keyboardType="numeric"
+              className="text-right font-pmedium text-base text-black"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+        ) : isLogoutItem && isLogoutLoading ? (
           <ActivityIndicator size="small" color="#FF9500" />
         ) : (
           <View className="rounded-lg bg-secondary-50 p-2">
@@ -390,7 +454,6 @@ const Profile: React.FC = () => {
     );
   };
 
-  // Add safety check for user
   if (!user) {
     return (
       <SafeAreaView className="flex-1 bg-white">
