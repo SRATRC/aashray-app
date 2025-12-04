@@ -6,8 +6,8 @@ interface CustomEmptyMessageProps {
   containerClassName?: string;
   imageClassName?: string;
   textClassName?: string;
-  image?: any; // Optional custom image
-  showImage?: boolean; // Option to hide image
+  image?: any;
+  showImage?: boolean;
 }
 
 const CustomEmptyMessage: React.FC<CustomEmptyMessageProps> = ({

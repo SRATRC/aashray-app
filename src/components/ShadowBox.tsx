@@ -106,7 +106,7 @@ export function ShadowButton({
   ...props
 }: Omit<ShadowBoxTouchableProps, 'variant'>) {
   return (
-    <ShadowBox variant="button" className={className} {...props}>
+    <ShadowBox variant="button" interactive className={className} {...props}>
       {children}
     </ShadowBox>
   );
