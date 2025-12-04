@@ -104,11 +104,6 @@ const Home: React.FC = () => {
               onPress={() => router.push('/menu')}
             />
             <CustomHomeIcon
-              image={icons.maintenanceHome as ImageSourcePropType}
-              title={'Maintenance'}
-              onPress={() => router.push('/maintenanceRequestList')}
-            />
-            <CustomHomeIcon
               image={icons.contact as ImageSourcePropType}
               title={'Contact Info'}
               onPress={() => router.push('/contactInfo')}
