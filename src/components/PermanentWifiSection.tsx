@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@/src/constants';
@@ -31,7 +31,9 @@ interface PermanentWifiSectionProps {
   onInfoPress: () => void;
   onResetCode?: (id: string) => void;
   isResettingCode?: boolean;
-  allowRequest?: boolean;
+  onDeleteCode?: (id: string) => void;
+  isDeletingCode?: boolean;
+  isResident?: boolean;
 }
 
 const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
@@ -43,7 +45,9 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
   onInfoPress,
   onResetCode,
   isResettingCode = false,
-  allowRequest = true,
+  onDeleteCode,
+  isDeletingCode = false,
+  isResident = false,
 }) => {
   const copyToClipboard = async (text: string) => {
     await Clipboard.setStringAsync(text);
@@ -129,38 +133,72 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
         <Text className="font-pregular text-xs text-gray-400">
           Approved on <Text className="text-gray-600">{formatDate(item.reviewed_at)}</Text>
         </Text>
-        <TouchableOpacity
-          onPress={() => {
-            CustomAlert.alert(
-              'Reset WiFi Code',
-              "Are you sure you want to reset your permanent WiFi code? A new code request will be sent to the admin, and you'll need to reconnect your device with the new code.",
-              [
-                {
-                  text: 'Cancel',
-                  style: 'cancel',
-                  onPress: () => {},
-                },
-                {
-                  text: 'Reset',
-                  style: 'destructive',
-                  onPress: () => onResetCode?.(item.id),
-                },
-              ]
-            );
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          }}
-          disabled={isResettingCode}
-          className="flex-row items-center"
-          activeOpacity={0.7}>
-          {isResettingCode ? (
-            <ActivityIndicator size="small" color={colors.gray_500} />
-          ) : (
-            <>
-              <MaterialIcons name="refresh" size={14} color={colors.gray_400} />
-              <Text className="ml-1 font-pregular text-xs text-gray-400">Reset</Text>
-            </>
-          )}
-        </TouchableOpacity>
+        <View className="flex flex-row gap-x-2">
+          <TouchableOpacity
+            onPress={() => {
+              CustomAlert.alert(
+                'Reset WiFi Code',
+                "Are you sure you want to reset your permanent WiFi code? A new code request will be sent to the admin, and you'll need to reconnect your device with the new code.",
+                [
+                  {
+                    text: 'Cancel',
+                    style: 'cancel',
+                    onPress: () => {},
+                  },
+                  {
+                    text: 'Reset',
+                    style: 'destructive',
+                    onPress: () => onResetCode?.(item.id),
+                  },
+                ]
+              );
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }}
+            disabled={isResettingCode}
+            className="flex-row items-center"
+            activeOpacity={0.7}>
+            {isResettingCode ? (
+              <ActivityIndicator size="small" color={colors.gray_500} />
+            ) : (
+              <>
+                <MaterialIcons name="refresh" size={14} color={colors.gray_400} />
+                <Text className="ml-1 font-pregular text-xs text-gray-400">Reset</Text>
+              </>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              CustomAlert.alert(
+                'Delete WiFi Code',
+                'Are you sure you want to delete your permanent WiFi code? If you do, you won’t be able to access the WiFi with that code anymore.',
+                [
+                  {
+                    text: 'Cancel',
+                    style: 'cancel',
+                    onPress: () => {},
+                  },
+                  {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: () => onDeleteCode?.(item.id),
+                  },
+                ]
+              );
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }}
+            disabled={isDeletingCode}
+            className="flex-row items-center"
+            activeOpacity={0.7}>
+            {isDeletingCode ? (
+              <ActivityIndicator size="small" color="red" />
+            ) : (
+              <>
+                <MaterialIcons name="delete" size={14} color="red" />
+                <Text className="ml-1 font-pregular text-xs text-red-500">Delete</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -240,20 +278,6 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
     </ShadowBox>
   );
 
-  const renderEmptyStateNoRequest = () => (
-    <ShadowBox className="mx-4 rounded-2xl bg-white p-6">
-      <View className="items-center">
-        <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-          <Text className="text-2xl">📶</Text>
-        </View>
-        <Text className="mb-2 text-center font-pmedium text-black">No Permanent Code Yet</Text>
-        <Text className="mb-6 text-center font-pregular text-sm text-gray-500">
-          You do not have a permanent WiFi code.
-        </Text>
-      </View>
-    </ShadowBox>
-  );
-
   const renderRequestButton = () => {
     const allRejected = data?.every((item) => item.status === 'rejected') || false;
 
@@ -304,15 +328,22 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
           />
         </ShadowBox>
       ) : !data || data.length === 0 ? (
-        allowRequest ? (
-          renderEmptyState()
-        ) : (
-          renderEmptyStateNoRequest()
-        )
+        renderEmptyState()
       ) : (
         <View className="mx-4">
           {data.map((item, index) => renderWifiItem(item, index))}
-          {shouldShowRequestButton() && allowRequest && renderRequestButton()}
+          {isResident && (
+            <View className="mt-4">
+              <CustomButton
+                text="Generate WiFi Code"
+                handlePress={onRequestCode}
+                containerStyles="px-6 py-3 min-h-[50px]"
+                textStyles="text-sm font-pmedium text-white"
+                isLoading={isSubmitting}
+              />
+            </View>
+          )}
+          {shouldShowRequestButton() && renderRequestButton()}
         </View>
       )}
     </View>

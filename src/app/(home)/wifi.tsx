@@ -1,6 +1,6 @@
 import { View, Text, RefreshControl, TouchableOpacity, ScrollView, Modal } from 'react-native';
 import { useState, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/src/stores';
 import { status } from '@/src/constants';
@@ -17,7 +17,9 @@ import * as Linking from 'expo-linking';
 
 const wifi = () => {
   const { user } = useAuthStore();
+  const queryClient = useQueryClient();
   const isResident = user.res_status === status.STATUS_RESIDENT;
+  const isMumukshu = user.res_status === status.STATUS_MUMUKSHU;
 
   // State management
   const [refreshing, setRefreshing] = useState(false);
@@ -191,6 +193,36 @@ const wifi = () => {
     }
   };
 
+  // Delete permanent code mutation
+  const deletePermanentCodeMutation = useMutation({
+    mutationFn: (id: string) => {
+      return new Promise((resolve, reject) => {
+        handleAPICall(
+          'DELETE',
+          '/wifi/permanent',
+          null,
+          { cardno: user.cardno, id: id },
+          resolve,
+          () => reject(new Error('Failed to cancel booking'))
+        );
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['wifi-permanent', user.cardno],
+      });
+    },
+  });
+
+  const handleDeletePermanentCode = async (id: string) => {
+    try {
+      await deletePermanentCodeMutation.mutateAsync(id);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error) {
+      console.error('Error deleting permanent code:', error);
+    }
+  };
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     Promise.all([refetch(), refetchPermanent()]).finally(() => setRefreshing(false));
@@ -230,10 +262,12 @@ const wifi = () => {
               onInfoPress={handleInfoPress}
               onResetCode={handleResetPermanentCode}
               isResettingCode={isResettingCode}
-              allowRequest={!isResident}
+              onDeleteCode={handleDeletePermanentCode}
+              isDeletingCode={deletePermanentCodeMutation.isPending}
+              isResident={isResident}
             />
 
-            {!isResident && (
+            {isMumukshu && (
               <TemporaryWifiSection
                 codes={wifiList}
                 isLoading={isLoading}
@@ -251,7 +285,6 @@ const wifi = () => {
         animationType="slide"
         visible={showInfoModal}
         presentationStyle="pageSheet"
-        allowSwipeDismissal
         statusBarTranslucent={true}>
         <SafeAreaView className="flex-1">
           <PageHeader title={'WiFi Instructions'} iconName="times" onPress={handleCloseModal} />
