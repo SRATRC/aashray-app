@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Modal,
   View,
@@ -5,8 +6,9 @@ import {
   TouchableOpacity,
   GestureResponderEvent,
   ScrollView,
+  Platform,
 } from 'react-native';
-import React from 'react';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { AntDesign } from '@expo/vector-icons';
 import CustomButton from './CustomButton';
 
@@ -21,6 +23,7 @@ interface CustomModalProps {
   scrollable?: boolean;
   showCloseButton?: boolean;
   showActionButton?: boolean;
+  avoidKeyboard?: boolean;
 }
 
 const CustomModal: React.FC<CustomModalProps> = ({
@@ -34,6 +37,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
   scrollable = false,
   showCloseButton = true,
   showActionButton = true,
+  avoidKeyboard = false,
 }) => {
   const content = (
     <>
@@ -75,7 +79,9 @@ const CustomModal: React.FC<CustomModalProps> = ({
       visible={visible}
       onRequestClose={onClose}
       statusBarTranslucent={true}>
-      <View
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        enabled={avoidKeyboard}
         className="flex-1 items-center justify-center px-6"
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}>
         <View
@@ -96,7 +102,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
             content
           )}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };

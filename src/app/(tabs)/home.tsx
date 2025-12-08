@@ -91,13 +91,11 @@ const Home: React.FC = () => {
         <View className="mt-7 w-full">
           <Text className="px-4 font-pmedium text-lg text-black">Quick Access</Text>
           <View className="mt-3 flex-row flex-wrap gap-y-4 px-4">
-            {![status.STATUS_SEVA_KUTIR].includes(user.res_status) && (
-              <CustomHomeIcon
-                image={icons.wifiHome as ImageSourcePropType}
-                title={'Wifi'}
-                onPress={() => router.push('/wifi')}
-              />
-            )}
+            <CustomHomeIcon
+              image={icons.wifiHome as ImageSourcePropType}
+              title={'Wifi'}
+              onPress={() => router.push('/wifi')}
+            />
             <CustomHomeIcon
               image={icons.menuHome as ImageSourcePropType}
               title={'Menu'}

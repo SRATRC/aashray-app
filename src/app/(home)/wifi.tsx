@@ -111,13 +111,13 @@ const wifi = () => {
   };
 
   // Request permanent WiFi code
-  const requestPermanentWifiCode = async () => {
+  const requestPermanentWifiCode = async (data: { username: string; deviceType: string }) => {
     return new Promise((resolve, reject) => {
       handleAPICall(
         'POST',
         '/wifi/permanent',
         null,
-        { cardno: user.cardno },
+        { cardno: user.cardno, ...data },
         (res: any) => {
           resolve(res.data);
         },
@@ -166,11 +166,15 @@ const wifi = () => {
   };
 
   // Handler for requesting permanent code
-  const handleRequestPermanentCode = async () => {
+  const handleRequestPermanentCode = async (
+    data: { username: string; deviceType: string },
+    onSuccess?: () => void
+  ) => {
     setIsPermanentSubmitting(true);
     try {
-      await requestPermanentWifiCode();
+      await requestPermanentWifiCode(data);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      if (onSuccess) onSuccess();
       refetchPermanent();
     } catch (error) {
       console.error('Error requesting permanent code:', error);

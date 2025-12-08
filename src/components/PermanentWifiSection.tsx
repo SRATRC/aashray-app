@@ -4,6 +4,9 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@/src/constants';
 import { ShadowBox } from './ShadowBox';
 import HorizontalSeparator from './HorizontalSeparator';
+import FormField from './FormField';
+import CustomSelectBottomSheet from './CustomSelectBottomSheet';
+import CustomModal from './CustomModal';
 import CustomAlert from './CustomAlert';
 import CustomButton from '@/src/components/CustomButton';
 import CustomErrorMessage from '@/src/components/CustomErrorMessage';
@@ -20,6 +23,8 @@ interface PermanentWifiData {
   requested_at?: string;
   reviewed_at?: string;
   admin_comments?: string;
+  username?: string;
+  ssid?: string;
 }
 
 interface PermanentWifiSectionProps {
@@ -27,7 +32,7 @@ interface PermanentWifiSectionProps {
   isLoading: boolean;
   isError: boolean;
   isSubmitting: boolean;
-  onRequestCode: () => void;
+  onRequestCode: (data: { username: string; deviceType: string }, onSuccess?: () => void) => void;
   onInfoPress: () => void;
   onResetCode?: (id: string) => void;
   isResettingCode?: boolean;
@@ -49,15 +54,54 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
   isDeletingCode = false,
   isResident = false,
 }) => {
-  const copyToClipboard = async (text: string) => {
+  const copyToClipboard = async (text: string, label: string = 'WiFi code') => {
     await Clipboard.setStringAsync(text);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Toast.show({
       type: 'info',
-      text1: 'WiFi code copied to clipboard',
-      swipeable: false,
+      text1: `${label} copied to clipboard`,
     });
   };
+
+  const [isFormVisible, setIsFormVisible] = React.useState(false);
+  const [username, setUsername] = React.useState('');
+  const [deviceType, setDeviceType] = React.useState('');
+  const [errors, setErrors] = React.useState<{ username?: string; deviceType?: string }>({});
+
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors: { username?: string; deviceType?: string } = {};
+
+    if (!username.trim()) {
+      newErrors.username = 'Username is required';
+      isValid = false;
+    }
+
+    if (!deviceType) {
+      newErrors.deviceType = 'Device Type is required';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const handleSubmit = () => {
+    if (validateForm()) {
+      onRequestCode({ username, deviceType }, () => {
+        setIsFormVisible(false);
+        setUsername('');
+        setDeviceType('');
+      });
+    }
+  };
+
+  const deviceTypeOptions = [
+    { key: 'Mobile', value: 'Mobile' },
+    { key: 'Laptop', value: 'Laptop' },
+    { key: 'Tablet', value: 'Tablet' },
+    { key: 'Other', value: 'Other' },
+  ];
 
   const getStatusConfig = (status: string) => {
     const configs = {
@@ -117,15 +161,34 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
       </View>
 
       <View className="flex-row items-center justify-between">
-        <Text className="font-pbold text-3xl tracking-wider text-black">{item.code}</Text>
         <TouchableOpacity
-          onPress={() => item.code && copyToClipboard(item.code)}
-          className="flex-row items-center justify-center rounded-lg bg-secondary px-4 py-2"
-          activeOpacity={0.8}>
-          <Ionicons name="copy-outline" size={16} color="white" />
-          <Text className="ml-2 font-pmedium text-xs text-white">Copy</Text>
+          activeOpacity={0.7}
+          onPress={() => item.code && copyToClipboard(item.code, 'WiFi code')}>
+          <Text className="font-pbold text-3xl tracking-wider text-black">{item.code}</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Username and SSID info */}
+      {(item.username || item.ssid) && (
+        <View className="flex-row flex-wrap gap-x-4 gap-y-2">
+          {item.username && (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => item.username && copyToClipboard(item.username, 'Username')}>
+              <Text className="font-pregular text-[10px] text-gray-500">Username</Text>
+              <Text className="font-pmedium text-sm text-black">{item.username}</Text>
+            </TouchableOpacity>
+          )}
+          {item.ssid && (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => item.ssid && copyToClipboard(item.ssid, 'SSID')}>
+              <Text className="font-pregular text-[10px] text-gray-500">SSID</Text>
+              <Text className="font-pmedium text-sm text-black">{item.ssid}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
 
       <HorizontalSeparator />
 
@@ -257,6 +320,63 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
     </View>
   );
 
+  const renderForm = () => (
+    <CustomModal
+      visible={isFormVisible}
+      onClose={() => setIsFormVisible(false)}
+      title="Request Permanent Code"
+      showActionButton={false}
+      avoidKeyboard>
+      <View className="gap-y-4">
+        <FormField
+          containerStyles="bg-gray-100"
+          text="Username"
+          value={username}
+          handleChangeText={(text: string) => {
+            setUsername(text);
+            if (errors.username) setErrors({ ...errors, username: undefined });
+          }}
+          placeholder="Enter username"
+          error={!!errors.username}
+          errorMessage={errors.username}
+        />
+
+        <CustomSelectBottomSheet
+          label="Device Type"
+          options={deviceTypeOptions}
+          selectedValue={deviceType}
+          onValueChange={(val) => {
+            setDeviceType(val as string);
+            if (errors.deviceType) setErrors({ ...errors, deviceType: undefined });
+          }}
+          placeholder="Select Device Type"
+        />
+        {errors.deviceType && (
+          <Text className="ml-2 mt-1 font-pmedium text-sm text-red-600">{errors.deviceType}</Text>
+        )}
+
+        <View className="mt-2 flex-row gap-x-3">
+          <View className="flex-1">
+            <CustomButton
+              text="Cancel"
+              handlePress={() => setIsFormVisible(false)}
+              containerStyles="bg-gray-100 py-3 min-h-[50px]"
+              textStyles="text-black font-pmedium"
+            />
+          </View>
+          <View className="flex-1">
+            <CustomButton
+              text="Submit Request"
+              handlePress={handleSubmit}
+              containerStyles="py-3 min-h-[50px]"
+              isLoading={isSubmitting}
+            />
+          </View>
+        </View>
+      </View>
+    </CustomModal>
+  );
+
   const renderEmptyState = () => (
     <ShadowBox className="mx-4 rounded-2xl bg-white p-6">
       <View className="items-center">
@@ -269,7 +389,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
         </Text>
         <CustomButton
           text="Request Permanent Code"
-          handlePress={onRequestCode}
+          handlePress={() => setIsFormVisible(true)}
           containerStyles="px-6 py-3 min-h-[50px]"
           textStyles="text-sm font-pmedium text-white"
           isLoading={isSubmitting}
@@ -277,27 +397,6 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
       </View>
     </ShadowBox>
   );
-
-  const renderRequestButton = () => {
-    const allRejected = data?.every((item) => item.status === 'rejected') || false;
-
-    return (
-      <ShadowBox className="mt-4 rounded-2xl bg-white p-6">
-        <View className="items-center">
-          <Text className="mb-4 text-center font-pmedium text-black">
-            {allRejected ? 'Request New Permanent Code' : 'Request Permanent Code'}
-          </Text>
-          <CustomButton
-            text={allRejected ? 'Request Again' : 'Request Permanent Code'}
-            handlePress={onRequestCode}
-            containerStyles="px-6 py-3 min-h-[50px]"
-            textStyles="text-sm font-pmedium text-white"
-            isLoading={isSubmitting}
-          />
-        </View>
-      </ShadowBox>
-    );
-  };
 
   return (
     <View className="flex-1">
@@ -328,22 +427,25 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
           />
         </ShadowBox>
       ) : !data || data.length === 0 ? (
-        renderEmptyState()
+        <>
+          {renderEmptyState()}
+          {renderForm()}
+        </>
       ) : (
         <View className="mx-4">
           {data.map((item, index) => renderWifiItem(item, index))}
-          {isResident && (
+          {(shouldShowRequestButton() || isResident) && !isFormVisible && (
             <View className="mt-4">
               <CustomButton
-                text="Generate WiFi Code"
-                handlePress={onRequestCode}
+                text="Request New Code"
+                handlePress={() => setIsFormVisible(true)}
                 containerStyles="px-6 py-3 min-h-[50px]"
                 textStyles="text-sm font-pmedium text-white"
                 isLoading={isSubmitting}
               />
             </View>
           )}
-          {shouldShowRequestButton() && renderRequestButton()}
+          {renderForm()}
         </View>
       )}
     </View>
