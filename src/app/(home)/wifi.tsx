@@ -19,7 +19,6 @@ const wifi = () => {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const isResident = user.res_status === status.STATUS_RESIDENT;
-  const isMumukshu = user.res_status === status.STATUS_MUMUKSHU;
 
   // State management
   const [refreshing, setRefreshing] = useState(false);
@@ -123,8 +122,7 @@ const wifi = () => {
         },
         () => {
           setIsPermanentSubmitting(false);
-        },
-        () => reject(new Error('Failed to request permanent wifi code'))
+        }
       );
     });
   };
@@ -145,8 +143,7 @@ const wifi = () => {
         },
         () => {
           setIsResettingCode(false);
-        },
-        () => reject(new Error('Failed to reset permanent wifi code'))
+        }
       );
     });
   };
@@ -269,9 +266,10 @@ const wifi = () => {
               onDeleteCode={handleDeletePermanentCode}
               isDeletingCode={deletePermanentCodeMutation.isPending}
               isResident={isResident}
+              res_status={user.res_status}
             />
 
-            {isMumukshu && (
+            {!isResident && (
               <TemporaryWifiSection
                 codes={wifiList}
                 isLoading={isLoading}

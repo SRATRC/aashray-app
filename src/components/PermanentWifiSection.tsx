@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@/src/constants';
@@ -15,6 +15,7 @@ import moment from 'moment';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
 import * as Clipboard from 'expo-clipboard';
+import FormDisplayField from './FormDisplayField';
 
 interface PermanentWifiData {
   id: string;
@@ -25,6 +26,7 @@ interface PermanentWifiData {
   admin_comments?: string;
   username?: string;
   ssid?: string;
+  res_status: string;
 }
 
 interface PermanentWifiSectionProps {
@@ -39,6 +41,7 @@ interface PermanentWifiSectionProps {
   onDeleteCode?: (id: string) => void;
   isDeletingCode?: boolean;
   isResident?: boolean;
+  res_status: string;
 }
 
 const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
@@ -53,6 +56,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
   onDeleteCode,
   isDeletingCode = false,
   isResident = false,
+  res_status,
 }) => {
   const copyToClipboard = async (text: string, label: string = 'WiFi code') => {
     await Clipboard.setStringAsync(text);
@@ -67,6 +71,13 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
   const [username, setUsername] = React.useState('');
   const [deviceType, setDeviceType] = React.useState('');
   const [errors, setErrors] = React.useState<{ username?: string; deviceType?: string }>({});
+
+  const onlyAllowMobile = ['MUMUKSHU', 'GUEST'].includes(res_status);
+  useEffect(() => {
+    if (onlyAllowMobile) {
+      setDeviceType('Mobile');
+    }
+  }, [onlyAllowMobile]);
 
   const validateForm = () => {
     let isValid = true;
@@ -333,24 +344,30 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
           text="Username"
           value={username}
           handleChangeText={(text: string) => {
-            setUsername(text);
-            if (errors.username) setErrors({ ...errors, username: undefined });
+            if (/^[a-zA-Z0-9 ]*$/.test(text)) {
+              setUsername(text);
+              if (errors.username) setErrors({ ...errors, username: undefined });
+            }
           }}
           placeholder="Enter username"
           error={!!errors.username}
           errorMessage={errors.username}
         />
 
-        <CustomSelectBottomSheet
-          label="Device Type"
-          options={deviceTypeOptions}
-          selectedValue={deviceType}
-          onValueChange={(val) => {
-            setDeviceType(val as string);
-            if (errors.deviceType) setErrors({ ...errors, deviceType: undefined });
-          }}
-          placeholder="Select Device Type"
-        />
+        {!onlyAllowMobile ? (
+          <CustomSelectBottomSheet
+            label="Device Type"
+            options={deviceTypeOptions}
+            selectedValue={deviceType}
+            onValueChange={(val) => {
+              setDeviceType(val as string);
+              if (errors.deviceType) setErrors({ ...errors, deviceType: undefined });
+            }}
+            placeholder="Select Device Type"
+          />
+        ) : (
+          <FormDisplayField text="Device Type" value={'Mobile'} backgroundColor="bg-gray-100" />
+        )}
         {errors.deviceType && (
           <Text className="ml-2 mt-1 font-pmedium text-sm text-red-600">{errors.deviceType}</Text>
         )}
