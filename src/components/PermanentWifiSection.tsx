@@ -41,7 +41,6 @@ interface PermanentWifiSectionProps {
   onDeleteCode?: (id: string) => void;
   isDeletingCode?: boolean;
   isResident?: boolean;
-  res_status: string;
 }
 
 const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
@@ -56,7 +55,6 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
   onDeleteCode,
   isDeletingCode = false,
   isResident = false,
-  res_status,
 }) => {
   const copyToClipboard = async (text: string, label: string = 'WiFi code') => {
     await Clipboard.setStringAsync(text);
@@ -72,12 +70,11 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
   const [deviceType, setDeviceType] = React.useState('');
   const [errors, setErrors] = React.useState<{ username?: string; deviceType?: string }>({});
 
-  const onlyAllowMobile = ['MUMUKSHU', 'GUEST'].includes(res_status);
   useEffect(() => {
-    if (onlyAllowMobile) {
+    if (!isResident) {
       setDeviceType('Mobile');
     }
-  }, [onlyAllowMobile]);
+  }, [isResident]);
 
   const validateForm = () => {
     let isValid = true;
@@ -354,7 +351,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
           errorMessage={errors.username}
         />
 
-        {!onlyAllowMobile ? (
+        {isResident ? (
           <CustomSelectBottomSheet
             label="Device Type"
             options={deviceTypeOptions}
@@ -383,7 +380,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
           </View>
           <View className="flex-1">
             <CustomButton
-              text="Submit Request"
+              text="Submit"
               handlePress={handleSubmit}
               containerStyles="py-3 min-h-[50px]"
               isLoading={isSubmitting}

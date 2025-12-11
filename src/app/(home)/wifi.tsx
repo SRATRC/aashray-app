@@ -266,7 +266,6 @@ const wifi = () => {
               onDeleteCode={handleDeletePermanentCode}
               isDeletingCode={deletePermanentCodeMutation.isPending}
               isResident={isResident}
-              res_status={user.res_status}
             />
 
             {!isResident && (

@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { icons, images, quotes, status } from '@/src/constants';
+import { icons, images, quotes } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
 import { useBottomTabOverflow } from '@/src/components/TabBarBackground';
 import CustomHomeIcon from '@/src/components/CustomHomeIcon';
