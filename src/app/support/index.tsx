@@ -99,7 +99,7 @@ const SupportHome = () => {
         <View className="mt-3 flex-row items-center justify-between">
           <Text className="font-pmedium text-xs text-gray-400">ID: #{item.id}</Text>
           <Text className="font-pmedium text-xs text-gray-400">
-            {moment(item.created_at).fromNow()}
+            {moment(item.createdAt).fromNow()}
           </Text>
         </View>
       </ShadowButton>
@@ -172,7 +172,7 @@ const SupportHome = () => {
       />
 
       <TouchableOpacity
-        className="absolute bottom-8 right-6 rounded-2xl bg-secondary p-4"
+        className="absolute bottom-8 right-6 rounded-full bg-secondary p-4"
         onPress={() => router.push('/support/create')}>
         <Image
           source={icons.add}
