@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Modal,
   ScrollView,
-  Alert,
   RefreshControl,
   Keyboard,
 } from 'react-native';

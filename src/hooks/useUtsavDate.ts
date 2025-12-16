@@ -26,7 +26,7 @@ export const useUtsavDate = () => {
   const user = useAuthStore((state) => state.user);
 
   const { data: utsavData } = useQuery({
-    queryKey: ['utsavs-flat', user.cardno],
+    queryKey: ['utsavs', user.cardno],
     queryFn: () => fetchUtsavs({ pageParam: 1, cardno: user.cardno }),
     staleTime: 1000 * 60 * 30, // 30 minutes
     enabled: !!user.cardno,
@@ -38,13 +38,13 @@ export const useUtsavDate = () => {
 
       const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
 
-      // Normalize data in case react-query returns an infiniteQuery cache shape { pages: [...] }
       const months = Array.isArray(utsavData)
         ? utsavData
         : (utsavData as any)?.pages?.flat?.() ?? [];
 
       return months.some((monthData: any) =>
         monthData?.data?.some((utsav: any) =>
+          utsav?.utsav_location === 'Research Centre' &&
           moment(formattedDate).isBetween(
             moment(utsav.utsav_start, 'YYYY-MM-DD'),
             moment(utsav.utsav_end, 'YYYY-MM-DD'),
