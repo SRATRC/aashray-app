@@ -1,6 +1,6 @@
 import { View, Text, RefreshControl, TouchableOpacity, ScrollView, Modal } from 'react-native';
 import { useState, useCallback } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/src/stores';
 import { status } from '@/src/constants';
@@ -17,8 +17,8 @@ import * as Linking from 'expo-linking';
 
 const wifi = () => {
   const { user } = useAuthStore();
-  const queryClient = useQueryClient();
-  const isResident = user.res_status === status.STATUS_RESIDENT;
+  const isResidentOrSevakutir =
+    user.res_status === status.STATUS_RESIDENT || user.res_status === status.STATUS_SEVA_KUTIR;
 
   // State management
   const [refreshing, setRefreshing] = useState(false);
@@ -110,7 +110,7 @@ const wifi = () => {
   };
 
   // Request permanent WiFi code
-  const requestPermanentWifiCode = async (data: { username: string; deviceType: string }) => {
+  const requestPermanentWifiCode = async (data: { deviceType: string }) => {
     return new Promise((resolve, reject) => {
       handleAPICall(
         'POST',
@@ -164,7 +164,7 @@ const wifi = () => {
 
   // Handler for requesting permanent code
   const handleRequestPermanentCode = async (
-    data: { username: string; deviceType: string },
+    data: { deviceType: string },
     onSuccess?: () => void
   ) => {
     setIsPermanentSubmitting(true);
@@ -191,36 +191,6 @@ const wifi = () => {
       console.error('Error resetting permanent code:', error);
     } finally {
       setIsResettingCode(false);
-    }
-  };
-
-  // Delete permanent code mutation
-  const deletePermanentCodeMutation = useMutation({
-    mutationFn: (id: string) => {
-      return new Promise((resolve, reject) => {
-        handleAPICall(
-          'DELETE',
-          '/wifi/permanent',
-          null,
-          { cardno: user.cardno, id: id },
-          resolve,
-          () => reject(new Error('Failed to cancel booking'))
-        );
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['wifi-permanent', user.cardno],
-      });
-    },
-  });
-
-  const handleDeletePermanentCode = async (id: string) => {
-    try {
-      await deletePermanentCodeMutation.mutateAsync(id);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (error) {
-      console.error('Error deleting permanent code:', error);
     }
   };
 
@@ -263,12 +233,10 @@ const wifi = () => {
               onInfoPress={handleInfoPress}
               onResetCode={handleResetPermanentCode}
               isResettingCode={isResettingCode}
-              onDeleteCode={handleDeletePermanentCode}
-              isDeletingCode={deletePermanentCodeMutation.isPending}
-              isResident={isResident}
+              isResidentOrSevakutir={isResidentOrSevakutir}
             />
 
-            {!isResident && (
+            {!isResidentOrSevakutir && (
               <TemporaryWifiSection
                 codes={wifiList}
                 isLoading={isLoading}
@@ -312,7 +280,7 @@ const wifi = () => {
                   <View className="flex-row gap-x-3">
                     <Text className="text-gray-400">•</Text>
                     <Text className="flex-1 font-pregular text-sm leading-5 text-gray-600">
-                      If you do NOT activate within 7 days, your account will be{' '}
+                      If you do NOT activate within 7 days, your code will be{' '}
                       <Text className="font-pbold text-gray-800">PERMANENTLY DELETED</Text>.
                     </Text>
                   </View>
@@ -321,6 +289,12 @@ const wifi = () => {
                     <Text className="flex-1 font-pregular text-sm leading-5 text-gray-600">
                       If absent from SRATRC for more than 7 days, you'll need to re-enter your
                       credentials.
+                    </Text>
+                  </View>
+                  <View className="flex-row gap-x-3">
+                    <Text className="text-gray-400">•</Text>
+                    <Text className="flex-1 font-pregular text-sm leading-5 text-gray-600">
+                      Please allow us 7-10 days to process your request for permanent code.
                     </Text>
                   </View>
                 </View>
