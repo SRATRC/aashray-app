@@ -28,7 +28,7 @@ const TabsLayout: React.FC = () => {
           }),
         }}>
         <Tabs.Screen
-          name="home"
+          name="index"
           options={{
             title: 'Home',
             headerShown: false,

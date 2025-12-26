@@ -40,7 +40,7 @@ const FoodBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyle
           <MaterialCommunityIcons name="chili-mild" size={14} color={colors.gray_400} />
           <Text className="font-pregular text-gray-400">Spice Level:</Text>
           <Text className="font-pmedium text-black">
-            {data.food.spicy ? 'Regular' : 'Non Spicy'}
+            {data.food.mumukshuGroup[0].spicy ? 'Regular' : 'Non Spicy'}
           </Text>
         </View>
         <View className="flex flex-row items-center gap-x-2 px-6 pb-4">

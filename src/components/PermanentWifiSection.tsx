@@ -17,7 +17,7 @@ import CustomSelectBottomSheet, { CustomSelectBottomSheetRef } from './CustomSel
 
 interface PermanentWifiData {
   id: string;
-  status: 'approved' | 'rejected' | 'pending';
+  status: 'approved' | 'rejected' | 'pending' | 'reset';
   code?: string;
   requested_at?: string;
   reviewed_at?: string;
@@ -98,6 +98,12 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
         text: 'text-amber-600',
         border: 'border-amber-200',
         label: 'Pending Review',
+      },
+      reset: {
+        bg: 'bg-blue-50',
+        text: 'text-blue-600',
+        border: 'border-blue-200',
+        label: 'Reset Processing',
       },
     };
     return configs[status as keyof typeof configs] || configs.pending;
@@ -252,6 +258,20 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
     </View>
   );
 
+  const renderResetStatus = (item: PermanentWifiData) => (
+    <View className="gap-y-3">
+      <Text className="font-pmedium text-black">
+        Your WiFi code is currently being reset. Admins will verify and re-approve it shortly.
+      </Text>
+      <View className="flex-row items-center">
+        <Text className="font-pregular text-sm text-gray-500">Requested on:</Text>
+        <Text className="ml-2 font-pmedium text-sm text-black">
+          {formatDate(item.requested_at)}
+        </Text>
+      </View>
+    </View>
+  );
+
   const renderWifiItem = (item: PermanentWifiData, index: number) => (
     <View
       key={item.id || index}
@@ -261,6 +281,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
       {item.status === 'approved' && item.code && renderApprovedCode(item)}
       {item.status === 'pending' && renderPendingStatus(item)}
       {item.status === 'rejected' && renderRejectedStatus(item)}
+      {item.status === 'reset' && renderResetStatus(item)}
     </View>
   );
 

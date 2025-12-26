@@ -342,7 +342,7 @@ const FeedbackScreen: React.FC = () => {
     <SafeAreaView className="flex-1 bg-white">
       <PageHeader
         title="Adhyayan Feedback"
-        onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
+        onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
       />
 
       {isValidating && (

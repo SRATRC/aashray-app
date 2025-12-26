@@ -420,7 +420,7 @@ const AdhyayanDetails = () => {
           }}>
           <View className="flex-row items-center justify-between px-4 py-4">
             <TouchableOpacity
-              onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
+              onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
               className="rounded-full bg-gray-50 p-3">
               <Ionicons name="arrow-back" size={20} color="#374151" />
             </TouchableOpacity>
@@ -462,7 +462,7 @@ const AdhyayanDetails = () => {
           }}>
           <View className="flex-row items-center justify-between px-4 py-4">
             <TouchableOpacity
-              onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
+              onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
               className="rounded-full bg-gray-50 p-3">
               <Ionicons name="arrow-back" size={20} color="#374151" />
             </TouchableOpacity>
@@ -507,7 +507,7 @@ const AdhyayanDetails = () => {
         }}>
         <View className="flex-row items-center justify-between px-4 py-4">
           <TouchableOpacity
-            onPress={() => (router.canGoBack() ? router.back() : router.replace('/home'))}
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
             className="rounded-full bg-gray-50 p-3 active:bg-gray-100"
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             style={{

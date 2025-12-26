@@ -31,7 +31,7 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
   const insets = useSafeAreaInsets();
 
   const handleGoHome = () => {
-    router.replace('/(tabs)/home');
+    router.replace('/');
   };
 
   const handleGoBack = () => {
