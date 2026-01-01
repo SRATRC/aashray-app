@@ -133,7 +133,7 @@ export default function FoodBookingCancellation() {
       initialPageParam: 1,
       staleTime: 1000 * 60 * 5,
       getNextPageParam: (lastPage: any, pages: any) =>
-        lastPage?.length ? pages.length + 1 : undefined,
+        lastPage?.length ? (pages?.length || 0) + 1 : undefined,
     });
 
   const fetchGuests = async () => {

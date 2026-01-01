@@ -11,13 +11,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { FlashList } from '@shopify/flash-list';
 import { useAuthStore } from '@/src/stores';
+import { ShadowBox } from '@/src/components/ShadowBox';
 import { icons } from '@/src/constants';
 import { Ionicons } from '@expo/vector-icons';
 import PageHeader from '@/src/components/PageHeader';
 import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import moment from 'moment';
-import { ShadowBox } from '@/src/components/ShadowBox';
 
 const Transactions = () => {
   const { user } = useAuthStore();
@@ -51,8 +51,8 @@ const Transactions = () => {
       initialPageParam: 1,
       staleTime: 1000 * 60 * 30,
       getNextPageParam: (lastPage: any, pages: any) => {
-        if (!lastPage || lastPage.length === 0) return undefined;
-        return pages.length + 1;
+        if (!lastPage || !Array.isArray(lastPage) || lastPage.length === 0) return undefined;
+        return (pages?.length || 0) + 1;
       },
     });
 

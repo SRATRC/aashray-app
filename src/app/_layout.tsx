@@ -42,6 +42,15 @@ Notifications.setNotificationHandler({
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
+  integrations: [
+    Sentry.mobileReplayIntegration({
+      maskAllText: false,
+      maskAllImages: false,
+      maskAllVectors: false,
+    }),
+  ],
 });
 
 SplashScreen.preventAutoHideAsync();
@@ -187,7 +196,7 @@ const RootLayoutContent = () => {
           <SystemBars style="dark" />
           <AppNavigator />
           <CustomAlert />
-          <UpdateManager />
+          {/* <UpdateManager /> */}
           <Toast />
         </BottomSheetModalProvider>
       </GestureHandlerRootView>

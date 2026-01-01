@@ -51,8 +51,8 @@ const RoomBookingCancellation: React.FC = () => {
       initialPageParam: 1,
       staleTime: 1000 * 60 * 5,
       getNextPageParam: (lastPage: any, pages: any) => {
-        if (!lastPage || lastPage.length === 0) return undefined;
-        return pages.length + 1;
+        if (!lastPage || !Array.isArray(lastPage) || lastPage.length === 0) return undefined;
+        return (pages?.length || 0) + 1;
       },
     });
 

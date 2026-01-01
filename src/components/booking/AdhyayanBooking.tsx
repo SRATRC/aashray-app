@@ -1,7 +1,7 @@
 import {
   View,
   Text,
-  SectionList,
+  FlatList,
   ActivityIndicator,
   TouchableOpacity,
   Modal,
@@ -188,6 +188,7 @@ const AdhyayanBooking = () => {
         (res: any) => {
           resolve(Array.isArray(res.data) ? res.data : []);
         },
+        undefined,
         () => reject(new Error('Failed to fetch adhyayans'))
       );
     });
@@ -201,8 +202,8 @@ const AdhyayanBooking = () => {
       gcTime: 1000 * 60 * 5,
       initialPageParam: 1,
       getNextPageParam: (lastPage: any, pages: any) => {
-        if (!lastPage || lastPage.length === 0) return undefined;
-        return pages.length + 1;
+        if (!lastPage || !Array.isArray(lastPage) || lastPage.length === 0) return undefined;
+        return (pages?.length || 0) + 1;
       },
       enabled: !!user?.cardno,
     });
@@ -301,10 +302,6 @@ const AdhyayanBooking = () => {
         </View>
       </View>
     </ShadowBox>
-  );
-
-  const renderSectionHeader = ({ section: { title } }: { section: { title: any } }) => (
-    <Text className="mt-2 font-psemibold text-lg">{title}</Text>
   );
 
   const renderFooter = () => (
@@ -519,20 +516,18 @@ const AdhyayanBooking = () => {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-      <SectionList
+      <FlatList
         className="flex-grow-1"
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 8,
           paddingBottom: tabBarPadding,
         }}
-        sections={data?.pages?.flatMap((page: any) => page) || []}
+        data={data?.pages?.flatMap((page: any) => page) || []}
         showsVerticalScrollIndicator={false}
-        stickySectionHeadersEnabled={false}
         nestedScrollEnabled={true}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
-        renderSectionHeader={renderSectionHeader}
         ListEmptyComponent={() => (
           <View className="h-full flex-1 items-center justify-center pt-40">
             {isError ? (

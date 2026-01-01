@@ -4,14 +4,13 @@ import { useAuthStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import moment from 'moment';
 
-const fetchUtsavs = async ({ pageParam = 1, cardno }: { pageParam?: number; cardno: string }) => {
+const fetchUtsavs = async ({ cardno }: { cardno: string }): Promise<any[]> => {
   return new Promise((resolve, reject) => {
     handleAPICall(
       'GET',
-      '/utsav/upcoming',
+      '/travel/events',
       {
         cardno,
-        page: pageParam,
       },
       null,
       (res: any) => {
@@ -26,8 +25,8 @@ export const useUtsavDate = () => {
   const user = useAuthStore((state) => state.user);
 
   const { data: utsavData } = useQuery({
-    queryKey: ['utsavs', user.cardno],
-    queryFn: () => fetchUtsavs({ pageParam: 1, cardno: user.cardno }),
+    queryKey: ['travel-events', user.cardno],
+    queryFn: () => fetchUtsavs({ cardno: user.cardno }),
     staleTime: 1000 * 60 * 30, // 30 minutes
     enabled: !!user.cardno,
   });
@@ -38,21 +37,14 @@ export const useUtsavDate = () => {
 
       const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
 
-      const months = Array.isArray(utsavData)
-        ? utsavData
-        : (utsavData as any)?.pages?.flat?.() ?? [];
-
-      return months.some((monthData: any) =>
-        monthData?.data?.some((utsav: any) =>
-          utsav?.utsav_location === 'Research Centre' &&
+      return utsavData.some((utsav: any) =>
           moment(formattedDate).isBetween(
-            moment(utsav.utsav_start, 'YYYY-MM-DD'),
-            moment(utsav.utsav_end, 'YYYY-MM-DD'),
+            moment(utsav.start_date, 'YYYY-MM-DD'),
+            moment(utsav.end_date, 'YYYY-MM-DD'),
             undefined,
             '[]'
           )
         )
-      );
     },
     [utsavData]
   );

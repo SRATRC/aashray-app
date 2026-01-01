@@ -272,6 +272,7 @@ const EventBooking = () => {
         (res: any) => {
           resolve(Array.isArray(res.data) ? res.data : []);
         },
+        undefined,
         () => reject(new Error('Failed to fetch utsavs'))
       );
     });
@@ -284,8 +285,8 @@ const EventBooking = () => {
       initialPageParam: 1,
       staleTime: 1000 * 60 * 30,
       getNextPageParam: (lastPage: any, pages: any) => {
-        if (!lastPage || lastPage.length === 0) return undefined;
-        return pages.length + 1;
+        if (!lastPage || !Array.isArray(lastPage) || lastPage.length === 0) return undefined;
+        return (pages?.length || 0) + 1;
       },
       enabled: !!user?.cardno,
       gcTime: 1000 * 60 * 30,
