@@ -10,6 +10,7 @@ interface PageHeaderProps {
   iconColor?: string;
   iconSize?: number;
   hideIcon?: boolean;
+  rightAction?: React.ReactNode;
 }
 
 const PageHeader: React.FC<PageHeaderProps> = ({
@@ -19,22 +20,26 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   iconColor = '#000000',
   iconSize = 20,
   hideIcon = false,
+  rightAction,
 }) => {
   const router = useRouter();
 
   return (
-    <View className="mb-4 mt-6 w-full flex-row items-center gap-x-1 px-2">
-      {!hideIcon && (
-        <Pressable onPress={onPress ? onPress : () => router.back()}>
-          <FontAwesome5
-            name={iconName}
-            size={iconSize}
-            color={iconColor}
-            style={{ marginHorizontal: 8, padding: 4 }}
-          />
-        </Pressable>
-      )}
-      <Text className="font-psemibold text-2xl">{title}</Text>
+    <View className="mb-4 mt-6 w-full flex-row items-center justify-between px-2">
+      <View className="flex-row items-center gap-x-1">
+        {!hideIcon && (
+          <Pressable onPress={onPress ? onPress : () => router.back()}>
+            <FontAwesome5
+              name={iconName}
+              size={iconSize}
+              color={iconColor}
+              style={{ marginHorizontal: 8, padding: 4 }}
+            />
+          </Pressable>
+        )}
+        <Text className="font-psemibold text-2xl">{title}</Text>
+      </View>
+      {rightAction && <View className="mr-2">{rightAction}</View>}
     </View>
   );
 };
