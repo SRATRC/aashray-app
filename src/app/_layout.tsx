@@ -196,7 +196,7 @@ const RootLayoutContent = () => {
           <SystemBars style="dark" />
           <AppNavigator />
           <CustomAlert />
-          {/* <UpdateManager /> */}
+          <UpdateManager />
           <Toast />
         </BottomSheetModalProvider>
       </GestureHandlerRootView>
