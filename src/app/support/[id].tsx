@@ -113,6 +113,7 @@ const TicketDetails = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ticket', id, user.cardno] });
+      queryClient.invalidateQueries({ queryKey: ['tickets', user.cardno] });
       CustomAlert.alert('Success', 'Ticket resolved successfully');
     },
     onError: (error) => {
@@ -209,7 +210,8 @@ const TicketDetails = () => {
       <PageHeader title={'#' + ticket.id} rightAction={resolveButton} />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
+        // keyboardVerticalOffset={Platform.OS == 'android' ? 120 : 0}
         className="flex-1">
         {/* Messages */}
         <FlashList
@@ -217,6 +219,8 @@ const TicketDetails = () => {
           data={ticket.messages || []}
           renderItem={renderMessage}
           contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12 }}
+          keyboardDismissMode="interactive"
+          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View className="flex-1 items-center justify-center py-16">
