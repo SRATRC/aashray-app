@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/constants';
+import CustomButton from './CustomButton';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.85;
@@ -256,48 +257,7 @@ const UpdateModal: React.FC<UpdateModalProps> = ({ visible, info, onUpdateNow, o
           paddingTop: 24,
         }}>
         {/* Primary Button - Update Now */}
-        <TouchableOpacity
-          onPress={onUpdateNow}
-          activeOpacity={0.9}
-          style={{
-            borderRadius: 16,
-            overflow: 'hidden',
-            shadowColor: colors.orange,
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.4,
-            shadowRadius: 16,
-            elevation: 10,
-          }}>
-          <View style={{ height: 56 }}>
-            <Svg style={{ position: 'absolute' }} width="100%" height="100%">
-              <Defs>
-                <LinearGradient id="buttonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <Stop offset="0%" stopColor={colors.orange} />
-                  <Stop offset="100%" stopColor={colors.secondary_100} />
-                </LinearGradient>
-              </Defs>
-              <Rect x="0" y="0" width="100%" height="100%" fill="url(#buttonGradient)" />
-            </Svg>
-            <View
-              style={{
-                flex: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: 'row',
-              }}>
-              <Ionicons name="arrow-up-circle" size={22} color="white" style={{ marginRight: 8 }} />
-              <Text
-                style={{
-                  fontFamily: 'Poppins-SemiBold',
-                  fontSize: 17,
-                  color: 'white',
-                  letterSpacing: 0.3,
-                }}>
-                Update Now
-              </Text>
-            </View>
-          </View>
-        </TouchableOpacity>
+        <CustomButton text="Update Now" handlePress={onUpdateNow} containerStyles="min-h-[48px]" />
 
         {/* Secondary Button - Later (only for optional updates) */}
         {!info.mandatory && onDismiss && (
