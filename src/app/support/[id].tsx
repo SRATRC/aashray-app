@@ -5,16 +5,16 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FlashList } from '@shopify/flash-list';
-import { status } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
+import { status, BASE_URL, DEV_URL } from '@/src/constants';
+import { useAuthStore, useDevStore } from '@/src/stores';
+import EventSource, { EventSourceListener } from 'react-native-sse';
 import PageHeader from '@/src/components/PageHeader';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomAlert from '@/src/components/CustomAlert';
@@ -25,7 +25,7 @@ const TicketDetails = () => {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [messageText, setMessageText] = useState('');
-  const flatListRef = useRef(null);
+  const flatListRef = useRef<any>(null);
 
   const fetchTicketDetails = async () => {
     return new Promise((resolve, reject) => {
@@ -44,11 +44,101 @@ const TicketDetails = () => {
     data: ticket,
     isLoading,
     isError,
-  } = useQuery({
+    refetch,
+  } = useQuery<any>({
     queryKey: ['ticket', id, user.cardno],
     queryFn: fetchTicketDetails,
-    refetchInterval: 5000,
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [])
+  );
+
+  useEffect(() => {
+    const { useDevBackend, devPrNumber } = useDevStore.getState();
+    let currentBaseUrl = BASE_URL;
+
+    if (useDevBackend) {
+      if (devPrNumber) {
+        currentBaseUrl = `https://aashray-backend-pr-${devPrNumber}.onrender.com/api/v1`;
+      } else {
+        currentBaseUrl = DEV_URL;
+      }
+    }
+
+    if (!currentBaseUrl) {
+      console.warn('Base URL is missing, cannot connect to SSE.');
+      return;
+    }
+
+    const url = `${currentBaseUrl}/tickets/${id}/stream?cardno=${user.cardno}`;
+
+    console.log('[SSE] Connecting to:', url);
+
+    const es = new EventSource(url, {
+      pollingInterval: 0,
+    });
+
+    const listener: EventSourceListener = (event) => {
+      if (event.type === 'open') {
+        console.log('[SSE] Connection opened');
+      } else if (event.type === 'message') {
+        if (event.data) {
+          try {
+            const data = JSON.parse(event.data);
+            console.log('[SSE] Message received:', data);
+
+            if (data.type === 'connected') {
+              console.log('[SSE] Connected event:', data);
+            } else {
+              queryClient.setQueryData(['ticket', id, user.cardno], (old: any) => {
+                if (!old) return old;
+
+                const messageExists = old.messages?.some((m: any) => m.id === data.id);
+                if (messageExists) return old;
+
+                let newMessages = [...(old.messages || [])];
+
+                const tempIndex = newMessages.findIndex(
+                  (m: any) =>
+                    m.isTemp && m.message === data.message && m.sender_type === data.sender_type
+                );
+
+                if (tempIndex !== -1) {
+                  newMessages[tempIndex] = data;
+                } else {
+                  newMessages.push(data);
+                }
+
+                return {
+                  ...old,
+                  messages: newMessages,
+                };
+              });
+
+              setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+            }
+          } catch (err) {
+            console.error('[SSE] Failed to parse message:', err);
+          }
+        }
+      } else if (event.type === 'error') {
+        console.error('[SSE] Connection Error:', event.message || 'Unknown error');
+      }
+    };
+
+    es.addEventListener('open', listener);
+    es.addEventListener('message', listener);
+    es.addEventListener('error', listener);
+
+    return () => {
+      console.log('[SSE] Closing connection');
+      es.removeAllEventListeners();
+      es.close();
+    };
+  }, [id, user.token, queryClient, user.cardno]);
 
   const sendMessageMutation = useMutation({
     mutationFn: async (text) => {
