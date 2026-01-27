@@ -10,6 +10,8 @@ import moment from 'moment';
 const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerStyles }) => {
   const data = useBookingStore((state) => state.mumukshuData);
 
+  console.log('DATA: ', JSON.stringify(data));
+
   return (
     <PrimaryAddonBookingCard containerStyles={containerStyles} title={'Raj Pravas Booking'}>
       <View className="flex flex-row items-center gap-x-4 p-4">
@@ -69,7 +71,7 @@ const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerSt
           <Ionicons name="time" size={16} color={colors.gray_400} />
           <Text className="font-pregular text-gray-400">Arrival Time:</Text>
           <Text className="font-pmedium text-black">
-            {moment(data.travel.mumukshuGroup[0].arrival_time).format('hh:mm A')}
+            {moment(data.travel.mumukshuGroup[0].arrival_time, 'HH:mm').format('hh:mm A')}
           </Text>
         </View>
       )}

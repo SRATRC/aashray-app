@@ -199,21 +199,30 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         <>
           <FormDisplayField
             text="Flight/Train Time"
-            value={travelForm.arrival_time ? moment(travelForm.arrival_time).format('h:mm a') : ''}
+            value={
+              travelForm.arrival_time
+                ? moment(travelForm.arrival_time, 'HH:mm').format('h:mm a')
+                : ''
+            }
             placeholder="Flight/Train Time"
             otherStyles="mt-5"
-            inputStyles={'font-pmedium text-lg'}
+            inputStyles="font-pmedium text-black text-lg"
             backgroundColor="bg-gray-100"
             onPress={() => setDatePickerVisibility('travel_time', true)}
           />
           <DateTimePickerModal
             isVisible={isDatePickerVisible.travel_time}
             mode="time"
-            date={travelForm.arrival_time ? moment(travelForm.arrival_time).toDate() : new Date()}
+            date={
+              travelForm.arrival_time
+                ? moment(travelForm.arrival_time, 'HH:mm').toDate()
+                : new Date()
+            }
             onConfirm={(date: Date) => {
+              const timeOnly = moment(date).format('HH:mm');
               setTravelForm({
                 ...travelForm,
-                arrival_time: date.toISOString(),
+                arrival_time: timeOnly,
               });
               setDatePickerVisibility('travel_time', false);
             }}
