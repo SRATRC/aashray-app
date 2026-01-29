@@ -2,6 +2,7 @@ node_modules/
 .expo/
 .cursor/
 .vscode/
+.agent/
 dist/
 npm-debug.*
 *.jks
