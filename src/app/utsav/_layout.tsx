@@ -14,6 +14,10 @@ const UtsavDetailsLayout = () => {
           name="utsavGuidelines"
           options={{ headerShown: false, presentation: 'modal' }}
         />
+        <Stack.Screen
+          name="feedback/[id]"
+          options={{ headerShown: false, presentation: 'modal' }}
+        />
       </Stack>
     </>
   );

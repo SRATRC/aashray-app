@@ -4,10 +4,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Ionicons } from '@expo/vector-icons';
-
 import { useAuthStore } from '@/src/stores';
 import { colors } from '@/src/constants';
-import { ShadowBox } from '@/src/components/ShadowBox';
 import PageHeader from '@/src/components/PageHeader';
 import FormField from '@/src/components/FormField';
 import CustomButton from '@/src/components/CustomButton';
@@ -17,15 +15,7 @@ import CustomAlert from '@/src/components/CustomAlert';
 import CustomErrorMessage from '@/src/components/CustomErrorMessage';
 import Shimmer from '@/src/components/Shimmer';
 
-/* -------------------------------------------------------------------------- */
-/*                                   TYPES                                    */
-/* -------------------------------------------------------------------------- */
-
 export type UtsavFeedbackData = {
-  mumukshu_name: string;
-  accommodation_type: string;
-  room_number: string;
-
   accommodation_rating: number | null;
   qr_rating: number | null;
   food_rating: number | null;
@@ -37,16 +27,11 @@ export type UtsavFeedbackData = {
   raj_pravas_rating: number | null;
   sparsh_rating: number | null;
   av_rating: number | null;
-
   loved_most: string;
   improvement_suggestions: string;
 };
 
 export const getInitialUtsavFeedbackForm = (): UtsavFeedbackData => ({
-  mumukshu_name: '',
-  accommodation_type: '',
-  room_number: '',
-
   accommodation_rating: null,
   qr_rating: null,
   food_rating: null,
@@ -58,14 +43,9 @@ export const getInitialUtsavFeedbackForm = (): UtsavFeedbackData => ({
   raj_pravas_rating: null,
   sparsh_rating: null,
   av_rating: null,
-
   loved_most: '',
   improvement_suggestions: '',
 });
-
-/* -------------------------------------------------------------------------- */
-/*                             REUSABLE COMPONENTS                             */
-/* -------------------------------------------------------------------------- */
 
 const StarRating: React.FC<{
   value: number | null;
@@ -74,9 +54,9 @@ const StarRating: React.FC<{
 }> = ({ value, onChange, size = 26 }) => {
   const current = value || 0;
   return (
-    <View className="mt-2 flex-row gap-x-2">
+    <View className="mt-2 flex-row items-center gap-x-2">
       {[1, 2, 3, 4, 5].map((n) => (
-        <TouchableOpacity key={n} onPress={() => onChange(n)}>
+        <TouchableOpacity key={n} onPress={() => onChange(n)} activeOpacity={0.8}>
           <Ionicons
             name={n <= current ? 'star' : 'star-outline'}
             size={size}
@@ -88,137 +68,140 @@ const StarRating: React.FC<{
   );
 };
 
-const FieldLabel: React.FC<{ label: string }> = ({ label }) => (
-  <Text className="mt-5 font-pmedium text-base text-gray-700">{label}</Text>
+const FieldLabel: React.FC<{ label: string; helper?: string }> = ({ label, helper }) => (
+  <View className="mt-5">
+    <View className="flex-row items-baseline gap-x-1">
+      <Text className="font-pmedium text-base text-gray-700">{label}</Text>
+    </View>
+    {helper ? <Text className="mt-1 font-pregular text-xs text-gray-500">{helper}</Text> : null}
+  </View>
 );
-
-/* -------------------------------------------------------------------------- */
-/*                              FORM COMPONENT                                 */
-/* -------------------------------------------------------------------------- */
 
 const UtsavFeedbackForm: React.FC<{
   value: UtsavFeedbackData;
   onChange: (data: UtsavFeedbackData) => void;
   onSubmit: () => void;
   isSubmitting?: boolean;
+  containerStyles?: string;
   showValidation?: boolean;
-}> = ({ value, onChange, onSubmit, isSubmitting, showValidation }) => {
-  const err = (c: boolean) => showValidation && c;
+}> = ({
+  value,
+  onChange,
+  onSubmit,
+  isSubmitting = false,
+  containerStyles = '',
+  showValidation = false,
+}) => {
+  const fieldError = (cond: boolean) => showValidation && cond;
 
   return (
-    <View className="px-4">
-
-      <FormField
-        text="Name of Mumukshu"
-        value={value.mumukshu_name}
-        handleChangeText={(t) => onChange({ ...value, mumukshu_name: t })}
-        error={err(!value.mumukshu_name)}
-        errorMessage="Required"
-        useNeomorphic
-      />
-
-      <FormField
-        text="Accommodation during the event"
-        placeholder="Lotus Leaf / RC Room / RC Flat"
-        value={value.accommodation_type}
-        handleChangeText={(t) => onChange({ ...value, accommodation_type: t })}
-        error={err(!value.accommodation_type)}
-        errorMessage="Required"
-        useNeomorphic
-      />
-
-      <FormField
-        text="Room / Flat Number"
-        value={value.room_number}
-        handleChangeText={(t) => onChange({ ...value, room_number: t })}
-        error={err(!value.room_number)}
-        errorMessage="Required"
-        useNeomorphic
-      />
-
-      <FieldLabel label="Accommodation satisfaction" />
+    <View className={`w-full ${containerStyles}`}>
+      <FieldLabel label="How would you rate the accommodation?" />
       <StarRating
         value={value.accommodation_rating}
         onChange={(n) => onChange({ ...value, accommodation_rating: n })}
       />
-      <ErrorText show={err(!value.accommodation_rating)} message="Required" />
-
-      <FieldLabel label="QR code convenience" />
-      <StarRating
-        value={value.qr_rating}
-        onChange={(n) => onChange({ ...value, qr_rating: n })}
+      <ErrorText
+        show={fieldError(!value.accommodation_rating)}
+        message="Accommodation rating is required"
       />
 
-      <FieldLabel label="Food quality & variety" />
+      <FieldLabel label="How convenient was the QR code system?" />
+      <StarRating value={value.qr_rating} onChange={(n) => onChange({ ...value, qr_rating: n })} />
+      <ErrorText show={fieldError(!value.qr_rating)} message="QR rating is required" />
+
+      <FieldLabel label="How was the food quality & variety?" />
       <StarRating
         value={value.food_rating}
         onChange={(n) => onChange({ ...value, food_rating: n })}
       />
+      <ErrorText show={fieldError(!value.food_rating)} message="Food rating is required" />
 
-      <FieldLabel label="Program structure & engagement" />
+      <FieldLabel label="How was the program structure & engagement?" />
       <StarRating
         value={value.program_rating}
         onChange={(n) => onChange({ ...value, program_rating: n })}
       />
+      <ErrorText show={fieldError(!value.program_rating)} message="Program rating is required" />
 
-      <FieldLabel label="Volunteer performance" />
+      <FieldLabel label="How would you rate the volunteer performance?" />
       <StarRating
         value={value.volunteer_rating}
         onChange={(n) => onChange({ ...value, volunteer_rating: n })}
       />
+      <ErrorText
+        show={fieldError(!value.volunteer_rating)}
+        message="Volunteer rating is required"
+      />
 
-      <FieldLabel label="Infrastructure" />
+      <FieldLabel label="How was the infrastructure?" />
       <StarRating
         value={value.infrastructure_rating}
         onChange={(n) => onChange({ ...value, infrastructure_rating: n })}
       />
+      <ErrorText
+        show={fieldError(!value.infrastructure_rating)}
+        message="Infrastructure rating is required"
+      />
 
-      <FieldLabel label="Decor" />
+      <FieldLabel label="How was the decor?" />
       <StarRating
         value={value.decor_rating}
         onChange={(n) => onChange({ ...value, decor_rating: n })}
       />
+      <ErrorText show={fieldError(!value.decor_rating)} message="Decor rating is required" />
 
-      <FieldLabel label="Internal transport coordination" />
+      <FieldLabel label="How was the internal transport coordination?" />
       <StarRating
         value={value.internal_transport_rating}
         onChange={(n) => onChange({ ...value, internal_transport_rating: n })}
       />
+      <ErrorText
+        show={fieldError(!value.internal_transport_rating)}
+        message="Internal transport rating is required"
+      />
 
-      <FieldLabel label="Raj Pravaas transport (Mumbai → Venue)" />
+      <FieldLabel label="How was the Raj Pravas transport (Mumbai → Venue)?" />
       <StarRating
         value={value.raj_pravas_rating}
         onChange={(n) => onChange({ ...value, raj_pravas_rating: n })}
       />
+      <ErrorText
+        show={fieldError(!value.raj_pravas_rating)}
+        message="Raj Pravas rating is required"
+      />
 
-      <FieldLabel label="Sparsh performance" />
+      <FieldLabel label="How was the Sparsh performance?" />
       <StarRating
         value={value.sparsh_rating}
         onChange={(n) => onChange({ ...value, sparsh_rating: n })}
       />
+      <ErrorText show={fieldError(!value.sparsh_rating)} message="Sparsh rating is required" />
 
-      <FieldLabel label="Audio-visual setup" />
-      <StarRating
-        value={value.av_rating}
-        onChange={(n) => onChange({ ...value, av_rating: n })}
-      />
+      <FieldLabel label="How was the audio-visual setup?" />
+      <StarRating value={value.av_rating} onChange={(n) => onChange({ ...value, av_rating: n })} />
+      <ErrorText show={fieldError(!value.av_rating)} message="AV rating is required" />
 
       <FormField
-        text="Things you loved the most"
+        text="What did you love the most about this Utsav?"
+        placeholder="What did you love the most?"
         value={value.loved_most}
-        handleChangeText={(t) => onChange({ ...value, loved_most: t })}
-        error={err(!value.loved_most)}
+        handleChangeText={(t: string) => onChange({ ...value, loved_most: t })}
+        otherStyles="mt-5"
+        inputStyles="font-pmedium text-base"
+        error={fieldError(!value.loved_most)}
         errorMessage="Required"
         useNeomorphic
       />
 
       <FormField
-        text="Things you want us to improve"
+        text="Any suggestions for improvement?"
+        placeholder="What can be improved?"
         value={value.improvement_suggestions}
-        handleChangeText={(t) =>
-          onChange({ ...value, improvement_suggestions: t })
-        }
-        error={err(!value.improvement_suggestions)}
+        handleChangeText={(t: string) => onChange({ ...value, improvement_suggestions: t })}
+        otherStyles="mt-5"
+        inputStyles="font-pmedium text-base"
+        error={fieldError(!value.improvement_suggestions)}
         errorMessage="Required"
         useNeomorphic
       />
@@ -226,24 +209,22 @@ const UtsavFeedbackForm: React.FC<{
       <CustomButton
         text="Submit Feedback"
         handlePress={onSubmit}
+        containerStyles="my-7 min-h-[62px]"
+        bgcolor="bg-secondary"
+        textStyles="text-white"
         isLoading={isSubmitting}
         isDisabled={isSubmitting}
-        containerStyles="my-7 min-h-[62px]"
       />
     </View>
   );
 };
-
-/* -------------------------------------------------------------------------- */
-/*                               SCREEN WRAPPER                                */
-/* -------------------------------------------------------------------------- */
 
 const UtsavFeedbackScreen: React.FC = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const user = useAuthStore((s) => s.user);
 
-  const [form, setForm] = useState(getInitialUtsavFeedbackForm());
+  const [form, setForm] = useState<UtsavFeedbackData>(getInitialUtsavFeedbackForm());
   const [submitting, setSubmitting] = useState(false);
   const [showValidation, setShowValidation] = useState(false);
   const [isValidating, setIsValidating] = useState(true);
@@ -256,27 +237,56 @@ const UtsavFeedbackScreen: React.FC = () => {
 
   useEffect(() => {
     if (!user?.cardno || utsavId === null) {
-      setValidationError('Invalid utsav or user');
+      setValidationError('Invalid utsav or user information');
       setIsValidating(false);
       return;
     }
 
-    handleAPICall(
-      'GET',
-      '/feedback/validate',
-      { utsavid: utsavId, cardno: user.cardno },
-      null,
-      () => setIsValidating(false),
-      () => setIsValidating(false),
-      (err) =>
-        setValidationError(err?.message || 'Not authorized to submit feedback'),
-      false
-    );
-  }, [utsavId, user?.cardno]);
+    const validateFeedbackAccess = async () => {
+      setIsValidating(true);
+      await new Promise((resolve, reject) => {
+        handleAPICall(
+          'GET',
+          '/utsav/feedback/validate',
+          { utsav_id: utsavId, cardno: user.cardno },
+          null,
+          () => resolve(true),
+          () => {
+            setIsValidating(false);
+          }
+          // (err) => {
+          //   setValidationError(
+          //     err?.message || 'You are not authorized to submit feedback for this utsav'
+          //   );
+          // },
+          // false
+        );
+      });
+      setValidationError(null);
+    };
+
+    validateFeedbackAccess();
+  }, [utsavId, user?.cardno, router]);
 
   const valid = useMemo(() => {
-    return Object.values(form).every((v) => v !== '' && v !== null);
-  }, [form]);
+    return (
+      !!user?.cardno &&
+      utsavId !== null &&
+      !!form.accommodation_rating &&
+      !!form.qr_rating &&
+      !!form.food_rating &&
+      !!form.program_rating &&
+      !!form.volunteer_rating &&
+      !!form.infrastructure_rating &&
+      !!form.decor_rating &&
+      !!form.internal_transport_rating &&
+      !!form.raj_pravas_rating &&
+      !!form.sparsh_rating &&
+      !!form.av_rating &&
+      !!form.loved_most &&
+      !!form.improvement_suggestions
+    );
+  }, [form, utsavId, user?.cardno]);
 
   const submit = async () => {
     if (!valid) {
@@ -286,38 +296,77 @@ const UtsavFeedbackScreen: React.FC = () => {
 
     setSubmitting(true);
 
-    handleAPICall(
-      'POST',
-      '/feedback',
-      null,
-      { ...form, utsav_id: utsavId, cardno: user!.cardno },
-      () => {
-        CustomAlert.alert('Thank you!', 'Your feedback has been submitted.');
-        router.back();
-      },
-      () => setSubmitting(false),
-      () => setSubmitting(false)
-    );
+    await new Promise((resolve, reject) => {
+      handleAPICall(
+        'POST',
+        '/feedback',
+        null,
+        {
+          cardno: user!.cardno,
+          utsav_id: utsavId,
+          accommodation_rating: form.accommodation_rating,
+          qr_rating: form.qr_rating,
+          food_rating: form.food_rating,
+          program_rating: form.program_rating,
+          volunteer_rating: form.volunteer_rating,
+          infrastructure_rating: form.infrastructure_rating,
+          decor_rating: form.decor_rating,
+          internal_transport_rating: form.internal_transport_rating,
+          raj_pravas_rating: form.raj_pravas_rating,
+          sparsh_rating: form.sparsh_rating,
+          av_rating: form.av_rating,
+          loved_most: form.loved_most,
+          improvement_suggestions: form.improvement_suggestions,
+        },
+        () => resolve(true),
+        () => {},
+        (err) => reject(err)
+      );
+    });
+
+    CustomAlert.alert('Thank you!', 'Your feedback has been submitted successfully.');
+    router.back();
+    setSubmitting(false);
   };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <PageHeader title="Utsav Feedback" onPress={() => router.back()} />
+      <PageHeader
+        title="Utsav Feedback"
+        onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+      />
 
-      {isValidating && <Shimmer.Container className="p-6" />}
+      {isValidating && (
+        <Shimmer.Container className="p-6">
+          <View className="mb-6">
+            <Shimmer.Line width="50%" height={24} className="mb-2" />
+            <Shimmer.Stars />
+          </View>
+
+          {[1, 2, 3, 4].map((n) => (
+            <Shimmer.TextArea key={n} className="mb-6" />
+          ))}
+
+          <Shimmer.Button className="mt-4" />
+        </Shimmer.Container>
+      )}
 
       {validationError && (
         <CustomErrorMessage errorTitle="Access Denied" errorMessage={validationError} />
       )}
 
       {!isValidating && !validationError && (
-        <KeyboardAwareScrollView keyboardShouldPersistTaps="handled">
+        <KeyboardAwareScrollView
+          bottomOffset={62}
+          style={{ flex: 1 }}
+          keyboardShouldPersistTaps="handled">
           <UtsavFeedbackForm
             value={form}
             onChange={setForm}
             onSubmit={submit}
             isSubmitting={submitting}
             showValidation={showValidation}
+            containerStyles="px-4"
           />
         </KeyboardAwareScrollView>
       )}
