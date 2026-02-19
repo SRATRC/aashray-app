@@ -20,7 +20,7 @@ const handleAPICall = async (
 
     if (useDevBackend) {
       if (devPrNumber) {
-        currentBaseUrl = `https://aashray-backend-pr-${devPrNumber}.onrender.com/api/v1`;
+        currentBaseUrl = `http://10.0.2.2:3000/api/v1`;
       } else {
         currentBaseUrl = DEV_URL;
       }

@@ -92,18 +92,7 @@ const Home: React.FC = () => {
         <View className="mt-7 w-full">
           <Text className="px-4 font-pmedium text-lg text-black">Quick Access</Text>
           <View className="mt-3 flex-row flex-wrap gap-y-4 px-4">
-            <View className="px-4 mt-3">
-              <TouchableOpacity
-                onPress={() => router.push('/utsav/feedback/20')}
-                activeOpacity={0.8}
-                className="bg-orange-500 rounded-xl py-4 items-center"
-              >
-                <Text className="text-white font-pbold text-base">
-                  DEV: Open Utsav Feedback
-                </Text>
-              </TouchableOpacity>
-            </View>
-
+            
             <CustomHomeIcon
               image={icons.wifiHome as ImageSourcePropType}
               title={'Wifi'}

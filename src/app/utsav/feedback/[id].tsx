@@ -299,7 +299,7 @@ const UtsavFeedbackScreen: React.FC = () => {
     await new Promise((resolve, reject) => {
       handleAPICall(
         'POST',
-        '/feedback',
+        '/utsav/feedback',
         null,
         {
           cardno: user!.cardno,
