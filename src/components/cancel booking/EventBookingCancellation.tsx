@@ -20,6 +20,8 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import BookingStatusDisplay from '../BookingStatusDisplay';
 import moment from 'moment';
+import { useRouter } from 'expo-router';
+
 
 const EventBookingCancellation = () => {
   const { user } = useAuthStore();
@@ -28,6 +30,8 @@ const EventBookingCancellation = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const tabBarPadding = useTabBarPadding();
+  const router = useRouter();
+
 
   const fetchUtsavs = async ({ pageParam = 1 }) => {
     return new Promise((resolve, reject) => {
@@ -40,8 +44,10 @@ const EventBookingCancellation = () => {
         },
         null,
         (res: any) => {
-          resolve(Array.isArray(res.data) ? res.data : []);
-        },
+  console.log('UTSAV BOOKINGS RESPONSE:', res.data);
+  resolve(Array.isArray(res.data) ? res.data : []);
+},
+
         () => reject(new Error('Failed to fetch utsavs'))
       );
     });
@@ -155,27 +161,52 @@ const EventBookingCancellation = () => {
             <Text className="font-pmedium text-black">{item.stay}</Text>
           </View>
         )}
-        {item.amount && (
+        {item.amount > 0 && (
           <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
             <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
             <Text className="font-pregular text-gray-400">Charge: </Text>
             <Text className="font-pmedium text-black">₹ {item.amount}</Text>
           </View>
         )}
-        <View>
-          {moment(item.date).diff(moment().format('YYYY-MM-DD')) > 0 &&
-            ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
-              <CustomButton
-                text="Cancel Booking"
-                containerStyles={'mt-5 py-3 mx-1 flex-1'}
-                textStyles={'text-sm text-white'}
-                handlePress={() => {
-                  setSelectedBooking(item);
-                  setShowCancelModal(true);
-                }}
-              />
-            )}
-        </View>
+        {/* Actions Row */}
+{(
+  (
+    moment(item.utsav_start_date).isAfter(moment(), 'day') &&
+    ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status)
+  ) ||
+  item?.showFeedback
+) && (
+  <View className="mt-5 flex-row gap-x-3 px-1">
+    {/* Cancel Booking — only BEFORE event */}
+    {moment(item.utsav_start_date).isAfter(moment(), 'day') &&
+      ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
+        <CustomButton
+          text="Cancel Booking"
+          containerStyles={'py-3 flex-1'}
+          textStyles={'text-sm text-white'}
+          handlePress={() => {
+            setSelectedBooking(item);
+            setShowCancelModal(true);
+          }}
+        />
+      )}
+
+    {/* Give Feedback */}
+    {item?.showFeedback && (
+      <CustomButton
+        text="Give Feedback"
+        containerStyles={'py-3 flex-1'}
+        textStyles={'text-sm text-white'}
+        bgcolor={'bg-secondary'}
+        handlePress={() => {
+          const utsavId = item.utsavid ?? item.id;
+          router.push(`/utsav/feedback/${utsavId}`);
+        }}
+      />
+    )}
+  </View>
+)}
+
       </View>
     </ExpandableItem>
   );
