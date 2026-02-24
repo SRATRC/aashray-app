@@ -9,7 +9,7 @@ interface CustomButtonProps {
   isLoading?: boolean;
   isDisabled?: boolean;
   bgcolor?: string;
-  variant?: 'solid' | 'outline';
+  variant?: 'solid' | 'outline' | 'pill';
 }
 
 const CustomButton: FC<CustomButtonProps> = ({
@@ -22,6 +22,23 @@ const CustomButton: FC<CustomButtonProps> = ({
   bgcolor = 'bg-secondary',
   variant = 'solid',
 }) => {
+  // pill variant — full-rounded, DM Sans medium, used by login page
+  if (variant === 'pill') {
+    return (
+      <TouchableOpacity
+        onPress={handlePress}
+        activeOpacity={0.85}
+        disabled={isLoading || isDisabled}
+        className={`h-14 flex-row items-center justify-center rounded-full ${bgcolor} ${containerStyles} ${
+          isLoading || isDisabled ? 'opacity-45' : ''
+        }`}>
+        <Text className={`font-dmmedium text-base text-white ${textStyles}`}>{text}</Text>
+        {isLoading && <ActivityIndicator size="small" color="white" style={{ marginLeft: 10 }} />}
+      </TouchableOpacity>
+    );
+  }
+
+  // default variants (solid / outline)
   const getStyles = () => {
     if (variant === 'outline') {
       return {
