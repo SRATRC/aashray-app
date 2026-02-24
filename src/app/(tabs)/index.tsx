@@ -9,7 +9,7 @@ import {
   ImageSourcePropType,
   ActivityIndicator,
   Platform,
-  TouchableOpacity
+  TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -92,7 +92,6 @@ const Home: React.FC = () => {
         <View className="mt-7 w-full">
           <Text className="px-4 font-pmedium text-lg text-black">Quick Access</Text>
           <View className="mt-3 flex-row flex-wrap gap-y-4 px-4">
-            
             <CustomHomeIcon
               image={icons.wifiHome as ImageSourcePropType}
               title={'Wifi'}
