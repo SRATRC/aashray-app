@@ -7,7 +7,7 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { colors, icons, status } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
@@ -135,6 +135,13 @@ const TravelBookingCancellation = () => {
     }
   };
 
+  function formatTime(value: string) {
+    if (value.includes('T')) {
+      return moment.utc(value).local().format('hh:mm A');
+    }
+    return moment(value, 'HH:mm').format('hh:mm A');
+  }
+
   const renderItem = ({ item }: any) => (
     <ExpandableItem
       visibleContent={
@@ -184,6 +191,17 @@ const TravelBookingCancellation = () => {
           <Text className="font-pregular text-gray-400">Luggage:</Text>
           <Text className="font-pmedium text-black">{item.luggage}</Text>
         </View>
+        {item.arrival_time && (
+          <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
+            <Ionicons name="time" size={16} color={colors.gray_400} />
+            <View className="flex-row items-center gap-x-2">
+              <Text className="font-pregular text-gray-400">Arrival Time:</Text>
+              <Text className="mx-1 flex-1 font-pmedium text-black">
+                {formatTime(item.arrival_time)}
+              </Text>
+            </View>
+          </View>
+        )}
         {item.comments && (
           <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
             <Image source={icons.request} className="h-4 w-4" resizeMode="contain" />
