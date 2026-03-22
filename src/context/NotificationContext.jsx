@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { AppState } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync } from '../utils/registerForPushNotificationsAsync';
 import { useRouter } from 'expo-router';
@@ -24,10 +25,21 @@ export const NotificationProvider = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
-    registerForPushNotificationsAsync().then(
-      (token) => setExpoPushToken(token),
-      (error) => setError(error)
-    );
+    if (AppState.currentState === 'active') {
+      registerForPushNotificationsAsync().then(
+        (token) => setExpoPushToken(token),
+        (error) => setError(error)
+      );
+    }
+
+    const appStateSubscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active' && !expoPushToken) {
+        registerForPushNotificationsAsync().then(
+          (token) => setExpoPushToken(token),
+          (error) => setError(error)
+        );
+      }
+    });
 
     notificationListener.current = Notifications.addNotificationReceivedListener((notification) => {
       setNotification(notification);
@@ -65,6 +77,7 @@ export const NotificationProvider = ({ children }) => {
     });
 
     return () => {
+      appStateSubscription.remove();
       if (notificationListener.current) {
         notificationListener.current.remove();
       }
