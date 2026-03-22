@@ -301,7 +301,7 @@ const FeedbackScreen: React.FC = () => {
     );
   }, [form, shibirId, user?.cardno]);
 
-  const submit = async () => {
+  const submit = () => {
     if (!valid) {
       setShowValidation(true);
       return;
@@ -309,33 +309,29 @@ const FeedbackScreen: React.FC = () => {
 
     setSubmitting(true);
 
-    await new Promise((resolve, reject) => {
-      handleAPICall(
-        'POST',
-        '/adhyayan/feedback',
-        null,
-        {
-          cardno: user!.cardno,
-          shibir_id: shibirId,
-          swadhay_karta_rating: form.swadhay_karta_rating,
-          personal_interaction_rating: form.personal_interaction_rating,
-          swadhay_karta_suggestions: form.swadhay_karta_suggestions,
-          raj_adhyayan_interest: form.raj_adhyayan_interest,
-          future_topics: form.future_topics,
-          loved_most: form.loved_most,
-          improvement_suggestions: form.improvement_suggestions,
-          food_rating: form.food_rating,
-          stay_rating: form.stay_rating,
-        },
-        () => resolve(true),
-        () => {},
-        (err) => reject(err)
-      );
-    });
-
-    CustomAlert.alert('Thank you!', 'Your feedback has been submitted successfully.');
-    router.back();
-    setSubmitting(false);
+    handleAPICall(
+      'POST',
+      '/adhyayan/feedback',
+      null,
+      {
+        cardno: user!.cardno,
+        shibir_id: shibirId,
+        swadhay_karta_rating: form.swadhay_karta_rating,
+        personal_interaction_rating: form.personal_interaction_rating,
+        swadhay_karta_suggestions: form.swadhay_karta_suggestions,
+        raj_adhyayan_interest: form.raj_adhyayan_interest,
+        future_topics: form.future_topics,
+        loved_most: form.loved_most,
+        improvement_suggestions: form.improvement_suggestions,
+        food_rating: form.food_rating,
+        stay_rating: form.stay_rating,
+      },
+      () => {
+        CustomAlert.alert('Thank you!', 'Your feedback has been submitted successfully.');
+        router.back();
+      },
+      () => setSubmitting(false)
+    );
   };
 
   return (
