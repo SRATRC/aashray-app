@@ -14,6 +14,7 @@ import { useAuthStore } from '@/src/stores';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '../CustomModal';
+import OldBookingsTrigger from '../OldBookingsTrigger';
 import CustomButton from '../CustomButton';
 import ExpandableItem from '../ExpandableItem';
 import HorizontalSeparator from '../HorizontalSeparator';
@@ -27,6 +28,7 @@ const EventBookingCancellation = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [showOldBookings, setShowOldBookings] = useState(false);
   const tabBarPadding = useTabBarPadding();
 
   const fetchUtsavs = async ({ pageParam = 1 }) => {
@@ -110,6 +112,43 @@ const EventBookingCancellation = () => {
     },
   });
 
+  const allItems = data?.pages?.flatMap((page: any) => page) || [];
+  const activeItems = allItems.filter(
+    (item: any) => !moment(item.package_start).isBefore(moment(), 'day')
+  );
+  const pastItems = allItems.filter((item: any) =>
+    moment(item.package_start).isBefore(moment(), 'day')
+  );
+
+  const renderOldBookingsSection = (compact = false) => (
+    <>
+      <OldBookingsTrigger
+        compact={compact}
+        isExpanded={showOldBookings}
+        onToggle={() => setShowOldBookings((v) => !v)}
+      />
+      {showOldBookings && (
+        <View>
+          <View className="flex-row items-center justify-between px-2 pb-2">
+            <Text className="font-psemibold text-base text-gray-500">Past Bookings</Text>
+            <TouchableOpacity onPress={() => setShowOldBookings(false)}>
+              <Text className="font-pregular text-sm text-secondary">Hide old bookings</Text>
+            </TouchableOpacity>
+          </View>
+          {pastItems.length === 0 ? (
+            <View className="items-center py-6">
+              <Text className="font-pregular text-gray-400">No past bookings</Text>
+            </View>
+          ) : (
+            pastItems.map((item: any, index: number) => (
+              <View key={item.bookingid ?? index}>{renderItem({ item } as any)}</View>
+            ))
+          )}
+        </View>
+      )}
+    </>
+  );
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
@@ -132,6 +171,10 @@ const EventBookingCancellation = () => {
               transactionStatus={item.transaction_status}
             />
             <Text className="font-pmedium">{item.utsav_name}</Text>
+            <Text className="font-pmedium text-secondary-100">
+              {moment(item.package_start).format('Do MMMM')} -{' '}
+              {moment(item.package_end).format('Do MMMM, YYYY')}
+            </Text>
             {item.bookedBy && user?.cardno == item.bookedBy && (
               <Text className="font-pmedium">
                 Booked For: <Text className="font-pmedium text-secondary">{item.user_name}</Text>
@@ -163,7 +206,7 @@ const EventBookingCancellation = () => {
           </View>
         )}
         <View>
-          {moment(item.date).diff(moment().format('YYYY-MM-DD')) > 0 &&
+          {moment(item.package_start).diff(moment().format('YYYY-MM-DD')) > 0 &&
             ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
               <CustomButton
                 text="Cancel Booking"
@@ -183,7 +226,9 @@ const EventBookingCancellation = () => {
   const renderFooter = () => (
     <View className="items-center">
       {(isFetchingNextPage || isLoading) && <ActivityIndicator />}
-      {!hasNextPage && data?.pages?.[0]?.length > 0 && <Text>No more bookings at the moment</Text>}
+      {!hasNextPage && data?.pages?.[0]?.length > 0 && pastItems.length === 0 && (
+        <Text>No more bookings at the moment</Text>
+      )}
     </View>
   );
 
@@ -197,12 +242,13 @@ const EventBookingCancellation = () => {
           paddingBottom: tabBarPadding,
         }}
         showsVerticalScrollIndicator={false}
-        data={data?.pages?.flatMap((page: any) => page) || []}
+        data={activeItems}
         renderItem={renderItem}
-        ListEmptyComponent={() => (
-          <View className="h-full flex-1 items-center justify-center pt-40">
-            {isError ? (
-              <View className="items-center justify-center px-6">
+        ListEmptyComponent={() => {
+          if (isLoading) return null;
+          if (isError)
+            return (
+              <View className="items-center justify-center px-6 pt-40">
                 <Text className="mb-2 text-center text-lg font-semibold text-gray-800">
                   Oops! Something went wrong
                 </Text>
@@ -210,21 +256,23 @@ const EventBookingCancellation = () => {
                   Unable to load Event Bookings. Please check your connection and try again.
                 </Text>
                 <TouchableOpacity
-                  onPress={() => {
-                    refetch();
-                  }}
+                  onPress={() => refetch()}
                   className="rounded-lg bg-secondary px-6 py-3"
                   activeOpacity={0.7}>
                   <Text className="font-semibold text-white">Try Again</Text>
                 </TouchableOpacity>
               </View>
-            ) : (
+            );
+          if (pastItems.length > 0)
+            return <View className="w-full">{renderOldBookingsSection()}</View>;
+          return (
+            <View className="h-full flex-1 items-center justify-center pt-40">
               <CustomEmptyMessage
                 message={"No spiritual gatherings? Your soul's RSVP is missing."}
               />
-            )}
-          </View>
-        )}
+            </View>
+          );
+        }}
         ListFooterComponent={() => (
           <View>
             {renderFooter()}
@@ -239,6 +287,11 @@ const EventBookingCancellation = () => {
                 </TouchableOpacity>
               </View>
             )}
+            {!isLoading &&
+              !isError &&
+              activeItems.length > 0 &&
+              pastItems.length > 0 &&
+              renderOldBookingsSection(true)}
           </View>
         )}
         onEndReachedThreshold={0.1}

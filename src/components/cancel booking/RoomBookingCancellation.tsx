@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import CustomModal from '../CustomModal';
+import OldBookingsTrigger from '../OldBookingsTrigger';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { icons, status } from '@/src/constants';
@@ -27,6 +28,7 @@ const RoomBookingCancellation: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [showOldBookings, setShowOldBookings] = useState(false);
   const tabBarPadding = useTabBarPadding();
 
   const fetchRooms = async ({ pageParam = 1 }: { pageParam?: number }) => {
@@ -109,6 +111,41 @@ const RoomBookingCancellation: React.FC = () => {
       });
     },
   });
+
+  const allItems = data?.pages?.flatMap((page: any) => page) || [];
+  const activeItems = allItems.filter(
+    (item: any) => !moment(item.checkin).isBefore(moment(), 'day')
+  );
+  const pastItems = allItems.filter((item: any) => moment(item.checkin).isBefore(moment(), 'day'));
+
+  const renderOldBookingsSection = (compact = false) => (
+    <>
+      <OldBookingsTrigger
+        compact={compact}
+        isExpanded={showOldBookings}
+        onToggle={() => setShowOldBookings((v) => !v)}
+      />
+      {showOldBookings && (
+        <View>
+          <View className="flex-row items-center justify-between px-2 pb-2">
+            <Text className="font-psemibold text-base text-gray-500">Past Bookings</Text>
+            <TouchableOpacity onPress={() => setShowOldBookings(false)}>
+              <Text className="font-pregular text-sm text-secondary">Hide old bookings</Text>
+            </TouchableOpacity>
+          </View>
+          {pastItems.length === 0 ? (
+            <View className="items-center py-6">
+              <Text className="font-pregular text-gray-400">No past bookings</Text>
+            </View>
+          ) : (
+            pastItems.map((item: any, index: number) => (
+              <View key={item.bookingid ?? index}>{renderItem({ item } as any)}</View>
+            ))
+          )}
+        </View>
+      )}
+    </>
+  );
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -216,7 +253,9 @@ const RoomBookingCancellation: React.FC = () => {
   const renderFooter = () => (
     <View className="items-center">
       {(isFetchingNextPage || isLoading) && <ActivityIndicator />}
-      {!hasNextPage && data?.pages?.[0]?.length > 0 && <Text>No more bookings at the moment</Text>}
+      {!hasNextPage && data?.pages?.[0]?.length > 0 && pastItems.length === 0 && (
+        <Text>No more bookings at the moment</Text>
+      )}
     </View>
   );
 
@@ -230,12 +269,13 @@ const RoomBookingCancellation: React.FC = () => {
           paddingBottom: tabBarPadding,
         }}
         showsVerticalScrollIndicator={false}
-        data={data?.pages?.flatMap((page: any) => page) || []}
+        data={activeItems}
         renderItem={renderItem}
-        ListEmptyComponent={() => (
-          <View className="h-full flex-1 items-center justify-center pt-40">
-            {isError ? (
-              <View className="items-center justify-center px-6">
+        ListEmptyComponent={() => {
+          if (isLoading) return null;
+          if (isError)
+            return (
+              <View className="items-center justify-center px-6 pt-40">
                 <Text className="mb-2 text-center text-lg font-semibold text-gray-800">
                   Oops! Something went wrong
                 </Text>
@@ -243,21 +283,23 @@ const RoomBookingCancellation: React.FC = () => {
                   Unable to load Room Bookings. Please check your connection and try again.
                 </Text>
                 <TouchableOpacity
-                  onPress={() => {
-                    refetch();
-                  }}
+                  onPress={() => refetch()}
                   className="rounded-lg bg-secondary px-6 py-3"
                   activeOpacity={0.7}>
                   <Text className="font-semibold text-white">Try Again</Text>
                 </TouchableOpacity>
               </View>
-            ) : (
+            );
+          if (pastItems.length > 0)
+            return <View className="w-full">{renderOldBookingsSection()}</View>;
+          return (
+            <View className="h-full flex-1 items-center justify-center pt-40">
               <CustomEmptyMessage
                 message={'Your room bookings are currently in a state of nirvana...empty'}
               />
-            )}
-          </View>
-        )}
+            </View>
+          );
+        }}
         ListFooterComponent={() => (
           <View>
             {renderFooter()}
@@ -272,6 +314,11 @@ const RoomBookingCancellation: React.FC = () => {
                 </TouchableOpacity>
               </View>
             )}
+            {!isLoading &&
+              !isError &&
+              activeItems.length > 0 &&
+              pastItems.length > 0 &&
+              renderOldBookingsSection(true)}
           </View>
         )}
         onEndReachedThreshold={0.1}
