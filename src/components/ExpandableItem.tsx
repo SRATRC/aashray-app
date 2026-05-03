@@ -52,9 +52,7 @@ const ExpandableItem: React.FC<ExpandableItemProps> = ({
           />
         </View>
       </TouchableOpacity>
-      <View className={`${containerStyles}`} style={{ display: expanded ? 'flex' : 'none' }}>
-        {children}
-      </View>
+      {expanded && <View className={`${containerStyles}`}>{children}</View>}
     </View>
   );
 };

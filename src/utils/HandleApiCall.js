@@ -5,6 +5,9 @@ import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
 import * as Sentry from '@sentry/react-native';
 
+const generateRequestId = () =>
+  Array.from({ length: 12 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+
 const handleAPICall = async (
   method,
   endpoint,
@@ -15,6 +18,8 @@ const handleAPICall = async (
   errorCallback = (error) => {},
   allowToast = true
 ) => {
+  const requestId = generateRequestId();
+
   try {
     const { useDevBackend, devPrNumber } = useDevStore.getState();
     let currentBaseUrl = BASE_URL;
@@ -35,7 +40,7 @@ const handleAPICall = async (
     const url = `${currentBaseUrl}${endpoint}`;
 
     let data = body;
-    const headers = {};
+    const headers = { 'x-request-id': requestId };
 
     if (body?.image) {
       const formData = new FormData();
@@ -60,7 +65,7 @@ const handleAPICall = async (
     Sentry.addBreadcrumb({
       category: 'api.request',
       message: `${method.toUpperCase()} ${endpoint}`,
-      data: { params, body },
+      data: { params, body, requestId },
       level: 'info',
     });
 
@@ -77,14 +82,18 @@ const handleAPICall = async (
     if (res.status === 200 || res.status === 201) {
       successCallback(res.data);
     } else {
-      throw new Error(res.data.message || 'An error occurred');
+      const err = new Error(res.data.message || 'An error occurred');
+      err.correlationId = res.headers['x-request-id'] || requestId;
+      throw err;
     }
   } catch (error) {
+    const correlationId = error.correlationId || error.response?.headers?.['x-request-id'] || requestId;
     const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
     const errorDetails = {
       message: errorMessage,
       status: error.response?.status,
       data: error.response?.data,
+      correlationId,
       originalError: error,
     };
 
@@ -98,6 +107,8 @@ const handleAPICall = async (
       data: errorDetails,
       level: 'error',
     });
+
+    Sentry.setTag('correlation_id', correlationId);
 
     if (allowToast) {
       Toast.show({
