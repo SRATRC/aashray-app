@@ -40,7 +40,7 @@ export default {
         monochromeImage: './src/assets/images/adaptive-icon.png',
         backgroundColor: '#ffffff',
       },
-      googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
+      googleServicesFile: "./google-services.json",
       intentFilters: [
         {
           action: 'VIEW',
