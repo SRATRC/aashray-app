@@ -44,9 +44,9 @@ const EventBookingCancellation = () => {
         },
         null,
         (res: any) => {
-  console.log('UTSAV BOOKINGS RESPONSE:', res.data);
-  resolve(Array.isArray(res.data) ? res.data : []);
-},
+          console.log('UTSAV BOOKINGS RESPONSE:', res.data);
+          resolve(Array.isArray(res.data) ? res.data : []);
+        },
 
         () => reject(new Error('Failed to fetch utsavs'))
       );
@@ -169,43 +169,43 @@ const EventBookingCancellation = () => {
           </View>
         )}
         {/* Actions Row */}
-{(
-  (
-    moment(item.utsav_start_date).isAfter(moment(), 'day') &&
-    ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status)
-  ) ||
-  item?.showFeedback
-) && (
-  <View className="mt-5 flex-row gap-x-3 px-1">
-    {/* Cancel Booking — only BEFORE event */}
-    {moment(item.utsav_start_date).isAfter(moment(), 'day') &&
-      ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
-        <CustomButton
-          text="Cancel Booking"
-          containerStyles={'py-3 flex-1'}
-          textStyles={'text-sm text-white'}
-          handlePress={() => {
-            setSelectedBooking(item);
-            setShowCancelModal(true);
-          }}
-        />
-      )}
+        {(
+          (
+            moment(item.utsav_start_date).isAfter(moment(), 'day') &&
+            ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status)
+          ) ||
+          item?.showFeedback
+        ) && (
+            <View className="mt-5 flex-row gap-x-3 px-1">
+              {/* Cancel Booking — only BEFORE event */}
+              {moment(item.utsav_start_date).isAfter(moment(), 'day') &&
+                ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
+                  <CustomButton
+                    text="Cancel Booking"
+                    containerStyles={'py-3 flex-1'}
+                    textStyles={'text-sm text-white'}
+                    handlePress={() => {
+                      setSelectedBooking(item);
+                      setShowCancelModal(true);
+                    }}
+                  />
+                )}
 
-    {/* Give Feedback */}
-    {item?.showFeedback && (
-      <CustomButton
-        text="Give Feedback"
-        containerStyles={'py-3 flex-1'}
-        textStyles={'text-sm text-white'}
-        bgcolor={'bg-secondary'}
-        handlePress={() => {
-          const utsavId = item.utsavid ?? item.id;
-          router.push(`/utsav/feedback/${utsavId}`);
-        }}
-      />
-    )}
-  </View>
-)}
+              {/* Give Feedback */}
+              {item?.showFeedback && !item?.hasSubmittedFeedback && (
+                <CustomButton
+                  text="Give Feedback"
+                  containerStyles={'py-3 flex-1'}
+                  textStyles={'text-sm text-white'}
+                  bgcolor={'bg-secondary'}
+                  handlePress={() => {
+                    const utsavId = item.utsavid ?? item.id;
+                    router.push(`/utsav/feedback/${utsavId}`);
+                  }}
+                />
+              )}
+            </View>
+          )}
 
       </View>
     </ExpandableItem>
