@@ -7,7 +7,7 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { colors, icons, status } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
@@ -15,6 +15,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '../CustomModal';
+import OldBookingsTrigger from '../OldBookingsTrigger';
 import CustomButton from '../CustomButton';
 import ExpandableItem from '../ExpandableItem';
 import HorizontalSeparator from '../HorizontalSeparator';
@@ -28,6 +29,7 @@ const TravelBookingCancellation = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [showOldBookings, setShowOldBookings] = useState(false);
   const tabBarPadding = useTabBarPadding();
 
   const fetchTravels = async ({ pageParam = 1 }) => {
@@ -124,6 +126,39 @@ const TravelBookingCancellation = () => {
     },
   });
 
+  const allItems = data?.pages?.flatMap((page: any) => page) || [];
+  const activeItems = allItems.filter((item: any) => !moment(item.date).isBefore(moment(), 'day'));
+  const pastItems = allItems.filter((item: any) => moment(item.date).isBefore(moment(), 'day'));
+
+  const renderOldBookingsSection = (compact = false) => (
+    <>
+      <OldBookingsTrigger
+        compact={compact}
+        isExpanded={showOldBookings}
+        onToggle={() => setShowOldBookings((v) => !v)}
+      />
+      {showOldBookings && (
+        <View>
+          <View className="flex-row items-center justify-between px-2 pb-2">
+            <Text className="font-psemibold text-base text-gray-500">Past Bookings</Text>
+            <TouchableOpacity onPress={() => setShowOldBookings(false)}>
+              <Text className="font-pregular text-sm text-secondary">Hide old bookings</Text>
+            </TouchableOpacity>
+          </View>
+          {pastItems.length === 0 ? (
+            <View className="items-center py-6">
+              <Text className="font-pregular text-gray-400">No past bookings</Text>
+            </View>
+          ) : (
+            pastItems.map((item: any, index: number) => (
+              <View key={item.bookingid ?? index}>{renderItem({ item } as any)}</View>
+            ))
+          )}
+        </View>
+      )}
+    </>
+  );
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
@@ -134,6 +169,13 @@ const TravelBookingCancellation = () => {
       setIsRefreshing(false);
     }
   };
+
+  function formatTime(value: string) {
+    if (value.includes('T')) {
+      return moment.utc(value).local().format('hh:mm A');
+    }
+    return moment(value, 'HH:mm').format('hh:mm A');
+  }
 
   const renderItem = ({ item }: any) => (
     <ExpandableItem
@@ -184,6 +226,17 @@ const TravelBookingCancellation = () => {
           <Text className="font-pregular text-gray-400">Luggage:</Text>
           <Text className="font-pmedium text-black">{item.luggage}</Text>
         </View>
+        {item.arrival_time && (
+          <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
+            <Ionicons name="time" size={16} color={colors.gray_400} />
+            <View className="flex-row items-center gap-x-2">
+              <Text className="font-pregular text-gray-400">Arrival Time:</Text>
+              <Text className="mx-1 flex-1 font-pmedium text-black">
+                {formatTime(item.arrival_time)}
+              </Text>
+            </View>
+          </View>
+        )}
         {item.comments && (
           <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
             <Image source={icons.request} className="h-4 w-4" resizeMode="contain" />
@@ -233,7 +286,9 @@ const TravelBookingCancellation = () => {
   const renderFooter = () => (
     <View className="items-center">
       {(isFetchingNextPage || isLoading) && <ActivityIndicator />}
-      {!hasNextPage && data?.pages?.[0]?.length > 0 && <Text>No more bookings at the moment</Text>}
+      {!hasNextPage && data?.pages?.[0]?.length > 0 && pastItems.length === 0 && (
+        <Text>No more bookings at the moment</Text>
+      )}
     </View>
   );
 
@@ -247,12 +302,13 @@ const TravelBookingCancellation = () => {
           paddingBottom: tabBarPadding,
         }}
         showsVerticalScrollIndicator={false}
-        data={data?.pages?.flatMap((page: any) => page) || []}
+        data={activeItems}
         renderItem={renderItem}
-        ListEmptyComponent={() => (
-          <View className="h-full flex-1 items-center justify-center pt-40">
-            {isError ? (
-              <View className="items-center justify-center px-6">
+        ListEmptyComponent={() => {
+          if (isLoading) return null;
+          if (isError)
+            return (
+              <View className="items-center justify-center px-6 pt-40">
                 <Text className="mb-2 text-center text-lg font-semibold text-gray-800">
                   Oops! Something went wrong
                 </Text>
@@ -260,19 +316,21 @@ const TravelBookingCancellation = () => {
                   Unable to load Travel Bookings. Please check your connection and try again.
                 </Text>
                 <TouchableOpacity
-                  onPress={() => {
-                    refetch();
-                  }}
+                  onPress={() => refetch()}
                   className="rounded-lg bg-secondary px-6 py-3"
                   activeOpacity={0.7}>
                   <Text className="font-semibold text-white">Try Again</Text>
                 </TouchableOpacity>
               </View>
-            ) : (
+            );
+          if (pastItems.length > 0)
+            return <View className="w-full">{renderOldBookingsSection()}</View>;
+          return (
+            <View className="h-full flex-1 items-center justify-center pt-40">
               <CustomEmptyMessage message={'Empty itinerary? Your Research Centre calls.'} />
-            )}
-          </View>
-        )}
+            </View>
+          );
+        }}
         ListFooterComponent={() => (
           <View>
             {renderFooter()}
@@ -287,6 +345,11 @@ const TravelBookingCancellation = () => {
                 </TouchableOpacity>
               </View>
             )}
+            {!isLoading &&
+              !isError &&
+              activeItems.length > 0 &&
+              pastItems.length > 0 &&
+              renderOldBookingsSection(true)}
           </View>
         )}
         onEndReachedThreshold={0.1}

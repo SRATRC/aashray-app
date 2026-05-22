@@ -3,6 +3,7 @@ import { BASE_URL, DEV_URL } from '../constants';
 import { useDevStore } from '../stores';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
+import * as Sentry from '@sentry/react-native';
 
 const handleAPICall = async (
   method,
@@ -48,11 +49,20 @@ const handleAPICall = async (
       headers['Content-Type'] = 'multipart/form-data';
     }
 
-    console.log('------------');
-    console.log('URL: ', url);
-    console.log('PARAMS: ', JSON.stringify(params));
-    console.log('BODY: ', JSON.stringify(body));
-    console.log('------------');
+    if (__DEV__) {
+      console.log('------------');
+      console.log('URL: ', url);
+      console.log('PARAMS: ', JSON.stringify(params));
+      console.log('BODY: ', JSON.stringify(body));
+      console.log('------------');
+    }
+
+    Sentry.addBreadcrumb({
+      category: 'api.request',
+      message: `${method.toUpperCase()} ${endpoint}`,
+      data: { params, body },
+      level: 'info',
+    });
 
     const res = await axios({
       method,
@@ -67,7 +77,6 @@ const handleAPICall = async (
     if (res.status === 200 || res.status === 201) {
       successCallback(res.data);
     } else {
-      console.log('ERROR: ', JSON.stringify(res.data));
       throw new Error(res.data.message || 'An error occurred');
     }
   } catch (error) {
@@ -81,7 +90,14 @@ const handleAPICall = async (
 
     if (errorCallback) errorCallback(errorDetails);
 
-    console.log('ERROR: ', errorMessage);
+    if (__DEV__) console.log('ERROR: ', errorMessage);
+
+    Sentry.addBreadcrumb({
+      category: 'api.error',
+      message: `${endpoint} failed: ${errorMessage}`,
+      data: errorDetails,
+      level: 'error',
+    });
 
     if (allowToast) {
       Toast.show({

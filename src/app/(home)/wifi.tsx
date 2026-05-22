@@ -280,13 +280,6 @@ const wifi = () => {
                   <View className="flex-row gap-x-3">
                     <Text className="text-gray-400">•</Text>
                     <Text className="flex-1 font-pregular text-sm leading-5 text-gray-600">
-                      If you do NOT activate within 7 days, your code will be{' '}
-                      <Text className="font-pbold text-gray-800">PERMANENTLY DELETED</Text>.
-                    </Text>
-                  </View>
-                  <View className="flex-row gap-x-3">
-                    <Text className="text-gray-400">•</Text>
-                    <Text className="flex-1 font-pregular text-sm leading-5 text-gray-600">
                       If absent from SRATRC for more than 7 days, you'll need to re-enter your
                       credentials.
                     </Text>

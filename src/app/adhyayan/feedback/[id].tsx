@@ -60,24 +60,37 @@ const AdhyayanFeedbackScreen: React.FC = () => {
   const handleSubmit = async (answers: Record<string | number, AnswerValue>) => {
     if (!user?.cardno || shibirId === null) return;
 
-    await new Promise<void>((resolve, reject) => {
-      handleAPICall(
-        'POST',
-        '/adhyayan/feedback',
-        null,
-        {
-          cardno: user.cardno,
-          shibir_id: shibirId,
-          ...answers,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['adhyayanBooking', user?.cardno] });
-          resolve();
-        },
-        () => {},
-        (err: unknown) => reject(err)
-      );
-    });
+  const submit = () => {
+    if (!valid) {
+      setShowValidation(true);
+      return;
+    }
+
+    setSubmitting(true);
+
+    handleAPICall(
+      'POST',
+      '/adhyayan/feedback',
+      null,
+      {
+        cardno: user!.cardno,
+        shibir_id: shibirId,
+        swadhay_karta_rating: form.swadhay_karta_rating,
+        personal_interaction_rating: form.personal_interaction_rating,
+        swadhay_karta_suggestions: form.swadhay_karta_suggestions,
+        raj_adhyayan_interest: form.raj_adhyayan_interest,
+        future_topics: form.future_topics,
+        loved_most: form.loved_most,
+        improvement_suggestions: form.improvement_suggestions,
+        food_rating: form.food_rating,
+        stay_rating: form.stay_rating,
+      },
+      () => {
+        CustomAlert.alert('Thank you!', 'Your feedback has been submitted successfully.');
+        router.back();
+      },
+      () => setSubmitting(false)
+    );
   };
 
   const handleDismiss = () => {

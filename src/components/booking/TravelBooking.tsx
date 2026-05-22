@@ -345,11 +345,13 @@ const TravelBooking = () => {
                 <FormDisplayField
                   text="Flight/Train Time"
                   value={
-                    travelForm.arrival_time ? moment(travelForm.arrival_time).format('h:mm a') : ''
+                    travelForm.arrival_time
+                      ? moment(travelForm.arrival_time, 'HH:mm').format('h:mm a')
+                      : ''
                   }
                   placeholder="Flight/Train Time"
                   otherStyles="mt-5"
-                  inputStyles={'font-pmedium text-black text-lg'}
+                  inputStyles="font-pmedium text-black text-lg"
                   backgroundColor="bg-gray-100"
                   onPress={() => setDatePickerVisibility(true)}
                 />
@@ -357,12 +359,15 @@ const TravelBooking = () => {
                   isVisible={isDatePickerVisible}
                   mode="time"
                   date={
-                    travelForm.arrival_time ? moment(travelForm.arrival_time).toDate() : new Date()
+                    travelForm.arrival_time
+                      ? moment(travelForm.arrival_time, 'HH:mm').toDate()
+                      : new Date()
                   }
                   onConfirm={(date: Date) => {
+                    const timeOnly = moment(date).format('HH:mm');
                     setTravelForm((prev) => ({
                       ...prev,
-                      arrival_time: date.toISOString(),
+                      arrival_time: timeOnly,
                     }));
                     setDatePickerVisibility(false);
                   }}
@@ -487,12 +492,14 @@ const TravelBooking = () => {
                         text="Flight/Train Time"
                         value={
                           mumukshuForm.mumukshus[index].arrival_time
-                            ? moment(mumukshuForm.mumukshus[index].arrival_time).format('h:mm a')
+                            ? moment(mumukshuForm.mumukshus[index].arrival_time, 'HH:mm').format(
+                                'h:mm a'
+                              )
                             : ''
                         }
                         placeholder="Flight/Train Time"
                         otherStyles="mt-5"
-                        inputStyles={'font-pmedium text-black text-lg'}
+                        inputStyles="font-pmedium text-black text-lg"
                         backgroundColor="bg-gray-100"
                         onPress={() => {
                           setDatePickerVisibility(true);
@@ -504,11 +511,12 @@ const TravelBooking = () => {
                         mode="time"
                         date={
                           mumukshuForm.mumukshus[index].arrival_time
-                            ? moment(mumukshuForm.mumukshus[index].arrival_time).toDate()
+                            ? moment(mumukshuForm.mumukshus[index].arrival_time, 'HH:mm').toDate()
                             : new Date()
                         }
                         onConfirm={(date: Date) => {
-                          handleMumukshuFormChange(index, 'arrival_time', date.toISOString());
+                          const timeOnly = moment(date).format('HH:mm');
+                          handleMumukshuFormChange(index, 'arrival_time', timeOnly);
                           setDatePickerVisibility(false);
                         }}
                         onCancel={() => setDatePickerVisibility(false)}
