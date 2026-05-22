@@ -16,19 +16,12 @@ const mapAnswersToPayload = (
 ) => ({
   cardno,
   utsav_id: utsavId,
-  accommodation_rating: answers.accommodation,
-  qr_rating: answers.qr_system,
-  food_rating: answers.food,
-  program_rating: answers.program,
-  volunteer_rating: answers.volunteers,
-  infrastructure_rating: answers.infrastructure,
-  decor_rating: answers.decor,
-  internal_transport_rating: answers.transport_int,
-  raj_pravas_rating: answers.transport_raj,
-  sparsh_rating: answers.sparsh,
-  av_rating: answers.av_setup,
-  loved_most: answers.loved,
-  improvement_suggestions: answers.suggestions,
+  answers: UTSAV_QUESTIONS.map((question) => ({
+    question_id: question.id,
+    question_text: question.text,
+    question_type: question.type,
+    answer: answers[question.id],
+  })),
 });
 
 const UtsavFeedbackScreen: React.FC = () => {
@@ -57,9 +50,16 @@ const UtsavFeedbackScreen: React.FC = () => {
         handleAPICall(
           'GET',
           '/utsav/feedback/validate',
-          { utsav_id: utsavId, cardno: user.cardno },
+          {
+            utsav_id: utsavId,
+            cardno: user.cardno
+          },
           null,
-          () => resolve(true),
+          () => {
+            setValidationError(null);
+            setIsValidating(false);
+            resolve(true);
+          },
           () => {
             setIsValidating(false);
           }
@@ -72,9 +72,13 @@ const UtsavFeedbackScreen: React.FC = () => {
   }, [utsavId, user?.cardno]);
 
   const handleSubmit = async (answers: Record<string | number, AnswerValue>) => {
-    if (!user?.cardno || utsavId === null) return;
+    if (utsavId === null) return;
 
-    const payload = mapAnswersToPayload(answers, user.cardno, utsavId);
+    const payload = mapAnswersToPayload(
+      answers,
+      user.cardno,
+      utsavId
+    );
 
     await new Promise<void>((resolve, reject) => {
       handleAPICall(
@@ -83,7 +87,7 @@ const UtsavFeedbackScreen: React.FC = () => {
         null,
         payload,
         () => resolve(),
-        () => {},
+        () => { },
         (err: unknown) => reject(err)
       );
     });
