@@ -147,6 +147,10 @@ const RootLayout = () => {
     'Poppins-Regular': require('@/src/assets/fonts/Poppins-Regular.ttf'),
     'Poppins-SemiBold': require('@/src/assets/fonts/Poppins-SemiBold.ttf'),
     'Poppins-Thin': require('@/src/assets/fonts/Poppins-Thin.ttf'),
+    'DMSerifDisplay-Regular': require('@/src/assets/fonts/DMSerifDisplay-Regular.ttf'),
+    'DMSans-Regular': require('@/src/assets/fonts/DMSans-Regular.ttf'),
+    'DMSans-Medium': require('@/src/assets/fonts/DMSans-Medium.ttf'),
+    'DMSans-Light': require('@/src/assets/fonts/DMSans-Light.ttf'),
   });
 
   const [isAuthReady, setIsAuthReady] = useState(false);

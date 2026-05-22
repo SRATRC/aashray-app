@@ -5,12 +5,27 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/src/stores';
 import { SteppedFeedback, SteppedFeedbackShimmer } from '@/src/components/SteppedFeedback';
 import type { AnswerValue } from '@/src/components/SteppedFeedback';
-import { ADHYAYAN_QUESTIONS } from '@/src/questions/adhyayanFeedback';
+import { UTSAV_QUESTIONS } from '@/src/questions/utsavFeedback';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomAlert from '@/src/components/CustomAlert';
 import CustomErrorMessage from '@/src/components/CustomErrorMessage';
 
-const AdhyayanFeedbackScreen: React.FC = () => {
+const mapAnswersToPayload = (
+  answers: Record<string | number, AnswerValue>,
+  cardno: string,
+  utsavId: number
+) => ({
+  cardno,
+  utsav_id: utsavId,
+  answers: UTSAV_QUESTIONS.map((question) => ({
+    question_id: question.id,
+    question_text: question.text,
+    question_type: question.type,
+    answer: answers[question.id],
+  })),
+});
+
+const UtsavFeedbackScreen: React.FC = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const user = useAuthStore((s) => s.user);
@@ -19,78 +34,70 @@ const AdhyayanFeedbackScreen: React.FC = () => {
   const [isValidating, setIsValidating] = useState(true);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const shibirId = useMemo(() => {
+  const utsavId = useMemo(() => {
     const parsed = parseInt(Array.isArray(id) ? id[0] : (id as string), 10);
     return Number.isFinite(parsed) ? parsed : null;
   }, [id]);
 
   useEffect(() => {
-    if (!user?.cardno || shibirId === null) {
-      setValidationError('Invalid shibir or user information');
+    if (!user?.cardno || utsavId === null) {
+      setValidationError('Invalid utsav or user information');
       setIsValidating(false);
       return;
     }
 
     const validateFeedbackAccess = async () => {
       setIsValidating(true);
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve, reject) => {
         handleAPICall(
           'GET',
-          '/adhyayan/feedback/validate',
-          { shibir_id: shibirId, cardno: user.cardno },
+          '/utsav/feedback/validate',
+          { utsav_id: utsavId, cardno: user.cardno },
           null,
-          () => resolve(true),
           () => {
+            setValidationError(null);
             setIsValidating(false);
+            resolve();
           },
-          (err: any) => {
+          () => {
             setValidationError(
-              err?.message || 'You are not authorized to submit feedback for this shibir'
+              'You are not allowed to submit feedback.'
             );
-          },
-          false
-        );
+
+            setIsValidating(false);
+
+            reject(new Error('Feedback validation failed'));
+          });
       });
       setValidationError(null);
     };
 
-    validateFeedbackAccess();
-  }, [shibirId, user?.cardno]);
+    validateFeedbackAccess().catch(() => { });
+  }, [utsavId, user?.cardno]);
 
   const handleSubmit = async (answers: Record<string | number, AnswerValue>) => {
-    if (!user?.cardno || shibirId === null) return;
+    if (utsavId === null) return;
 
-  const submit = () => {
-    if (!valid) {
-      setShowValidation(true);
-      return;
-    }
-
-    setSubmitting(true);
-
-    handleAPICall(
-      'POST',
-      '/adhyayan/feedback',
-      null,
-      {
-        cardno: user!.cardno,
-        shibir_id: shibirId,
-        swadhay_karta_rating: form.swadhay_karta_rating,
-        personal_interaction_rating: form.personal_interaction_rating,
-        swadhay_karta_suggestions: form.swadhay_karta_suggestions,
-        raj_adhyayan_interest: form.raj_adhyayan_interest,
-        future_topics: form.future_topics,
-        loved_most: form.loved_most,
-        improvement_suggestions: form.improvement_suggestions,
-        food_rating: form.food_rating,
-        stay_rating: form.stay_rating,
-      },
-      () => {
-        CustomAlert.alert('Thank you!', 'Your feedback has been submitted successfully.');
-        router.back();
-      },
-      () => setSubmitting(false)
+    const payload = mapAnswersToPayload(
+      answers,
+      user.cardno,
+      utsavId
     );
+
+    await new Promise<void>((resolve, reject) => {
+      handleAPICall(
+        'POST',
+        '/utsav/feedback',
+        null,
+        payload,
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['utsavBooking', user?.cardno] });
+          resolve();
+        },
+        () => { },
+        (err: unknown) => reject(err)
+      );
+    });
   };
 
   const handleDismiss = () => {
@@ -126,15 +133,15 @@ const AdhyayanFeedbackScreen: React.FC = () => {
 
   return (
     <SteppedFeedback
-      questions={ADHYAYAN_QUESTIONS}
+      questions={UTSAV_QUESTIONS}
       onSubmit={handleSubmit}
       onBack={handleDismiss}
       onClose={handleClose}
       onDismiss={handleDismiss}
       successTitle="Thank you."
-      successSubtitle="See you at the next Adhyayan."
+      successSubtitle="See you at the next Utsav."
     />
   );
 };
 
-export default AdhyayanFeedbackScreen;
+export default UtsavFeedbackScreen;

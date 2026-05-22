@@ -3,7 +3,7 @@ export default {
     name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
-    version: '1.1.46',
+    version: '1.1.48',
     orientation: 'portrait',
     icon: './src/assets/images/icon.png',
     userInterfaceStyle: 'automatic',
@@ -40,7 +40,7 @@ export default {
         monochromeImage: './src/assets/images/adaptive-icon.png',
         backgroundColor: '#ffffff',
       },
-      googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
+      googleServicesFile: "./google-services.json",
       intentFilters: [
         {
           action: 'VIEW',
@@ -55,6 +55,16 @@ export default {
               scheme: 'https',
               host: 'aashray.vitraagvigyaan.org',
               pathPrefix: '/adhyayan/feedback',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/utsav',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/utsav/feedback',
             },
             {
               scheme: 'https',
