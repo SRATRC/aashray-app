@@ -46,29 +46,31 @@ const UtsavFeedbackScreen: React.FC = () => {
 
     const validateFeedbackAccess = async () => {
       setIsValidating(true);
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve, reject) => {
         handleAPICall(
           'GET',
           '/utsav/feedback/validate',
-          {
-            utsav_id: utsavId,
-            cardno: user.cardno
-          },
+          { utsav_id: utsavId, cardno: user.cardno },
           null,
           () => {
             setValidationError(null);
             setIsValidating(false);
-            resolve(true);
+            resolve();
           },
           () => {
+            setValidationError(
+              'You are not allowed to submit feedback.'
+            );
+
             setIsValidating(false);
-          }
-        );
+
+            reject(new Error('Feedback validation failed'));
+          });
       });
       setValidationError(null);
     };
 
-    validateFeedbackAccess();
+    validateFeedbackAccess().catch(() => { });
   }, [utsavId, user?.cardno]);
 
   const handleSubmit = async (answers: Record<string | number, AnswerValue>) => {

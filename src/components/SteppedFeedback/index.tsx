@@ -67,7 +67,7 @@ export const SteppedFeedback: React.FC<SteppedFeedbackProps> = ({
   }, [isAnswered, animateButtonOpacity]);
 
   const handleContinue = () => {
-    if (!isAnswered) return;
+    if (!isAnswered && !isOptional) return;
     if (isLast) {
       onSubmit(answers);
       fadeToSuccess();
@@ -176,7 +176,7 @@ export const SteppedFeedback: React.FC<SteppedFeedbackProps> = ({
           <Animated.View style={[styles.buttonWrapper, { opacity: buttonOpacity }]}>
             <Pressable
               onPress={handleContinue}
-              disabled={!isAnswered}
+              disabled={!isAnswered && !isOptional}
               style={[styles.button, { backgroundColor: accentColor }]}>
               <Text style={[styles.buttonLabel, { color: accentForeground }]}>
                 {isLast ? 'Submit' : 'Continue'}
