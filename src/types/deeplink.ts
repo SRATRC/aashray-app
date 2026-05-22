@@ -2,6 +2,7 @@ export enum DeepLinkType {
   ADHYAYAN = 'adhyayan',
   ADHYAYAN_FEEDBACK = 'adhyayan_feedback',
   UTSAV = 'utsav',
+  UTSAV_FEEDBACK = 'utsav_feedback',
   MENU = 'menu',
   MAINTENANCE = 'maintenance',
   PENDING_PAYMENT = 'pending_payment',

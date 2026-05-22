@@ -59,6 +59,16 @@ export default {
             {
               scheme: 'https',
               host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/utsav',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/utsav/feedback',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
               pathPrefix: '/event',
             },
             {

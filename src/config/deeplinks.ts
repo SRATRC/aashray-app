@@ -27,6 +27,12 @@ export const DEEPLINK_ROUTES: DeeplinkRoute[] = [
         authRequired: true,
     },
     {
+        name: DeepLinkType.UTSAV_FEEDBACK,
+        pattern: '/utsav/feedback/:id',
+        target: '/utsav/feedback/[id]',
+        authRequired: true,
+    },
+    {
         name: DeepLinkType.MENU,
         pattern: '/menu',
         target: '/menu',

@@ -25,13 +25,6 @@ export const ADHYAYAN_QUESTIONS: Question[] = [
     booleanLabels: ["I'm In!", 'Not Now'],
   },
   {
-    id: 'future_topics',
-    type: 'text',
-    text: 'What topics would you like for future Raj Adhyayan?',
-    placeholder: 'Topics that interest you\u2026',
-    optional: true,
-  },
-  {
     id: 'loved_most',
     type: 'text',
     text: 'What did you love the most about this Raj Adhyayan?',

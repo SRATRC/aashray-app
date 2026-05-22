@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/src/stores';
 import { SteppedFeedback, SteppedFeedbackShimmer } from '@/src/components/SteppedFeedback';
 import type { AnswerValue } from '@/src/components/SteppedFeedback';
@@ -13,6 +14,7 @@ const AdhyayanFeedbackScreen: React.FC = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
 
   const [isValidating, setIsValidating] = useState(true);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -68,7 +70,10 @@ const AdhyayanFeedbackScreen: React.FC = () => {
           shibir_id: shibirId,
           ...answers,
         },
-        () => resolve(),
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['adhyayanBooking', user?.cardno] });
+          resolve();
+        },
         () => {},
         (err: unknown) => reject(err)
       );

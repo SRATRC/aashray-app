@@ -184,7 +184,7 @@ const AdhyayanBookingCancellation = () => {
           {/* Actions Row */}
           {((moment(item.start_date).diff(moment().format('YYYY-MM-DD')) > 0 &&
             ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status)) ||
-            item?.showFeedback) && (
+            (item?.showFeedback && !item?.hasSubmittedFeedback)) && (
             <View className="mt-5 flex-row gap-x-3 px-1">
               {moment(item.start_date).diff(moment().format('YYYY-MM-DD')) > 0 &&
                 ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
@@ -198,7 +198,7 @@ const AdhyayanBookingCancellation = () => {
                     }}
                   />
                 )}
-              {item?.showFeedback && !bookedForSomeone && (
+              {item?.showFeedback && !item?.hasSubmittedFeedback && !bookedForSomeone && (
                 <CustomButton
                   text="Give Feedback"
                   containerStyles={'py-3 flex-1'}

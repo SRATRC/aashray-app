@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/src/stores';
 import { SteppedFeedback, SteppedFeedbackShimmer } from '@/src/components/SteppedFeedback';
 import type { AnswerValue } from '@/src/components/SteppedFeedback';
@@ -28,6 +29,7 @@ const UtsavFeedbackScreen: React.FC = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
 
   const [isValidating, setIsValidating] = useState(true);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -88,7 +90,10 @@ const UtsavFeedbackScreen: React.FC = () => {
         '/utsav/feedback',
         null,
         payload,
-        () => resolve(),
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['utsavBooking', user?.cardno] });
+          resolve();
+        },
         () => { },
         (err: unknown) => reject(err)
       );
