@@ -33,28 +33,29 @@ const AdhyayanFeedbackScreen: React.FC = () => {
 
     const validateFeedbackAccess = async () => {
       setIsValidating(true);
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve, reject) => {
         handleAPICall(
           'GET',
           '/adhyayan/feedback/validate',
           { shibir_id: shibirId, cardno: user.cardno },
           null,
-          () => resolve(true),
           () => {
+            setValidationError(null);
             setIsValidating(false);
+            resolve();
           },
-          (err: any) => {
+          () => {
             setValidationError(
-              err?.message || 'You are not authorized to submit feedback for this shibir'
+              'You are not allowed to submit feedback.'
             );
-          },
-          false
+            setIsValidating(false);
+            reject(new Error('Feedback validation failed'));
+          }
         );
       });
-      setValidationError(null);
     };
 
-    validateFeedbackAccess();
+    validateFeedbackAccess().catch(() => {});
   }, [shibirId, user?.cardno]);
 
   const handleSubmit = async (answers: Record<string | number, AnswerValue>) => {
@@ -68,7 +69,9 @@ const AdhyayanFeedbackScreen: React.FC = () => {
         {
           cardno: user.cardno,
           shibir_id: shibirId,
-          ...answers,
+          ...Object.fromEntries(
+            ADHYAYAN_QUESTIONS.map((q) => [q.id, answers[q.id]])
+          ),
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ['adhyayanBooking', user?.cardno] });
