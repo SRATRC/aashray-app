@@ -2,9 +2,12 @@ export type Question = {
   id: string | number;
   type: 'rating' | 'text' | 'boolean';
   text: string;
+  translatedText?: string;
   placeholder?: string;
-  booleanLabels?: [string, string]; // [trueLabel, falseLabel] — defaults to ["Yes", "No"]
-  optional?: boolean; // when true, a "Skip" link appears below Continue
+  translatedPlaceholder?: string;
+  booleanLabels?: [string, string];
+  translatedBooleanLabels?: [string, string];
+  optional?: boolean;
 };
 
 export type AnswerValue = number | string | boolean;

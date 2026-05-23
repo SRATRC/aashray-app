@@ -132,6 +132,9 @@ export const SteppedFeedback: React.FC<SteppedFeedbackProps> = ({
             {currentIndex + 1} / {total}
           </Text>
           <Text style={styles.questionText}>{currentQuestion.text}</Text>
+          {currentQuestion.translatedText && (
+            <Text style={styles.translatedQuestionText}>{currentQuestion.translatedText}</Text>
+          )}
         </Animated.View>
 
         {/* Thumb zone */}
@@ -160,7 +163,14 @@ export const SteppedFeedback: React.FC<SteppedFeedbackProps> = ({
               onSelect={(v) => setAnswer(v)}
               accentColor={accentColor}
               accentForeground={accentForeground}
-              labels={currentQuestion.booleanLabels ?? ['Yes', 'No']}
+              labels={
+                currentQuestion.translatedBooleanLabels
+                  ? [
+                    `${currentQuestion.booleanLabels?.[0] ?? 'Yes'} / ${currentQuestion.translatedBooleanLabels[0]}`,
+                    `${currentQuestion.booleanLabels?.[1] ?? 'No'} / ${currentQuestion.translatedBooleanLabels[1]}`,
+                  ]
+                  : (currentQuestion.booleanLabels ?? ['Yes', 'No'])
+              }
               pillScales={pillScales}
               onPillPress={animatePillPress}
             />
@@ -168,7 +178,13 @@ export const SteppedFeedback: React.FC<SteppedFeedbackProps> = ({
             <FeedbackTextInput
               value={typeof currentAnswer === 'string' ? currentAnswer : ''}
               onChangeText={(text) => setAnswer(text)}
-              placeholder={currentQuestion.placeholder}
+              placeholder={
+                currentQuestion.translatedPlaceholder
+                  ? currentQuestion.placeholder
+                    ? `${currentQuestion.placeholder} / ${currentQuestion.translatedPlaceholder}`
+                    : currentQuestion.translatedPlaceholder
+                  : currentQuestion.placeholder
+              }
             />
           )}
 
@@ -233,6 +249,13 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSerifDisplay-Regular',
     color: colors.black,
     lineHeight: 38,
+  },
+  translatedQuestionText: {
+    fontSize: 18,
+    fontFamily: 'DMSans-Regular',
+    color: colors.gray_500,
+    lineHeight: 26,
+    marginTop: 8,
   },
   thumbZone: {
     flexShrink: 0,
