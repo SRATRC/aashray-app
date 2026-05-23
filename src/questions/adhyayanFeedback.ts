@@ -5,7 +5,7 @@ export const ADHYAYAN_QUESTIONS: Question[] = [
     id: 'swadhay_karta_rating',
     type: 'rating',
     text: "How would you rate the Swadhyay Karta's session?",
-    translatedText: 'સ્વાધ્યાય કર્તાઓના સેસનને તમે કેવી રીતે મૂલ્યાંકન કરશો?',
+    translatedText: 'સ્વાધ્યાયકર્તાઓના સેશનનું તમે કેવી રીતે મૂલ્યાંકન કરશો?',
   },
   {
     id: 'personal_interaction_rating',
@@ -18,7 +18,7 @@ export const ADHYAYAN_QUESTIONS: Question[] = [
     id: 'swadhay_karta_suggestions',
     type: 'text',
     text: 'Any suggestions for the Swadhyay Karta to improve?',
-    translatedText: 'સ્વાધ્યાયકર્તા માટે કોઈ સુધારા સૂચન?',
+    translatedText: 'સ્વાધ્યાયકર્તાને કોઈ સુધારા માટે સૂચન?',
     placeholder: 'Share your suggestions…',
     translatedPlaceholder: 'તમારા સૂચનો જણાવો…',
     optional: true,
