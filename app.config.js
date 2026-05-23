@@ -74,6 +74,11 @@ export default {
             {
               scheme: 'https',
               host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/wifi',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
               pathPrefix: '/',
             },
           ],

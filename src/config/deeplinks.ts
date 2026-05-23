@@ -3,7 +3,7 @@ import { DeepLinkType } from '@/src/types/deeplink';
 export interface DeeplinkRoute {
     name: DeepLinkType;
     pattern: string; // e.g., '/event/:id'
-    target: string;  // e.g., '/event/[id]'
+    target: string; // e.g., '/event/[id]'
     authRequired: boolean;
 }
 
@@ -54,6 +54,12 @@ export const DEEPLINK_ROUTES: DeeplinkRoute[] = [
         name: DeepLinkType.BOOKINGS,
         pattern: '/bookings',
         target: '/bookings',
+        authRequired: true,
+    },
+    {
+        name: DeepLinkType.WIFI,
+        pattern: '/wifi',
+        target: '/wifi',
         authRequired: true,
     },
 ];

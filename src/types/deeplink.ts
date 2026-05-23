@@ -7,6 +7,7 @@ export enum DeepLinkType {
   MAINTENANCE = 'maintenance',
   PENDING_PAYMENT = 'pending_payment',
   BOOKINGS = 'bookings',
+  WIFI = 'wifi',
   UNKNOWN = 'unknown',
 }
 
