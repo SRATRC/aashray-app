@@ -4,9 +4,7 @@ export type Question = {
   text: string;
   translatedText?: string;
   placeholder?: string;
-  translatedPlaceholder?: string;
   booleanLabels?: [string, string];
-  translatedBooleanLabels?: [string, string];
   optional?: boolean;
 };
 

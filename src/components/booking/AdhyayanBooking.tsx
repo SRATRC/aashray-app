@@ -526,10 +526,10 @@ const AdhyayanBooking = () => {
         }}
         sections={data?.pages?.flatMap((page: any) => page) || []}
         showsVerticalScrollIndicator={false}
-        nestedScrollEnabled={true}
+        nestedScrollEnabled
         renderItem={renderItem}
         renderSectionHeader={({ section: { title } }) => (
-          <View className="mt-4 mb-2">
+          <View className="mb-2 mt-4">
             <Text className="font-pbold text-xl text-black">{title}</Text>
           </View>
         )}

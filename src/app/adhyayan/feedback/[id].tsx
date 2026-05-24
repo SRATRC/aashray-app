@@ -44,13 +44,13 @@ const AdhyayanFeedbackScreen: React.FC = () => {
             setIsValidating(false);
             resolve();
           },
-          () => {
-            setValidationError(
-              'You are not allowed to submit feedback.'
-            );
+          () => {},
+          (error) => {
+            setValidationError(error.message ?? 'You are not allowed to submit feedback.');
             setIsValidating(false);
             reject(new Error('Feedback validation failed'));
-          }
+          },
+          false
         );
       });
     };
@@ -69,9 +69,7 @@ const AdhyayanFeedbackScreen: React.FC = () => {
         {
           cardno: user.cardno,
           shibir_id: shibirId,
-          ...Object.fromEntries(
-            ADHYAYAN_QUESTIONS.map((q) => [q.id, answers[q.id]])
-          ),
+          ...Object.fromEntries(ADHYAYAN_QUESTIONS.map((q) => [q.id, answers[q.id]])),
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ['adhyayanBooking', user?.cardno] });

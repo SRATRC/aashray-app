@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useSteppedFeedback } from './useSteppedFeedback';
 import { ProgressBar } from './ProgressBar';
 import { RatingInput } from './RatingInput';
@@ -103,7 +104,7 @@ export const SteppedFeedback: React.FC<SteppedFeedbackProps> = ({
           onPress={handleBack}
           style={[styles.backButton, { top: insets.top + 12 }]}
           hitSlop={16}>
-          <Text style={styles.backChevron}>{'<'}</Text>
+          <Ionicons name="chevron-back" size={28} color={colors.gray_400} />
         </Pressable>
       )}
 
@@ -113,7 +114,7 @@ export const SteppedFeedback: React.FC<SteppedFeedbackProps> = ({
           onPress={onClose}
           style={[styles.closeButton, { top: insets.top + 12 }]}
           hitSlop={16}>
-          <Text style={styles.closeIcon}>{'✕'}</Text>
+          <Ionicons name="close" size={28} color={colors.gray_400} />
         </Pressable>
       )}
 
@@ -163,14 +164,7 @@ export const SteppedFeedback: React.FC<SteppedFeedbackProps> = ({
               onSelect={(v) => setAnswer(v)}
               accentColor={accentColor}
               accentForeground={accentForeground}
-              labels={
-                currentQuestion.translatedBooleanLabels
-                  ? [
-                    `${currentQuestion.booleanLabels?.[0] ?? 'Yes'} / ${currentQuestion.translatedBooleanLabels[0]}`,
-                    `${currentQuestion.booleanLabels?.[1] ?? 'No'} / ${currentQuestion.translatedBooleanLabels[1]}`,
-                  ]
-                  : (currentQuestion.booleanLabels ?? ['Yes', 'No'])
-              }
+              labels={currentQuestion.booleanLabels ?? ['Yes', 'No']}
               pillScales={pillScales}
               onPillPress={animatePillPress}
             />
@@ -178,13 +172,7 @@ export const SteppedFeedback: React.FC<SteppedFeedbackProps> = ({
             <FeedbackTextInput
               value={typeof currentAnswer === 'string' ? currentAnswer : ''}
               onChangeText={(text) => setAnswer(text)}
-              placeholder={
-                currentQuestion.translatedPlaceholder
-                  ? currentQuestion.placeholder
-                    ? `${currentQuestion.placeholder} / ${currentQuestion.translatedPlaceholder}`
-                    : currentQuestion.translatedPlaceholder
-                  : currentQuestion.placeholder
-              }
+              placeholder={currentQuestion.placeholder}
             />
           )}
 
@@ -284,11 +272,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backChevron: {
-    fontSize: 22,
-    color: colors.gray_400,
-    fontFamily: 'DMSans-Medium',
-  },
   closeButton: {
     position: 'absolute',
     right: 20,
@@ -297,10 +280,6 @@ const styles = StyleSheet.create({
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  closeIcon: {
-    fontSize: 18,
-    color: colors.gray_400,
   },
   skipButton: {
     alignSelf: 'center',

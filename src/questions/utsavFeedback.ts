@@ -36,7 +36,6 @@ export const UTSAV_QUESTIONS: Question[] = [
     translatedText:
       'આ ઉત્સવમાં તમને સૌથી વધુ શું ગમ્યું?',
     placeholder: 'Write freely…',
-    translatedPlaceholder: 'નિઃસંકોચ લખો…',
   },
   {
     id: 'improvement_suggestions',
@@ -45,6 +44,5 @@ export const UTSAV_QUESTIONS: Question[] = [
     translatedText:
       'સમસ્ત કાર્યક્રમના સુધારા માટે કોઈ સૂચન?',
     placeholder: 'Every thought counts…',
-    translatedPlaceholder: 'તમારા વિચારો અમૂલ્ય છે…',
   },
 ];
