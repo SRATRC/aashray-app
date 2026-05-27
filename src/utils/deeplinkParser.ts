@@ -36,6 +36,13 @@ export const normalizeUrl = (url: string): string => {
     path = '/' + path;
   }
 
+  // Remove /app prefix if present to match internal route patterns
+  if (path.startsWith('/app/')) {
+    path = path.slice(4);
+  } else if (path === '/app' || path === '/app/') {
+    path = '/';
+  }
+
   return path;
 };
 
@@ -43,9 +50,15 @@ export const normalizeUrl = (url: string): string => {
  * Checks if a URL is a valid deep link for this app
  */
 export const isValidDeepLink = (url: string): boolean => {
-  // Check if URL starts with supported scheme or domain
+  // Check if URL starts with supported scheme
   const hasValidScheme = DEEPLINK_CONFIG.schemes.some((scheme) => url.startsWith(scheme));
-  const hasValidDomain = DEEPLINK_CONFIG.domains.some((domain) => url.startsWith(domain));
+
+  // For domain, we want to only accept links that start with domain AND have the /app prefix or are the base /app url.
+  const hasValidDomain = DEEPLINK_CONFIG.domains.some((domain) => {
+    if (!url.startsWith(domain)) return false;
+    const pathPart = url.replace(domain, '');
+    return pathPart.startsWith('/app/') || pathPart === '/app' || pathPart === '/app/';
+  });
 
   return hasValidScheme || hasValidDomain;
 };
