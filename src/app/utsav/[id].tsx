@@ -179,7 +179,7 @@ const UtsavPage = () => {
         title: utsav.utsav_name,
         message: `Join us for ${utsav.utsav_name} from ${moment(utsav.utsav_start).format(
           'MMM D'
-        )} to ${moment(utsav.utsav_end).format('MMM D, YYYY')} at ${utsav.utsav_location}.\n\nhttps://aashray.vitraagvigyaan.org/utsav/${utsav.utsav_id}`,
+        )} to ${moment(utsav.utsav_end).format('MMM D, YYYY')} at ${utsav.utsav_location}.\n\nhttps://aashray.vitraagvigyaan.org/app/utsav/${utsav.utsav_id}`,
       };
 
       await Share.share(shareContent);
@@ -372,7 +372,7 @@ const UtsavPage = () => {
         { cardno: user.cardno },
         null,
         handleSuccess,
-        () => {},
+        () => { },
         (error: Error) => handleError(error || new Error('Network request failed'))
       );
     });
@@ -781,12 +781,11 @@ const UtsavPage = () => {
 
             {/* Availability Status */}
             <View
-              className={`mb-4 rounded-xl border p-4 ${
-                availabilityInfo.isWaitlist ||
-                (utsav.available_seats && utsav.available_seats <= 10)
+              className={`mb-4 rounded-xl border p-4 ${availabilityInfo.isWaitlist ||
+                  (utsav.available_seats && utsav.available_seats <= 10)
                   ? 'border-red-200 bg-red-50'
                   : 'border-green-200 bg-green-50'
-              }`}>
+                }`}>
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center">
                   <Ionicons
@@ -936,9 +935,9 @@ const UtsavPage = () => {
               <Text className="font-pbold text-lg text-gray-900">
                 {utsav.packages?.length
                   ? `₹${utsav.packages.reduce(
-                      (min, pkg) => (pkg.package_amount < min ? pkg.package_amount : min),
-                      utsav.packages[0]?.package_amount || 0
-                    )}`
+                    (min, pkg) => (pkg.package_amount < min ? pkg.package_amount : min),
+                    utsav.packages[0]?.package_amount || 0
+                  )}`
                   : 'N/A'}
               </Text>
             </View>
@@ -950,9 +949,8 @@ const UtsavPage = () => {
           </View>
           <TouchableOpacity
             onPress={toggleModal}
-            className={`rounded-lg px-6 py-3 ${
-              availabilityInfo.isWaitlist ? 'bg-gray-900' : 'bg-orange-600'
-            }`}>
+            className={`rounded-lg px-6 py-3 ${availabilityInfo.isWaitlist ? 'bg-gray-900' : 'bg-orange-600'
+              }`}>
             <Text className="font-psemibold text-white">
               {availabilityInfo.isWaitlist ? 'Join waitlist' : 'Register now'}
             </Text>

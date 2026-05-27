@@ -115,7 +115,7 @@ const AdhyayanDetails = () => {
         title: adhyayan.name,
         message: `Join us for ${adhyayan.name} from ${moment(adhyayan.start_date).format(
           'MMM D'
-        )} to ${moment(adhyayan.end_date).format('MMM D, YYYY')} at ${adhyayan.location}.\n\nhttps://aashray.vitraagvigyaan.org/adhyayan/${adhyayan.id}`,
+        )} to ${moment(adhyayan.end_date).format('MMM D, YYYY')} at ${adhyayan.location}.\n\nhttps://aashray.vitraagvigyaan.org/app/adhyayan/${adhyayan.id}`,
       };
 
       await Share.share(shareContent);
@@ -237,7 +237,7 @@ const AdhyayanDetails = () => {
         (res: any) => {
           resolve(res.data);
         },
-        () => {},
+        () => { },
         (_error: any) => reject(new Error('Failed to fetch adhyayan details'))
       );
     });
@@ -656,12 +656,11 @@ const AdhyayanDetails = () => {
 
             {/* Availability Status */}
             <View
-              className={`mb-4 rounded-xl border p-4 ${
-                availabilityInfo.isWaitlist ||
-                (adhyayan.available_seats && adhyayan.available_seats <= 10)
+              className={`mb-4 rounded-xl border p-4 ${availabilityInfo.isWaitlist ||
+                  (adhyayan.available_seats && adhyayan.available_seats <= 10)
                   ? 'border-red-200 bg-red-50'
                   : 'border-green-200 bg-green-50'
-              }`}>
+                }`}>
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center">
                   <Ionicons
@@ -828,9 +827,8 @@ const AdhyayanDetails = () => {
           </View>
           <TouchableOpacity
             onPress={toggleModal}
-            className={`rounded-lg px-6 py-3 ${
-              availabilityInfo.isWaitlist ? 'bg-gray-900' : 'bg-orange-600'
-            }`}>
+            className={`rounded-lg px-6 py-3 ${availabilityInfo.isWaitlist ? 'bg-gray-900' : 'bg-orange-600'
+              }`}>
             <Text className="font-psemibold text-white">
               {availabilityInfo.isWaitlist ? 'Join waitlist' : 'Register now'}
             </Text>
