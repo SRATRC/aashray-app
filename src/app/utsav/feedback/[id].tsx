@@ -59,30 +59,24 @@ const UtsavFeedbackScreen: React.FC = () => {
             setIsValidating(false);
             resolve();
           },
-          () => {
-            setValidationError(
-              'You are not allowed to submit feedback.'
-            );
-
+          () => {},
+          (error) => {
+            setValidationError(error.message ?? 'You are not allowed to submit feedback.');
             setIsValidating(false);
-
             reject(new Error('Feedback validation failed'));
-          });
+          },
+          false
+        );
       });
-      setValidationError(null);
     };
 
-    validateFeedbackAccess().catch(() => { });
+    validateFeedbackAccess().catch(() => {});
   }, [utsavId, user?.cardno]);
 
   const handleSubmit = async (answers: Record<string | number, AnswerValue>) => {
     if (utsavId === null) return;
 
-    const payload = mapAnswersToPayload(
-      answers,
-      user.cardno,
-      utsavId
-    );
+    const payload = mapAnswersToPayload(answers, user.cardno, utsavId);
 
     await new Promise<void>((resolve, reject) => {
       handleAPICall(
@@ -94,7 +88,7 @@ const UtsavFeedbackScreen: React.FC = () => {
           queryClient.invalidateQueries({ queryKey: ['utsavBooking', user?.cardno] });
           resolve();
         },
-        () => { },
+        () => {},
         (err: unknown) => reject(err)
       );
     });

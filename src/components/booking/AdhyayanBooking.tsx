@@ -2,6 +2,7 @@ import {
   View,
   Text,
   FlatList,
+  SectionList,
   ActivityIndicator,
   TouchableOpacity,
   Modal,
@@ -516,18 +517,23 @@ const AdhyayanBooking = () => {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-      <FlatList
+      <SectionList
         className="flex-grow-1"
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 8,
           paddingBottom: tabBarPadding,
         }}
-        data={data?.pages?.flatMap((page: any) => page) || []}
+        sections={data?.pages?.flatMap((page: any) => page) || []}
         showsVerticalScrollIndicator={false}
-        nestedScrollEnabled={true}
+        nestedScrollEnabled
         renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
+        renderSectionHeader={({ section: { title } }) => (
+          <View className="mb-2 mt-4">
+            <Text className="font-pbold text-xl text-black">{title}</Text>
+          </View>
+        )}
+        keyExtractor={(item, index) => item?.id?.toString() || index.toString()}
         ListEmptyComponent={() => (
           <View className="h-full flex-1 items-center justify-center pt-40">
             {isError ? (

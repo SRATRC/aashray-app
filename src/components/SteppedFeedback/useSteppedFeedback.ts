@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Easing } from 'react-native';
 import type { Question, AnswerValue } from './types';
 
@@ -27,13 +27,11 @@ export function useSteppedFeedback(questions: Question[]) {
     [progressAnim, total]
   );
 
-  // Slide transition
   const translateX = useRef(new Animated.Value(0)).current;
   const contentOpacity = useRef(new Animated.Value(1)).current;
 
   const slideTransition = useCallback(
     (direction: 1 | -1, nextIndex: number) => {
-      // Exit
       Animated.parallel([
         Animated.timing(translateX, {
           toValue: -direction * SCREEN_WIDTH * 0.3,
@@ -49,11 +47,7 @@ export function useSteppedFeedback(questions: Question[]) {
         }),
       ]).start(() => {
         setCurrentIndex(nextIndex);
-
-        // Position incoming content on opposite side
         translateX.setValue(direction * SCREEN_WIDTH * 0.3);
-
-        // Enter
         Animated.parallel([
           Animated.timing(translateX, {
             toValue: 0,
@@ -73,7 +67,6 @@ export function useSteppedFeedback(questions: Question[]) {
     [translateX, contentOpacity]
   );
 
-  // Continue / Submit button opacity
   const buttonOpacity = useRef(new Animated.Value(0.26)).current;
 
   const animateButtonOpacity = useCallback(
@@ -88,7 +81,6 @@ export function useSteppedFeedback(questions: Question[]) {
     [buttonOpacity]
   );
 
-  // Success screen fade
   const successOpacity = useRef(new Animated.Value(0)).current;
 
   const fadeToSuccess = useCallback(() => {
@@ -101,12 +93,10 @@ export function useSteppedFeedback(questions: Question[]) {
     }).start();
   }, [successOpacity]);
 
-  // Rating pill scale anims
   const pillScales = useRef([1, 2, 3, 4, 5].map(() => new Animated.Value(1))).current;
 
   const animatePillPress = useCallback(
     (index: number) => {
-      // Reset all
       pillScales.forEach((s, i) => {
         if (i !== index) {
           Animated.spring(s, {
@@ -115,7 +105,6 @@ export function useSteppedFeedback(questions: Question[]) {
           }).start();
         }
       });
-      // Animate selected
       Animated.spring(pillScales[index], {
         toValue: 1.08,
         useNativeDriver: true,
@@ -124,14 +113,31 @@ export function useSteppedFeedback(questions: Question[]) {
     [pillScales]
   );
 
-  // Derived state
   const currentQuestion = questions[currentIndex];
   const currentAnswer = answers[currentQuestion?.id];
   const isAnswered = currentAnswer !== undefined && currentAnswer !== null && currentAnswer !== '';
   const isFirst = currentIndex === 0;
   const isLast = currentIndex === total - 1;
 
-  // Actions
+  useEffect(() => {
+    const type = currentQuestion?.type;
+    if (type !== 'rating' && type !== 'boolean') return;
+
+    let selectedIndex = -1;
+    if (type === 'rating' && typeof currentAnswer === 'number') {
+      selectedIndex = currentAnswer - 1;
+    } else if (type === 'boolean' && typeof currentAnswer === 'boolean') {
+      selectedIndex = currentAnswer ? 0 : 1;
+    }
+
+    pillScales.forEach((s, i) => {
+      Animated.spring(s, {
+        toValue: i === selectedIndex ? 1.08 : 1,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [currentIndex]);
+
   const setAnswer = useCallback(
     (value: AnswerValue) => {
       setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }));
@@ -161,11 +167,9 @@ export function useSteppedFeedback(questions: Question[]) {
     slideTransition(-1, prevIndex);
   }, [isFirst, currentIndex, animateProgress, slideTransition]);
 
-  // is current question optional?
   const isOptional = currentQuestion?.optional === true;
 
   return {
-    // State
     currentIndex,
     currentQuestion,
     currentAnswer,
@@ -175,16 +179,12 @@ export function useSteppedFeedback(questions: Question[]) {
     isLast,
     submitted,
     total,
-
-    // Actions
     setAnswer,
     goForward,
     goBack,
     skip,
     fadeToSuccess,
     isOptional,
-
-    // Animation values
     progressAnim,
     translateX,
     contentOpacity,

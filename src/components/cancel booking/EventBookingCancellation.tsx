@@ -22,7 +22,6 @@ import BookingStatusDisplay from '../BookingStatusDisplay';
 import moment from 'moment';
 import { useRouter } from 'expo-router';
 
-
 const EventBookingCancellation = () => {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
@@ -31,7 +30,6 @@ const EventBookingCancellation = () => {
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const tabBarPadding = useTabBarPadding();
   const router = useRouter();
-
 
   const fetchUtsavs = async ({ pageParam = 1 }) => {
     return new Promise((resolve, reject) => {
@@ -127,59 +125,66 @@ const EventBookingCancellation = () => {
     }
   };
 
-  const renderItem = ({ item }: any) => (
-    <ExpandableItem
-      visibleContent={
-        <View className="flex flex-row items-center gap-x-4">
-          <Image source={icons.events} className="h-10 w-10 items-center" resizeMode="contain" />
-          <View className="flex-1 flex-shrink flex-col gap-y-2">
-            <BookingStatusDisplay
-              bookingStatus={item.status}
-              transactionStatus={item.transaction_status}
-            />
-            <Text className="font-pmedium">{item.utsav_name}</Text>
-            {item.bookedBy && user?.cardno == item.bookedBy && (
-              <Text className="font-pmedium">
-                Booked For: <Text className="font-pmedium text-secondary">{item.user_name}</Text>
-              </Text>
-            )}
+  const renderItem = ({ item }: any) => {
+    const bookedForSomeone = item.bookedBy && user?.cardno === item.bookedBy;
+    const canCancel =
+      moment(item.utsav_start_date).isAfter(moment(), 'day') &&
+      ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status);
+    return (
+      <ExpandableItem
+        visibleContent={
+          <View className="flex-1 flex-shrink flex-row items-center gap-x-4">
+            <Image source={icons.events} className="h-10 w-10 items-center" resizeMode="contain" />
+            <View className="flex-col gap-y-2">
+              <BookingStatusDisplay
+                bookingStatus={item.status}
+                transactionStatus={item.transaction_status}
+              />
+              <View className="flex-col">
+                <Text className="font-pmedium text-gray-700">{item.utsav_name}</Text>
+                {item.package_start && item.package_end && (
+                  <Text className="font-pmedium text-secondary-100">
+                    {moment(item.package_start).format('Do MMMM')} -{' '}
+                    {moment(item.package_end).format('Do MMMM, YYYY')}
+                  </Text>
+                )}
+                {bookedForSomeone && (
+                  <View className="flex-row items-center gap-x-2">
+                    <Text className="font-pmedium">Booked For:</Text>
+                    <Text className="font-pmedium text-secondary-100">{item.user_name}</Text>
+                  </View>
+                )}
+              </View>
+            </View>
           </View>
-        </View>
-      }
-      containerStyles={'mt-3'}>
-      <HorizontalSeparator />
-      <View className="mt-3">
-        <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
-          <Image source={icons.luggage} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Package: </Text>
-          <Text className="flex-1 flex-shrink font-pmedium text-black">{item.package_name}</Text>
-        </View>
-        {item.stay && (
+        }
+        containerStyles={'mt-3'}>
+        <HorizontalSeparator />
+        <View className="mt-3">
           <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
-            <Image source={icons.roomNumber} className="h-4 w-4" resizeMode="contain" />
-            <Text className="font-pregular text-gray-400">Room Number: </Text>
-            <Text className="font-pmedium text-black">{item.stay}</Text>
+            <Image source={icons.luggage} className="h-4 w-4" resizeMode="contain" />
+            <Text className="font-pregular text-gray-400">Package: </Text>
+            <Text className="flex-1 flex-shrink font-pmedium text-black">{item.package_name}</Text>
           </View>
-        )}
-        {item.amount > 0 && (
-          <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
-            <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
-            <Text className="font-pregular text-gray-400">Charge: </Text>
-            <Text className="font-pmedium text-black">₹ {item.amount}</Text>
-          </View>
-        )}
-        {/* Actions Row */}
-        {(
-          (
-            moment(item.utsav_start_date).isAfter(moment(), 'day') &&
-            ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status)
-          ) ||
-          item?.showFeedback
-        ) && (
+          {item.stay && (
+            <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
+              <Image source={icons.roomNumber} className="h-4 w-4" resizeMode="contain" />
+              <Text className="font-pregular text-gray-400">Room Number: </Text>
+              <Text className="font-pmedium text-black">{item.stay}</Text>
+            </View>
+          )}
+          {item.amount > 0 && (
+            <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
+              <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
+              <Text className="font-pregular text-gray-400">Charge: </Text>
+              <Text className="font-pmedium text-black">₹ {item.amount}</Text>
+            </View>
+          )}
+          {/* Actions Row */}
+          {(canCancel || (item?.showFeedback && !item?.hasSubmittedFeedback)) && (
             <View className="mt-5 flex-row gap-x-3 px-1">
               {/* Cancel Booking — only BEFORE event */}
-              {moment(item.utsav_start_date).isAfter(moment(), 'day') &&
-                ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
+              {canCancel && (
                   <CustomButton
                     text="Cancel Booking"
                     containerStyles={'py-3 flex-1'}
@@ -192,7 +197,7 @@ const EventBookingCancellation = () => {
                 )}
 
               {/* Give Feedback */}
-              {item?.showFeedback && !item?.hasSubmittedFeedback && (
+              {item?.showFeedback && !item?.hasSubmittedFeedback && !bookedForSomeone && (
                 <CustomButton
                   text="Give Feedback"
                   containerStyles={'py-3 flex-1'}
@@ -206,10 +211,10 @@ const EventBookingCancellation = () => {
               )}
             </View>
           )}
-
-      </View>
-    </ExpandableItem>
-  );
+        </View>
+      </ExpandableItem>
+    );
+  };
 
   const renderFooter = () => (
     <View className="items-center">
