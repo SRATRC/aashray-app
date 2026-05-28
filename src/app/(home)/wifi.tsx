@@ -242,7 +242,7 @@ const wifi = () => {
                 isLoading={isLoading}
                 isGenerating={isSubmitting}
                 isError={isError}
-                maxCodes={3}
+                maxCodes={2}
                 onGenerateCode={handleGenerateCode}
               />
             )}
@@ -456,7 +456,7 @@ const wifi = () => {
                       <View className="flex-1">
                         <Text className="font-pmedium text-sm text-gray-900">Temporary Code</Text>
                         <Text className="mt-0.5 font-pregular text-xs leading-5 text-gray-500">
-                          Short-term (24h), instant, max 3 codes allowed.
+                          Short-term (24h), instant, max 2 codes allowed.
                         </Text>
                       </View>
                     </View>

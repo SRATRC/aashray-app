@@ -31,7 +31,7 @@ const TemporaryWifiSection: React.FC<TemporaryWifiSectionProps> = ({
   isLoading,
   isError,
   isGenerating,
-  maxCodes = 3,
+  maxCodes = 2,
   onGenerateCode,
 }) => {
   const copyToClipboard = async (text: string) => {
@@ -89,7 +89,6 @@ const TemporaryWifiSection: React.FC<TemporaryWifiSectionProps> = ({
 
   const renderLoadingState = () => (
     <Shimmer.Container className="mx-4 mt-3 gap-y-3">
-      <Shimmer.Box height={80} borderRadius={12} />
       <Shimmer.Box height={80} borderRadius={12} />
       <Shimmer.Box height={80} borderRadius={12} />
     </Shimmer.Container>
