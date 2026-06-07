@@ -889,6 +889,7 @@ const PendingPayments = () => {
               selectedPayments.length > 0 && isPaymentAllowed ? 120 + insets.bottom : 20,
           }}
           data={pendingPayments}
+          estimatedItemSize={120}
           showsVerticalScrollIndicator={false}
           renderItem={renderItem}
           ListHeaderComponent={ListHeader}

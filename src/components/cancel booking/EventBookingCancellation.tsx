@@ -241,6 +241,7 @@ const EventBookingCancellation = () => {
           paddingTop: 8,
           paddingBottom: tabBarPadding,
         }}
+        estimatedItemSize={120}
         showsVerticalScrollIndicator={false}
         data={activeItems}
         renderItem={renderItem}

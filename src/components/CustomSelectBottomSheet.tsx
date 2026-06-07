@@ -775,6 +775,7 @@ const CustomSelectBottomSheet = forwardRef<
                           data={filteredOptions}
                           renderItem={renderItem}
                           keyExtractor={keyExtractor}
+                          estimatedItemSize={60}
                           showsVerticalScrollIndicator={false}
                           contentContainerStyle={{
                             paddingHorizontal: 8,

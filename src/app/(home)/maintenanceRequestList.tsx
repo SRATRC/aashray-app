@@ -180,6 +180,7 @@ const maintenanceRequestList = () => {
         className="flex-grow-1"
         contentContainerStyle={{ padding: 10 }}
         data={data?.pages?.flatMap((page: any) => page) || []}
+        estimatedItemSize={100}
         showsVerticalScrollIndicator={false}
         renderItem={renderItem}
         keyExtractor={(item: any, index: number) => item?.bookingid?.toString() ?? `idx-${index}`}

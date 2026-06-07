@@ -73,6 +73,7 @@ const Transactions = () => {
           paddingBottom: 20,
         }}
         data={data?.pages?.flatMap((page: any) => page) || []}
+        estimatedItemSize={80}
         showsVerticalScrollIndicator={false}
         renderItem={renderItem}
         ListEmptyComponent={() => (

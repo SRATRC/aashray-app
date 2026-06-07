@@ -497,6 +497,7 @@ export default function FoodBookingCancellation() {
           paddingTop: 8,
         }}
         data={data?.pages?.flat()}
+        estimatedItemSize={120}
         showsVerticalScrollIndicator={false}
         renderItem={renderItem}
         ListHeaderComponent={renderHeader}
