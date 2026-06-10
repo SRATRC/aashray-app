@@ -16,10 +16,23 @@ const GuestRoomBookingDetails: React.FC<{ containerStyles: any }> = ({ container
     const groups: { [key: string]: any } = {};
 
     roomDetails.forEach((booking: any) => {
-      const key = `${booking.range.start}-${booking.range.end}`;
+      const range = booking.range || (() => {
+        if (booking.dates) {
+          const parts = booking.dates.split(' to ');
+          if (parts.length === 2) {
+            return { start: parts[0], end: parts[1] };
+          }
+        }
+        return {
+          start: guestData?.room?.startDay,
+          end: guestData?.room?.endDay,
+        };
+      })();
+
+      const key = `${range.start}-${range.end}`;
       if (!groups[key]) {
         groups[key] = {
-          range: booking.range,
+          range,
           bookings: [],
           statuses: {},
         };
