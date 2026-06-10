@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
+  Linking,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -211,6 +212,51 @@ const TravelBookingCancellation = () => {
             <Text className="font-pmedium text-black">₹ {String(item.amount)}</Text>
           </View>
         ) : null}
+
+        {item.bus_name && (
+          <View className="mx-1 mt-4 rounded-xl border border-dashed border-[#FF8E01]/40 bg-[#FFEFDB] p-4 flex-col gap-y-2.5">
+            {/* Ticket Header */}
+            <View className="flex-row items-center gap-x-2 pb-2 border-b border-dashed border-[#FF9001]/30">
+              <MaterialCommunityIcons name="bus-side" size={20} color={colors.secondary_200} />
+              <Text className="font-psemibold text-sm text-[#FF9001]">Bus Details</Text>
+            </View>
+            
+            {/* Bus Info Grid */}
+            <View className="flex-col gap-y-2 pt-1">
+              <View className="flex-row justify-between items-center">
+                <Text className="font-pregular text-xs text-gray-500">Bus Name:</Text>
+                <Text className="font-psemibold text-sm text-black">{item.bus_name}</Text>
+              </View>
+              
+              {item.departure_time && (
+                <View className="flex-row justify-between items-center">
+                  <Text className="font-pregular text-xs text-gray-500">Departure Time:</Text>
+                  <Text className="font-psemibold text-sm text-black">{item.departure_time}</Text>
+                </View>
+              )}
+              
+              {item.coordinator_name && (
+                <View className="flex-row justify-between items-center">
+                  <Text className="font-pregular text-xs text-gray-500">Bus Co-ordinator:</Text>
+                  <Text className="font-psemibold text-sm text-black">{item.coordinator_name}</Text>
+                </View>
+              )}
+              
+              {item.coordinator_contact && (
+                <View className="flex-row justify-between items-center mt-1">
+                  <Text className="font-pregular text-xs text-gray-500">Co-ordinator Contact:</Text>
+                  <TouchableOpacity
+                    onPress={() => Linking.openURL(`tel:${item.coordinator_contact}`)}
+                    className="flex-row items-center bg-secondary px-3 py-1.5 rounded-lg gap-x-1"
+                    activeOpacity={0.7}>
+                    <MaterialCommunityIcons name="phone" size={14} color="#FFFFFF" />
+                    <Text className="font-pmedium text-xs text-white">{item.coordinator_contact}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
 
         <View>
           {moment(item.date).diff(moment().format('YYYY-MM-DD')) > 0 &&
