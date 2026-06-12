@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { View, Text, Image, TouchableWithoutFeedback } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { MMKV } from 'react-native-mmkv';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import ProfileForm, { ProfileFormData } from '@/src/components/ProfileForm';
 import { images, colors, icons } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
-import ProfileForm, { ProfileFormData } from '@/src/components/ProfileForm';
+
+const mmkv = new MMKV();
 
 const CompleteProfile = () => {
   const user = useAuthStore((state) => state.user);
@@ -34,6 +38,11 @@ const CompleteProfile = () => {
     setIsSubmitting(true);
 
     const onSuccess = (data: any) => {
+      try {
+        mmkv.set('whatsapp_confirmed', true);
+      } catch (err) {
+        console.error('Failed to set whatsapp_confirmed in MMKV:', err);
+      }
       setUser(data.data);
     };
 
