@@ -40,17 +40,24 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// Sentry error/crash reporting.
+//
+// NOTE: Mobile Replay is intentionally disabled (SRA-5). Production iOS users on
+// RN 0.81.4 (New Architecture) hit a cluster of fatal EXC_BAD_ACCESS crashes whose
+// symbolicated traces sit entirely inside the Hermes VM/GC (GCPointer / HadesGC
+// writeBarrier / interpretFunction) on the JS thread — not in any first-party UI.
+// The native Mobile Replay integration walks and serializes the view + JS state
+// off the main flow and is the leading suspect for the heap corruption that later
+// trips Hermes' GC. Removing the integration AND the replay sample rates fully
+// stops the native replay machinery: replaysOnErrorSampleRate keeps an in-memory
+// replay buffer running continuously, so lowering replaysSessionSampleRate alone
+// would not disable it.
+//
+// This ships as the A/B mitigation build — compare the iOS crash-free session rate
+// for issues N9/KQ/KN/KH/MQ/MC against release 1.1.46+109. To re-enable, restore
+// mobileReplayIntegration + replaysSessionSampleRate/replaysOnErrorSampleRate.
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
-  integrations: [
-    Sentry.mobileReplayIntegration({
-      maskAllText: false,
-      maskAllImages: false,
-      maskAllVectors: false,
-    }),
-  ],
 });
 
 SplashScreen.preventAutoHideAsync();
