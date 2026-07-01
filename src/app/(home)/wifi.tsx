@@ -18,7 +18,7 @@ const wifiTutorials = {
   mumukshu: [
     {
       title: '1. Request a new password',
-      apple: 'https://youtube.com/shorts/rAEbfNkgQzo',
+      apple: 'https://aashray.vitraagvigyaan.org/go/wifiit1',
       android: 'https://youtube.com/shorts/O-CaeDlkM2U',
     },
     {
@@ -332,6 +332,42 @@ const Wifi = () => {
           <PageHeader title={'WiFi Instructions'} iconName="times" onPress={handleCloseModal} />
           <ScrollView className="flex-1">
             <View className="gap-y-2 p-4">
+              {/* Bullet Points Section */}
+              <View className="gap-y-3 px-1 mb-4">
+                <View className="flex-row items-start gap-x-2.5">
+                  <Text className="text-gray-400 mt-0.5">•</Text>
+                  <Text className="flex-1 font-pregular text-sm text-gray-600 leading-5">
+                    Each password is for <Text className="font-psemibold text-gray-900">1 device only</Text>.
+                  </Text>
+                </View>
+
+                <View className="flex-row items-start gap-x-2.5">
+                  <Text className="text-gray-400 mt-0.5">•</Text>
+                  <Text className="flex-1 font-pregular text-sm text-gray-600 leading-5">
+                    Please allow us 7-10 days to process your request for permanent code.
+                  </Text>
+                </View>
+
+                <View className="flex-row items-start gap-x-2.5">
+                  <Text className="text-gray-400 mt-0.5">•</Text>
+                  <Text className="flex-1 font-pregular text-sm text-gray-600 leading-5">
+                    <Text className="font-psemibold text-gray-900">Permanent Code:</Text> Provides long-term network access (valid for 1 year). Requires administrator review and approval.
+                  </Text>
+                </View>
+
+                <View className="flex-row items-start gap-x-2.5">
+                  <Text className="text-gray-400 mt-0.5">•</Text>
+                  <Text className="flex-1 font-pregular text-sm text-gray-600 leading-5">
+                    <Text className="font-psemibold text-gray-900">Temporary Code:</Text> Provides immediate short-term access (valid for 2 weeks) with a data limit. Limit of 1 active request allowed.
+                  </Text>
+                </View>
+              </View>
+
+              {/* Setup Guides Subheader */}
+              <View className="mt-2 mb-1">
+                <Text className="font-psemibold text-base text-gray-900 px-1">Setup Guides</Text>
+              </View>
+
               {/* Mumukshus Tutorials */}
               <ExpandableItem
                 visibleContent={

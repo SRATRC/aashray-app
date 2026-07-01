@@ -79,7 +79,22 @@ export default {
             {
               scheme: 'https',
               host: 'aashray.vitraagvigyaan.org',
-              pathPrefix: '/',
+              pathPrefix: '/menu',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/maintenanceRequestList',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/pendingPayments',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/bookings',
             },
           ],
           category: ['BROWSABLE', 'DEFAULT'],
