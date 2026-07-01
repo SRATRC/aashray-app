@@ -31,7 +31,7 @@ const TemporaryWifiSection: React.FC<TemporaryWifiSectionProps> = ({
   isLoading,
   isError,
   isGenerating,
-  maxCodes = 2,
+  maxCodes = 1,
   onGenerateCode,
 }) => {
   const copyToClipboard = async (text: string) => {

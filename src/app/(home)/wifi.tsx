@@ -315,7 +315,7 @@ const Wifi = () => {
                 isLoading={isLoading}
                 isGenerating={isSubmitting}
                 isError={isError}
-                maxCodes={2}
+                maxCodes={1}
                 onGenerateCode={handleGenerateCode}
               />
             )}
