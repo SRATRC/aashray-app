@@ -3,7 +3,7 @@ export default {
     name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
-    version: '1.1.46',
+    version: '1.1.48',
     orientation: 'portrait',
     icon: './src/assets/images/icon.png',
     userInterfaceStyle: 'automatic',
@@ -59,12 +59,42 @@ export default {
             {
               scheme: 'https',
               host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/utsav',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/utsav/feedback',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
               pathPrefix: '/event',
             },
             {
               scheme: 'https',
               host: 'aashray.vitraagvigyaan.org',
-              pathPrefix: '/',
+              pathPrefix: '/wifi',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/menu',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/maintenanceRequestList',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/pendingPayments',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/bookings',
             },
           ],
           category: ['BROWSABLE', 'DEFAULT'],

@@ -118,6 +118,10 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
     return dateString ? moment(dateString).format('Do MMMM, YYYY') : 'N/A';
   };
 
+  const getExpectedApprovalDate = (dateString?: string) => {
+    return dateString ? moment(dateString).add(7, 'days').format('Do MMMM, YYYY') : 'N/A';
+  };
+
   const renderStatusBadge = (status: string, index?: number) => {
     const config = getStatusConfig(status);
     return (
@@ -188,7 +192,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
                   {
                     text: 'Cancel',
                     style: 'cancel',
-                    onPress: () => {},
+                    onPress: () => { },
                   },
                   {
                     text: 'Reset',
@@ -222,9 +226,9 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
         Your permanent WiFi code request is being reviewed.
       </Text>
       <View className="flex-row items-center">
-        <Text className="font-pregular text-sm text-gray-500">Requested on:</Text>
+        <Text className="font-pregular text-sm text-gray-500">Expected Approval By:</Text>
         <Text className="ml-2 font-pmedium text-sm text-black">
-          {formatDate(item.requested_at)}
+          {getExpectedApprovalDate(item.requested_at)}
         </Text>
       </View>
     </View>
