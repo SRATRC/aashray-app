@@ -1,5 +1,5 @@
 import '../../global.css';
-import { StrictMode, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { SystemBars } from 'react-native-edge-to-edge';
@@ -182,13 +182,11 @@ const RootLayout = () => {
   }
 
   return (
-    <StrictMode>
-      <NotificationProvider>
-        <QueryClientProvider client={queryClient}>
-          <RootLayoutContent />
-        </QueryClientProvider>
-      </NotificationProvider>
-    </StrictMode>
+    <NotificationProvider>
+      <QueryClientProvider client={queryClient}>
+        <RootLayoutContent />
+      </QueryClientProvider>
+    </NotificationProvider>
   );
 };
 
