@@ -1,6 +1,6 @@
 import { View, Alert, Text } from 'react-native';
 import React, { useState, useEffect, useCallback } from 'react';
-import { useFocusEffect } from "expo-router/react-navigation";
+import { useFocusEffect } from 'expo-router';
 import { useRouter } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { types, dropdowns, status } from '@/src/constants';
