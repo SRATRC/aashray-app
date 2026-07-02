@@ -60,9 +60,7 @@ const AddonItem: React.FC<AddonItemProps> = ({
           />
         </TouchableOpacity>
       </View>
-      <View className={`${containerStyles}`} style={{ display: selected ? 'flex' : 'none' }}>
-        {children}
-      </View>
+      {selected && <View className={`${containerStyles}`}>{children}</View>}
     </View>
   );
 };
