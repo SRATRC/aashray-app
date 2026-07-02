@@ -1,6 +1,6 @@
 import { View, TouchableOpacity, Image, Platform } from 'react-native';
 import { useCallback, useState } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { icons } from '@/src/constants';
 import * as Haptics from 'expo-haptics';
 
