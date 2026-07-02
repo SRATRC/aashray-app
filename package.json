@@ -14,7 +14,7 @@
   "dependencies": {
     "@expo/metro-runtime": "~56.0.13",
     "@expo/vector-icons": "^15.0.2",
-    "@gorhom/bottom-sheet": "^5.0.6",
+    "@gorhom/bottom-sheet": "^5.2.14",
     "@react-native-community/datetimepicker": "9.1.0",
     "@react-native-firebase/app": "^22.1.0",
     "@react-native-firebase/messaging": "^22.1.0",
