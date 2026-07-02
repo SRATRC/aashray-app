@@ -44,6 +44,7 @@ Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
+  enableTombstone: true,
   integrations: [
     Sentry.mobileReplayIntegration({
       maskAllText: false,
