@@ -10,7 +10,7 @@ When reporting information to me, be extremely concise and sacrifice grammar for
 
 ## Before ANY UI work — load the design system
 
-**Read [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md) first.** It is the single source of truth for the UI ("Sanctuary" design system) and is machine-actionable — tokens, component contracts, and an "AI Operating Guide" (§13) with decision trees + recipes. Build strictly in-system. Current-state gap analysis: [`UI_UX_AUDIT.md`](./UI_UX_AUDIT.md). Per-screen/per-component redesign plan: [`REDESIGN_PLAN.md`](./REDESIGN_PLAN.md).
+**Read [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md) first.** It is the single source of truth for the UI ("Sanctuary" design system) and is machine-actionable — tokens, component contracts, and an "AI Operating Guide" (§13) with decision trees + recipes. Build strictly in-system. Current-state gap analysis: [`UI_UX_AUDIT.md`](./UI_UX_AUDIT.md). Per-screen/per-component redesign plan: [`REDESIGN_PLAN.md`](./REDESIGN_PLAN.md). UX research & principles (density/information-scent): [`UX_RESEARCH.md`](./UX_RESEARCH.md). Explorable mockups: `design-preview/index.html`.
 
 **UI golden rules (full list + rationale in DESIGN_SYSTEM.md §3):**
 
