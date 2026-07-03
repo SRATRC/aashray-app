@@ -14,6 +14,7 @@ import { useAuthStore } from '@/src/stores';
 import { FlashList } from '@shopify/flash-list';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import { splitActiveAndPastBookings } from '@/src/utils/bookingHistoryFilter';
 import CustomModal from '../CustomModal';
 import OldBookingsTrigger from '../OldBookingsTrigger';
 import CustomButton from '../CustomButton';
@@ -127,8 +128,7 @@ const TravelBookingCancellation = () => {
   });
 
   const allItems = data?.pages?.flatMap((page: any) => page) || [];
-  const activeItems = allItems.filter((item: any) => !moment(item.date).isBefore(moment(), 'day'));
-  const pastItems = allItems.filter((item: any) => moment(item.date).isBefore(moment(), 'day'));
+  const { activeItems, pastItems } = splitActiveAndPastBookings(allItems, (item: any) => item.date);
 
   const renderOldBookingsSection = (compact = false) => (
     <>
