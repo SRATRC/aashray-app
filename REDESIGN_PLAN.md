@@ -1,6 +1,6 @@
 # Aashray — Per-Page & Per-Component Redesign Plan
 
-**Scope:** every screen and component reviewed (44 pages + 85 components) at commit `c359872` (latest `feat/utsav-feedback-form`). **Companions:** [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md) (the "Sanctuary" system + component contracts), [`UI_UX_AUDIT.md`](./UI_UX_AUDIT.md) (cross-cutting gaps).
+**Scope:** every screen and component reviewed (44 pages + 85 components), re-validated against `main` @ `087d916`. No new UI files vs the earlier `feat` review — the only addition is a non-UI helper `src/utils/bookingHistoryFilter.ts` (active/past split with a grace period; the `BookingCancellationList` engine in §5 should reuse it). All correctness bugs in §0.1 were re-confirmed present on `main`. **Companions:** [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md) (the "Sanctuary" system + component contracts), [`UI_UX_AUDIT.md`](./UI_UX_AUDIT.md) (cross-cutting gaps).
 
 **Verdict scale:** **KEEP** = fine, just retoken to Sanctuary · **REFINE** = structure is sound, upgrade hierarchy/states/motion/copy + move onto system components · **REDESIGN** = rework the UX/layout itself for peak UX.
 

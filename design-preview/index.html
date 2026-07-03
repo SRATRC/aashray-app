@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Aashray · Sanctuary — Design Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============ SANCTUARY TOKENS (light) ============ */
+:root{
+  --canvas:#FAF6EE; --surface:#FFFDF8; --raised:#FFFFFF; --sunken:#F4EEE0; --tint:#FBEFD9;
+  --text:#211C15; --text-2:#4A4235; --muted:#7A7060; --disabled:#A99E8B; --inverse:#FCFAF4; --accent-text:#A66614;
+  --b-subtle:#EFE7D6; --b-default:#E7DEC9; --b-strong:#D9CDB2;
+  --accent:#E0952A; --accent-press:#C57E1E; --on-accent:#211C15;
+  --success:#566A4C; --success-bg:#E9EEE3; --error:#B23A2E; --error-bg:#F6E3E0;
+  --warning:#B8801C; --warning-bg:#FAEBCD; --info:#5B7286; --info-bg:#E7EDF1;
+  --scrim:rgba(33,28,21,.45); --focus:#C57E1E;
+  --clay:#B45B3E; --sage:#6E8063;
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px; --r-pill:999px;
+  --e1:0 4px 12px rgba(33,28,21,.06); --e2:0 8px 20px rgba(33,28,21,.10); --e3:0 12px 28px rgba(33,28,21,.14);
+  --serif:"Fraunces",Georgia,serif; --sans:"DM Sans",system-ui,sans-serif;
+  --dawn:linear-gradient(160deg,#FBEFD9 0%,#FAF6EE 60%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:#EDE6D6;color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+
+/* ============ SITE CHROME ============ */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(33,28,21,.96);color:var(--inverse);display:flex;align-items:center;gap:20px;padding:14px 24px;backdrop-filter:blur(8px)}
+.brand{font-family:var(--serif);font-weight:600;font-size:20px;letter-spacing:-.3px}
+.brand small{font-family:var(--sans);font-weight:400;font-size:12px;color:#CDB98C;margin-left:8px;letter-spacing:.4px}
+.tabs{display:flex;gap:4px;margin-left:auto}
+.tab{background:transparent;color:#CFC6B4;border:0;font-family:var(--sans);font-size:14px;font-weight:600;padding:8px 16px;border-radius:var(--r-pill);cursor:pointer}
+.tab.active{background:var(--accent);color:var(--on-accent)}
+.note{max-width:1200px;margin:20px auto 0;padding:0 24px;color:#6a6350;font-size:13px}
+.wrap{max-width:1280px;margin:0 auto;padding:28px 24px 80px}
+.view{display:none}
+.view.active{display:block}
+
+/* section headings */
+.h-sec{font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-.4px;margin:36px 0 4px}
+.h-sec:first-child{margin-top:6px}
+.h-sub{color:var(--muted);font-size:14px;margin-bottom:20px;max-width:60ch}
+.h-min{font-size:12px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:26px 0 12px}
+
+/* generic grid */
+.grid{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.panel{background:var(--surface);border:1px solid var(--b-default);border-radius:var(--r-lg);padding:20px;box-shadow:var(--e1)}
+
+/* ============ FOUNDATION: color ============ */
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.sw{border:1px solid var(--b-default);border-radius:var(--r-md);overflow:hidden;background:var(--surface)}
+.sw .chip{height:54px}
+.sw .meta{padding:8px 10px;font-size:11px}
+.sw .meta b{display:block;font-size:12px;font-weight:600}
+.sw .meta code{color:var(--muted);font-family:ui-monospace,monospace;font-size:10.5px}
+
+/* type specimens */
+.spec{border-bottom:1px solid var(--b-subtle);padding:12px 0;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.spec .lab{width:120px;flex:none;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.t-display{font-family:var(--serif);font-weight:600;font-size:34px;line-height:1.15;letter-spacing:-.5px}
+.t-title{font-family:var(--serif);font-weight:600;font-size:26px;line-height:1.23;letter-spacing:-.3px}
+.t-headline{font-weight:600;font-size:20px;line-height:1.3;letter-spacing:-.2px}
+.t-subtitle{font-weight:500;font-size:17px}
+.t-body{font-weight:400;font-size:15px}
+.t-caption{font-weight:400;font-size:13px;color:var(--text-2)}
+.t-label{font-weight:600;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+
+.tokrow{display:flex;flex-wrap:wrap;gap:14px}
+.tokbox{text-align:center;font-size:11px;color:var(--muted)}
+.radi{background:var(--tint);border:1.5px solid var(--accent);width:84px;height:60px}
+.elev{background:var(--surface);width:110px;height:64px;border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted)}
+.space-bar{background:var(--accent);height:14px;border-radius:3px}
+
+/* ============ COMPONENTS ============ */
+.btn{font-family:var(--sans);font-weight:600;font-size:16px;border:0;border-radius:var(--r-md);padding:13px 20px;cursor:pointer;min-height:48px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .12s,background .12s}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--accent);color:var(--on-accent)}
+.btn-primary:hover{background:var(--accent-press)}
+.btn-secondary{background:var(--surface);color:var(--text);border:1px solid var(--b-strong)}
+.btn-tertiary{background:transparent;color:var(--accent-text);min-height:auto;padding:8px 10px}
+.btn-destructive{background:var(--error);color:#fff}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.btn-sm{font-size:14px;padding:9px 14px;min-height:40px}
+.btn-full{width:100%}
+.spinner{width:18px;height:18px;border:2px solid rgba(33,28,21,.3);border-top-color:var(--on-accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.field{display:block;margin-bottom:14px}
+.field .fl{font-size:13px;font-weight:500;color:var(--text-2);margin-bottom:6px;display:block}
+.field .fi{width:100%;background:var(--surface);border:1.5px solid var(--b-default);border-radius:var(--r-md);padding:13px 14px;font-family:var(--sans);font-size:15px;color:var(--text)}
+.field .fi::placeholder{color:var(--disabled)}
+.field.focus .fi{border-color:var(--accent);box-shadow:0 0 0 3px rgba(197,126,30,.18)}
+.field.err .fi{border-color:var(--error)}
+.field .fh{font-size:12px;color:var(--muted);margin-top:5px}
+.field.err .fh{color:var(--error)}
+
+.card{background:var(--surface);border:1px solid var(--b-subtle);border-radius:var(--r-lg);box-shadow:var(--e1);padding:16px}
+.listrow{display:flex;align-items:center;gap:12px;padding:14px 4px;border-bottom:1px solid var(--b-subtle)}
+.listrow:last-child{border-bottom:0}
+.listrow .lead{width:38px;height:38px;border-radius:var(--r-md);background:var(--tint);display:flex;align-items:center;justify-content:center;color:var(--accent-text);flex:none}
+.listrow .lr-body{flex:1;min-width:0}
+.listrow .lr-t{font-weight:500;font-size:15px}
+.listrow .lr-s{font-size:13px;color:var(--muted)}
+.listrow .lr-tr{color:var(--muted);display:flex;align-items:center;gap:6px}
+
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;padding:8px 14px;border-radius:var(--r-pill);border:1.5px solid var(--b-strong);background:var(--surface);color:var(--text-2);cursor:pointer}
+.chip.sel{background:var(--tint);border-color:var(--accent);color:var(--text)}
+
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:var(--r-pill)}
+.tag.neutral{background:var(--sunken);color:var(--text-2)}
+.tag.success{background:var(--success-bg);color:var(--success)}
+.tag.error{background:var(--error-bg);color:var(--error)}
+.tag.warning{background:var(--warning-bg);color:var(--warning)}
+.tag.info{background:var(--info-bg);color:var(--info)}
+
+.segmented{display:inline-flex;background:var(--sunken);border-radius:var(--r-pill);padding:4px}
+.segmented button{border:0;background:transparent;font-family:var(--sans);font-weight:600;font-size:13px;color:var(--muted);padding:8px 16px;border-radius:var(--r-pill);cursor:pointer}
+.segmented button.on{background:var(--surface);color:var(--text);box-shadow:var(--e1)}
+
+.skel{background:linear-gradient(90deg,var(--sunken) 25%,#EDE3CE 37%,var(--sunken) 63%);background-size:400% 100%;animation:sh 1.4s ease infinite;border-radius:6px}
+@keyframes sh{0%{background-position:100% 0}100%{background-position:-100% 0}}
+
+.empty{text-align:center;padding:26px 18px}
+.empty .ei{width:64px;height:64px;border-radius:var(--r-pill);background:var(--tint);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:var(--accent-text)}
+.empty .et{font-family:var(--serif);font-weight:600;font-size:19px;margin-bottom:6px}
+.empty .em{color:var(--muted);font-size:14px;max-width:34ch;margin:0 auto 16px}
+
+.toast{display:flex;align-items:center;gap:10px;background:var(--text);color:var(--inverse);padding:12px 16px;border-radius:var(--r-md);box-shadow:var(--e2);font-size:14px;font-weight:500;max-width:340px}
+.toast .dot{width:8px;height:8px;border-radius:50%}
+
+.callout{display:flex;gap:10px;padding:12px 14px;border-radius:var(--r-md);font-size:13.5px;line-height:1.45}
+.callout.warning{background:var(--warning-bg);color:#7a560f}
+.callout.info{background:var(--info-bg);color:#3c5261}
+
+.dialog{background:var(--raised);border-radius:var(--r-xl);box-shadow:var(--e3);padding:22px;max-width:320px;text-align:center}
+.dialog .dt{font-family:var(--serif);font-weight:600;font-size:20px;margin-bottom:8px}
+.dialog .dm{color:var(--text-2);font-size:14px;margin-bottom:18px}
+.dialog .da{display:flex;gap:10px}
+
+.progress{height:4px;background:var(--sunken);border-radius:var(--r-pill);overflow:hidden}
+.progress > i{display:block;height:100%;background:var(--accent);border-radius:var(--r-pill)}
+
+svg.ic{width:20px;height:20px;stroke:currentColor;stroke-width:1.6;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ic-24{width:24px;height:24px}
+.divider{height:1px;background:var(--b-subtle);margin:8px 0}
+
+/* ============ PHONE FRAMES (screens) ============ */
+.wall{display:flex;flex-wrap:wrap;gap:34px 28px}
+.device{width:328px}
+.device > .cap{font-weight:600;font-size:14px;margin-bottom:4px}
+.device > .desc{font-size:12px;color:#6a6350;margin-bottom:12px;min-height:32px}
+.phone{width:328px;height:680px;background:var(--canvas);border:9px solid #17130d;border-radius:42px;box-shadow:var(--e3);overflow:hidden;position:relative;display:flex;flex-direction:column}
+.phone .sb{height:30px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:12px;font-weight:600;color:var(--text);flex:none}
+.phone .sb .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:96px;height:22px;background:#17130d;border-radius:var(--r-pill)}
+.appbar{display:flex;align-items:center;gap:12px;padding:6px 16px 12px;flex:none}
+.appbar .ttl{font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing:-.3px}
+.appbar .ib{width:38px;height:38px;border-radius:var(--r-pill);display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--b-subtle);color:var(--text);flex:none}
+.appbar .sp{flex:1}
+.screen{flex:1;overflow:hidden;padding:0 16px 16px;position:relative}
+.screen.scroll{overflow-y:auto}
+.screen::-webkit-scrollbar{width:0}
+.tabbar{flex:none;height:62px;background:rgba(255,253,248,.92);border-top:1px solid var(--b-subtle);display:flex;align-items:center;justify-content:space-around;padding-bottom:6px;backdrop-filter:blur(8px)}
+.tabbar .tb{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--muted)}
+.tabbar .tb.on{color:var(--accent-text)}
+.tabbar .fabtab{width:46px;height:46px;border-radius:var(--r-pill);background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;box-shadow:var(--e2);margin-top:-18px}
+.hero{background:var(--dawn);border:1px solid var(--b-subtle);border-radius:var(--r-xl);padding:18px;position:relative;overflow:hidden}
+.hero .mandala{position:absolute;right:-40px;top:-40px;width:150px;height:150px;opacity:.5;color:var(--accent)}
+.sticky{position:absolute;left:0;right:0;bottom:0;background:rgba(255,253,248,.96);border-top:1px solid var(--b-subtle);padding:12px 16px;backdrop-filter:blur(8px)}
+.fab{position:absolute;right:16px;bottom:16px;width:56px;height:56px;border-radius:var(--r-pill);background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;box-shadow:var(--e2)}
+.mini{font-size:12px}.mut{color:var(--muted)}.st{font-weight:600}
+.pay-line{display:flex;justify-content:space-between;padding:9px 0;font-size:14px;border-bottom:1px solid var(--b-subtle)}
+.pay-line.tot{font-weight:700;font-size:16px;border-bottom:0;padding-top:12px}
+.credit{color:var(--success)}
+.stack>*+*{margin-top:12px}
+.stack-sm>*+*{margin-top:8px}
+.row{display:flex;align-items:center;gap:10px}
+.between{display:flex;align-items:center;justify-content:space-between}
+.qr{width:180px;height:180px;margin:8px auto;background:
+  linear-gradient(90deg,#17130d 2px,transparent 0) 0 0/22px 22px,
+  linear-gradient(#17130d 2px,transparent 0) 0 0/22px 22px, var(--surface);
+  border:8px solid var(--surface);border-radius:var(--r-md);box-shadow:var(--e1)}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin:2px 0 18px}
+.legend b{padding:3px 9px;border-radius:var(--r-pill);font-size:11px;font-weight:700}
+.lg-r{background:var(--error-bg);color:var(--error)}.lg-f{background:var(--warning-bg);color:var(--warning)}.lg-k{background:var(--success-bg);color:var(--success)}
+.meal-day{border-left:3px solid var(--accent);padding-left:12px}
+.avatar{width:88px;height:88px;border-radius:var(--r-pill);background:var(--tint);display:flex;align-items:center;justify-content:center;color:var(--accent-text);font-family:var(--serif);font-size:30px;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">Aashray <small>SANCTUARY · design preview</small></div>
+  <div class="tabs">
+    <button class="tab active" data-view="screens">Screens</button>
+    <button class="tab" data-view="components">Components</button>
+    <button class="tab" data-view="foundations">Foundations</button>
+  </div>
+</div>
+<div class="note">A static preview of the proposed <b>Sanctuary</b> redesign — mockups rendered with the real design tokens (colours, Fraunces + DM Sans type, spacing, elevation). Explore the whole app below. This is a design artifact, not the live app. See <code>DESIGN_SYSTEM.md</code> / <code>REDESIGN_PLAN.md</code>.</div>
+
+<!-- ================= SVG ICON DEFS ================= -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5M5 9.5V21h14V9.5"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9h18M8 3v4M16 3v4"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></symbol>
+<symbol id="i-bed" viewBox="0 0 24 24"><path d="M3 8v11M21 19v-6a3 3 0 0 0-3-3H7M3 13h18M6.5 8.5h4"/></symbol>
+<symbol id="i-bowl" viewBox="0 0 24 24"><path d="M3 11h18a9 9 0 0 1-18 0ZM12 3v3M9 4v2.5M15 4v2.5"/></symbol>
+<symbol id="i-car" viewBox="0 0 24 24"><path d="M5 16v2M19 16v2M4 12l1.8-4.5A2 2 0 0 1 7.7 6h8.6a2 2 0 0 1 1.9 1.5L20 12M3 12h18v4H3zM6.5 14.5h.01M17.5 14.5h.01"/></symbol>
+<symbol id="i-wifi" viewBox="0 0 24 24"><path d="M2.5 9a15 15 0 0 1 19 0M5.5 12.5a10 10 0 0 1 13 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r=".6" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 5 5 9-11"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 0 0 4 0"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v16H6.5A2.5 2.5 0 0 0 4 20.5zM4 20.5A2.5 2.5 0 0 1 6.5 18H20v4H6.5A2.5 2.5 0 0 1 4 20.5z"/></symbol>
+<symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M20 14v7M14 20h3"/></symbol>
+<symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-9.5A3.5 3.5 0 0 1 12 7a3.5 3.5 0 0 1 7 3.5c0 5-7 9.5-7 9.5Z"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><path d="M6 3h3l2 5-2.5 1.5a11 11 0 0 0 5 5L17 12l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2Z"/></symbol>
+<symbol id="i-tool" viewBox="0 0 24 24"><path d="M14 6a3.5 3.5 0 0 0 4.5 4.5L21 13l-8 8-2.5-2.5A3.5 3.5 0 0 0 6 14L3.5 11.5 11.5 3.5 14 6Z"/></symbol>
+<symbol id="i-card" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 9.5h18M6.5 15h4"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 17l-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z"/></symbol>
+<symbol id="i-cam" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+</defs></svg>
+<script>function ic(n,c){return '<svg class="ic '+(c||'')+'"><use href="#i-'+n+'"/></svg>'}</script>
+
+<!-- ================= SCREENS ================= -->
+<div class="view active" id="screens">
+<div class="wrap">
+  <div class="h-sec">The app, screen by screen</div>
+  <div class="h-sub">Every major surface of the redesigned app. Near-identical screens (e.g. the 16 booking-detail cards) are shown once as their unified component. Tap through — this is the whole product in the Sanctuary language.</div>
+  <div class="wall" id="wall"></div>
+</div>
+</div>
+
+<!-- ================= COMPONENTS ================= -->
+<div class="view" id="components">
+<div class="wrap" id="compwrap"></div>
+</div>
+
+<!-- ================= FOUNDATIONS ================= -->
+<div class="view" id="foundations">
+<div class="wrap" id="foundwrap"></div>
+</div>
+
+<script>
+/* ---------- tab switching ---------- */
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');document.getElementById(t.dataset.view).classList.add('active');
+  window.scrollTo(0,0);
+});
+
+/* ---------- helpers ---------- */
+const sb='<div class="sb"><span>9:41</span><div class="notch"></div><span>'+ic('wifi')+'</span></div>';
+function tabbar(active){const t=[['home','Home'],['book','Book'],['qr','',1],['heart','Stays'],['user','Profile']];
+  return '<div class="tabbar">'+t.map((x,i)=>x[2]?'<div class="fabtab">'+ic('qr','ic-24')+'</div>':'<div class="tb '+(x[1]===active?'on':'')+'">'+ic(x[0])+'<span>'+x[1]+'</span></div>').join('')+'</div>';}
+function phone(cap,desc,body){return '<div class="device"><div class="cap">'+cap+'</div><div class="desc">'+desc+'</div><div class="phone">'+sb+body+'</div></div>';}
+function bar(title,opts){opts=opts||{};const l=opts.close?ic('x'):(opts.noback?'':ic('back'));
+  return '<div class="appbar">'+(l?'<div class="ib">'+l+'</div>':'')+'<div class="ttl">'+title+'</div><div class="sp"></div>'+(opts.right||'')+'</div>';}
+
+const MANDALA='<svg class="mandala" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1"><circle cx="50" cy="50" r="46"/><circle cx="50" cy="50" r="34"/><circle cx="50" cy="50" r="22"/>'+Array.from({length:12}).map((_,i)=>{const a=i*30*Math.PI/180;return '<line x1="50" y1="50" x2="'+(50+46*Math.cos(a)).toFixed(1)+'" y2="'+(50+46*Math.sin(a)).toFixed(1)+'"/>';}).join('')+'</svg>';
+
+const S=[];
+
+/* 1. Sign in */
+S.push(phone('Sign in','Kept as the quality bar — moved onto system Button/Field/Dialog.',
+ '<div class="screen" style="display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:26px">'+
+ '<div style="width:60px;height:60px;border-radius:16px;background:var(--tint);display:flex;align-items:center;justify-content:center;color:var(--accent-text);margin-bottom:16px">'+ic('heart','ic-24')+'</div>'+
+ '<div class="t-title" style="font-size:32px;line-height:1.1">Jai Sadgurudev<br>Vandan</div>'+
+ '<div class="mut" style="margin:6px 0 22px">Sign in to continue your journey</div>'+
+ '<div class="field"><span class="fl">Phone number</span><div class="fi">98765 43210</div></div>'+
+ '<div class="field focus"><span class="fl">Password</span><div class="fi">••••••••</div></div>'+
+ '<div class="btn-tertiary" style="text-align:right;margin:-4px 0 14px">Forgot password?</div>'+
+ '<button class="btn btn-primary btn-full">Sign in</button></div>'));
+
+/* 2. Onboarding photo */
+S.push(phone('Onboarding · photo','Step scaffold + progress, circular preview & retake, Button loading state.',
+ '<div class="appbar"><div class="sp"></div><div class="btn-tertiary">Log out</div></div>'+
+ '<div class="screen"><div class="progress" style="margin-bottom:20px"><i style="width:50%"></i></div>'+
+ '<div class="t-caption" style="margin-bottom:4px">Step 1 of 2</div>'+
+ '<div class="t-title" style="margin-bottom:20px">Add your photo</div>'+
+ '<div style="display:flex;justify-content:center;margin:24px 0"><div style="position:relative"><div class="avatar" style="width:150px;height:150px;font-size:52px">A</div><div class="ib" style="position:absolute;right:2px;bottom:2px;background:var(--accent);color:var(--on-accent);border:0">'+ic('cam')+'</div></div></div>'+
+ '<div class="mut" style="text-align:center;font-size:13px;margin-bottom:auto">Used on your entry pass at the centre.</div>'+
+ '<button class="btn btn-primary btn-full" style="margin-top:24px">Continue</button></div>'));
+
+/* 3. Onboarding profile */
+S.push(phone('Onboarding · profile','FormScaffold, sectioned fields, inline errors + scroll-to-error, sticky CTA.',
+ '<div class="appbar"><div class="sp"></div><div class="btn-tertiary">Log out</div></div>'+
+ '<div class="screen scroll" style="padding-bottom:78px"><div class="progress" style="margin-bottom:20px"><i style="width:100%"></i></div>'+
+ '<div class="t-title" style="margin-bottom:16px">Complete your profile</div>'+
+ '<div class="t-label" style="margin-bottom:10px">Personal</div>'+
+ '<div class="field"><span class="fl">Full name</span><div class="fi">Aashray Seeker</div></div>'+
+ '<div class="field err"><span class="fl">Date of birth</span><div class="fi mut">Select date</div><span class="fh">Required to continue</span></div>'+
+ '<div class="t-label" style="margin:14px 0 10px">Address</div>'+
+ '<div class="field"><span class="fl">City</span><div class="fi">Dharampur</div></div></div>'+
+ '<div class="sticky"><button class="btn btn-primary btn-full">Save & continue</button></div>'));
+
+/* 4. Home – with upcoming stay */
+S.push(phone('Home','Now a dashboard: greeting + upcoming-stay hero + one primary action; utilities demoted.',
+ bar('Aashray',{noback:1,right:'<div class="ib">'+ic('bell')+'</div>'})+
+ '<div class="screen scroll">'+
+ '<div class="hero" style="margin-bottom:16px">'+MANDALA+
+ '<div class="t-caption">Your upcoming stay</div>'+
+ '<div class="t-title" style="margin:2px 0 8px">Raj Sharan · Room</div>'+
+ '<div class="row mini" style="gap:14px;margin-bottom:14px">'+ic('cal')+'<span>Fri 4 Jul → Mon 7 Jul · 3 nights</span></div>'+
+ '<button class="btn btn-primary btn-sm">View booking</button></div>'+
+ '<div class="t-label" style="margin-bottom:10px">Quick access</div>'+
+ '<div class="card" style="padding:6px 14px">'+
+ ['wifi|WiFi codes','bowl|Meal menu','card|Pending payments','tool|Maintenance','phone|Contacts'].map(x=>{const[i,t]=x.split('|');
+ return '<div class="listrow"><div class="lead">'+ic(i)+'</div><div class="lr-body"><div class="lr-t">'+t+'</div></div><div class="lr-tr">'+ic('chevron')+'</div></div>';}).join('')+
+ '</div></div>'+tabbar('Home')));
+
+/* 5. Home – empty */
+S.push(phone('Home · no stay yet','Empty-state variant — the one saffron CTA invites the core action.',
+ bar('Aashray',{noback:1,right:'<div class="ib">'+ic('bell')+'</div>'})+
+ '<div class="screen scroll">'+
+ '<div class="hero" style="margin-bottom:16px;text-align:center;padding:26px 18px">'+MANDALA+
+ '<div class="t-title">Welcome, Aashray</div>'+
+ '<div class="mut" style="margin:6px 0 16px;font-size:14px">You have no upcoming stays.<br>Begin whenever you feel called.</div>'+
+ '<button class="btn btn-primary">Book your stay</button></div>'+
+ '<div class="t-label" style="margin-bottom:10px">Quick access</div>'+
+ '<div class="card" style="padding:6px 14px">'+
+ ['wifi|WiFi codes','bowl|Meal menu','tool|Maintenance'].map(x=>{const[i,t]=x.split('|');
+ return '<div class="listrow"><div class="lead">'+ic(i)+'</div><div class="lr-body"><div class="lr-t">'+t+'</div></div><div class="lr-tr">'+ic('chevron')+'</div></div>';}).join('')+
+ '</div></div>'+tabbar('Home')));
+
+/* 6. Book now – picker */
+S.push(phone('Book now · category','Chips with real press state; one clear CTA; calm panel swap.',
+ bar('Book now',{noback:1})+
+ '<div class="screen scroll" style="padding-bottom:78px">'+
+ '<div style="display:flex;gap:8px;overflow:auto;padding-bottom:12px">'+
+ '<span class="chip sel">'+ic('bed')+'Room</span><span class="chip">'+ic('bowl')+'Food</span><span class="chip">'+ic('car')+'Travel</span><span class="chip">'+ic('book')+'Adhyayan</span></div>'+
+ '<div class="segmented" style="margin:6px 0 16px"><button class="on">Myself</button><button>Guests</button><button>Mumukshus</button></div>'+
+ '<div class="field"><span class="fl">Check-in → Check-out</span><div class="fi row between"><span>Fri 4 Jul → Mon 7 Jul</span>'+ic('cal')+'</div><span class="fh">3 nights</span></div>'+
+ '<div class="field"><span class="fl">Room type</span><div class="fi row between"><span class="mut">Select room type</span>'+ic('chevron')+'</div></div>'+
+ '<div class="field"><span class="fl">Floor preference</span><div class="fi row between"><span class="mut">Any floor</span>'+ic('chevron')+'</div></div>'+
+ '</div><div class="sticky"><button class="btn btn-primary btn-full">Continue</button></div>'));
+
+/* 7. Booking add-ons step */
+S.push(phone('Booking · add-ons','Unified 3-in-1 flow: step indicator, animated AddonCards, disabled-until-valid.',
+ bar('Add-ons',{})+
+ '<div class="screen scroll" style="padding-bottom:78px">'+
+ '<div class="t-caption" style="margin-bottom:4px">Step 2 of 3 · Add-ons</div>'+
+ '<div class="progress" style="margin-bottom:16px"><i style="width:66%"></i></div>'+
+ '<div class="card" style="margin-bottom:12px"><div class="between"><div class="row">'+ic('bowl')+'<span class="st">Add meals</span></div><div class="btn btn-secondary btn-sm">'+ic('plus')+'</div></div></div>'+
+ '<div class="card" style="margin-bottom:12px;border-color:var(--accent)"><div class="between" style="margin-bottom:10px"><div class="row">'+ic('car')+'<span class="st">Travel</span></div><div class="ib" style="background:var(--tint);border:0;color:var(--accent-text)">'+ic('x')+'</div></div>'+
+ '<div class="field" style="margin:0"><span class="fl">Pickup point</span><div class="fi">Valsad Station</div></div></div>'+
+ '<div class="card"><div class="between"><div class="row">'+ic('book')+'<span class="st">Adhyayan</span></div><div class="btn btn-secondary btn-sm">'+ic('plus')+'</div></div></div>'+
+ '</div><div class="sticky"><button class="btn btn-primary btn-full">Review booking</button></div>'));
+
+/* 8. Booking review */
+S.push(phone('Booking · review','One shared review; tokenised charge lines; sticky total; Pay in a Dialog.',
+ bar('Review',{})+
+ '<div class="screen scroll" style="padding-bottom:92px">'+
+ '<div class="card" style="margin-bottom:12px"><div class="row" style="margin-bottom:8px">'+ic('bed')+'<span class="st">Raj Sharan · Room</span></div>'+
+ '<div class="mini mut">Fri 4 → Mon 7 Jul · 3 nights · AC room</div></div>'+
+ '<div class="card"><div class="t-label" style="margin-bottom:6px">Charges</div>'+
+ '<div class="pay-line"><span>Room · 3 nights</span><span>₹1,800</span></div>'+
+ '<div class="pay-line"><span>Meals</span><span>₹450</span></div>'+
+ '<div class="pay-line"><span class="credit">Credits applied</span><span class="credit">– ₹300</span></div>'+
+ '<div class="pay-line tot"><span>Total</span><span>₹1,950</span></div></div>'+
+ '</div><div class="sticky row" style="gap:10px"><button class="btn btn-secondary" style="flex:1">Pay later</button><button class="btn btn-primary" style="flex:1.4">Pay ₹1,950</button></div>'));
+
+/* 9. Confirmation success */
+S.push(phone('Confirmation','ConfirmationScaffold: dawn gradient, mini-receipt, success haptic, clear next step.',
+ '<div class="screen" style="background:var(--dawn);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px">'+MANDALA.replace('mandala','mandala').replace('right:-40px;top:-40px','right:-30px;top:20px')+
+ '<div style="width:76px;height:76px;border-radius:50%;background:var(--success-bg);color:var(--success);display:flex;align-items:center;justify-content:center;margin-bottom:16px">'+ic('check','ic-24')+'</div>'+
+ '<div class="t-display" style="font-size:30px">Stay confirmed</div>'+
+ '<div class="mut" style="margin:8px 0 20px">A moment of stillness awaits you.</div>'+
+ '<div class="card" style="width:100%;text-align:left"><div class="pay-line"><span class="mut">Booking ID</span><span class="st">RS-40271</span></div>'+
+ '<div class="pay-line"><span class="mut">Dates</span><span class="st">4–7 Jul</span></div>'+
+ '<div class="pay-line tot"><span>Paid</span><span>₹1,950</span></div></div>'+
+ '<button class="btn btn-primary btn-full" style="margin-top:20px">View booking</button>'+
+ '<div class="btn-tertiary" style="margin-top:8px">Return home</div></div>'));
+
+/* 10. Payment failed */
+S.push(phone('Payment failed','Same scaffold, failure state — keeps helpful retry + support, adds context.',
+ '<div class="screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px">'+
+ '<div style="width:76px;height:76px;border-radius:50%;background:var(--error-bg);color:var(--error);display:flex;align-items:center;justify-content:center;margin-bottom:16px">'+ic('x','ic-24')+'</div>'+
+ '<div class="t-title">Payment didn’t go through</div>'+
+ '<div class="mut" style="margin:8px 0 18px">₹1,950 for Raj Sharan wasn’t charged. No money has left your account.</div>'+
+ '<div class="callout info" style="text-align:left;margin-bottom:20px">Try again, or use a different card. If it keeps failing, our team can help.</div>'+
+ '<button class="btn btn-primary btn-full">Try again</button>'+
+ '<div class="btn-tertiary" style="margin-top:8px">Contact support</div></div>'));
+
+/* 11. Bookings list */
+S.push(phone('My stays','Unified BookingDetailCard; status via Tag tokens; grace-period active/past split.',
+ bar('My stays',{noback:1})+
+ '<div class="screen scroll">'+
+ '<div class="segmented" style="margin-bottom:14px"><button class="on">Room</button><button>Food</button><button>Adhyayan</button></div>'+
+ '<div class="card" style="margin-bottom:12px"><div class="between" style="margin-bottom:8px"><div class="row">'+ic('bed')+'<span class="st">Raj Sharan</span></div><span class="tag success">Confirmed</span></div>'+
+ '<div class="listrow" style="border:0;padding:4px"><div class="lr-body"><div class="lr-s">Dates</div><div class="lr-t">4–7 Jul · 3 nights</div></div></div>'+
+ '<div class="divider"></div><div class="btn-tertiary">Details '+ic('chevron','ic-24')+'</div></div>'+
+ '<div class="card"><div class="between" style="margin-bottom:8px"><div class="row">'+ic('bed')+'<span class="st">Raj Sharan</span></div><span class="tag warning">Payment due</span></div>'+
+ '<div class="mini mut">18–20 Jul · 2 nights</div></div>'+
+ '<div class="empty" style="padding-top:20px"><div class="mini mut">'+ic('check')+' You’re all caught up — past stays hidden</div></div>'+
+ '</div>'+tabbar('Stays')));
+
+/* 12. Cancellation confirm */
+S.push(phone('Cancel · confirm','Dialog shows the refund rule BEFORE confirming (fixes no-confirm bulk cancel).',
+ bar('Cancel booking',{})+
+ '<div class="screen" style="position:relative"><div class="card" style="opacity:.5"><div class="between"><span class="st">Raj Sharan · 4 Jul</span><span class="tag success">Confirmed</span></div></div>'+
+ '<div style="position:absolute;inset:0;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:20px">'+
+ '<div class="dialog"><div class="dt">Cancel this stay?</div><div class="dm">Cancelling before 48h refunds 100% to credits. This can’t be undone.</div>'+
+ '<div class="da"><button class="btn btn-secondary" style="flex:1">Keep</button><button class="btn btn-destructive" style="flex:1">Cancel stay</button></div></div>'+
+ '</div></div>'));
+
+/* 13. Pending payments */
+S.push(phone('Pending payments','Progressive disclosure ListRows, inline timer, sticky live total.',
+ bar('Pending payments',{})+
+ '<div class="screen scroll" style="padding-bottom:78px">'+
+ '<div class="card" style="margin-bottom:12px"><div class="between"><div class="row"><div class="lead">'+ic('bed')+'</div><div><div class="lr-t">Raj Sharan</div><div class="lr-s">4–7 Jul</div></div></div><div style="text-align:right"><div class="st">₹1,950</div><span class="tag warning">'+ic('clock')+'2d left</span></div></div><div class="btn-tertiary" style="margin-top:6px">Details '+ic('chevron','ic-24')+'</div></div>'+
+ '<div class="card"><div class="between"><div class="row"><div class="lead">'+ic('book')+'</div><div><div class="lr-t">Adhyayan · Satsang</div><div class="lr-s">12 Jul</div></div></div><div style="text-align:right"><div class="st">₹500</div><span class="tag error">Failed</span></div></div></div>'+
+ '</div><div class="sticky between"><span class="mut mini">1 selected</span><button class="btn btn-primary">Pay ₹1,950</button></div>'));
+
+/* 14. Profile */
+S.push(phone('Profile','ListRows in a card, credits Dialog, password reset as a Sheet; dev toggles removed.',
+ bar('Profile',{noback:1})+
+ '<div class="screen scroll"><div style="text-align:center;margin:6px 0 18px"><div class="avatar" style="margin:0 auto 10px">A</div><div class="t-headline">Aashray Seeker</div><div class="mut mini">+91 98765 43210</div></div>'+
+ '<div class="hero" style="margin-bottom:14px;padding:14px 16px"><div class="between"><div><div class="t-label">Credits</div><div class="t-title" style="font-size:24px">₹1,240</div></div><div class="btn btn-secondary btn-sm">Info</div></div></div>'+
+ '<div class="card" style="padding:4px 14px">'+
+ ['user|My details','card|Transactions','qr|My QR pass','bell|Reset password'].map(x=>{const[i,t]=x.split('|');return '<div class="listrow"><div class="lead">'+ic(i)+'</div><div class="lr-body"><div class="lr-t">'+t+'</div></div>'+ic('chevron')+'</div>';}).join('')+'</div>'+
+ '<div class="btn-tertiary" style="color:var(--error);margin-top:14px">Log out</div>'+
+ '</div>'+tabbar('Profile')));
+
+/* 15. Transactions */
+S.push(phone('Transactions','Adds the missing filter (Segmented), ListRows + amount + status Tag.',
+ bar('Transactions',{})+
+ '<div class="screen scroll">'+
+ '<div class="segmented" style="margin-bottom:14px"><button class="on">All</button><button>Paid</button><button>Refunds</button></div>'+
+ '<div class="card" style="padding:4px 14px">'+
+ [['bed','Raj Sharan','7 Jul','– ₹1,950','error','Paid'],['card','Credits top-up','2 Jul','+ ₹2,000','success','Success'],['book','Adhyayan','28 Jun','– ₹500','error','Paid']].map(r=>
+ '<div class="listrow"><div class="lead">'+ic(r[0])+'</div><div class="lr-body"><div class="lr-t">'+r[1]+'</div><div class="lr-s">'+r[2]+'</div></div><div style="text-align:right"><div class="st mini">'+r[3]+'</div><span class="tag '+r[4]+'" style="font-size:10px">'+r[5]+'</span></div></div>').join('')+
+ '</div></div>'));
+
+/* 16. WiFi + sheet */
+S.push(phone('WiFi','Info moves into a Sheet with Segmented tutorials — halves the old long scroll.',
+ bar('WiFi',{noback:1})+
+ '<div class="screen" style="position:relative">'+
+ '<div class="card" style="margin-bottom:12px"><div class="t-label">Permanent code</div><div class="between" style="margin-top:6px"><div class="t-title" style="font-size:22px;letter-spacing:2px">4821 9930</div><div class="ib">'+ic('copy')+'</div></div></div>'+
+ '<div class="btn btn-secondary btn-full">'+ic('plus')+' Generate temporary code</div>'+
+ '<div style="position:absolute;left:0;right:0;bottom:0;background:var(--raised);border-radius:20px 20px 0 0;box-shadow:var(--e3);padding:18px 16px 22px"><div style="width:36px;height:4px;background:var(--b-strong);border-radius:9px;margin:0 auto 14px"></div>'+
+ '<div class="t-headline" style="margin-bottom:12px">How to connect</div>'+
+ '<div class="segmented" style="margin-bottom:12px"><button class="on">Mumukshus</button><button>Residents</button></div>'+
+ '<div class="listrow"><div class="lead">'+ic('wifi')+'</div><div class="lr-body"><div class="lr-t">iOS setup guide</div></div>'+ic('chevron')+'</div>'+
+ '<div class="listrow"><div class="lead">'+ic('wifi')+'</div><div class="lr-body"><div class="lr-t">Android setup guide</div></div>'+ic('chevron')+'</div></div>'+
+ '</div>'));
+
+/* 17. Menu */
+S.push(phone('Meal menu','Already strong UX — retoken off raw StyleSheet; color-coded meal accents kept.',
+ bar('Meal menu',{})+
+ '<div class="screen scroll">'+
+ '<div class="between" style="margin-bottom:12px"><div class="t-headline">Today · Fri 4 Jul</div><span class="tag warning">Today</span></div>'+
+ ['Breakfast|Poha, fruit, chaas|var(--accent)','Lunch|Dal, sabzi, rotli, rice|var(--sage)','Dinner|Khichdi, kadhi|var(--clay)'].map(m=>{const[t,d,c]=m.split('|');
+ return '<div class="card meal-day" style="margin-bottom:10px;border-left-color:'+c+'"><div class="t-subtitle">'+t+'</div><div class="mut mini">'+d+'</div></div>';}).join('')+
+ '<div class="t-label" style="margin:14px 0 8px">Tomorrow</div>'+
+ '<div class="card meal-day" style="border-left-color:var(--accent)"><div class="t-subtitle">Breakfast</div><div class="mut mini">Upma, banana</div></div>'+
+ '</div>'));
+
+/* 18. Support */
+S.push(phone('Support','Inline validation + live character counter; Sheet picker; Dialog for discard.',
+ bar('Support',{})+
+ '<div class="screen scroll" style="padding-bottom:78px">'+
+ '<div class="mut" style="margin-bottom:16px;font-size:14px">Tell us what you need help with — we read every message.</div>'+
+ '<div class="field"><span class="fl">Service</span><div class="fi row between"><span>WiFi & internet</span>'+ic('chevron')+'</div></div>'+
+ '<div class="field focus"><span class="fl">Describe the issue</span><div class="fi" style="min-height:96px;align-items:flex-start">The code stopped working since morning…</div><span class="fh">42 / 500</span></div>'+
+ '</div><div class="sticky"><button class="btn btn-primary btn-full">Submit request</button></div>'));
+
+/* 19. Maintenance */
+S.push(phone('Maintenance','Platform-correct FAB, EmptyState with retry, Chip filters.',
+ bar('Maintenance',{noback:1})+
+ '<div class="screen" style="position:relative">'+
+ '<div style="display:flex;gap:8px;margin-bottom:14px"><span class="chip sel">All</span><span class="chip">Open</span><span class="chip">Resolved</span></div>'+
+ '<div class="card" style="margin-bottom:10px"><div class="between"><div><div class="lr-t">AC not cooling</div><div class="lr-s">Room 214 · 2 Jul</div></div><span class="tag warning">In progress</span></div></div>'+
+ '<div class="card"><div class="between"><div><div class="lr-t">Leaking tap</div><div class="lr-s">Room 118 · 28 Jun</div></div><span class="tag success">Resolved</span></div></div>'+
+ '<div class="fab">'+ic('plus','ic-24')+'</div></div>'));
+
+/* 20. QR */
+S.push(phone('QR pass','Native route modal, Card-framed QR, brightness + screenshot hint.',
+ bar('Entry pass',{close:1})+
+ '<div class="screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">'+
+ '<div class="t-title" style="margin-bottom:4px">Aashray Seeker</div><div class="mut mini" style="margin-bottom:10px">Member · AS-40271</div>'+
+ '<div class="qr"></div>'+
+ '<div class="mut mini" style="margin-top:14px;max-width:26ch">Show this at the gate. Screenshot it for offline use.</div></div>'));
+
+/* 21. Adhyayan detail */
+S.push(phone('Adhyayan detail','Strong shell kept; retoken, single saffron CTA, fixed the dead schedule taps.',
+ bar('',{right:'<div class="ib">'+ic('heart')+'</div>'})+
+ '<div class="screen scroll" style="padding-bottom:78px">'+
+ '<div class="hero" style="margin-bottom:14px">'+MANDALA+'<div class="t-label">Adhyayan</div><div class="t-title" style="margin:2px 0 6px">Atmasiddhi Shastra</div><div class="mini mut">5-day study · Pujya Gurudevshri</div></div>'+
+ '<div class="card" style="margin-bottom:10px"><div class="listrow" style="border:0;padding:6px 2px"><div class="lead">'+ic('cal')+'</div><div class="lr-body"><div class="lr-s">Dates</div><div class="lr-t">14–18 Jul</div></div></div></div>'+
+ '<div class="t-label" style="margin:6px 0 8px">Things to know</div>'+
+ '<div class="card" style="padding:4px 14px"><div class="listrow"><div class="lr-body"><div class="lr-t">Daily schedule</div></div>'+ic('chevron')+'</div><div class="listrow"><div class="lr-body"><div class="lr-t">Guidelines</div></div>'+ic('chevron')+'</div></div>'+
+ '</div><div class="sticky between"><div><div class="mini mut">From</div><div class="st">₹1,100</div></div><button class="btn btn-primary">Register</button></div>'));
+
+/* 22. Utsav stepped registration */
+S.push(phone('Utsav · register','Fixes sheet-in-dialog: a proper stepped Sheet with inline validation.',
+ '<div class="screen" style="position:relative;padding:0">'+
+ '<div style="height:100%;background:var(--sunken)"></div>'+
+ '<div style="position:absolute;left:0;right:0;bottom:0;top:80px;background:var(--raised);border-radius:22px 22px 0 0;box-shadow:var(--e3);padding:18px 16px"><div style="width:36px;height:4px;background:var(--b-strong);border-radius:9px;margin:0 auto 14px"></div>'+
+ '<div class="t-caption">Step 2 of 2 · Details</div><div class="progress" style="margin:6px 0 16px"><i style="width:100%"></i></div>'+
+ '<div class="t-headline" style="margin-bottom:12px">Paryushan Utsav</div>'+
+ '<div class="field"><span class="fl">Package</span><div class="fi row between"><span>Full · 8 days</span>'+ic('chevron')+'</div></div>'+
+ '<div class="field"><span class="fl">Arrival</span><div class="fi row between"><span>Evening, 12 Aug</span>'+ic('chevron')+'</div></div>'+
+ '<label class="row" style="gap:8px;margin:6px 0 auto"><span class="chip sel">'+ic('check')+'</span><span class="mini">I’d like to volunteer for seva</span></label>'+
+ '<button class="btn btn-primary btn-full" style="margin-top:16px">Continue to review</button></div></div>'));
+
+/* 23. Feedback stepped */
+S.push(phone('Feedback','Already the best flow — add haptics, a11y, 44pt targets, sans in the textarea.',
+ '<div class="appbar"><div class="ib">'+ic('back')+'</div><div class="sp"></div><div class="ib">'+ic('x')+'</div></div>'+
+ '<div class="progress" style="margin:0 16px 20px"><i style="width:40%"></i></div>'+
+ '<div class="screen" style="display:flex;flex-direction:column">'+
+ '<div class="t-caption" style="margin-bottom:8px">Question 2 of 5</div>'+
+ '<div class="t-title" style="margin-bottom:24px">How would you rate the adhyayan?</div>'+
+ '<div class="row" style="gap:8px;justify-content:space-between;margin-bottom:auto">'+
+ [1,2,3,4,5].map(n=>'<div class="chip '+(n===4?'sel':'')+'" style="width:52px;height:52px;justify-content:center;font-size:17px">'+n+'</div>').join('')+'</div>'+
+ '<button class="btn btn-primary btn-full">Continue</button>'+
+ '<div class="btn-tertiary" style="margin-top:6px">Skip</div></div>'));
+
+/* 24. Contact */
+S.push(phone('Contacts','Praised interaction model kept (tap-call / long-press-copy); retoken to Card + ListRow.',
+ bar('Contacts',{})+
+ '<div class="screen scroll">'+
+ '<div class="t-label" style="margin-bottom:8px">Front office</div>'+
+ '<div class="card" style="padding:4px 14px">'+
+ [['user','Reception','+91 2632 240 000'],['user','Booking desk','+91 2632 240 111']].map(r=>
+ '<div class="listrow"><div class="lead">'+ic('phone')+'</div><div class="lr-body"><div class="lr-t">'+r[1]+'</div><div class="lr-s">'+r[2]+'</div></div>'+ic('phone')+'</div>').join('')+'</div>'+
+ '<div class="t-label" style="margin:16px 0 8px">Medical</div>'+
+ '<div class="card" style="padding:4px 14px"><div class="listrow"><div class="lead">'+ic('bell')+'</div><div class="lr-body"><div class="lr-t">Health centre</div><div class="lr-s">+91 2632 240 222</div></div>'+ic('phone')+'</div></div>'+
+ '</div>'));
+
+document.getElementById('wall').innerHTML=S.join('');
+
+/* ================= COMPONENTS GALLERY ================= */
+const C=[];
+C.push('<div class="h-sec">Components</div><div class="h-sub">Every Sanctuary component in its states — the parts every screen is built from. Buttons, chips and rows have live hover/press.</div>');
+
+C.push('<div class="h-min">Buttons</div><div class="panel"><div class="grid" style="align-items:center">'+
+ '<button class="btn btn-primary">Primary</button>'+
+ '<button class="btn btn-secondary">Secondary</button>'+
+ '<button class="btn btn-tertiary">Tertiary</button>'+
+ '<button class="btn btn-destructive">Destructive</button>'+
+ '<button class="btn btn-primary" disabled>Disabled</button>'+
+ '<button class="btn btn-primary"><span class="spinner"></span>Loading</button>'+
+ '<button class="btn btn-primary btn-sm">Small</button></div></div>');
+
+C.push('<div class="h-min">Text fields</div><div class="panel" style="max-width:420px">'+
+ '<div class="field"><span class="fl">Default</span><div class="fi mut">Placeholder</div></div>'+
+ '<div class="field focus"><span class="fl">Focused</span><div class="fi">Typing…</div><span class="fh">Helper text</span></div>'+
+ '<div class="field err"><span class="fl">Error</span><div class="fi">bad@value</div><span class="fh">Enter a valid email</span></div></div>');
+
+C.push('<div class="h-min">Chips & Segmented</div><div class="panel"><div class="grid" style="align-items:center">'+
+ '<span class="chip sel">'+ic('check')+'Selected</span><span class="chip">Default</span><span class="chip">'+ic('bed')+'With icon</span>'+
+ '<div class="segmented"><button class="on">Myself</button><button>Guests</button><button>Mumukshus</button></div></div></div>');
+
+C.push('<div class="h-min">Tags & Toasts</div><div class="panel"><div class="grid" style="align-items:center">'+
+ '<span class="tag neutral">Neutral</span><span class="tag success">Confirmed</span><span class="tag warning">Payment due</span><span class="tag error">Failed</span><span class="tag info">Info</span>'+
+ '<div class="toast"><span class="dot" style="background:var(--sage)"></span>Guest added</div>'+
+ '<div class="toast"><span class="dot" style="background:var(--error)"></span>Couldn’t save — try again</div></div></div>');
+
+C.push('<div class="h-min">Card · ListRow</div><div class="panel"><div class="grid">'+
+ '<div class="card" style="width:280px"><div class="row" style="margin-bottom:8px">'+ic('bed')+'<span class="st">Raj Sharan · Room</span></div><div class="mini mut">4–7 Jul · 3 nights</div></div>'+
+ '<div class="card" style="width:280px;padding:4px 14px">'+['user|My details','card|Transactions','qr|My QR pass'].map(x=>{const[i,t]=x.split('|');return '<div class="listrow"><div class="lead">'+ic(i)+'</div><div class="lr-body"><div class="lr-t">'+t+'</div></div>'+ic('chevron')+'</div>';}).join('')+'</div></div></div>');
+
+C.push('<div class="h-min">Charge lines · Progress · Rating</div><div class="panel"><div class="grid">'+
+ '<div class="card" style="width:260px"><div class="pay-line"><span>Room · 3 nights</span><span>₹1,800</span></div><div class="pay-line"><span class="credit">Credits</span><span class="credit">– ₹300</span></div><div class="pay-line tot"><span>Total</span><span>₹1,500</span></div></div>'+
+ '<div style="width:220px"><div class="t-caption" style="margin-bottom:6px">Step 2 of 3</div><div class="progress"><i style="width:66%"></i></div>'+
+ '<div class="row" style="gap:6px;margin-top:16px">'+[1,2,3,4,5].map(n=>'<div class="chip '+(n===4?'sel':'')+'" style="width:40px;height:40px;justify-content:center">'+n+'</div>').join('')+'</div></div></div></div>');
+
+C.push('<div class="h-min">Skeleton · Empty · Error · Dialog · Callout</div><div class="panel"><div class="grid">'+
+ '<div class="card" style="width:220px"><div class="skel" style="height:14px;width:60%;margin-bottom:10px"></div><div class="skel" style="height:12px;margin-bottom:6px"></div><div class="skel" style="height:12px;width:80%"></div></div>'+
+ '<div class="card" style="width:240px"><div class="empty" style="padding:16px 8px"><div class="ei">'+ic('book','ic-24')+'</div><div class="et">No bookings yet</div><div class="em">Your next stay will appear here.</div><button class="btn btn-primary btn-sm">Book a stay</button></div></div>'+
+ '<div class="card" style="width:240px"><div class="empty" style="padding:16px 8px"><div class="ei" style="background:var(--error-bg);color:var(--error)">'+ic('x','ic-24')+'</div><div class="et">Something went wrong</div><div class="em">We couldn’t load this.</div><button class="btn btn-secondary btn-sm">Try again</button></div></div>'+
+ '<div class="dialog" style="box-shadow:var(--e1);border:1px solid var(--b-default)"><div class="dt">Cancel this stay?</div><div class="dm">Refunds 100% to credits. Can’t be undone.</div><div class="da"><button class="btn btn-secondary" style="flex:1">Keep</button><button class="btn btn-destructive" style="flex:1">Cancel</button></div></div>'+
+ '<div style="width:240px" class="stack-sm"><div class="callout warning">Meals must be booked before 8 PM the previous day.</div><div class="callout info">Guest not found — we’ll create a new profile.</div></div>'+
+ '</div></div>');
+
+C.push('<div class="h-min">Header variants</div><div class="panel"><div class="grid">'+
+ '<div style="width:300px;background:var(--canvas);border:1px solid var(--b-default);border-radius:var(--r-md)">'+bar('My stays',{noback:1})+'</div>'+
+ '<div style="width:300px;background:var(--canvas);border:1px solid var(--b-default);border-radius:var(--r-md)">'+bar('Review',{})+'</div>'+
+ '<div style="width:300px;background:var(--canvas);border:1px solid var(--b-default);border-radius:var(--r-md)">'+bar('Entry pass',{close:1})+'</div>'+
+ '</div></div>');
+
+document.getElementById('compwrap').innerHTML=C.join('');
+
+/* ================= FOUNDATIONS ================= */
+const F=[];
+F.push('<div class="h-sec">Foundations</div><div class="h-sub">The tokens everything derives from. Change a token here and the whole app moves together — one source of truth, no drift.</div>');
+
+const colorTokens=[['canvas','#FAF6EE'],['surface','#FFFDF8'],['sunken','#F4EEE0'],['tint','#FBEFD9'],['accent','#E0952A'],['accent-press','#C57E1E'],['text','#211C15'],['text-2','#4A4235'],['muted','#7A7060'],['border','#E7DEC9'],['success','#566A4C'],['error','#B23A2E'],['warning','#B8801C'],['info','#5B7286'],['clay','#B45B3E'],['sage','#6E8063']];
+F.push('<div class="h-min">Semantic colour</div><div class="swatches">'+colorTokens.map(c=>'<div class="sw"><div class="chip" style="background:'+c[1]+'"></div><div class="meta"><b>'+c[0]+'</b><code>'+c[1]+'</code></div></div>').join('')+'</div>');
+F.push('<div class="h-sub" style="margin-top:10px">Saffron touches only the single primary action per screen. Text on saffron is dark ink (accessible), never white.</div>');
+
+F.push('<div class="h-min">Type scale — Fraunces (display) + DM Sans (text)</div><div class="panel">'+
+ [['Display','t-display','Jai Sadgurudev'],['Title','t-title','Your upcoming stay'],['Headline','t-headline','Things to know'],['Subtitle','t-subtitle','Raj Sharan · Room'],['Body','t-body','Book a serene stay at the retreat.'],['Caption','t-caption','4–7 Jul · 3 nights'],['Label','t-label','Quick access']].map(t=>
+ '<div class="spec"><span class="lab">'+t[0]+'</span><span class="'+t[1]+'">'+t[2]+'</span></div>').join('')+'</div>');
+
+F.push('<div class="h-min">Radius · Spacing · Elevation</div><div class="panel"><div class="tokrow" style="gap:28px">'+
+ [['8 · sm','8px'],['12 · md','12px'],['16 · lg','16px'],['24 · xl','24px']].map(r=>'<div class="tokbox"><div class="radi" style="border-radius:'+r[1]+'"></div>'+r[0]+'</div>').join('')+
+ '</div><div class="divider" style="margin:18px 0"></div><div class="tokrow" style="align-items:flex-end">'+
+ [4,8,12,16,24,32,48].map(s=>'<div class="tokbox"><div class="space-bar" style="width:'+s+'px"></div>'+s+'</div>').join('')+
+ '</div><div class="divider" style="margin:18px 0"></div><div class="tokrow" style="gap:24px">'+
+ [['e1',' e1'],['e2',' e2'],['e3',' e3']].map(e=>'<div class="tokbox"><div class="elev" style="box-shadow:var(--'+e[0]+')">'+e[0]+'</div></div>').join('')+
+ '</div></div>');
+
+F.push('<div class="h-min">Iconography & motion</div><div class="panel"><div class="row" style="gap:16px;flex-wrap:wrap;color:var(--text-2)">'+
+ ['home','cal','bed','bowl','car','wifi','user','book','bell','card','qr','heart','phone','tool','copy','clock'].map(n=>ic(n,'ic-24')).join('')+
+ '</div><div class="h-sub" style="margin-top:14px">Line icons, 1.5px stroke, tinted from text/accent tokens (replacing today’s raster PNGs). Motion is calm: gentle springs, 220ms, press = scale 0.98 + light haptic, content fades in with an 8–12px rise.</div></div>');
+
+document.getElementById('foundwrap').innerHTML=F.join('');
+</script>
+</body>
+</html>
