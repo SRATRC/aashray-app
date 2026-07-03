@@ -14,6 +14,7 @@ import { icons, status } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import { splitActiveAndPastBookings } from '@/src/utils/bookingHistoryFilter';
 import CustomButton from '../CustomButton';
 import ExpandableItem from '../ExpandableItem';
 import BookingStatusDisplay from '../BookingStatusDisplay';
@@ -122,11 +123,9 @@ const AdhyayanBookingCancellation = () => {
   });
 
   const allItems = data?.pages?.flatMap((page: any) => page) || [];
-  const activeItems = allItems.filter(
-    (item: any) => !moment(item.start_date).isBefore(moment(), 'day')
-  );
-  const pastItems = allItems.filter((item: any) =>
-    moment(item.start_date).isBefore(moment(), 'day')
+  const { activeItems, pastItems } = splitActiveAndPastBookings(
+    allItems,
+    (item: any) => item.end_date
   );
 
   const renderOldBookingsSection = (compact = false) => (
