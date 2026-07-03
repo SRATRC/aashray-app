@@ -15,6 +15,7 @@ import { useAuthStore } from '@/src/stores';
 import { FlashList } from '@shopify/flash-list';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import { splitActiveAndPastBookings } from '@/src/utils/bookingHistoryFilter';
 import CustomModal from '../CustomModal';
 import OldBookingsTrigger from '../OldBookingsTrigger';
 import CustomButton from '../CustomButton';
@@ -48,7 +49,9 @@ const TravelBookingCancellation = () => {
         (res: any) => {
           resolve(Array.isArray(res.data) ? res.data : []);
         },
-        () => reject(new Error('Failed to fetch travels'))
+        () => {},
+        () => reject(new Error('Failed to fetch travels')),
+        false
       );
     });
   };
@@ -85,7 +88,9 @@ const TravelBookingCancellation = () => {
             bookingid,
           },
           (res: any) => resolve(res),
-          () => reject(new Error('Failed to cancel booking'))
+          () => {},
+          () => reject(new Error('Failed to cancel booking')),
+          false
         );
       });
     },
@@ -124,8 +129,7 @@ const TravelBookingCancellation = () => {
   });
 
   const allItems = data?.pages?.flatMap((page: any) => page) || [];
-  const activeItems = allItems.filter((item: any) => !moment(item.date).isBefore(moment(), 'day'));
-  const pastItems = allItems.filter((item: any) => moment(item.date).isBefore(moment(), 'day'));
+  const { activeItems, pastItems } = splitActiveAndPastBookings(allItems, (item: any) => item.date);
 
   const renderOldBookingsSection = (compact = false) => (
     <>
@@ -262,48 +266,6 @@ const TravelBookingCancellation = () => {
           </View>
         ) : null}
 
-        {/* Option 1 commented out:
-        {item.bus_name && (
-          <View className="mx-1 mt-4 rounded-xl border border-dashed border-[#FF8E01]/40 bg-[#FFEFDB] p-4 flex-col gap-y-2.5">
-            <View className="flex-row items-center gap-x-2 pb-2 border-b border-dashed border-[#FF9001]/30">
-              <MaterialCommunityIcons name="bus-side" size={20} color={colors.secondary_200} />
-              <Text className="font-psemibold text-sm text-[#FF9001]">Bus Details</Text>
-            </View>
-            <View className="flex-col gap-y-2 pt-1">
-              <View className="flex-row justify-between items-center">
-                <Text className="font-pregular text-xs text-gray-500">Bus Name:</Text>
-                <Text className="font-psemibold text-sm text-black">{item.bus_name}</Text>
-              </View>
-              {item.departure_time && (
-                <View className="flex-row justify-between items-center">
-                  <Text className="font-pregular text-xs text-gray-500">Departure Time:</Text>
-                  <Text className="font-psemibold text-sm text-black">{item.departure_time}</Text>
-                </View>
-              )}
-              {item.coordinator_name && (
-                <View className="flex-row justify-between items-center">
-                  <Text className="font-pregular text-xs text-gray-500">Bus Co-ordinator:</Text>
-                  <Text className="font-psemibold text-sm text-black">{item.coordinator_name}</Text>
-                </View>
-              )}
-              {item.coordinator_contact && (
-                <View className="flex-row justify-between items-center mt-1">
-                  <Text className="font-pregular text-xs text-gray-500">Co-ordinator Contact:</Text>
-                  <TouchableOpacity
-                    onPress={() => Linking.openURL(`tel:${item.coordinator_contact}`)}
-                    className="flex-row items-center bg-secondary px-3 py-1.5 rounded-lg gap-x-1"
-                    activeOpacity={0.7}>
-                    <MaterialCommunityIcons name="phone" size={14} color="#FFFFFF" />
-                    <Text className="font-pmedium text-xs text-white">{item.coordinator_contact}</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          </View>
-        )}
-        */}
-
-        {/* Option 3 Button: */}
         {item.bus_name && (
           <CustomButton
             text="View Bus Details"
