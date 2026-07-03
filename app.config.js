@@ -1,9 +1,28 @@
+const { withGradleProperties } = require('@expo/config-plugins');
+
+const withIncreasedGradleMemory = (config) =>
+  withGradleProperties(config, (config) => {
+    const jvmArgsProp = config.modResults.find(
+      (item) => item.type === 'property' && item.key === 'org.gradle.jvmargs'
+    );
+    if (jvmArgsProp) {
+      jvmArgsProp.value = '-Xmx4096m -XX:MaxMetaspaceSize=1024m';
+    } else {
+      config.modResults.push({
+        type: 'property',
+        key: 'org.gradle.jvmargs',
+        value: '-Xmx4096m -XX:MaxMetaspaceSize=1024m',
+      });
+    }
+    return config;
+  });
+
 export default {
   expo: {
     name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
-    version: '1.1.46',
+    version: '1.1.49',
     orientation: 'portrait',
     icon: './src/assets/images/icon.png',
     userInterfaceStyle: 'automatic',
@@ -59,12 +78,42 @@ export default {
             {
               scheme: 'https',
               host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/utsav',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/utsav/feedback',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
               pathPrefix: '/event',
             },
             {
               scheme: 'https',
               host: 'aashray.vitraagvigyaan.org',
-              pathPrefix: '/',
+              pathPrefix: '/wifi',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/menu',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/maintenanceRequestList',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/pendingPayments',
+            },
+            {
+              scheme: 'https',
+              host: 'aashray.vitraagvigyaan.org',
+              pathPrefix: '/bookings',
             },
           ],
           category: ['BROWSABLE', 'DEFAULT'],
@@ -137,6 +186,7 @@ export default {
         },
       ],
       'expo-font',
+      withIncreasedGradleMemory,
     ],
     extra: {
       router: {

@@ -1,6 +1,6 @@
 import { View, TouchableOpacity, Image, Platform } from 'react-native';
 import { useCallback, useState } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import { icons } from '@/src/constants';
 import * as Haptics from 'expo-haptics';
 
@@ -60,9 +60,7 @@ const AddonItem: React.FC<AddonItemProps> = ({
           />
         </TouchableOpacity>
       </View>
-      <View className={`${containerStyles}`} style={{ display: selected ? 'flex' : 'none' }}>
-        {children}
-      </View>
+      {selected && <View className={`${containerStyles}`}>{children}</View>}
     </View>
   );
 };

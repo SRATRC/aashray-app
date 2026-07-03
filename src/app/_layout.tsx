@@ -1,5 +1,5 @@
 import '../../global.css';
-import { StrictMode, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { SystemBars } from 'react-native-edge-to-edge';
@@ -44,6 +44,7 @@ Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
+  enableTombstone: true,
   integrations: [
     Sentry.mobileReplayIntegration({
       maskAllText: false,
@@ -147,6 +148,10 @@ const RootLayout = () => {
     'Poppins-Regular': require('@/src/assets/fonts/Poppins-Regular.ttf'),
     'Poppins-SemiBold': require('@/src/assets/fonts/Poppins-SemiBold.ttf'),
     'Poppins-Thin': require('@/src/assets/fonts/Poppins-Thin.ttf'),
+    'DMSerifDisplay-Regular': require('@/src/assets/fonts/DMSerifDisplay-Regular.ttf'),
+    'DMSans-Regular': require('@/src/assets/fonts/DMSans-Regular.ttf'),
+    'DMSans-Medium': require('@/src/assets/fonts/DMSans-Medium.ttf'),
+    'DMSans-Light': require('@/src/assets/fonts/DMSans-Light.ttf'),
   });
 
   const [isAuthReady, setIsAuthReady] = useState(false);
@@ -178,13 +183,11 @@ const RootLayout = () => {
   }
 
   return (
-    <StrictMode>
-      <NotificationProvider>
-        <QueryClientProvider client={queryClient}>
-          <RootLayoutContent />
-        </QueryClientProvider>
-      </NotificationProvider>
-    </StrictMode>
+    <NotificationProvider>
+      <QueryClientProvider client={queryClient}>
+        <RootLayoutContent />
+      </QueryClientProvider>
+    </NotificationProvider>
   );
 };
 

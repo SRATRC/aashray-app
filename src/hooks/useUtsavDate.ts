@@ -16,7 +16,9 @@ const fetchUtsavs = async ({ cardno }: { cardno: string }): Promise<any[]> => {
       (res: any) => {
         resolve(Array.isArray(res.data) ? res.data : []);
       },
-      () => reject(new Error('Failed to fetch utsavs'))
+      () => {},
+      () => reject(new Error('Failed to fetch utsavs')),
+      false
     );
   });
 };
@@ -38,13 +40,13 @@ export const useUtsavDate = () => {
       const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
 
       return utsavData.some((utsav: any) =>
-          moment(formattedDate).isBetween(
-            moment(utsav.start_date, 'YYYY-MM-DD'),
-            moment(utsav.end_date, 'YYYY-MM-DD'),
-            undefined,
-            '[]'
-          )
+        moment(formattedDate).isBetween(
+          moment(utsav.start_date, 'YYYY-MM-DD'),
+          moment(utsav.end_date, 'YYYY-MM-DD'),
+          undefined,
+          '[]'
         )
+      );
     },
     [utsavData]
   );

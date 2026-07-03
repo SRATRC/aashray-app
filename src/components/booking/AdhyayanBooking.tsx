@@ -551,7 +551,7 @@ const AdhyayanBooking = () => {
         stickySectionHeadersEnabled={false}
         renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) => item?.id?.toString() || index.toString()}
         ListEmptyComponent={() => (
           <View className="h-full flex-1 items-center justify-center pt-40">
             {isError ? (

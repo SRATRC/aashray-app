@@ -3,7 +3,7 @@ import { DeepLinkType } from '@/src/types/deeplink';
 export interface DeeplinkRoute {
     name: DeepLinkType;
     pattern: string; // e.g., '/event/:id'
-    target: string;  // e.g., '/event/[id]'
+    target: string; // e.g., '/event/[id]'
     authRequired: boolean;
 }
 
@@ -24,6 +24,12 @@ export const DEEPLINK_ROUTES: DeeplinkRoute[] = [
         name: DeepLinkType.UTSAV,
         pattern: '/utsav/:id',
         target: '/utsav/[id]',
+        authRequired: true,
+    },
+    {
+        name: DeepLinkType.UTSAV_FEEDBACK,
+        pattern: '/utsav/feedback/:id',
+        target: '/utsav/feedback/[id]',
         authRequired: true,
     },
     {
@@ -48,6 +54,12 @@ export const DEEPLINK_ROUTES: DeeplinkRoute[] = [
         name: DeepLinkType.BOOKINGS,
         pattern: '/bookings',
         target: '/bookings',
+        authRequired: true,
+    },
+    {
+        name: DeepLinkType.WIFI,
+        pattern: '/wifi',
+        target: '/wifi',
         authRequired: true,
     },
 ];

@@ -14,6 +14,7 @@ import { icons, status } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import { splitActiveAndPastBookings } from '@/src/utils/bookingHistoryFilter';
 import CustomButton from '../CustomButton';
 import ExpandableItem from '../ExpandableItem';
 import BookingStatusDisplay from '../BookingStatusDisplay';
@@ -122,11 +123,9 @@ const AdhyayanBookingCancellation = () => {
   });
 
   const allItems = data?.pages?.flatMap((page: any) => page) || [];
-  const activeItems = allItems.filter(
-    (item: any) => !moment(item.start_date).isBefore(moment(), 'day')
-  );
-  const pastItems = allItems.filter((item: any) =>
-    moment(item.start_date).isBefore(moment(), 'day')
+  const { activeItems, pastItems } = splitActiveAndPastBookings(
+    allItems,
+    (item: any) => item.end_date
   );
 
   const renderOldBookingsSection = (compact = false) => (
@@ -223,7 +222,7 @@ const AdhyayanBookingCancellation = () => {
           {/* Actions Row */}
           {((moment(item.start_date).diff(moment().format('YYYY-MM-DD')) > 0 &&
             ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status)) ||
-            item?.showFeedback) && (
+            (item?.showFeedback && !item?.hasSubmittedFeedback)) && (
             <View className="mt-5 flex-row gap-x-3 px-1">
               {moment(item.start_date).diff(moment().format('YYYY-MM-DD')) > 0 &&
                 ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
@@ -237,7 +236,7 @@ const AdhyayanBookingCancellation = () => {
                     }}
                   />
                 )}
-              {item?.showFeedback && !bookedForSomeone && (
+              {item?.showFeedback && !item?.hasSubmittedFeedback && !bookedForSomeone && (
                 <CustomButton
                   text="Give Feedback"
                   containerStyles={'py-3 flex-1'}

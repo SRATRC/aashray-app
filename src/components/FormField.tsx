@@ -1,6 +1,6 @@
 import { View, Text, TextInput, TouchableOpacity, Image, Platform } from 'react-native';
 import React, { useState } from 'react';
-import { icons } from '../constants';
+import { colors, icons } from '../constants';
 
 interface FormFieldProps {
   text: any;
@@ -23,7 +23,8 @@ interface FormFieldProps {
   error?: boolean;
   errorMessage?: string;
   isLoading?: boolean;
-  useNeomorphic?: boolean; // NEW PROP
+  useNeomorphic?: boolean;
+  variant?: 'default' | 'clean';
 }
 
 const FormField: React.FC<FormFieldProps> = ({
@@ -47,11 +48,56 @@ const FormField: React.FC<FormFieldProps> = ({
   error = false,
   errorMessage,
   isLoading = false,
-  useNeomorphic = false, // NEW PROP - defaults to false for backward compatibility
+  useNeomorphic = false,
+  variant = 'default',
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
-  // Dynamic container styles based on error state
+  // clean variant
+  if (variant === 'clean') {
+    return (
+      <View className={`gap-y-2 ${otherStyles}`}>
+        <Text className="font-pregular text-sm text-gray-400">{text}</Text>
+        <View
+          className={`flex-row items-center rounded-2xl bg-gray-100 px-4 ${
+            multiline ? 'h-auto py-3' : 'h-16'
+          } ${containerStyles ?? ''}`}>
+          {prefix && <Text className="font-pmedium text-base text-gray-400">{prefix}</Text>}
+          <TextInput
+            className={`flex-1 font-pmedium text-base text-black ${inputStyles ?? ''}`}
+            value={value}
+            placeholder={placeholder}
+            placeholderTextColor={colors.gray_400}
+            onChangeText={handleChangeText}
+            keyboardType={keyboardType}
+            maxLength={maxLength}
+            autoCapitalize={autoCapitalize}
+            autoComplete={autoComplete}
+            autoCorrect={autoCorrect}
+            importantForAutofill="no"
+            secureTextEntry={isPassword && !showPassword}
+            multiline={multiline}
+            numberOfLines={numberOfLines}
+            textAlignVertical={multiline ? 'top' : 'center'}
+          />
+          {isPassword && (
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Image
+                source={!showPassword ? icons.eye : icons.eyeHide}
+                className="h-6 w-6"
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+        {error && errorMessage && (
+          <Text className="ml-2 font-pmedium text-sm text-red-600">{errorMessage}</Text>
+        )}
+      </View>
+    );
+  }
+
+  // default variant
   const getContainerStyles = () => {
     let baseStyles = `w-full flex-row items-center gap-x-2 rounded-2xl px-4 focus:border-2 ${
       multiline ? 'h-auto py-3' : 'h-16'
@@ -66,13 +112,11 @@ const FormField: React.FC<FormFieldProps> = ({
       if (containerStyles) {
         baseStyles += ` ${containerStyles}`;
       } else if (useNeomorphic) {
-        // NEOMORPHIC STYLING
         baseStyles +=
           Platform.OS === 'ios'
             ? ' bg-white border border-gray-200 shadow-md shadow-gray-300'
             : ' bg-white border border-gray-200 shadow-lg shadow-gray-400';
       } else {
-        // ORIGINAL STYLING - UPDATED FOR CLEANER LOOK
         baseStyles +=
           Platform.OS === 'ios'
             ? ' bg-white border border-gray-100 shadow-sm shadow-gray-200'
@@ -121,12 +165,10 @@ const FormField: React.FC<FormFieldProps> = ({
         )}
       </View>
 
-      {/* Error message */}
       {error && errorMessage && (
         <Text className="ml-2 font-pmedium text-sm text-red-600">{errorMessage}</Text>
       )}
 
-      {/* Additional text (success state) */}
       {additionalText && !error && (
         <Text className="font-pmedium text-gray-500">
           Name: <Text className="font-pregular text-green-600">{additionalText}</Text>

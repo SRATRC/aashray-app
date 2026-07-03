@@ -3,6 +3,8 @@ node_modules/
 .cursor/
 .vscode/
 .agent/
+.claude/
+.agents/
 dist/
 npm-debug.*
 *.jks

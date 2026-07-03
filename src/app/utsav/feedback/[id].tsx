@@ -5,12 +5,27 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/src/stores';
 import { SteppedFeedback, SteppedFeedbackShimmer } from '@/src/components/SteppedFeedback';
 import type { AnswerValue } from '@/src/components/SteppedFeedback';
-import { ADHYAYAN_QUESTIONS } from '@/src/questions/adhyayanFeedback';
+import { UTSAV_QUESTIONS } from '@/src/questions/utsavFeedback';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomAlert from '@/src/components/CustomAlert';
 import CustomErrorMessage from '@/src/components/CustomErrorMessage';
 
-const AdhyayanFeedbackScreen: React.FC = () => {
+const mapAnswersToPayload = (
+  answers: Record<string | number, AnswerValue>,
+  cardno: string,
+  utsavId: number
+) => ({
+  cardno,
+  utsav_id: utsavId,
+  answers: UTSAV_QUESTIONS.map((question) => ({
+    question_id: question.id,
+    question_text: question.text,
+    question_type: question.type,
+    answer: answers[question.id],
+  })),
+});
+
+const UtsavFeedbackScreen: React.FC = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const user = useAuthStore((s) => s.user);
@@ -19,14 +34,14 @@ const AdhyayanFeedbackScreen: React.FC = () => {
   const [isValidating, setIsValidating] = useState(true);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const shibirId = useMemo(() => {
+  const utsavId = useMemo(() => {
     const parsed = parseInt(Array.isArray(id) ? id[0] : (id as string), 10);
     return Number.isFinite(parsed) ? parsed : null;
   }, [id]);
 
   useEffect(() => {
-    if (!user?.cardno || shibirId === null) {
-      setValidationError('Invalid shibir or user information');
+    if (!user?.cardno || utsavId === null) {
+      setValidationError('Invalid utsav or user information');
       setIsValidating(false);
       return;
     }
@@ -36,8 +51,8 @@ const AdhyayanFeedbackScreen: React.FC = () => {
       await new Promise<void>((resolve, reject) => {
         handleAPICall(
           'GET',
-          '/adhyayan/feedback/validate',
-          { shibir_id: shibirId, cardno: user.cardno },
+          '/utsav/feedback/validate',
+          { utsav_id: utsavId, cardno: user.cardno },
           null,
           () => {
             setValidationError(null);
@@ -56,23 +71,21 @@ const AdhyayanFeedbackScreen: React.FC = () => {
     };
 
     validateFeedbackAccess().catch(() => {});
-  }, [shibirId, user?.cardno]);
+  }, [utsavId, user?.cardno]);
 
   const handleSubmit = async (answers: Record<string | number, AnswerValue>) => {
-    if (!user?.cardno || shibirId === null) return;
+    if (utsavId === null) return;
+
+    const payload = mapAnswersToPayload(answers, user.cardno, utsavId);
 
     await new Promise<void>((resolve, reject) => {
       handleAPICall(
         'POST',
-        '/adhyayan/feedback',
+        '/utsav/feedback',
         null,
-        {
-          cardno: user.cardno,
-          shibir_id: shibirId,
-          ...Object.fromEntries(ADHYAYAN_QUESTIONS.map((q) => [q.id, answers[q.id]])),
-        },
+        payload,
         () => {
-          queryClient.invalidateQueries({ queryKey: ['adhyayanBooking', user?.cardno] });
+          queryClient.invalidateQueries({ queryKey: ['utsavBooking', user?.cardno] });
           resolve();
         },
         () => {},
@@ -114,15 +127,15 @@ const AdhyayanFeedbackScreen: React.FC = () => {
 
   return (
     <SteppedFeedback
-      questions={ADHYAYAN_QUESTIONS}
+      questions={UTSAV_QUESTIONS}
       onSubmit={handleSubmit}
       onBack={handleDismiss}
       onClose={handleClose}
       onDismiss={handleDismiss}
       successTitle="Thank you."
-      successSubtitle="See you at the next Adhyayan."
+      successSubtitle="See you at the next Utsav."
     />
   );
 };
 
-export default AdhyayanFeedbackScreen;
+export default UtsavFeedbackScreen;

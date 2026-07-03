@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
+  Linking,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -14,6 +15,7 @@ import { useAuthStore } from '@/src/stores';
 import { FlashList } from '@shopify/flash-list';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import { splitActiveAndPastBookings } from '@/src/utils/bookingHistoryFilter';
 import CustomModal from '../CustomModal';
 import OldBookingsTrigger from '../OldBookingsTrigger';
 import CustomButton from '../CustomButton';
@@ -30,6 +32,8 @@ const TravelBookingCancellation = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [showOldBookings, setShowOldBookings] = useState(false);
+  const [showBusModal, setShowBusModal] = useState(false);
+  const [busDetailsBooking, setBusDetailsBooking] = useState<any>(null);
   const tabBarPadding = useTabBarPadding();
 
   const fetchTravels = async ({ pageParam = 1 }) => {
@@ -45,7 +49,9 @@ const TravelBookingCancellation = () => {
         (res: any) => {
           resolve(Array.isArray(res.data) ? res.data : []);
         },
-        () => reject(new Error('Failed to fetch travels'))
+        () => {},
+        () => reject(new Error('Failed to fetch travels')),
+        false
       );
     });
   };
@@ -82,7 +88,9 @@ const TravelBookingCancellation = () => {
             bookingid,
           },
           (res: any) => resolve(res),
-          () => reject(new Error('Failed to cancel booking'))
+          () => {},
+          () => reject(new Error('Failed to cancel booking')),
+          false
         );
       });
     },
@@ -104,15 +112,9 @@ const TravelBookingCancellation = () => {
                 booking.transaction_status === status.STATUS_PAYMENT_PENDING ||
                 booking.transaction_status === status.STATUS_CASH_PENDING;
 
-              const isCompleted =
-                booking.transaction_status === status.STATUS_PAYMENT_COMPLETED ||
-                booking.transaction_status === status.STATUS_CASH_COMPLETED;
-
               const newTransactionStatus = isPending
                 ? status.STATUS_CANCELLED
-                : isCompleted
-                  ? status.STATUS_CREDITED
-                  : booking.transaction_status;
+                : booking.transaction_status;
 
               return {
                 ...booking,
@@ -127,8 +129,7 @@ const TravelBookingCancellation = () => {
   });
 
   const allItems = data?.pages?.flatMap((page: any) => page) || [];
-  const activeItems = allItems.filter((item: any) => !moment(item.date).isBefore(moment(), 'day'));
-  const pastItems = allItems.filter((item: any) => moment(item.date).isBefore(moment(), 'day'));
+  const { activeItems, pastItems } = splitActiveAndPastBookings(allItems, (item: any) => item.date);
 
   const renderOldBookingsSection = (compact = false) => (
     <>
@@ -265,6 +266,18 @@ const TravelBookingCancellation = () => {
           </View>
         ) : null}
 
+        {item.bus_name && (
+          <CustomButton
+            text="View Bus Details"
+            containerStyles={'mt-4 py-3 mx-1 flex-1 bg-[#FFEFDB] border border-[#FF8E01]/40'}
+            textStyles={'text-sm text-[#FF9001] font-psemibold'}
+            handlePress={() => {
+              setBusDetailsBooking(item);
+              setShowBusModal(true);
+            }}
+          />
+        )}
+
         <View>
           {moment(item.date).diff(moment().format('YYYY-MM-DD')) > 0 &&
             ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
@@ -376,6 +389,68 @@ const TravelBookingCancellation = () => {
           }
         }}
       />
+
+      <CustomModal
+        visible={showBusModal}
+        onClose={() => {
+          setShowBusModal(false);
+          setBusDetailsBooking(null);
+        }}
+        title="Bus details"
+        showActionButton={true}
+        btnText="Close"
+        btnOnPress={() => {
+          setShowBusModal(false);
+          setBusDetailsBooking(null);
+        }}
+      >
+        {busDetailsBooking && (
+          <View className="flex-col gap-y-4 py-2">
+            <View className="rounded-xl border border-dashed border-[#FF8E01]/40 bg-[#FFEFDB] p-4 flex-col gap-y-3">
+              <View className="flex-row items-center gap-x-2 pb-2 border-b border-dashed border-[#FF9001]/30">
+                <MaterialCommunityIcons name="bus-side" size={24} color={colors.secondary_200} />
+                <Text className="font-psemibold text-base text-[#FF9001]">{busDetailsBooking.bus_name}</Text>
+              </View>
+              
+              <View className="flex-col gap-y-2 pt-1">
+                {busDetailsBooking.departure_time && (
+                  <View className="flex-row justify-between items-center">
+                    <Text className="font-pregular text-sm text-gray-500">Departure Time:</Text>
+                    <Text className="font-psemibold text-sm text-black">{busDetailsBooking.departure_time}</Text>
+                  </View>
+                )}
+                
+                {busDetailsBooking.coordinator_name && (
+                  <View className="flex-row justify-between items-center">
+                    <Text className="font-pregular text-sm text-gray-500">Co-ordinator:</Text>
+                    <Text className="font-psemibold text-sm text-black">{busDetailsBooking.coordinator_name}</Text>
+                  </View>
+                )}
+
+                {busDetailsBooking.coordinator_contact && (
+                  <View className="flex-row justify-between items-center mt-2 border-t border-gray-200/50 pt-2">
+                    <Text className="font-pregular text-sm text-gray-500">Contact No:</Text>
+                    <TouchableOpacity
+                      onPress={() => Linking.openURL(`tel:${busDetailsBooking.coordinator_contact}`)}
+                      className="flex-row items-center bg-secondary px-3 py-1.5 rounded-lg gap-x-1"
+                      activeOpacity={0.7}>
+                      <MaterialCommunityIcons name="phone" size={14} color="#FFFFFF" />
+                      <Text className="font-pmedium text-xs text-white">{busDetailsBooking.coordinator_contact}</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {busDetailsBooking.admin_comments && (
+              <View className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex-col gap-y-1">
+                <Text className="font-pregular text-xs text-gray-400">Admin Comments:</Text>
+                <Text className="font-pmedium text-xs text-black">{busDetailsBooking.admin_comments}</Text>
+              </View>
+            )}
+          </View>
+        )}
+      </CustomModal>
     </View>
   );
 };
