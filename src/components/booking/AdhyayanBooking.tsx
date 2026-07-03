@@ -1,19 +1,17 @@
 import {
   View,
   Text,
-  FlatList,
-  SectionList,
   ActivityIndicator,
   TouchableOpacity,
   Modal,
   Image,
-  Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   RefreshControl,
+  SectionList,
 } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { icons, status, types } from '@/src/constants';
@@ -28,8 +26,8 @@ import CustomChipGroup from '../CustomChipGroup';
 import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomEmptyMessage from '../CustomEmptyMessage';
-import moment from 'moment';
 import CustomAlert from '../CustomAlert';
+import moment from 'moment';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
@@ -312,6 +310,29 @@ const AdhyayanBooking = () => {
     </View>
   );
 
+  const renderSectionHeader = ({ section: { title } }: { section: { title: any } }) => (
+    <Text className="mt-2 font-psemibold text-lg">{title}</Text>
+  );
+
+  const sections = useMemo(() => {
+    const flattened = data?.pages?.flatMap((page: any) => page) || [];
+    return flattened.reduce((acc: any[], section: any) => {
+      if (acc.length === 0) {
+        return [section];
+      }
+      const lastSection = acc[acc.length - 1];
+      if (lastSection.title === section.title) {
+        const mergedSection = {
+          ...lastSection,
+          data: [...lastSection.data, ...section.data],
+        };
+        acc[acc.length - 1] = mergedSection;
+        return acc;
+      }
+      return [...acc, section];
+    }, []);
+  }, [data?.pages]);
+
   return (
     <View className="mt-3 w-full flex-1">
       <Modal
@@ -524,15 +545,12 @@ const AdhyayanBooking = () => {
           paddingTop: 8,
           paddingBottom: tabBarPadding,
         }}
-        sections={data?.pages?.flatMap((page: any) => page) || []}
+        sections={sections}
         showsVerticalScrollIndicator={false}
-        nestedScrollEnabled
+        nestedScrollEnabled={true}
+        stickySectionHeadersEnabled={false}
+        renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}
-        renderSectionHeader={({ section: { title } }) => (
-          <View className="mb-2 mt-4">
-            <Text className="font-pbold text-xl text-black">{title}</Text>
-          </View>
-        )}
         keyExtractor={(item, index) => item?.id?.toString() || index.toString()}
         ListEmptyComponent={() => (
           <View className="h-full flex-1 items-center justify-center pt-40">

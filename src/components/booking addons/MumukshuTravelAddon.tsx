@@ -238,12 +238,12 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
                 text="Flight/Train Time"
                 value={
                   travelForm.mumukshuGroup[index].arrival_time
-                    ? moment(travelForm.mumukshuGroup[index].arrival_time).format('h:mm a')
+                    ? moment(travelForm.mumukshuGroup[index].arrival_time, 'HH:mm').format('h:mm a')
                     : ''
                 }
                 placeholder="Flight/Train Time"
                 otherStyles="mt-5"
-                inputStyles={'font-pmedium text-lg'}
+                inputStyles={'font-pmedium text-black text-lg'}
                 backgroundColor="bg-gray-100"
                 onPress={() => {
                   setDatePickerVisibility('travel_time', true);
@@ -255,11 +255,12 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
                 mode="time"
                 date={
                   travelForm.mumukshuGroup[index].arrival_time
-                    ? moment(travelForm.mumukshuGroup[index].arrival_time).toDate()
+                    ? moment(travelForm.mumukshuGroup[index].arrival_time, 'HH:mm').toDate()
                     : new Date()
                 }
                 onConfirm={(date: Date) => {
-                  updateTravelForm(index, 'arrival_time', date.toISOString());
+                  const timeOnly = moment(date).format('HH:mm');
+                  updateTravelForm(index, 'arrival_time', timeOnly);
                   setDatePickerVisibility('travel_time', false);
                 }}
                 onCancel={() => setDatePickerVisibility('travel_time', false)}

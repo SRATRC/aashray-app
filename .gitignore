@@ -2,6 +2,7 @@ node_modules/
 .expo/
 .cursor/
 .vscode/
+.agent/
 .claude/
 .agents/
 dist/

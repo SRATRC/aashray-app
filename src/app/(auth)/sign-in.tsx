@@ -24,9 +24,9 @@ const PasswordResetModal = ({ visible, onClose, email }: any) => (
           <Image source={images.logo} className="h-10 w-10" resizeMode="contain" />
         </View>
 
-        <Text className="mb-3 font-dmserif text-[26px] text-black">Check Your Email</Text>
-        <Text className="font-pregular text-sm text-gray-600">
-          We've sent a temporary password to:
+        <Text className="mb-3 font-dmserif text-[26px] text-black">Check Your Inbox</Text>
+        <Text className="font-pregular text-sm text-gray-600 text-center">
+          We've sent a temporary password to WhatsApp and your registered email:
         </Text>
         <Text className="mb-4 mt-1 font-pmedium text-base text-secondary">{email}</Text>
         <Text className="mb-7 text-center font-pregular text-sm leading-5 text-gray-500">

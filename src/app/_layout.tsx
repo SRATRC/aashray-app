@@ -1,5 +1,5 @@
 import '../../global.css';
-import { StrictMode, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { SystemBars } from 'react-native-edge-to-edge';
@@ -44,6 +44,7 @@ Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
+  enableTombstone: true,
   integrations: [
     Sentry.mobileReplayIntegration({
       maskAllText: false,
@@ -182,13 +183,11 @@ const RootLayout = () => {
   }
 
   return (
-    <StrictMode>
-      <NotificationProvider>
-        <QueryClientProvider client={queryClient}>
-          <RootLayoutContent />
-        </QueryClientProvider>
-      </NotificationProvider>
-    </StrictMode>
+    <NotificationProvider>
+      <QueryClientProvider client={queryClient}>
+        <RootLayoutContent />
+      </QueryClientProvider>
+    </NotificationProvider>
   );
 };
 

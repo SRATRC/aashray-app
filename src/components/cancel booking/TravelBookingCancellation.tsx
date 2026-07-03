@@ -6,8 +6,9 @@ import {
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
+  Linking,
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { colors, icons, status } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
@@ -15,6 +16,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '../CustomModal';
+import OldBookingsTrigger from '../OldBookingsTrigger';
 import CustomButton from '../CustomButton';
 import ExpandableItem from '../ExpandableItem';
 import HorizontalSeparator from '../HorizontalSeparator';
@@ -28,6 +30,9 @@ const TravelBookingCancellation = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [showOldBookings, setShowOldBookings] = useState(false);
+  const [showBusModal, setShowBusModal] = useState(false);
+  const [busDetailsBooking, setBusDetailsBooking] = useState<any>(null);
   const tabBarPadding = useTabBarPadding();
 
   const fetchTravels = async ({ pageParam = 1 }) => {
@@ -102,15 +107,9 @@ const TravelBookingCancellation = () => {
                 booking.transaction_status === status.STATUS_PAYMENT_PENDING ||
                 booking.transaction_status === status.STATUS_CASH_PENDING;
 
-              const isCompleted =
-                booking.transaction_status === status.STATUS_PAYMENT_COMPLETED ||
-                booking.transaction_status === status.STATUS_CASH_COMPLETED;
-
               const newTransactionStatus = isPending
                 ? status.STATUS_CANCELLED
-                : isCompleted
-                  ? status.STATUS_CREDITED
-                  : booking.transaction_status;
+                : booking.transaction_status;
 
               return {
                 ...booking,
@@ -124,6 +123,39 @@ const TravelBookingCancellation = () => {
     },
   });
 
+  const allItems = data?.pages?.flatMap((page: any) => page) || [];
+  const activeItems = allItems.filter((item: any) => !moment(item.date).isBefore(moment(), 'day'));
+  const pastItems = allItems.filter((item: any) => moment(item.date).isBefore(moment(), 'day'));
+
+  const renderOldBookingsSection = (compact = false) => (
+    <>
+      <OldBookingsTrigger
+        compact={compact}
+        isExpanded={showOldBookings}
+        onToggle={() => setShowOldBookings((v) => !v)}
+      />
+      {showOldBookings && (
+        <View>
+          <View className="flex-row items-center justify-between px-2 pb-2">
+            <Text className="font-psemibold text-base text-gray-500">Past Bookings</Text>
+            <TouchableOpacity onPress={() => setShowOldBookings(false)}>
+              <Text className="font-pregular text-sm text-secondary">Hide old bookings</Text>
+            </TouchableOpacity>
+          </View>
+          {pastItems.length === 0 ? (
+            <View className="items-center py-6">
+              <Text className="font-pregular text-gray-400">No past bookings</Text>
+            </View>
+          ) : (
+            pastItems.map((item: any, index: number) => (
+              <View key={item.bookingid ?? index}>{renderItem({ item } as any)}</View>
+            ))
+          )}
+        </View>
+      )}
+    </>
+  );
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
@@ -134,6 +166,13 @@ const TravelBookingCancellation = () => {
       setIsRefreshing(false);
     }
   };
+
+  function formatTime(value: string) {
+    if (value.includes('T')) {
+      return moment.utc(value).local().format('hh:mm A');
+    }
+    return moment(value, 'HH:mm').format('hh:mm A');
+  }
 
   const renderItem = ({ item }: any) => (
     <ExpandableItem
@@ -184,6 +223,17 @@ const TravelBookingCancellation = () => {
           <Text className="font-pregular text-gray-400">Luggage:</Text>
           <Text className="font-pmedium text-black">{item.luggage}</Text>
         </View>
+        {item.arrival_time && (
+          <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
+            <Ionicons name="time" size={16} color={colors.gray_400} />
+            <View className="flex-row items-center gap-x-2">
+              <Text className="font-pregular text-gray-400">Arrival Time:</Text>
+              <Text className="mx-1 flex-1 font-pmedium text-black">
+                {formatTime(item.arrival_time)}
+              </Text>
+            </View>
+          </View>
+        )}
         {item.comments && (
           <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
             <Image source={icons.request} className="h-4 w-4" resizeMode="contain" />
@@ -212,6 +262,60 @@ const TravelBookingCancellation = () => {
           </View>
         ) : null}
 
+        {/* Option 1 commented out:
+        {item.bus_name && (
+          <View className="mx-1 mt-4 rounded-xl border border-dashed border-[#FF8E01]/40 bg-[#FFEFDB] p-4 flex-col gap-y-2.5">
+            <View className="flex-row items-center gap-x-2 pb-2 border-b border-dashed border-[#FF9001]/30">
+              <MaterialCommunityIcons name="bus-side" size={20} color={colors.secondary_200} />
+              <Text className="font-psemibold text-sm text-[#FF9001]">Bus Details</Text>
+            </View>
+            <View className="flex-col gap-y-2 pt-1">
+              <View className="flex-row justify-between items-center">
+                <Text className="font-pregular text-xs text-gray-500">Bus Name:</Text>
+                <Text className="font-psemibold text-sm text-black">{item.bus_name}</Text>
+              </View>
+              {item.departure_time && (
+                <View className="flex-row justify-between items-center">
+                  <Text className="font-pregular text-xs text-gray-500">Departure Time:</Text>
+                  <Text className="font-psemibold text-sm text-black">{item.departure_time}</Text>
+                </View>
+              )}
+              {item.coordinator_name && (
+                <View className="flex-row justify-between items-center">
+                  <Text className="font-pregular text-xs text-gray-500">Bus Co-ordinator:</Text>
+                  <Text className="font-psemibold text-sm text-black">{item.coordinator_name}</Text>
+                </View>
+              )}
+              {item.coordinator_contact && (
+                <View className="flex-row justify-between items-center mt-1">
+                  <Text className="font-pregular text-xs text-gray-500">Co-ordinator Contact:</Text>
+                  <TouchableOpacity
+                    onPress={() => Linking.openURL(`tel:${item.coordinator_contact}`)}
+                    className="flex-row items-center bg-secondary px-3 py-1.5 rounded-lg gap-x-1"
+                    activeOpacity={0.7}>
+                    <MaterialCommunityIcons name="phone" size={14} color="#FFFFFF" />
+                    <Text className="font-pmedium text-xs text-white">{item.coordinator_contact}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+        */}
+
+        {/* Option 3 Button: */}
+        {item.bus_name && (
+          <CustomButton
+            text="View Bus Details"
+            containerStyles={'mt-4 py-3 mx-1 flex-1 bg-[#FFEFDB] border border-[#FF8E01]/40'}
+            textStyles={'text-sm text-[#FF9001] font-psemibold'}
+            handlePress={() => {
+              setBusDetailsBooking(item);
+              setShowBusModal(true);
+            }}
+          />
+        )}
+
         <View>
           {moment(item.date).diff(moment().format('YYYY-MM-DD')) > 0 &&
             ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
@@ -233,7 +337,9 @@ const TravelBookingCancellation = () => {
   const renderFooter = () => (
     <View className="items-center">
       {(isFetchingNextPage || isLoading) && <ActivityIndicator />}
-      {!hasNextPage && data?.pages?.[0]?.length > 0 && <Text>No more bookings at the moment</Text>}
+      {!hasNextPage && data?.pages?.[0]?.length > 0 && pastItems.length === 0 && (
+        <Text>No more bookings at the moment</Text>
+      )}
     </View>
   );
 
@@ -247,12 +353,13 @@ const TravelBookingCancellation = () => {
           paddingBottom: tabBarPadding,
         }}
         showsVerticalScrollIndicator={false}
-        data={data?.pages?.flatMap((page: any) => page) || []}
+        data={activeItems}
         renderItem={renderItem}
-        ListEmptyComponent={() => (
-          <View className="h-full flex-1 items-center justify-center pt-40">
-            {isError ? (
-              <View className="items-center justify-center px-6">
+        ListEmptyComponent={() => {
+          if (isLoading) return null;
+          if (isError)
+            return (
+              <View className="items-center justify-center px-6 pt-40">
                 <Text className="mb-2 text-center text-lg font-semibold text-gray-800">
                   Oops! Something went wrong
                 </Text>
@@ -260,19 +367,21 @@ const TravelBookingCancellation = () => {
                   Unable to load Travel Bookings. Please check your connection and try again.
                 </Text>
                 <TouchableOpacity
-                  onPress={() => {
-                    refetch();
-                  }}
+                  onPress={() => refetch()}
                   className="rounded-lg bg-secondary px-6 py-3"
                   activeOpacity={0.7}>
                   <Text className="font-semibold text-white">Try Again</Text>
                 </TouchableOpacity>
               </View>
-            ) : (
+            );
+          if (pastItems.length > 0)
+            return <View className="w-full">{renderOldBookingsSection()}</View>;
+          return (
+            <View className="h-full flex-1 items-center justify-center pt-40">
               <CustomEmptyMessage message={'Empty itinerary? Your Research Centre calls.'} />
-            )}
-          </View>
-        )}
+            </View>
+          );
+        }}
         ListFooterComponent={() => (
           <View>
             {renderFooter()}
@@ -287,6 +396,11 @@ const TravelBookingCancellation = () => {
                 </TouchableOpacity>
               </View>
             )}
+            {!isLoading &&
+              !isError &&
+              activeItems.length > 0 &&
+              pastItems.length > 0 &&
+              renderOldBookingsSection(true)}
           </View>
         )}
         onEndReachedThreshold={0.1}
@@ -313,6 +427,68 @@ const TravelBookingCancellation = () => {
           }
         }}
       />
+
+      <CustomModal
+        visible={showBusModal}
+        onClose={() => {
+          setShowBusModal(false);
+          setBusDetailsBooking(null);
+        }}
+        title="Bus details"
+        showActionButton={true}
+        btnText="Close"
+        btnOnPress={() => {
+          setShowBusModal(false);
+          setBusDetailsBooking(null);
+        }}
+      >
+        {busDetailsBooking && (
+          <View className="flex-col gap-y-4 py-2">
+            <View className="rounded-xl border border-dashed border-[#FF8E01]/40 bg-[#FFEFDB] p-4 flex-col gap-y-3">
+              <View className="flex-row items-center gap-x-2 pb-2 border-b border-dashed border-[#FF9001]/30">
+                <MaterialCommunityIcons name="bus-side" size={24} color={colors.secondary_200} />
+                <Text className="font-psemibold text-base text-[#FF9001]">{busDetailsBooking.bus_name}</Text>
+              </View>
+              
+              <View className="flex-col gap-y-2 pt-1">
+                {busDetailsBooking.departure_time && (
+                  <View className="flex-row justify-between items-center">
+                    <Text className="font-pregular text-sm text-gray-500">Departure Time:</Text>
+                    <Text className="font-psemibold text-sm text-black">{busDetailsBooking.departure_time}</Text>
+                  </View>
+                )}
+                
+                {busDetailsBooking.coordinator_name && (
+                  <View className="flex-row justify-between items-center">
+                    <Text className="font-pregular text-sm text-gray-500">Co-ordinator:</Text>
+                    <Text className="font-psemibold text-sm text-black">{busDetailsBooking.coordinator_name}</Text>
+                  </View>
+                )}
+
+                {busDetailsBooking.coordinator_contact && (
+                  <View className="flex-row justify-between items-center mt-2 border-t border-gray-200/50 pt-2">
+                    <Text className="font-pregular text-sm text-gray-500">Contact No:</Text>
+                    <TouchableOpacity
+                      onPress={() => Linking.openURL(`tel:${busDetailsBooking.coordinator_contact}`)}
+                      className="flex-row items-center bg-secondary px-3 py-1.5 rounded-lg gap-x-1"
+                      activeOpacity={0.7}>
+                      <MaterialCommunityIcons name="phone" size={14} color="#FFFFFF" />
+                      <Text className="font-pmedium text-xs text-white">{busDetailsBooking.coordinator_contact}</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {busDetailsBooking.admin_comments && (
+              <View className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex-col gap-y-1">
+                <Text className="font-pregular text-xs text-gray-400">Admin Comments:</Text>
+                <Text className="font-pmedium text-xs text-black">{busDetailsBooking.admin_comments}</Text>
+              </View>
+            )}
+          </View>
+        )}
+      </CustomModal>
     </View>
   );
 };

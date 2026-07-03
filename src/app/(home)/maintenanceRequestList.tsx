@@ -182,6 +182,7 @@ const maintenanceRequestList = () => {
         data={data?.pages?.flatMap((page: any) => page) || []}
         showsVerticalScrollIndicator={false}
         renderItem={renderItem}
+        keyExtractor={(item: any, index: number) => item?.bookingid?.toString() ?? `idx-${index}`}
         ListHeaderComponent={renderHeader}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={

@@ -3,6 +3,10 @@ import { BASE_URL, DEV_URL } from '../constants';
 import { useDevStore } from '../stores';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
+import * as Sentry from '@sentry/react-native';
+
+const generateRequestId = () =>
+  Array.from({ length: 12 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
 
 const handleAPICall = async (
   method,
@@ -14,6 +18,8 @@ const handleAPICall = async (
   errorCallback = (error) => {},
   allowToast = true
 ) => {
+  const requestId = generateRequestId();
+
   try {
     const { useDevBackend, devPrNumber } = useDevStore.getState();
     let currentBaseUrl = BASE_URL;
@@ -34,7 +40,7 @@ const handleAPICall = async (
     const url = `${currentBaseUrl}${endpoint}`;
 
     let data = body;
-    const headers = {};
+    const headers = { 'x-request-id': requestId };
 
     if (body?.image) {
       const formData = new FormData();
@@ -48,11 +54,20 @@ const handleAPICall = async (
       headers['Content-Type'] = 'multipart/form-data';
     }
 
-    console.log('------------');
-    console.log('URL: ', url);
-    console.log('PARAMS: ', JSON.stringify(params));
-    console.log('BODY: ', JSON.stringify(body));
-    console.log('------------');
+    if (__DEV__) {
+      console.log('------------');
+      console.log('URL: ', url);
+      console.log('PARAMS: ', JSON.stringify(params));
+      console.log('BODY: ', JSON.stringify(body));
+      console.log('------------');
+    }
+
+    Sentry.addBreadcrumb({
+      category: 'api.request',
+      message: `${method.toUpperCase()} ${endpoint}`,
+      data: { params, body, requestId },
+      level: 'info',
+    });
 
     const res = await axios({
       method,
@@ -67,21 +82,33 @@ const handleAPICall = async (
     if (res.status === 200 || res.status === 201) {
       successCallback(res.data);
     } else {
-      console.log('ERROR: ', JSON.stringify(res.data));
-      throw new Error(res.data.message || 'An error occurred');
+      const err = new Error(res.data.message || 'An error occurred');
+      err.correlationId = res.headers['x-request-id'] || requestId;
+      throw err;
     }
   } catch (error) {
+    const correlationId = error.correlationId || error.response?.headers?.['x-request-id'] || requestId;
     const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
     const errorDetails = {
       message: errorMessage,
       status: error.response?.status,
       data: error.response?.data,
+      correlationId,
       originalError: error,
     };
 
     if (errorCallback) errorCallback(errorDetails);
 
-    console.log('ERROR: ', errorMessage);
+    if (__DEV__) console.log('ERROR: ', errorMessage);
+
+    Sentry.addBreadcrumb({
+      category: 'api.error',
+      message: `${endpoint} failed: ${errorMessage}`,
+      data: errorDetails,
+      level: 'error',
+    });
+
+    Sentry.setTag('correlation_id', correlationId);
 
     if (allowToast) {
       Toast.show({

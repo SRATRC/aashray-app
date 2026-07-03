@@ -14,11 +14,11 @@
   "dependencies": {
     "@expo/metro-runtime": "~56.0.13",
     "@expo/vector-icons": "^15.0.2",
-    "@gorhom/bottom-sheet": "^5.0.6",
+    "@gorhom/bottom-sheet": "^5.2.14",
     "@react-native-community/datetimepicker": "9.1.0",
     "@react-native-firebase/app": "^22.1.0",
     "@react-native-firebase/messaging": "^22.1.0",
-    "@sentry/react-native": "~7.11.0",
+    "@sentry/react-native": "^8.16.0",
     "@shopify/flash-list": "2.0.2",
     "@tanstack/react-query": "^5.54.1",
     "axios": "^1.6.8",

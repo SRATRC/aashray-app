@@ -6,7 +6,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["*"]
-    }
+    },
+    "jsx": "react-jsx"
   },
   "include": ["**/*.ts", "**/*.tsx", "nativewind-env.d.ts"]
 }
