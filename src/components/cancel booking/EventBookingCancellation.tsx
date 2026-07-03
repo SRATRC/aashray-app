@@ -13,6 +13,7 @@ import { icons, status } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import { splitActiveAndPastBookings } from '@/src/utils/bookingHistoryFilter';
 import CustomModal from '../CustomModal';
 import OldBookingsTrigger from '../OldBookingsTrigger';
 import CustomButton from '../CustomButton';
@@ -44,11 +45,11 @@ const EventBookingCancellation = () => {
         },
         null,
         (res: any) => {
-          console.log('UTSAV BOOKINGS RESPONSE:', res.data);
           resolve(Array.isArray(res.data) ? res.data : []);
         },
-
-        () => reject(new Error('Failed to fetch utsavs'))
+        () => {},
+        () => reject(new Error('Failed to fetch utsavs')),
+        false
       );
     });
   };
@@ -78,7 +79,9 @@ const EventBookingCancellation = () => {
             bookingid,
           },
           (res: any) => resolve(res),
-          () => reject(new Error('Failed to cancel booking'))
+          () => {},
+          () => reject(new Error('Failed to cancel booking')),
+          false
         );
       });
     },
@@ -117,11 +120,9 @@ const EventBookingCancellation = () => {
   });
 
   const allItems = data?.pages?.flatMap((page: any) => page) || [];
-  const activeItems = allItems.filter(
-    (item: any) => !moment(item.package_start).isBefore(moment(), 'day')
-  );
-  const pastItems = allItems.filter((item: any) =>
-    moment(item.package_start).isBefore(moment(), 'day')
+  const { activeItems, pastItems } = splitActiveAndPastBookings(
+    allItems,
+    (item: any) => item.package_end || item.package_start
   );
 
   const renderOldBookingsSection = (compact = false) => (
@@ -220,7 +221,8 @@ const EventBookingCancellation = () => {
             </View>
           )}
           {/* Actions Row */}
-          {(canCancel || (item?.showFeedback && !item?.hasSubmittedFeedback)) && (
+          {(canCancel ||
+            (item?.showFeedback && !item?.hasSubmittedFeedback && !bookedForSomeone)) && (
             <View className="mt-5 flex-row gap-x-3 px-1">
               {/* Cancel Booking — only BEFORE event */}
               {canCancel && (

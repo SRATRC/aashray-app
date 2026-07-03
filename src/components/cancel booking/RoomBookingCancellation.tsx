@@ -15,6 +15,7 @@ import { icons, status } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import { splitActiveAndPastBookings } from '@/src/utils/bookingHistoryFilter';
 import CustomButton from '../CustomButton';
 import ExpandableItem from '../ExpandableItem';
 import HorizontalSeparator from '../HorizontalSeparator';
@@ -113,10 +114,10 @@ const RoomBookingCancellation: React.FC = () => {
   });
 
   const allItems = data?.pages?.flatMap((page: any) => page) || [];
-  const activeItems = allItems.filter(
-    (item: any) => !moment(item.checkin).isBefore(moment(), 'day')
+  const { activeItems, pastItems } = splitActiveAndPastBookings(
+    allItems,
+    (item: any) => item.checkout
   );
-  const pastItems = allItems.filter((item: any) => moment(item.checkin).isBefore(moment(), 'day'));
 
   const renderOldBookingsSection = (compact = false) => (
     <>

@@ -1,3 +1,22 @@
+const { withGradleProperties } = require('@expo/config-plugins');
+
+const withIncreasedGradleMemory = (config) =>
+  withGradleProperties(config, (config) => {
+    const jvmArgsProp = config.modResults.find(
+      (item) => item.type === 'property' && item.key === 'org.gradle.jvmargs'
+    );
+    if (jvmArgsProp) {
+      jvmArgsProp.value = '-Xmx4096m -XX:MaxMetaspaceSize=1024m';
+    } else {
+      config.modResults.push({
+        type: 'property',
+        key: 'org.gradle.jvmargs',
+        value: '-Xmx4096m -XX:MaxMetaspaceSize=1024m',
+      });
+    }
+    return config;
+  });
+
 export default {
   expo: {
     name: 'Aashray',
@@ -167,6 +186,7 @@ export default {
         },
       ],
       'expo-font',
+      withIncreasedGradleMemory,
     ],
     extra: {
       router: {

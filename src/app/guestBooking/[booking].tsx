@@ -42,7 +42,7 @@ const createInitialFoodForm = (existingData: any = null) => ({
   endDay: existingData?.endDay || '',
   guestGroup: existingData?.guestGroup || [
     {
-      meals: [],
+      meals: ['breakfast', 'lunch', 'dinner'],
       spicy: dropdowns.SPICE_LIST[0].key,
       hightea: dropdowns.HIGHTEA_LIST[0].key,
       guests: [],
@@ -344,7 +344,7 @@ const GuestAddons = () => {
       guestGroup: [
         ...prevFoodForm.guestGroup,
         {
-          meals: [],
+          meals: ['breakfast', 'lunch', 'dinner'],
           spicy: dropdowns.SPICE_LIST[0].key,
           hightea: dropdowns.HIGHTEA_LIST[0].key,
           guests: [],
