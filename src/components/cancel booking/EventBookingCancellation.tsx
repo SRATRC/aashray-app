@@ -45,11 +45,11 @@ const EventBookingCancellation = () => {
         },
         null,
         (res: any) => {
-          console.log('UTSAV BOOKINGS RESPONSE:', res.data);
           resolve(Array.isArray(res.data) ? res.data : []);
         },
-
-        () => reject(new Error('Failed to fetch utsavs'))
+        () => {},
+        () => reject(new Error('Failed to fetch utsavs')),
+        false
       );
     });
   };
@@ -79,7 +79,9 @@ const EventBookingCancellation = () => {
             bookingid,
           },
           (res: any) => resolve(res),
-          () => reject(new Error('Failed to cancel booking'))
+          () => {},
+          () => reject(new Error('Failed to cancel booking')),
+          false
         );
       });
     },
@@ -219,7 +221,8 @@ const EventBookingCancellation = () => {
             </View>
           )}
           {/* Actions Row */}
-          {(canCancel || (item?.showFeedback && !item?.hasSubmittedFeedback)) && (
+          {(canCancel ||
+            (item?.showFeedback && !item?.hasSubmittedFeedback && !bookedForSomeone)) && (
             <View className="mt-5 flex-row gap-x-3 px-1">
               {/* Cancel Booking — only BEFORE event */}
               {canCancel && (
