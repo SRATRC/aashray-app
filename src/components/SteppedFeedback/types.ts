@@ -12,7 +12,7 @@ export type AnswerValue = number | string | boolean;
 
 export type SteppedFeedbackProps = {
   questions: Question[];
-  onSubmit: (answers: Record<string | number, AnswerValue>) => void;
+  onSubmit: (answers: Record<string | number, AnswerValue>) => void | Promise<void>;
   onBack?: () => void;
   onClose?: () => void; // quit the feedback flow at any time
   onDismiss?: () => void; // called on tap or auto-dismiss of success screen

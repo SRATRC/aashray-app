@@ -67,20 +67,28 @@ export const SteppedFeedback: React.FC<SteppedFeedbackProps> = ({
     animateButtonOpacity(isAnswered);
   }, [isAnswered, animateButtonOpacity]);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!isAnswered && !isOptional) return;
     if (isLast) {
-      onSubmit(answers);
-      fadeToSuccess();
+      try {
+        await onSubmit(answers);
+        fadeToSuccess();
+      } catch {
+        // handleAPICall already surfaces an error toast; stay on the form to retry.
+      }
     } else {
       goForward();
     }
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
     if (isLast) {
-      onSubmit(answers);
-      fadeToSuccess();
+      try {
+        await onSubmit(answers);
+        fadeToSuccess();
+      } catch {
+        // handleAPICall already surfaces an error toast; stay on the form to retry.
+      }
     } else {
       skip();
     }
