@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -35,6 +35,7 @@ export const SteppedFeedback: React.FC<SteppedFeedbackProps> = ({
   successSubtitle = DEFAULTS.successSubtitle,
 }) => {
   const insets = useSafeAreaInsets();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     currentIndex,
@@ -64,31 +65,35 @@ export const SteppedFeedback: React.FC<SteppedFeedbackProps> = ({
 
   // Sync button opacity with answered state
   useEffect(() => {
-    animateButtonOpacity(isAnswered);
-  }, [isAnswered, animateButtonOpacity]);
+    animateButtonOpacity(isAnswered && !isSubmitting);
+  }, [isAnswered, isSubmitting, animateButtonOpacity]);
 
-  const handleContinue = async () => {
+  const submit = async () => {
+    setIsSubmitting(true);
+    try {
+      await onSubmit(answers);
+      fadeToSuccess();
+    } catch {
+      // handleAPICall already surfaces an error toast; stay on the form to retry.
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleContinue = () => {
+    if (isSubmitting) return;
     if (!isAnswered && !isOptional) return;
     if (isLast) {
-      try {
-        await onSubmit(answers);
-        fadeToSuccess();
-      } catch {
-        // handleAPICall already surfaces an error toast; stay on the form to retry.
-      }
+      submit();
     } else {
       goForward();
     }
   };
 
-  const handleSkip = async () => {
+  const handleSkip = () => {
+    if (isSubmitting) return;
     if (isLast) {
-      try {
-        await onSubmit(answers);
-        fadeToSuccess();
-      } catch {
-        // handleAPICall already surfaces an error toast; stay on the form to retry.
-      }
+      submit();
     } else {
       skip();
     }
@@ -188,7 +193,7 @@ export const SteppedFeedback: React.FC<SteppedFeedbackProps> = ({
           <Animated.View style={[styles.buttonWrapper, { opacity: buttonOpacity }]}>
             <Pressable
               onPress={handleContinue}
-              disabled={!isAnswered && !isOptional}
+              disabled={(!isAnswered && !isOptional) || isSubmitting}
               style={[styles.button, { backgroundColor: accentColor }]}>
               <Text style={[styles.buttonLabel, { color: accentForeground }]}>
                 {isLast ? 'Submit' : 'Continue'}
@@ -198,7 +203,11 @@ export const SteppedFeedback: React.FC<SteppedFeedbackProps> = ({
 
           {/* Skip button */}
           {isOptional && !isAnswered && (
-            <Pressable onPress={handleSkip} style={styles.skipButton} hitSlop={8}>
+            <Pressable
+              onPress={handleSkip}
+              disabled={isSubmitting}
+              style={styles.skipButton}
+              hitSlop={8}>
               <Text style={styles.skipLabel}>Skip</Text>
             </Pressable>
           )}
