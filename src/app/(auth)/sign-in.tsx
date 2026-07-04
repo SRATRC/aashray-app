@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, Keyboard, Modal, Pressable, Text, View } from 'react-native';
+import { Image, Keyboard, Modal, Pressable, View } from 'react-native';
 import Reanimated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,8 +8,7 @@ import { useAuthStore } from '@/src/stores';
 import { useNotification } from '@/src/context/NotificationContext';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomAlert from '@/src/components/CustomAlert';
-import FormField from '@/src/components/FormField';
-import CustomButton from '@/src/components/CustomButton';
+import { Button, Field, Text } from '@/src/design';
 
 const PasswordResetModal = ({ visible, onClose, email }: any) => (
   <Modal
@@ -18,22 +17,26 @@ const PasswordResetModal = ({ visible, onClose, email }: any) => (
     visible={visible}
     onRequestClose={onClose}
     statusBarTranslucent>
-    <View className="flex-1 items-center justify-center bg-black/45 px-7">
-      <View className="w-full max-w-[400px] items-center rounded-[28px] bg-white p-8">
-        <View className="mb-5 h-16 w-16 items-center justify-center rounded-full bg-secondary-50">
+    <View className="flex-1 items-center justify-center bg-scrim px-7">
+      <View className="w-full max-w-[400px] items-center rounded-hero bg-canvas p-8">
+        <View className="mb-5 h-16 w-16 items-center justify-center rounded-full bg-accent-tint">
           <Image source={images.logo} className="h-10 w-10" resizeMode="contain" />
         </View>
 
-        <Text className="mb-3 font-dmserif text-[26px] text-black">Check Your Inbox</Text>
-        <Text className="font-pregular text-sm text-gray-600 text-center">
+        <Text variant="title" className="mb-3">
+          Check Your Inbox
+        </Text>
+        <Text variant="body" color="secondary" align="center">
           We've sent a temporary password to WhatsApp and your registered email:
         </Text>
-        <Text className="mb-4 mt-1 font-pmedium text-base text-secondary">{email}</Text>
-        <Text className="mb-7 text-center font-pregular text-sm leading-5 text-gray-500">
+        <Text variant="bodyStrong" color="accent" className="mb-4 mt-1">
+          {email}
+        </Text>
+        <Text variant="caption" color="muted" align="center" className="mb-7">
           Please use it to sign in and then change your password from your profile.
         </Text>
 
-        <CustomButton text="Got It" handlePress={onClose} variant="pill" containerStyles="w-full" />
+        <Button text="Got It" onPress={onClose} variant="primary" fullWidth />
       </View>
     </View>
   </Modal>
@@ -103,50 +106,53 @@ const SignIn = () => {
   };
 
   return (
-    <Pressable className="flex-1 justify-end bg-white" onPress={Keyboard.dismiss}>
+    <Pressable className="flex-1 justify-end bg-canvas" onPress={Keyboard.dismiss}>
       <Reanimated.View
         style={[blockStyle, { paddingBottom: insets.bottom + 40 }]}
         className="px-6 pt-10">
         <Image source={images.vvTra} className="h-[80px] w-[80px]" resizeMode="contain" />
 
-        <Text className="mb-2 font-dmserif text-[36px] leading-[44px] text-black">
+        <Text variant="display" className="mb-2">
           Jai Sadgurudev{'\n'}Vandan!
         </Text>
-        <Text className="mb-8 mt-1 font-pregular text-base text-gray-400">
+        <Text variant="body" color="muted" className="mb-8 mt-1">
           Sign in to continue your journey
         </Text>
 
-        <FormField
-          text="Phone Number"
-          value={form.phone}
-          handleChangeText={(e: any) => setForm({ ...form, phone: e })}
-          placeholder="10-digit phone number"
-          keyboardType="number-pad"
-          maxLength={10}
-          otherStyles="mb-3"
-          variant="clean"
-        />
+        <View className="mb-3">
+          <Field
+            label="Phone Number"
+            value={form.phone}
+            onChangeText={(e) => setForm({ ...form, phone: e })}
+            placeholder="10-digit phone number"
+            keyboardType="number-pad"
+            maxLength={10}
+          />
+        </View>
 
-        <FormField
-          text="Password"
-          value={form.password}
-          handleChangeText={(e: any) => setForm({ ...form, password: e })}
-          placeholder="Enter your password"
-          isPassword
-          otherStyles="mb-2"
-          variant="clean"
-        />
+        <View className="mb-2">
+          <Field
+            label="Password"
+            value={form.password}
+            onChangeText={(e) => setForm({ ...form, password: e })}
+            placeholder="Enter your password"
+            secureToggle
+          />
+        </View>
 
         <Pressable onPress={handleForgotPassword} className="mb-7 self-end py-1" hitSlop={8}>
-          <Text className="font-pregular text-sm text-gray-400">Forgot password?</Text>
+          <Text variant="caption" color="muted">
+            Forgot password?
+          </Text>
         </Pressable>
 
-        <CustomButton
+        <Button
           text="Sign In"
-          handlePress={submit}
-          variant="pill"
-          isLoading={isSubmitting}
-          isDisabled={!isReady}
+          onPress={submit}
+          variant="primary"
+          fullWidth
+          loading={isSubmitting}
+          disabled={!isReady}
         />
       </Reanimated.View>
 
