@@ -194,6 +194,7 @@ export default {
         },
       ],
       'expo-font',
+      'expo-localization',
       withIncreasedGradleMemory,
     ],
     extra: {
