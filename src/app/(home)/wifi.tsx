@@ -2,7 +2,7 @@ import { View, Text, RefreshControl, TouchableOpacity, ScrollView, Modal } from 
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthStore } from '@/src/stores';
+import { useAuthStore, useWifiStore } from '@/src/stores';
 import { status } from '@/src/constants';
 import { FontAwesome5 } from '@expo/vector-icons';
 import PageHeader from '@/src/components/PageHeader';
@@ -66,6 +66,13 @@ const Wifi = () => {
   const isResidentOrSevakutir =
     user.res_status === status.STATUS_RESIDENT || user.res_status === status.STATUS_SEVA_KUTIR;
 
+  const {
+    wifiList: cachedWifiList,
+    permanentWifiData: cachedPermanentWifiData,
+    setWifiList,
+    setPermanentWifiData,
+  } = useWifiStore();
+
   // State management
   const [refreshing, setRefreshing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -84,7 +91,9 @@ const Wifi = () => {
         },
         null,
         (res: any) => {
-          resolve(Array.isArray(res.data) ? res.data : []);
+          const data = Array.isArray(res.data) ? res.data : [];
+          setWifiList(data);
+          resolve(data);
         },
         () => { },
         () => reject(new Error('Failed to fetch wifi passwords'))
@@ -103,7 +112,9 @@ const Wifi = () => {
         },
         null,
         (res: any) => {
-          resolve(Array.isArray(res.data) ? res.data : []);
+          const data = Array.isArray(res.data) ? res.data : [];
+          setPermanentWifiData(data);
+          resolve(data);
         },
         () => { },
         () => reject(new Error('Failed to fetch permanent wifi code'))
@@ -115,25 +126,27 @@ const Wifi = () => {
     isLoading,
     isError,
     error,
-    data: wifiList,
+    data: wifiList = cachedWifiList,
     refetch,
   }: any = useQuery({
     queryKey: ['wifi', user.cardno],
     queryFn: fetchWifiPasswords,
     staleTime: 1000 * 60 * 30,
     enabled: !!user.cardno,
+    initialData: cachedWifiList || undefined,
   });
 
   const {
     isLoading: isPermanentLoading,
     isError: isPermanentError,
-    data: permanentWifiData,
+    data: permanentWifiData = cachedPermanentWifiData,
     refetch: refetchPermanent,
   }: any = useQuery({
     queryKey: ['wifi-permanent', user.cardno],
     queryFn: fetchPermanentWifiCode,
     staleTime: 1000 * 60 * 30,
     enabled: !!user.cardno,
+    initialData: cachedPermanentWifiData || undefined,
   });
 
   // Generate temporary WiFi code
@@ -289,18 +302,16 @@ const Wifi = () => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         <PageHeader title={'WiFi Passwords'} />
 
-        {isError && isPermanentError && (
+        {isError && isPermanentError && (!wifiList || wifiList.length === 0) && (!permanentWifiData || permanentWifiData.length === 0) ? (
           <View className="flex-1 items-center justify-center px-4">
-            <CustomErrorMessage errorTitle="An Error Occurred" errorMessage={error?.message} />
+            <CustomErrorMessage errorTitle="An Error Occurred" errorMessage={error?.message || "Failed to load WiFi details."} />
           </View>
-        )}
-
-        {!isError && !isPermanentError && (
+        ) : (
           <>
             <PermanentWifiSection
               data={permanentWifiData}
               isLoading={isPermanentLoading}
-              isError={isPermanentError}
+              isError={isPermanentError && (!permanentWifiData || permanentWifiData.length === 0)}
               isSubmitting={isPermanentSubmitting}
               onRequestCode={handleRequestPermanentCode}
               onInfoPress={handleInfoPress}
@@ -314,7 +325,7 @@ const Wifi = () => {
                 codes={wifiList}
                 isLoading={isLoading}
                 isGenerating={isSubmitting}
-                isError={isError}
+                isError={isError && (!wifiList || wifiList.length === 0)}
                 maxCodes={1}
                 onGenerateCode={handleGenerateCode}
               />
