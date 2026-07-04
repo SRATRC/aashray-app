@@ -52,6 +52,14 @@ export default {
     },
     android: {
       package: 'org.vitraagvigyaan.aashray',
+      // Photo selection uses the Android system photo picker (expo-image-picker's
+      // PickVisualMedia), which needs no broad media access. Block these so a
+      // transitive manifest merge can never re-introduce them and trip the
+      // Google Play "one-time/infrequent photo use" policy.
+      blockedPermissions: [
+        'android.permission.READ_MEDIA_IMAGES',
+        'android.permission.READ_MEDIA_VIDEO',
+      ],
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: true,
       adaptiveIcon: {

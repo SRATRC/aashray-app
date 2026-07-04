@@ -37,16 +37,9 @@ export const useQuickImagePicker = () => {
       
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Toast.show({
-          type: 'error',
-          text1: 'Permission Required',
-          text2: 'Enable photo permissions to upload',
-        });
-        return;
-      }
-
+      // Uses the system photo picker (Android PickVisualMedia / iOS PHPicker),
+      // which grants access to just the selected item and needs no runtime
+      // media-library permission.
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images', 'livePhotos'],
         allowsEditing: true,
