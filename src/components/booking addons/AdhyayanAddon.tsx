@@ -89,7 +89,7 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
         });
       }
     } else {
-      setAdhyayanBookingList([...prevSelectedItems, item]);
+      setAdhyayanBookingList([item]);
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
@@ -126,18 +126,9 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
             <Text className="font-pmedium text-black">₹ {item.amount}</Text>
           </View>
           <TouchableOpacity
-            style={{
-              marginTop: 16,
-              width: '100%',
-              alignItems: 'center',
-              justifyContent: 'center',
-              paddingVertical: 8,
-              paddingHorizontal: 16,
-              borderRadius: 8,
-              borderWidth: 1,
-              borderColor: '#your-secondary-color', // Replace with actual color
-              backgroundColor: isSelected ? '#your-secondary-color' : 'transparent',
-            }}
+            className={`mt-4 w-full items-center justify-center rounded-lg border border-secondary p-2 ${
+              isSelected ? 'bg-secondary' : ''
+            }`}
             onPress={() => handleToggleSelection(item)}
             activeOpacity={0.8}>
             <Text
