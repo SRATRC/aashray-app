@@ -29,3 +29,10 @@ test('shows error text and toggles secure entry', () => {
   fireEvent.press(getByLabelText('Show password')); // eye toggle
   expect(getByTestId('field-input').props.secureTextEntry).toBe(false);
 });
+
+test('forwards maxLength via ...rest to the underlying input', () => {
+  const { getByTestId } = wrap(
+    <Field label="Phone" value="" onChangeText={() => {}} maxLength={10} />
+  );
+  expect(getByTestId('field-input').props.maxLength).toBe(10);
+});

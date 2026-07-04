@@ -25,9 +25,10 @@ export function Touchable({
   ...rest
 }: Props) {
   const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
-    opacity: disabled ? 0.45 : 1,
+    opacity: disabled ? motion.press.disabledOpacity : opacity.value,
   }));
 
   const fireHaptic = () => {
@@ -46,11 +47,13 @@ export function Touchable({
       hitSlop={hitSlop}
       onPressIn={() => {
         if (disabled) return;
-        scale.value = withTiming(motion.press.scale, { duration: 80 });
+        scale.value = withTiming(motion.press.scale, { duration: motion.press.durationIn });
+        opacity.value = withTiming(motion.press.opacity, { duration: motion.press.durationIn });
         fireHaptic();
       }}
       onPressOut={() => {
-        scale.value = withTiming(1, { duration: 120 });
+        scale.value = withTiming(1, { duration: motion.press.durationOut });
+        opacity.value = withTiming(1, { duration: motion.press.durationOut });
       }}
       onPress={(event) => {
         if (disabled) return;

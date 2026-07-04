@@ -30,6 +30,7 @@ module.exports = {
   info: light.status.info,
   'info-bg': light.status.infoBg,
   ring: light.ring,
+  scrim: light.overlay.scrim,
 };
 // Usage: bg-canvas, text-ink, text-ink-muted, border-line, border-line-strong,
 //        bg-accent, text-accent-on, text-accent-text.

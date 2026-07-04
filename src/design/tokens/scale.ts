@@ -30,7 +30,14 @@ export const motion = {
     gentle: { damping: 18, stiffness: 180, mass: 1 },
     snappy: { damping: 20, stiffness: 260, mass: 1 },
   },
-  press: { scale: 0.98, opacity: 0.92, ripple: 'rgba(33,28,21,0.10)' },
+  press: {
+    scale: 0.98,
+    opacity: 0.92,
+    ripple: 'rgba(33,28,21,0.10)',
+    disabledOpacity: 0.45,
+    durationIn: 80,
+    durationOut: 120,
+  },
 } as const;
 // Warm ink-tinted elevation. iOS shadow + Android elevation.
 export const elevation = {

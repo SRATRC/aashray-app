@@ -17,8 +17,8 @@ const PasswordResetModal = ({ visible, onClose, email }: any) => (
     visible={visible}
     onRequestClose={onClose}
     statusBarTranslucent>
-    <View className="flex-1 items-center justify-center bg-black/45 px-7">
-      <View className="w-full max-w-[400px] items-center rounded-[28px] bg-canvas p-8">
+    <View className="flex-1 items-center justify-center bg-scrim px-7">
+      <View className="w-full max-w-[400px] items-center rounded-hero bg-canvas p-8">
         <View className="mb-5 h-16 w-16 items-center justify-center rounded-full bg-accent-tint">
           <Image source={images.logo} className="h-10 w-10" resizeMode="contain" />
         </View>

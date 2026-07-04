@@ -29,6 +29,7 @@ const light = {
     infoBg: p.slate[50],
   },
   ring: p.saffron[600],
+  overlay: { scrim: 'rgba(33,28,21,0.45)' },
 };
 // Provisional dark (Phase 3 verifies contrast). Same shape.
 const dark = {
@@ -60,5 +61,6 @@ const dark = {
     infoBg: '#141B20',
   },
   ring: '#E8A63E',
+  overlay: { scrim: 'rgba(0,0,0,0.6)' },
 };
 module.exports = { semantic: { light, dark }, light, dark };

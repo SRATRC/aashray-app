@@ -97,8 +97,8 @@ export function Button({
   return (
     <Touchable
       testID="button-root"
-      onPress={onPress}
-      disabled={disabled || loading}
+      onPress={loading ? undefined : onPress}
+      disabled={disabled}
       accessibilityLabel={text}
       style={containerStyle}>
       {/*

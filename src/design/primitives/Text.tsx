@@ -22,5 +22,13 @@ export function Text({ variant = 'body', color = 'primary', align, style, ...res
     textAlign: align,
     color: t.color.text[color],
   };
-  return <RNText allowFontScaling maxFontSizeMultiplier={1.6} style={[base, style]} {...rest} />;
+  const maxFontSizeMultiplier = variant === 'button' || variant === 'label' ? 1.4 : 1.6;
+  return (
+    <RNText
+      allowFontScaling
+      maxFontSizeMultiplier={maxFontSizeMultiplier}
+      style={[base, style]}
+      {...rest}
+    />
+  );
 }

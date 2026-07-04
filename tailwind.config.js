@@ -70,6 +70,14 @@ module.exports = {
         fraunces: ['Fraunces-SemiBold'],
         dmsemibold: ['DMSans-SemiBold'],
       },
+      borderRadius: {
+        // Sanctuary named radii — additive only; do not override Tailwind's default
+        // md/lg/xl keys, legacy screens depend on those defaults.
+        control: '12px',
+        card: '16px',
+        hero: '24px',
+        pill: '9999px',
+      },
     },
   },
   plugins: [],

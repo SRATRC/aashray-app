@@ -55,10 +55,11 @@ Tokens  →  Primitives  →  Components  →  Patterns  →  Screens
 ```
 src/design/
   tokens/
-    palette.ts        # raw hex ramps — PRIVATE, never imported by app code
-    color.ts          # semantic tokens (light + dark maps) — THE source of truth
-    spacing.ts radius.ts elevation.ts motion.ts zindex.ts
-    typography.ts     # variant → {family,size,lineHeight,weight,tracking}
+    palette.js         # raw hex ramps — PRIVATE, never imported by app code
+    semantic.js        # semantic tokens (light + dark maps) — THE source of truth
+    scale.ts           # spacing, radius, elevation, motion, zIndex
+    tailwind.js        # NativeWind color map generated from semantic (light) tokens
+    typography.ts      # variant → {family,size,lineHeight,weight,tracking}
     index.ts
   theme/
     ThemeProvider.tsx  # resolves colorScheme → active semantic tokens
@@ -75,7 +76,7 @@ src/design/
 tailwind.config.js     # imports tokens; does NOT define colors/spacing itself
 ```
 
-**Token ↔ Tailwind parity:** `tailwind.config.js` is generated from `src/design/tokens`, so NativeWind classes map to the same semantic tokens (`bg-canvas`, `text-primary`, `border-default`, `bg-accent`, `p-4` = space-4). Result: whether code uses `className` or `useTheme()`, there is **one** source of values. Raw hex in `colors.js` (old) and per-file hex are removed (see migration map §14).
+**Token ↔ Tailwind parity:** `tailwind.config.js` imports `src/design/tokens/tailwind.js`, so NativeWind classes map to the same semantic tokens (`bg-canvas`, `text-ink`, `text-ink-muted`, `border-line`, `bg-accent`). Result: whether code uses `className` or `useTheme()`, there is **one** source of color values. Radius and spacing token *values* are consumed via `style` inside components (from `scale.ts`); className radii use the named classes `rounded-control` / `rounded-card` / `rounded-hero` / `rounded-pill`, and className spacing uses Tailwind's default 4pt scale (`p-4`, `mb-6`, …). Raw hex in `colors.js` (old) and per-file hex are removed (see migration map §14).
 
 **Documentation surface:** the `gallery/` route is the living, runnable catalog — every component in every state. Big-company hallmark: the design system is *demonstrable*, not just described.
 
@@ -125,7 +126,7 @@ These are enforced (lint + PR checklist) and are **non-negotiable for AI agents*
 | Honey (warning) | honey-50 / 500 | `#FAEBCD` / `#B8801C` |
 | Slate (info) | slate-50 / 500 | `#E7EDF1` / `#5B7286` |
 
-### 4.2 Semantic tokens (`tokens/color.ts` — the source of truth)
+### 4.2 Semantic tokens (`tokens/semantic.js` — the source of truth)
 App code uses **only** these. Dark values are provisional for the v1.1 fast-follow — verify contrast before shipping dark.
 
 | Semantic token | Light | Dark (v1.1, provisional) |
@@ -141,21 +142,21 @@ App code uses **only** these. Dark values are provisional for the v1.1 fast-foll
 | `text/disabled` | `#A99E8B` | `#6A6250` |
 | `text/inverse` | `#FCFAF4` | `#16130D` |
 | `text/accent` (links/accent text) | `#A66614` | `#E8A63E` |
-| `border/subtle` | `#EFE7D6` | `#2A2318` |
-| `border/default` | `#E7DEC9` | `#332C20` |
-| `border/strong` | `#D9CDB2` | `#463C2C` |
+| `line/subtle` | `#EFE7D6` | `#2A2318` |
+| `line/default` | `#E7DEC9` | `#332C20` |
+| `line/strong` | `#D9CDB2` | `#463C2C` |
 | `accent/default` | `#E0952A` | `#E8A63E` |
 | `accent/pressed` | `#C57E1E` | `#C57E1E` |
 | `accent/tint` | `#FBEFD9` | `#2A2212` |
-| `accent/onAccent` (text/icon on accent) | `#211C15` | `#16130D` |
+| `accent/on` (text/icon on accent) | `#211C15` | `#16130D` |
 | `status/success` / `success-bg` | `#566A4C` / `#E9EEE3` | `#8FA383` / `#20271A` |
 | `status/error` / `error-bg` | `#B23A2E` / `#F6E3E0` | `#E0705F` / `#2A1613` |
 | `status/warning` / `warning-bg` | `#B8801C` / `#FAEBCD` | `#D9A83E` / `#2A2012` |
 | `status/info` / `info-bg` | `#5B7286` / `#E7EDF1` | `#8AA3B5` / `#141B20` |
 | `overlay/scrim` | `rgba(33,28,21,0.45)` | `rgba(0,0,0,0.6)` |
-| `focus/ring` | `#C57E1E` | `#E8A63E` |
+| `ring` | `#C57E1E` | `#E8A63E` |
 
-> **Contrast note:** `accent/default` (#E0952A) fails text contrast on light, so **button text on saffron is `accent/onAccent` (dark ink), not white** — this is elegant *and* accessible. For accent-colored text/links use `text/accent` (#A66614).
+> **Contrast note:** `accent/default` (#E0952A) fails text contrast on light, so **button text on saffron is `accent/on` (dark ink), not white** — this is elegant *and* accessible. For accent-colored text/links use `text/accent` (#A66614).
 
 ### 4.3 Spacing (`tokens/spacing.ts`) — 4pt base
 `space-0`=0 · `1`=4 · `2`=8 · `3`=12 · `4`=16 · `5`=20 · `6`=24 · `7`=32 · `8`=40 · `9`=48 · `10`=64.
