@@ -17,6 +17,7 @@ import * as Sentry from '@sentry/react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 import { CustomAlert } from '@/src/components/CustomAlert';
+import { ThemeProvider } from '@/src/design/theme/ThemeProvider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -195,13 +196,15 @@ const RootLayoutContent = () => {
   return (
     <KeyboardProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <BottomSheetModalProvider>
-          <SystemBars style="dark" />
-          <AppNavigator />
-          <CustomAlert />
-          <UpdateManager />
-          <Toast />
-        </BottomSheetModalProvider>
+        <ThemeProvider>
+          <BottomSheetModalProvider>
+            <SystemBars style="dark" />
+            <AppNavigator />
+            <CustomAlert />
+            <UpdateManager />
+            <Toast />
+          </BottomSheetModalProvider>
+        </ThemeProvider>
       </GestureHandlerRootView>
     </KeyboardProvider>
   );
