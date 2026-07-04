@@ -346,7 +346,7 @@ Compact contracts — enough for an AI to implement consistently. Props shown ar
 
 Sequenced to match `UI_UX_AUDIT.md` phases — foundation first (it unblocks and de-risks everything).
 
-- **Phase 0 — Foundation:** build `src/design/tokens` + `theme` + Tailwind parity; `<Text>`, `<Touchable>`, `<Icon>`, `<Button>`, `<Field>`; add Fraunces + DM Sans SemiBold, remove Poppins; stand up `gallery/`; add lint rules.
+- **Phase 0 — Foundation (done):** built `src/design/tokens` + `theme` + Tailwind parity; `<Text>`, `<Touchable>`, `<Icon>`, `<Button>`, `<Field>` with tests; added Fraunces + DM Sans SemiBold; stood up `gallery/`; added lint rules. **Proof:** `src/app/(auth)/sign-in.tsx` (incl. its `PasswordResetModal`) is migrated end-to-end onto `<Button>`/`<Field>`/`<Text variant>` and semantic token classes, with all auth logic unchanged — first real screen on the system. Poppins removal is still pending (Phase 3).
 - **Phase 1 — Motion & feel:** `<Touchable>` press + haptics everywhere; real `<Skeleton>`; Reanimated springs for `<Segmented>`/`<Chip>`/expanders; intentional stack transitions.
 - **Phase 2 — Components & flows:** `<Sheet>`/`<Dialog>` consolidation; `<Header>` + `<ScreenScaffold>`; `<FormScaffold>` inline validation + scroll-to-error; `<BookingStepScaffold>` progress; `<ConfirmationScaffold>` receipt + haptics; `<EmptyState>`; `<Toast>` for confirmations.
 - **Phase 3 — Platform & inclusivity:** Android FAB/ripple/tonal tab bar/edge-to-edge/snackbar; iOS large titles/sheet detents/Dynamic Type; PNG→SVG icons; **dark mode** (token swap); full a11y pass.

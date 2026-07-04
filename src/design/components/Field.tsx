@@ -5,6 +5,7 @@ import {
   NativeSyntheticEvent,
   ReturnKeyTypeOptions,
   TextInput,
+  TextInputProps,
   TextInputSubmitEditingEventData,
   View,
 } from 'react-native';
@@ -16,7 +17,7 @@ import { Touchable } from '../primitives/Touchable';
 import { useTheme } from '../theme/useTheme';
 import { radius, spacing, typography } from '../tokens';
 
-type Props = {
+type Props = TextInputProps & {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
@@ -45,6 +46,7 @@ export const Field = forwardRef<TextInput, Props>(function Field(
     returnKeyType,
     onSubmitEditing,
     autoFocus,
+    ...rest
   },
   ref
 ) {
@@ -75,6 +77,7 @@ export const Field = forwardRef<TextInput, Props>(function Field(
         }}>
         {leadingIcon ? <Icon name={leadingIcon} size={20} color={t.color.text.muted} /> : null}
         <TextInput
+          {...rest}
           ref={ref}
           testID="field-input"
           accessibilityLabel={label}
