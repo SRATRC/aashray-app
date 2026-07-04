@@ -17,6 +17,20 @@ import { useDevStore, useAuthStore } from '../stores';
  * (e.g. network state on an unsupported platform) never prevents the rest of
  * the snapshot from being collected, and this function itself never throws.
  */
+/**
+ * Races a promise against a timeout, resolving to `fallback` if the promise
+ * does not settle in time. Guards against native calls that hang (rather than
+ * reject) — a try/catch alone cannot recover from a promise that never
+ * settles, which would otherwise block ticket creation indefinitely.
+ */
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<T>((resolve) => {
+    timer = setTimeout(() => resolve(fallback), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 export async function collectDiagnostics(): Promise<Record<string, any>> {
   const [device, app, config, runtime, session, sentry] = await Promise.all([
     collectDevice(),
@@ -110,7 +124,8 @@ async function collectConfig(): Promise<Record<string, any>> {
 
 async function collectNetwork(): Promise<Record<string, any>> {
   try {
-    const state = await Network.getNetworkStateAsync();
+    const state = await withTimeout(Network.getNetworkStateAsync(), 1500, null);
+    if (!state) return {};
     return {
       isConnected: state.isConnected ?? null,
       isInternetReachable: state.isInternetReachable ?? null,
@@ -189,7 +204,7 @@ async function collectSession(): Promise<Record<string, any>> {
     const { user } = useAuthStore.getState();
     let uptimeMs: number | null = null;
     try {
-      uptimeMs = await Device.getUptimeAsync();
+      uptimeMs = await withTimeout(Device.getUptimeAsync(), 1500, null);
     } catch (e) {
       uptimeMs = null;
     }

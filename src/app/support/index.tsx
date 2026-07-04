@@ -122,7 +122,11 @@ const SupportHome = () => {
   }, [data, isFetchingNextPage]);
 
   const tickets = data?.pages?.flatMap((page: any) => page) || [];
-  const sortedTickets = [...tickets].sort((a, b) => b.id - a.id);
+  // Ticket ids are random hex strings, not chronological — sort by createdAt
+  // (newest first) to match the backend's default ordering.
+  const sortedTickets = [...tickets].sort(
+    (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
 
   return (
     <SafeAreaView className="h-full w-full bg-white">

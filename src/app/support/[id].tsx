@@ -69,34 +69,40 @@ const TicketDetails = () => {
     }
 
     if (!currentBaseUrl) {
-      console.warn('Base URL is missing, cannot connect to SSE.');
+      if (__DEV__) console.warn('Base URL is missing, cannot connect to SSE.');
       return;
     }
 
     const url = `${currentBaseUrl}/tickets/${id}/stream?cardno=${user.cardno}`;
 
-    console.log('[SSE] Connecting to:', url);
-
     // react-native-sse only reacts to `event`/`retry`/`data`/`id` prefixed
     // lines — the `: ping\n\n` heartbeat comment lines sent by the backend
     // every 25s don't match any of those, so they're silently skipped and
     // never reach this listener as a 'message' event.
-    const es = new EventSource(url, {
-      pollingInterval: 0,
-    });
+    //
+    // With pollingInterval:0 the library's own auto-reconnect is disabled, so
+    // we manage reconnection manually: on error we tear down and retry after a
+    // short delay, and on a reconnect we refetch the ticket so any messages
+    // missed while disconnected are recovered.
+    let es: EventSource | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let isCleanedUp = false;
+    let hasConnected = false;
 
     const listener: EventSourceListener = (event) => {
       if (event.type === 'open') {
-        console.log('[SSE] Connection opened');
+        if (__DEV__) console.log('[SSE] Connection opened');
+        // A second (or later) open means we reconnected after a drop — pull
+        // the latest state to backfill anything missed while disconnected.
+        if (hasConnected) refetch();
+        hasConnected = true;
       } else if (event.type === 'message') {
         if (event.data) {
           try {
             const data = JSON.parse(event.data);
-            console.log('[SSE] Message received:', data);
+            if (__DEV__) console.log('[SSE] Message received:', data);
 
-            if (data.type === 'connected') {
-              console.log('[SSE] Connected event:', data);
-            } else {
+            if (data.type !== 'connected') {
               queryClient.setQueryData(['ticket', id, user.cardno], (old: any) => {
                 if (!old) return old;
 
@@ -125,24 +131,49 @@ const TicketDetails = () => {
               setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
             }
           } catch (err) {
-            console.error('[SSE] Failed to parse message:', err);
+            if (__DEV__) console.error('[SSE] Failed to parse message:', err);
           }
         }
       } else if (event.type === 'error') {
-        console.error('[SSE] Connection Error:', (event as any).message || 'Unknown error');
+        if (__DEV__)
+          console.error('[SSE] Connection Error:', (event as any).message || 'Unknown error');
+        scheduleReconnect();
       }
     };
 
-    es.addEventListener('open', listener);
-    es.addEventListener('message', listener);
-    es.addEventListener('error', listener);
+    const connect = () => {
+      if (isCleanedUp) return;
+      es = new EventSource(url, { pollingInterval: 0 });
+      es.addEventListener('open', listener);
+      es.addEventListener('message', listener);
+      es.addEventListener('error', listener);
+    };
+
+    const scheduleReconnect = () => {
+      if (isCleanedUp || reconnectTimer) return;
+      if (es) {
+        es.removeAllEventListeners();
+        es.close();
+        es = null;
+      }
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        connect();
+      }, 3000);
+    };
+
+    connect();
 
     return () => {
-      console.log('[SSE] Closing connection');
-      es.removeAllEventListeners();
-      es.close();
+      if (__DEV__) console.log('[SSE] Closing connection');
+      isCleanedUp = true;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (es) {
+        es.removeAllEventListeners();
+        es.close();
+      }
     };
-  }, [id, user.cardno, queryClient]);
+  }, [id, user.cardno, queryClient, refetch]);
 
   const sendMessageMutation = useMutation({
     mutationFn: async (text: string) => {
@@ -173,7 +204,7 @@ const TicketDetails = () => {
               id: 'temp-' + Date.now(),
               message: newMessage,
               sender_type: 'user',
-              created_at: new Date().toISOString(),
+              createdAt: new Date().toISOString(),
               isTemp: true,
             },
           ],
@@ -254,8 +285,9 @@ const TicketDetails = () => {
     }
   }, [ticket?.messages?.length]);
 
-  const isTicketActive =
-    ticket?.status === status.STATUS_OPEN || ticket?.status === status.STATUS_IN_PROGRESS;
+  // Only a closed ticket is terminal for the user. A resolved ticket can still
+  // be replied to (which reopens it to "in progress" server-side), per spec.
+  const isTicketActive = ticket?.status !== status.STATUS_CLOSED;
 
   if (isLoading) {
     return (
@@ -359,7 +391,7 @@ const TicketDetails = () => {
             </View>
           ) : (
             <View className="items-center py-2">
-              <Text className="font-pregular text-sm text-gray-400">This ticket is Resolved</Text>
+              <Text className="font-pregular text-sm text-gray-400">This ticket is closed</Text>
             </View>
           )}
         </View>
