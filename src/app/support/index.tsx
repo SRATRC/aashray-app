@@ -12,7 +12,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { colors, icons, status } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
 import { FlashList } from '@shopify/flash-list';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { ShadowButton } from '@/src/components/ShadowBox';
 import PageHeader from '@/src/components/PageHeader';
 import handleAPICall from '@/src/utils/HandleApiCall';
@@ -58,6 +58,15 @@ const SupportHome = () => {
     setRefreshing(true);
     refetch().finally(() => setRefreshing(false));
   }, [refetch]);
+
+  // Query defaults don't refetch on focus, so without this, returning here
+  // from a ticket (e.g. after an admin changed its status) would show stale
+  // data until a manual pull-to-refresh.
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const getStatusColor = (ticketStatus: any) => {
     switch (ticketStatus) {

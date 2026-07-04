@@ -132,7 +132,15 @@ const TicketDetails = () => {
             if (__DEV__) console.log('[SSE] Message received:', data);
             lastActivityAt = Date.now();
 
-            if (data.type !== 'connected' && data.type !== 'ping') {
+            if (data.type === 'status_update') {
+              // A status change isn't always paired with a new message (e.g.
+              // an admin picking a status from the dropdown) — without this,
+              // the status badge/banner/input state here would only update
+              // after a manual reload.
+              queryClient.setQueryData(['ticket', id, user.cardno], (old: any) =>
+                old ? { ...old, status: data.status, updatedBy: data.updatedBy } : old
+              );
+            } else if (data.type !== 'connected' && data.type !== 'ping') {
               queryClient.setQueryData(['ticket', id, user.cardno], (old: any) => {
                 if (!old) return old;
 
@@ -439,6 +447,13 @@ const TicketDetails = () => {
             )}
           </TouchableOpacity>
         )}
+      </View>
+
+      <View className="mx-4 mb-3 flex-row items-center gap-x-2 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2">
+        <FontAwesome5 name="clock" size={12} color="#B45309" />
+        <Text className="flex-1 font-pregular text-xs text-amber-800">
+          This isn't a live chat — our team typically responds within 3 business days.
+        </Text>
       </View>
 
       <KeyboardAvoidingView
