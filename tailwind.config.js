@@ -1,10 +1,17 @@
 /** @type {import('tailwindcss').Config} */
+const designColors = require('./src/design/tokens/tailwind');
 module.exports = {
-  content: ['./src/app/**/*.{js,jsx,ts,tsx}', './src/components/**/*.{js,jsx,ts,tsx}'],
+  content: [
+    './src/app/**/*.{js,jsx,ts,tsx}',
+    './src/components/**/*.{js,jsx,ts,tsx}',
+    './src/design/**/*.{js,jsx,ts,tsx}',
+  ],
   presets: [require('nativewind/preset')],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
+        // Legacy palette — retained until Phase 3 cleanup; do not add new usages.
         primary: '#161622',
         secondary: {
           DEFAULT: '#F1AC09',
@@ -41,8 +48,11 @@ module.exports = {
           100: '#FFF1F1',
           200: '#EB5757',
         },
+        // Sanctuary design system tokens — see src/design/tokens/tailwind.js
+        ...designColors,
       },
       fontFamily: {
+        // Legacy Poppins/DM keys — retained until Phase 3 cleanup; do not add new usages.
         pthin: ['Poppins-Thin', 'sans-serif'],
         pextralight: ['Poppins-ExtraLight', 'sans-serif'],
         plight: ['Poppins-Light', 'sans-serif'],
@@ -56,6 +66,9 @@ module.exports = {
         dmregular: ['DMSans-Regular', 'sans-serif'],
         dmmedium: ['DMSans-Medium', 'sans-serif'],
         dmserif: ['DMSerifDisplay-Regular', 'serif'],
+        // Sanctuary design system fonts
+        fraunces: ['Fraunces-SemiBold'],
+        dmsemibold: ['DMSans-SemiBold'],
       },
     },
   },
