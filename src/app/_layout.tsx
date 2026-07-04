@@ -130,6 +130,7 @@ const AppNavigator = () => {
         <Stack.Screen name="mumukshuBooking" />
         <Stack.Screen name="adhyayan" />
         <Stack.Screen name="utsav" />
+        <Stack.Screen name="support" />
 
         <Stack.Screen name="+not-found" />
       </Stack.Protected>
