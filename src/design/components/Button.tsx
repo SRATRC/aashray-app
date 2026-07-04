@@ -42,16 +42,43 @@ export function Button({
 
   // `color` prop on <Text> only reaches `text/*` tokens; `accent.on` (used for the
   // primary label) is a distinct accent-namespace token, so it's applied via style.
-  const labelColorProp: React.ComponentProps<typeof Text>['color'] =
-    variant === 'secondary' ? 'primary' : variant === 'tertiary' ? 'accent' : 'inverse';
-  const contentColor =
-    variant === 'primary'
-      ? t.color.accent.on
-      : variant === 'secondary'
-        ? t.color.text.primary
-        : variant === 'tertiary'
-          ? t.color.text.accent
-          : t.color.text.inverse; // destructive
+  const VARIANTS: Record<
+    ButtonVariant,
+    {
+      backgroundColor: string;
+      borderWidth: number;
+      borderColor?: string;
+      contentColor: string;
+      labelColorProp?: React.ComponentProps<typeof Text>['color'];
+    }
+  > = {
+    primary: {
+      backgroundColor: t.color.accent.default,
+      borderWidth: 0,
+      contentColor: t.color.accent.on,
+    },
+    secondary: {
+      backgroundColor: t.color.bg.surface,
+      borderWidth: 1,
+      borderColor: t.color.line.default,
+      contentColor: t.color.text.primary,
+      labelColorProp: 'primary',
+    },
+    tertiary: {
+      backgroundColor: 'transparent',
+      borderWidth: 0,
+      contentColor: t.color.text.accent,
+      labelColorProp: 'accent',
+    },
+    destructive: {
+      backgroundColor: t.color.status.error,
+      borderWidth: 0,
+      contentColor: t.color.text.inverse,
+      labelColorProp: 'inverse',
+    },
+  };
+  const variantStyle = VARIANTS[variant];
+  const contentColor = variantStyle.contentColor;
 
   const containerStyle: ViewStyle = {
     height: HEIGHT[size],
@@ -62,16 +89,9 @@ export function Button({
     justifyContent: 'center',
     alignSelf: fullWidth ? 'stretch' : 'flex-start',
     width: fullWidth ? '100%' : undefined,
-    backgroundColor:
-      variant === 'primary'
-        ? t.color.accent.default
-        : variant === 'secondary'
-          ? t.color.bg.surface
-          : variant === 'destructive'
-            ? t.color.status.error
-            : 'transparent',
-    borderWidth: variant === 'secondary' ? 1 : 0,
-    borderColor: variant === 'secondary' ? t.color.line.default : undefined,
+    backgroundColor: variantStyle.backgroundColor,
+    borderWidth: variantStyle.borderWidth,
+    borderColor: variantStyle.borderColor,
   };
 
   return (
@@ -79,7 +99,6 @@ export function Button({
       testID="button-root"
       onPress={onPress}
       disabled={disabled || loading}
-      accessibilityRole="button"
       accessibilityLabel={text}
       style={containerStyle}>
       {/*
@@ -95,7 +114,7 @@ export function Button({
         {leadingIcon ? <Icon name={leadingIcon} size={20} color={contentColor} /> : null}
         <Text
           variant="button"
-          color={labelColorProp}
+          color={variantStyle.labelColorProp}
           style={[
             variant === 'primary' ? { color: contentColor } : null,
             leadingIcon ? { marginLeft: spacing[2] } : null,
