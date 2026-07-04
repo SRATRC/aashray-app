@@ -7,13 +7,15 @@
 // full catalog.
 import React from 'react';
 import { View } from 'react-native';
-import { Gallery } from '@/src/design/gallery/Gallery';
+
 import { Text, spacing } from '@/src/design';
+import { Gallery } from '@/src/design/gallery/Gallery';
 
 export default function GalleryScreen() {
   if (!__DEV__) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing[6] }}>
+      <View
+        style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing[6] }}>
         <Text variant="body" color="muted" align="center">
           The design gallery is only available in development builds.
         </Text>

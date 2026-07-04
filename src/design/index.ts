@@ -3,7 +3,17 @@
 // Usage: import { Button, Field, Text, Touchable, Icon, useTheme, ThemeProvider } from '@/src/design';
 
 // Tokens
-export { semantic, light, dark, spacing, radius, zIndex, motion, elevation, typography } from './tokens';
+export {
+  semantic,
+  light,
+  dark,
+  spacing,
+  radius,
+  zIndex,
+  motion,
+  elevation,
+  typography,
+} from './tokens';
 export type { TextVariant } from './tokens';
 
 // Theme

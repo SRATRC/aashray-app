@@ -1,9 +1,9 @@
 import { render } from '@testing-library/react-native';
 
+import { Button, Field, Text, Touchable, Icon, useTheme, ThemeProvider } from '../../index';
 import { Gallery } from '../Gallery';
 
 // Also exercises the public barrel end to end (import path used by consumers).
-import { Button, Field, Text, Touchable, Icon, useTheme, ThemeProvider } from '../../index';
 
 test('renders the full catalog in both light and dark without throwing', () => {
   const { getByText } = render(<Gallery />);

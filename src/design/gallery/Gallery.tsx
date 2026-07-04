@@ -5,9 +5,9 @@
 import React, { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
-import { icons, IconName } from '../icons/registry';
 import { Button, ButtonVariant } from '../components/Button';
 import { Field } from '../components/Field';
+import { icons, IconName } from '../icons/registry';
 import { Icon } from '../primitives/Icon';
 import { Text } from '../primitives/Text';
 import { ThemeProvider, type Theme } from '../theme/ThemeProvider';
