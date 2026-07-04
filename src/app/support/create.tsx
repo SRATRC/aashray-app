@@ -53,7 +53,11 @@ const CreateTicket = () => {
 
     const onSuccess = async () => {
       await queryClient.invalidateQueries({ queryKey: ['tickets', user.cardno] });
-      router.back();
+      CustomAlert.alert(
+        'Request Submitted',
+        "We've received your request. Our team typically responds within 3 business days — you'll be notified here as soon as there's an update.",
+        [{ text: 'OK', onPress: () => router.back() }]
+      );
     };
 
     const onFinally = () => {
@@ -92,7 +96,8 @@ const CreateTicket = () => {
         contentContainerStyle={{ paddingHorizontal: 16 }}
         keyboardShouldPersistTaps="handled">
         <Text className="mt-4 font-pregular text-base text-gray-500">
-          Describe your issue below and we'll help you resolve it.
+          Describe your issue below and we'll help you resolve it. Our team typically responds
+          within 3 business days — this isn't an instant-reply chat.
         </Text>
 
         <CustomSelectBottomSheet

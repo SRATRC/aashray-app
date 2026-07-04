@@ -15,16 +15,41 @@ import { FlashList } from '@shopify/flash-list';
 import { status, BASE_URL, DEV_URL } from '@/src/constants';
 import { useAuthStore, useDevStore } from '@/src/stores';
 import EventSource, { EventSourceListener } from 'react-native-sse';
+import * as Clipboard from 'expo-clipboard';
 import PageHeader from '@/src/components/PageHeader';
+import CustomTag from '@/src/components/CustomTag';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomAlert from '@/src/components/CustomAlert';
 import Shimmer from '@/src/components/Shimmer';
+
+// A connection that's gone silently stale (a graceful close produces no
+// error event on some SSE clients) is detected by the absence of the
+// backend's ~25s heartbeat: if nothing — not even a ping — arrives for this
+// long, we assume the stream is dead and force a reconnect.
+const SSE_WATCHDOG_TIMEOUT_MS = 40000;
+const SSE_WATCHDOG_CHECK_INTERVAL_MS = 10000;
+
+const getStatusColor = (ticketStatus: any) => {
+  switch (ticketStatus) {
+    case status.STATUS_OPEN:
+      return { text: 'text-green-600', bg: 'bg-green-100' };
+    case status.STATUS_IN_PROGRESS:
+      return { text: 'text-orange-600', bg: 'bg-orange-100' };
+    case status.STATUS_RESOLVED:
+      return { text: 'text-blue-600', bg: 'bg-blue-100' };
+    case status.STATUS_CLOSED:
+      return { text: 'text-gray-600', bg: 'bg-gray-100' };
+    default:
+      return { text: 'text-gray-600', bg: 'bg-gray-100' };
+  }
+};
 
 const TicketDetails = () => {
   const { id } = useLocalSearchParams();
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [messageText, setMessageText] = useState('');
+  const [copied, setCopied] = useState(false);
   const flatListRef = useRef<any>(null);
 
   const fetchTicketDetails = async () => {
@@ -75,23 +100,27 @@ const TicketDetails = () => {
 
     const url = `${currentBaseUrl}/tickets/${id}/stream?cardno=${user.cardno}`;
 
-    // react-native-sse only reacts to `event`/`retry`/`data`/`id` prefixed
-    // lines — the `: ping\n\n` heartbeat comment lines sent by the backend
-    // every 25s don't match any of those, so they're silently skipped and
-    // never reach this listener as a 'message' event.
-    //
     // With pollingInterval:0 the library's own auto-reconnect is disabled, so
-    // we manage reconnection manually: on error we tear down and retry after a
-    // short delay, and on a reconnect we refetch the ticket so any messages
+    // we manage reconnection manually: on error we tear down and retry after
+    // a short delay, and on reconnect we refetch the ticket so any messages
     // missed while disconnected are recovered.
+    //
+    // A graceful close (server restart, proxy idle-timeout) produces NO
+    // 'error' event at all in this library — it just goes quiet. The backend
+    // sends a {type:'ping'} data frame every ~25s specifically so we can
+    // detect that: a watchdog below force-reconnects if nothing (not even a
+    // ping) arrives for SSE_WATCHDOG_TIMEOUT_MS.
     let es: EventSource | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let watchdogInterval: ReturnType<typeof setInterval> | null = null;
     let isCleanedUp = false;
     let hasConnected = false;
+    let lastActivityAt = Date.now();
 
     const listener: EventSourceListener = (event) => {
       if (event.type === 'open') {
         if (__DEV__) console.log('[SSE] Connection opened');
+        lastActivityAt = Date.now();
         // A second (or later) open means we reconnected after a drop — pull
         // the latest state to backfill anything missed while disconnected.
         if (hasConnected) refetch();
@@ -101,8 +130,9 @@ const TicketDetails = () => {
           try {
             const data = JSON.parse(event.data);
             if (__DEV__) console.log('[SSE] Message received:', data);
+            lastActivityAt = Date.now();
 
-            if (data.type !== 'connected') {
+            if (data.type !== 'connected' && data.type !== 'ping') {
               queryClient.setQueryData(['ticket', id, user.cardno], (old: any) => {
                 if (!old) return old;
 
@@ -143,6 +173,7 @@ const TicketDetails = () => {
 
     const connect = () => {
       if (isCleanedUp) return;
+      lastActivityAt = Date.now();
       es = new EventSource(url, { pollingInterval: 0 });
       es.addEventListener('open', listener);
       es.addEventListener('message', listener);
@@ -164,10 +195,18 @@ const TicketDetails = () => {
 
     connect();
 
+    watchdogInterval = setInterval(() => {
+      if (Date.now() - lastActivityAt > SSE_WATCHDOG_TIMEOUT_MS) {
+        if (__DEV__) console.warn('[SSE] Watchdog: no activity, forcing reconnect');
+        scheduleReconnect();
+      }
+    }, SSE_WATCHDOG_CHECK_INTERVAL_MS);
+
     return () => {
       if (__DEV__) console.log('[SSE] Closing connection');
       isCleanedUp = true;
       if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (watchdogInterval) clearInterval(watchdogInterval);
       if (es) {
         es.removeAllEventListeners();
         es.close();
@@ -239,18 +278,29 @@ const TicketDetails = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ticket', id, user.cardno] });
       queryClient.invalidateQueries({ queryKey: ['tickets', user.cardno] });
-      CustomAlert.alert('Success', 'Ticket resolved successfully');
+      CustomAlert.alert('Ticket Closed', 'This ticket has been closed. Thanks for reaching out!');
     },
     onError: (error: any) => {
-      CustomAlert.alert('Error', error.message || 'Failed to resolve ticket');
+      CustomAlert.alert('Error', error.message || 'Failed to close ticket');
     },
   });
 
   const handleResolve = () => {
-    CustomAlert.alert('Resolve Ticket', 'Mark this ticket as resolved?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Resolve', style: 'destructive', onPress: () => resolveTicketMutation.mutate() },
-    ]);
+    CustomAlert.alert(
+      'Close Ticket',
+      'Are you sure you want to close this ticket? You can always create a new one if the issue comes back.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Close Ticket', style: 'destructive', onPress: () => resolveTicketMutation.mutate() },
+      ]
+    );
+  };
+
+  const handleCopyId = async () => {
+    if (!ticket?.id) return;
+    await Clipboard.setStringAsync(ticket.id);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
   };
 
   const handleSend = () => {
@@ -260,7 +310,36 @@ const TicketDetails = () => {
     sendMessageMutation.mutate(text);
   };
 
-  const renderMessage = ({ item }: { item: any }) => {
+  // The FlashList is fed a mix of: the ticket's original description (shown
+  // as the first entry so the user can always see what they originally
+  // wrote), the real message thread, and — while status is "resolved" — a
+  // trailing banner explaining that support considers this fixed and
+  // prompting the user to close it (or just reply to reopen it).
+  const renderItem = ({ item }: { item: any }) => {
+    if (item.__kind === 'description') {
+      return (
+        <View className="mb-3 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+          <Text className="mb-1 font-psemibold text-xs uppercase tracking-wide text-gray-400">
+            {item.service} · Your original request
+          </Text>
+          <Text className="font-pregular text-[15px] leading-[21px] text-gray-700">
+            {item.description}
+          </Text>
+        </View>
+      );
+    }
+
+    if (item.__kind === 'resolvedBanner') {
+      return (
+        <View className="mb-3 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+          <Text className="font-pmedium text-[14px] leading-[20px] text-blue-800">
+            Support marked this ticket as resolved. If that fixed your issue, tap "Close Ticket"
+            above. If not, just send a message below and we'll reopen it.
+          </Text>
+        </View>
+      );
+    }
+
     const isUser = item.sender_type === 'user';
     const isTemp = item.isTemp;
     return (
@@ -318,20 +397,45 @@ const TicketDetails = () => {
     );
   }
 
+  const statusStyle = getStatusColor(ticket.status);
+  const chatItems = [
+    { __kind: 'description', service: ticket.service, description: ticket.description },
+    ...(ticket.messages || []),
+    ...(ticket.status === status.STATUS_RESOLVED ? [{ __kind: 'resolvedBanner' }] : []),
+  ];
+
   return (
     <SafeAreaView className="h-full w-full bg-white">
-      <View className="relative">
-        <PageHeader title={'#' + ticket.id} />
+      <PageHeader title="Support Ticket" />
+      <View className="mb-3 flex-row items-center justify-between px-4">
+        <View className="flex-row items-center gap-x-2">
+          <TouchableOpacity
+            onPress={handleCopyId}
+            className="flex-row items-center gap-x-1.5"
+            activeOpacity={0.6}>
+            <Text className="font-pmedium text-sm text-gray-500">#{ticket.id}</Text>
+            <FontAwesome5
+              name={copied ? 'check' : 'copy'}
+              size={13}
+              color={copied ? '#10B981' : '#9CA3AF'}
+            />
+          </TouchableOpacity>
+          <CustomTag
+            text={ticket.status.toUpperCase()}
+            textStyles={statusStyle.text}
+            containerStyles={statusStyle.bg}
+          />
+        </View>
         {isTicketActive && (
           <TouchableOpacity
             onPress={handleResolve}
             disabled={resolveTicketMutation.isPending}
-            activeOpacity={0.5}
-            className="absolute right-4 top-6">
+            activeOpacity={0.7}
+            className="rounded-full bg-gray-100 px-3 py-1.5">
             {resolveTicketMutation.isPending ? (
               <ActivityIndicator size="small" color="#10B981" />
             ) : (
-              <FontAwesome5 name="check-circle" size={20} color="#10B981" />
+              <Text className="font-pmedium text-xs text-gray-700">Close Ticket</Text>
             )}
           </TouchableOpacity>
         )}
@@ -344,8 +448,11 @@ const TicketDetails = () => {
         {/* Messages */}
         <FlashList
           ref={flatListRef}
-          data={ticket.messages || []}
-          renderItem={renderMessage}
+          data={chatItems}
+          renderItem={renderItem}
+          keyExtractor={(item: any, index: number) =>
+            item.__kind ? `${item.__kind}-${index}` : String(item.id)
+          }
           contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12 }}
           keyboardDismissMode="interactive"
           keyboardShouldPersistTaps="handled"
