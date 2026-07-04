@@ -1,6 +1,8 @@
 import '../../global.css';
 import { useEffect, useState } from 'react';
 import { useFonts } from 'expo-font';
+import { Fraunces_600SemiBold } from '@expo-google-fonts/fraunces';
+import { DMSans_600SemiBold } from '@expo-google-fonts/dm-sans';
 import { Stack } from 'expo-router';
 import { SystemBars } from 'react-native-edge-to-edge';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -153,6 +155,8 @@ const RootLayout = () => {
     'DMSans-Regular': require('@/src/assets/fonts/DMSans-Regular.ttf'),
     'DMSans-Medium': require('@/src/assets/fonts/DMSans-Medium.ttf'),
     'DMSans-Light': require('@/src/assets/fonts/DMSans-Light.ttf'),
+    'Fraunces-SemiBold': Fraunces_600SemiBold,
+    'DMSans-SemiBold': DMSans_600SemiBold,
   });
 
   const [isAuthReady, setIsAuthReady] = useState(false);
