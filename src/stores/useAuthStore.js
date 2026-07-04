@@ -1,6 +1,7 @@
 import { MMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useWifiStore } from './useWifiStore';
 
 const mmkv = new MMKV();
 
@@ -39,6 +40,7 @@ export const useAuthStore = create(
       setUser: (user) => set({ user }),
       logout: () => {
         set({ user: null });
+        useWifiStore.getState().clearWifiStore();
       },
     }),
     {
