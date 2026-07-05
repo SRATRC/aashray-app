@@ -2,11 +2,12 @@ import { View, Text, RefreshControl, TouchableOpacity, ScrollView, Modal } from 
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthStore, useWifiStore } from '@/src/stores';
+import { useAuthStore } from '@/src/stores';
 import { status } from '@/src/constants';
 import { FontAwesome5 } from '@expo/vector-icons';
 import PageHeader from '@/src/components/PageHeader';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import { wifiCache } from '@/src/utils/wifiCache';
 import CustomErrorMessage from '@/src/components/CustomErrorMessage';
 import PermanentWifiSection from '@/src/components/PermanentWifiSection';
 import TemporaryWifiSection from '@/src/components/TemporaryWifiSection';
@@ -66,13 +67,6 @@ const Wifi = () => {
   const isResidentOrSevakutir =
     user.res_status === status.STATUS_RESIDENT || user.res_status === status.STATUS_SEVA_KUTIR;
 
-  const {
-    wifiList: cachedWifiList,
-    permanentWifiData: cachedPermanentWifiData,
-    setWifiList,
-    setPermanentWifiData,
-  } = useWifiStore();
-
   // State management
   const [refreshing, setRefreshing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,7 +86,7 @@ const Wifi = () => {
         null,
         (res: any) => {
           const data = Array.isArray(res.data) ? res.data : [];
-          setWifiList(data);
+          wifiCache.set('wifi', data);
           resolve(data);
         },
         () => { },
@@ -113,7 +107,7 @@ const Wifi = () => {
         null,
         (res: any) => {
           const data = Array.isArray(res.data) ? res.data : [];
-          setPermanentWifiData(data);
+          wifiCache.set('permanent', data);
           resolve(data);
         },
         () => { },
@@ -126,27 +120,29 @@ const Wifi = () => {
     isLoading,
     isError,
     error,
-    data: wifiList = cachedWifiList,
+    data: wifiList,
     refetch,
   }: any = useQuery({
     queryKey: ['wifi', user.cardno],
     queryFn: fetchWifiPasswords,
     staleTime: 1000 * 60 * 30,
     enabled: !!user.cardno,
-    initialData: cachedWifiList || undefined,
+    initialData: () => wifiCache.get('wifi') ?? undefined,
+    refetchOnMount: 'always',
   });
 
   const {
     isLoading: isPermanentLoading,
     isError: isPermanentError,
-    data: permanentWifiData = cachedPermanentWifiData,
+    data: permanentWifiData,
     refetch: refetchPermanent,
   }: any = useQuery({
     queryKey: ['wifi-permanent', user.cardno],
     queryFn: fetchPermanentWifiCode,
     staleTime: 1000 * 60 * 30,
     enabled: !!user.cardno,
-    initialData: cachedPermanentWifiData || undefined,
+    initialData: () => wifiCache.get('permanent') ?? undefined,
+    refetchOnMount: 'always',
   });
 
   // Generate temporary WiFi code
