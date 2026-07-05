@@ -86,11 +86,12 @@ const Wifi = () => {
         null,
         (res: any) => {
           const data = Array.isArray(res.data) ? res.data : [];
-          wifiCache.set('wifi', data);
+          wifiCache.set(`wifi:${user.cardno}`, data);
           resolve(data);
         },
         () => { },
-        () => reject(new Error('Failed to fetch wifi passwords'))
+        () => reject(new Error('Failed to fetch wifi passwords')),
+        false
       );
     });
   };
@@ -107,11 +108,12 @@ const Wifi = () => {
         null,
         (res: any) => {
           const data = Array.isArray(res.data) ? res.data : [];
-          wifiCache.set('permanent', data);
+          wifiCache.set(`permanent:${user.cardno}`, data);
           resolve(data);
         },
         () => { },
-        () => reject(new Error('Failed to fetch permanent wifi code'))
+        () => reject(new Error('Failed to fetch permanent wifi code')),
+        false
       );
     });
   };
@@ -127,7 +129,7 @@ const Wifi = () => {
     queryFn: fetchWifiPasswords,
     staleTime: 1000 * 60 * 30,
     enabled: !!user.cardno,
-    initialData: () => wifiCache.get('wifi') ?? undefined,
+    initialData: () => wifiCache.get(`wifi:${user.cardno}`) ?? undefined,
     refetchOnMount: 'always',
   });
 
@@ -141,7 +143,7 @@ const Wifi = () => {
     queryFn: fetchPermanentWifiCode,
     staleTime: 1000 * 60 * 30,
     enabled: !!user.cardno,
-    initialData: () => wifiCache.get('permanent') ?? undefined,
+    initialData: () => wifiCache.get(`permanent:${user.cardno}`) ?? undefined,
     refetchOnMount: 'always',
   });
 

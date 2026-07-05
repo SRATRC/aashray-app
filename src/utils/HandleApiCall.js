@@ -119,9 +119,9 @@ const handleAPICall = async (
         text1Style: { color: 'red' },
         text2Style: { color: 'black', fontWeight: 'bold', fontSize: 14 },
       });
-    }
 
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
   } finally {
     if (finallyCallback) finallyCallback();
   }
