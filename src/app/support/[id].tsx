@@ -473,7 +473,7 @@ const TicketDetails = () => {
             always visible the moment status flips to resolved, with no
             scrolling required. */}
         {isResolved && (
-          <View className="mx-4 mb-3 rounded-2xl border border-blue-100 bg-blue-50 p-3">
+          <View className="mx-4 mb-3 mt-2 rounded-2xl border border-blue-100 bg-blue-50 p-3">
             <View className="flex-row items-center gap-x-2">
               <View className="h-6 w-6 items-center justify-center rounded-full bg-blue-600">
                 <FontAwesome5 name="check" size={10} color="#FFFFFF" solid />
