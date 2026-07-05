@@ -1,13 +1,10 @@
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useState, useRef, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+// react-native's own KeyboardAvoidingView is unreliable on Android with
+// behavior="padding"; this library (already used across the app, provider set
+// up in _layout.tsx) handles both platforms correctly for a pinned-input chat.
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { useLocalSearchParams } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -54,6 +51,13 @@ const TicketDetails = () => {
   } = useQuery<any>({
     queryKey: ['ticket', id, user.cardno],
     queryFn: fetchTicketDetails,
+    // Global default is refetchOnMount:false, but re-opening a ticket remounts
+    // this screen — without this the cached thread renders stale on re-open
+    // (missing replies/status changes that arrived while it was closed), since
+    // neither useTicketStream's first 'open' nor useRefetchOnFocus's first
+    // focus refetches (both intentionally skip their first pass, assuming this
+    // mount fetch runs).
+    refetchOnMount: 'always',
   });
 
   useRefetchOnFocus(refetch);
@@ -204,7 +208,8 @@ const TicketDetails = () => {
 
   useEffect(() => {
     if (ticket?.messages?.length) {
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      const timer = setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      return () => clearTimeout(timer);
     }
   }, [ticket?.messages?.length]);
 
@@ -292,10 +297,7 @@ const TicketDetails = () => {
         </Text>
       </View>
 
-      <KeyboardAvoidingView
-        behavior="padding"
-        // keyboardVerticalOffset={Platform.OS == 'android' ? 120 : 0}
-        className="flex-1">
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         {/* Messages */}
         <FlashList
           ref={flatListRef}

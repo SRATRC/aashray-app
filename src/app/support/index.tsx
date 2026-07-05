@@ -55,6 +55,10 @@ const SupportHome = () => {
         if (!lastPage || lastPage.length === 0) return undefined;
         return pages.length + 1;
       },
+      // Global default is refetchOnMount:false; refresh on mount so returning
+      // to a remounted list reflects tickets created/updated elsewhere instead
+      // of showing a stale cached page (useRefetchOnFocus skips its first pass).
+      refetchOnMount: 'always',
     });
 
   const onRefresh = useCallback(() => {
@@ -155,6 +159,10 @@ const SupportHome = () => {
                   <Text className="font-semibold text-white">Try Again</Text>
                 </TouchableOpacity>
               </View>
+            ) : isLoading ? (
+              // Don't flash "No tickets found" while the first page is still
+              // loading (data is [] until it arrives).
+              <ActivityIndicator />
             ) : (
               <CustomEmptyMessage
                 message={'Yay! No tickets found'}
