@@ -318,11 +318,12 @@ const TicketDetails = () => {
     sendMessageMutation.mutate(text);
   };
 
-  // The FlashList is fed a mix of: the ticket's original description (shown
-  // as the first entry so the user can always see what they originally
-  // wrote), the real message thread, and — while status is "resolved" — a
-  // trailing banner explaining that support considers this fixed and
-  // prompting the user to close it (or just reply to reopen it).
+  // The FlashList is fed the ticket's original description (shown as the
+  // first entry so the user can always see what they originally wrote)
+  // followed by the real message thread. The "resolved" status banner is
+  // rendered separately, fixed above the input — not in this scrollable
+  // list — so it's always visible without scrolling, however long the
+  // thread gets.
   const renderItem = ({ item }: { item: any }) => {
     if (item.__kind === 'description') {
       return (
@@ -332,17 +333,6 @@ const TicketDetails = () => {
           </Text>
           <Text className="font-pregular text-[15px] leading-[21px] text-gray-700">
             {item.description}
-          </Text>
-        </View>
-      );
-    }
-
-    if (item.__kind === 'resolvedBanner') {
-      return (
-        <View className="mb-3 rounded-2xl border border-blue-100 bg-blue-50 p-4">
-          <Text className="font-pmedium text-[14px] leading-[20px] text-blue-800">
-            Support marked this ticket as resolved. If that fixed your issue, tap "Close Ticket"
-            above. If not, just send a message below and we'll reopen it.
           </Text>
         </View>
       );
@@ -406,10 +396,10 @@ const TicketDetails = () => {
   }
 
   const statusStyle = getStatusColor(ticket.status);
+  const isResolved = ticket.status === status.STATUS_RESOLVED;
   const chatItems = [
     { __kind: 'description', service: ticket.service, description: ticket.description },
     ...(ticket.messages || []),
-    ...(ticket.status === status.STATUS_RESOLVED ? [{ __kind: 'resolvedBanner' }] : []),
   ];
 
   return (
@@ -449,10 +439,10 @@ const TicketDetails = () => {
         )}
       </View>
 
-      <View className="mx-4 mb-3 flex-row items-center gap-x-2 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2">
-        <FontAwesome5 name="clock" size={12} color="#B45309" />
-        <Text className="flex-1 font-pregular text-xs text-amber-800">
-          This isn't a live chat — our team typically responds within 3 business days.
+      <View className="mx-4 mb-3 flex-row items-center gap-x-2 rounded-xl bg-gray-50 px-3 py-2">
+        <FontAwesome5 name="clock" size={12} color="#6B7280" />
+        <Text className="flex-1 font-pregular text-xs text-gray-500">
+          Our average response time is 3 business days.
         </Text>
       </View>
 
@@ -478,6 +468,26 @@ const TicketDetails = () => {
             </View>
           }
         />
+
+        {/* Fixed above the input (not part of the scrollable thread) so it's
+            always visible the moment status flips to resolved, with no
+            scrolling required. */}
+        {isResolved && (
+          <View className="mx-4 mb-3 rounded-2xl border border-blue-100 bg-blue-50 p-3">
+            <View className="flex-row items-center gap-x-2">
+              <View className="h-6 w-6 items-center justify-center rounded-full bg-blue-600">
+                <FontAwesome5 name="check" size={10} color="#FFFFFF" solid />
+              </View>
+              <Text className="flex-1 font-psemibold text-[13px] text-blue-900">
+                Support marked this as resolved
+              </Text>
+            </View>
+            <Text className="mt-1.5 font-pregular text-[12.5px] leading-[17px] text-blue-800">
+              If this fixed your issue, tap "Close Ticket" above. Otherwise, reply below and we'll
+              reopen it.
+            </Text>
+          </View>
+        )}
 
         {/* Input Area */}
         <View className="border-t border-gray-100 bg-white px-4 py-3">
