@@ -7,8 +7,8 @@ import * as Network from 'expo-network';
 import * as Updates from 'expo-updates';
 import { Paths } from 'expo-file-system';
 import * as Sentry from '@sentry/react-native';
-import { BASE_URL, DEV_URL } from '../constants';
 import { useDevStore, useAuthStore } from '../stores';
+import { resolveApiBaseUrl } from './resolveBaseUrl';
 
 /**
  * Collects a best-effort diagnostic snapshot to attach to a support ticket.
@@ -99,18 +99,8 @@ async function collectApp(): Promise<Record<string, any>> {
 
 async function collectConfig(): Promise<Record<string, any>> {
   try {
-    // Same dev-switch resolution logic as src/utils/HandleApiCall.js so the
-    // reported base URL always matches where the request actually went.
     const { useDevBackend, devPrNumber } = useDevStore.getState();
-    let resolvedBaseUrl = BASE_URL;
-
-    if (useDevBackend) {
-      if (devPrNumber) {
-        resolvedBaseUrl = `https://aashray-backend-pr-${devPrNumber}.onrender.com/api/v1`;
-      } else {
-        resolvedBaseUrl = DEV_URL;
-      }
-    }
+    const resolvedBaseUrl = resolveApiBaseUrl();
 
     return {
       useDevBackend: !!useDevBackend,

@@ -12,37 +12,16 @@ import { useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FlashList } from '@shopify/flash-list';
-import { status, BASE_URL, DEV_URL } from '@/src/constants';
-import { useAuthStore, useDevStore } from '@/src/stores';
-import EventSource, { EventSourceListener } from 'react-native-sse';
+import { status } from '@/src/constants';
+import { useAuthStore } from '@/src/stores';
 import * as Clipboard from 'expo-clipboard';
 import PageHeader from '@/src/components/PageHeader';
 import CustomTag from '@/src/components/CustomTag';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomAlert from '@/src/components/CustomAlert';
 import Shimmer from '@/src/components/Shimmer';
-
-// A connection that's gone silently stale (a graceful close produces no
-// error event on some SSE clients) is detected by the absence of the
-// backend's ~25s heartbeat: if nothing — not even a ping — arrives for this
-// long, we assume the stream is dead and force a reconnect.
-const SSE_WATCHDOG_TIMEOUT_MS = 40000;
-const SSE_WATCHDOG_CHECK_INTERVAL_MS = 10000;
-
-const getStatusColor = (ticketStatus: any) => {
-  switch (ticketStatus) {
-    case status.STATUS_OPEN:
-      return { text: 'text-green-600', bg: 'bg-green-100' };
-    case status.STATUS_IN_PROGRESS:
-      return { text: 'text-orange-600', bg: 'bg-orange-100' };
-    case status.STATUS_RESOLVED:
-      return { text: 'text-blue-600', bg: 'bg-blue-100' };
-    case status.STATUS_CLOSED:
-      return { text: 'text-gray-600', bg: 'bg-gray-100' };
-    default:
-      return { text: 'text-gray-600', bg: 'bg-gray-100' };
-  }
-};
+import { getStatusColor } from '@/src/utils/ticketStatus';
+import { useTicketStream } from '@/src/hooks/useTicketStream';
 
 const TicketDetails = () => {
   const { id } = useLocalSearchParams();
@@ -60,7 +39,8 @@ const TicketDetails = () => {
         { cardno: user.cardno },
         null,
         (res: any) => resolve(res.data),
-        () => reject(new Error('Failed to fetch ticket details'))
+        () => {},
+        (err: any) => reject(err)
       );
     });
   };
@@ -75,152 +55,28 @@ const TicketDetails = () => {
     queryFn: fetchTicketDetails,
   });
 
+  // Query defaults don't refetch on focus, so without this, returning here
+  // after a status change elsewhere would show stale data. Skip the very
+  // first focus, which fires immediately on mount alongside useQuery's own
+  // fetch-on-mount — without the skip this doubles the initial request.
+  const isInitialFocusRef = useRef(true);
   useFocusEffect(
     useCallback(() => {
+      if (isInitialFocusRef.current) {
+        isInitialFocusRef.current = false;
+        return;
+      }
       refetch();
-    }, [])
+    }, [refetch])
   );
 
-  useEffect(() => {
-    const { useDevBackend, devPrNumber } = useDevStore.getState();
-    let currentBaseUrl = BASE_URL;
-
-    if (useDevBackend) {
-      if (devPrNumber) {
-        currentBaseUrl = `https://aashray-backend-pr-${devPrNumber}.onrender.com/api/v1`;
-      } else {
-        currentBaseUrl = DEV_URL;
-      }
-    }
-
-    if (!currentBaseUrl) {
-      if (__DEV__) console.warn('Base URL is missing, cannot connect to SSE.');
-      return;
-    }
-
-    const url = `${currentBaseUrl}/tickets/${id}/stream?cardno=${user.cardno}`;
-
-    // With pollingInterval:0 the library's own auto-reconnect is disabled, so
-    // we manage reconnection manually: on error we tear down and retry after
-    // a short delay, and on reconnect we refetch the ticket so any messages
-    // missed while disconnected are recovered.
-    //
-    // A graceful close (server restart, proxy idle-timeout) produces NO
-    // 'error' event at all in this library — it just goes quiet. The backend
-    // sends a {type:'ping'} data frame every ~25s specifically so we can
-    // detect that: a watchdog below force-reconnects if nothing (not even a
-    // ping) arrives for SSE_WATCHDOG_TIMEOUT_MS.
-    let es: EventSource | null = null;
-    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-    let watchdogInterval: ReturnType<typeof setInterval> | null = null;
-    let isCleanedUp = false;
-    let hasConnected = false;
-    let lastActivityAt = Date.now();
-
-    const listener: EventSourceListener = (event) => {
-      if (event.type === 'open') {
-        if (__DEV__) console.log('[SSE] Connection opened');
-        lastActivityAt = Date.now();
-        // A second (or later) open means we reconnected after a drop — pull
-        // the latest state to backfill anything missed while disconnected.
-        if (hasConnected) refetch();
-        hasConnected = true;
-      } else if (event.type === 'message') {
-        if (event.data) {
-          try {
-            const data = JSON.parse(event.data);
-            if (__DEV__) console.log('[SSE] Message received:', data);
-            lastActivityAt = Date.now();
-
-            if (data.type === 'status_update') {
-              // A status change isn't always paired with a new message (e.g.
-              // an admin picking a status from the dropdown) — without this,
-              // the status badge/banner/input state here would only update
-              // after a manual reload.
-              queryClient.setQueryData(['ticket', id, user.cardno], (old: any) =>
-                old ? { ...old, status: data.status, updatedBy: data.updatedBy } : old
-              );
-            } else if (data.type !== 'connected' && data.type !== 'ping') {
-              queryClient.setQueryData(['ticket', id, user.cardno], (old: any) => {
-                if (!old) return old;
-
-                const messageExists = old.messages?.some((m: any) => m.id === data.id);
-                if (messageExists) return old;
-
-                let newMessages = [...(old.messages || [])];
-
-                const tempIndex = newMessages.findIndex(
-                  (m: any) =>
-                    m.isTemp && m.message === data.message && m.sender_type === data.sender_type
-                );
-
-                if (tempIndex !== -1) {
-                  newMessages[tempIndex] = data;
-                } else {
-                  newMessages.push(data);
-                }
-
-                return {
-                  ...old,
-                  messages: newMessages,
-                };
-              });
-
-              setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
-            }
-          } catch (err) {
-            if (__DEV__) console.error('[SSE] Failed to parse message:', err);
-          }
-        }
-      } else if (event.type === 'error') {
-        if (__DEV__)
-          console.error('[SSE] Connection Error:', (event as any).message || 'Unknown error');
-        scheduleReconnect();
-      }
-    };
-
-    const connect = () => {
-      if (isCleanedUp) return;
-      lastActivityAt = Date.now();
-      es = new EventSource(url, { pollingInterval: 0 });
-      es.addEventListener('open', listener);
-      es.addEventListener('message', listener);
-      es.addEventListener('error', listener);
-    };
-
-    const scheduleReconnect = () => {
-      if (isCleanedUp || reconnectTimer) return;
-      if (es) {
-        es.removeAllEventListeners();
-        es.close();
-        es = null;
-      }
-      reconnectTimer = setTimeout(() => {
-        reconnectTimer = null;
-        connect();
-      }, 3000);
-    };
-
-    connect();
-
-    watchdogInterval = setInterval(() => {
-      if (Date.now() - lastActivityAt > SSE_WATCHDOG_TIMEOUT_MS) {
-        if (__DEV__) console.warn('[SSE] Watchdog: no activity, forcing reconnect');
-        scheduleReconnect();
-      }
-    }, SSE_WATCHDOG_CHECK_INTERVAL_MS);
-
-    return () => {
-      if (__DEV__) console.log('[SSE] Closing connection');
-      isCleanedUp = true;
-      if (reconnectTimer) clearTimeout(reconnectTimer);
-      if (watchdogInterval) clearInterval(watchdogInterval);
-      if (es) {
-        es.removeAllEventListeners();
-        es.close();
-      }
-    };
-  }, [id, user.cardno, queryClient, refetch]);
+  useTicketStream({
+    ticketId: id as string,
+    cardno: user.cardno,
+    queryClient,
+    refetch,
+    flatListRef,
+  });
 
   const sendMessageMutation = useMutation({
     mutationFn: async (text: string) => {
@@ -243,12 +99,14 @@ const TicketDetails = () => {
 
       queryClient.setQueryData(['ticket', id, user.cardno], (old: any) => {
         if (!old) return old;
+        const tempId = 'temp-' + Date.now();
         return {
           ...old,
           messages: [
             ...(old.messages || []),
             {
-              id: 'temp-' + Date.now(),
+              id: tempId,
+              _key: tempId,
               message: newMessage,
               sender_type: 'user',
               createdAt: new Date().toISOString(),
@@ -279,7 +137,8 @@ const TicketDetails = () => {
           { cardno: user.cardno },
           (res: any) => resolve(res.data),
           () => {},
-          (err: any) => reject(err)
+          (err: any) => reject(err),
+          false
         );
       });
     },
@@ -456,7 +315,7 @@ const TicketDetails = () => {
           data={chatItems}
           renderItem={renderItem}
           keyExtractor={(item: any, index: number) =>
-            item.__kind ? `${item.__kind}-${index}` : String(item.id)
+            item.__kind ? `${item.__kind}-${index}` : String(item._key ?? item.id)
           }
           contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12 }}
           keyboardDismissMode="interactive"

@@ -9,7 +9,7 @@ import {
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { colors, icons, status } from '@/src/constants';
+import { colors, icons } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -18,6 +18,7 @@ import PageHeader from '@/src/components/PageHeader';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomTag from '@/src/components/CustomTag';
 import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
+import { getStatusColor } from '@/src/utils/ticketStatus';
 import moment from 'moment';
 
 const SupportHome = () => {
@@ -38,7 +39,8 @@ const SupportHome = () => {
         (res: any) => {
           resolve(Array.isArray(res.data) ? res.data : []);
         },
-        () => reject(new Error('Failed to fetch tickets'))
+        () => {},
+        (err: any) => reject(err)
       );
     });
   };
@@ -61,27 +63,19 @@ const SupportHome = () => {
 
   // Query defaults don't refetch on focus, so without this, returning here
   // from a ticket (e.g. after an admin changed its status) would show stale
-  // data until a manual pull-to-refresh.
+  // data until a manual pull-to-refresh. Skip the very first focus, which
+  // fires immediately on mount alongside useInfiniteQuery's own fetch —
+  // without the skip this doubles the initial page-1 request.
+  const isInitialFocusRef = useRef(true);
   useFocusEffect(
     useCallback(() => {
+      if (isInitialFocusRef.current) {
+        isInitialFocusRef.current = false;
+        return;
+      }
       refetch();
     }, [refetch])
   );
-
-  const getStatusColor = (ticketStatus: any) => {
-    switch (ticketStatus) {
-      case status.STATUS_OPEN:
-        return { text: 'text-green-600', bg: 'bg-green-100' };
-      case status.STATUS_IN_PROGRESS:
-        return { text: 'text-orange-600', bg: 'bg-orange-100' };
-      case status.STATUS_RESOLVED:
-        return { text: 'text-blue-600', bg: 'bg-blue-100' };
-      case status.STATUS_CLOSED:
-        return { text: 'text-gray-600', bg: 'bg-gray-100' };
-      default:
-        return { text: 'text-gray-600', bg: 'bg-gray-100' };
-    }
-  };
 
   const renderItem = ({ item }: any) => {
     const statusStyle = getStatusColor(item.status);
@@ -124,10 +118,17 @@ const SupportHome = () => {
 
   const flatListRef = useRef<any>(null);
 
+  // Only scroll to top on a genuine refetch/reset (pull-to-refresh, focus
+  // refetch, query invalidation after creating a ticket) — not when
+  // fetchNextPage legitimately grows the page count, which used to snap the
+  // list back to the top right after the user scrolled down to load more.
+  const prevPagesLengthRef = useRef(0);
   useEffect(() => {
-    if (!isFetchingNextPage && data?.pages?.[0]?.length) {
+    const pagesLength = data?.pages?.length ?? 0;
+    if (!isFetchingNextPage && pagesLength > 0 && pagesLength <= prevPagesLengthRef.current) {
       flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
     }
+    prevPagesLengthRef.current = pagesLength;
   }, [data, isFetchingNextPage]);
 
   const tickets = data?.pages?.flatMap((page: any) => page) || [];

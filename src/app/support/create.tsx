@@ -35,9 +35,25 @@ const CreateTicket = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleClose = () => {
+    if (form.service.trim() !== '' || form.description.trim() !== '') {
+      CustomAlert.alert('Discard Changes?', 'You have unsaved changes that will be lost.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Discard', style: 'destructive', onPress: () => router.back() },
+      ]);
+    } else {
+      router.back();
+    }
+  };
+
   const handleSubmit = async () => {
     if (form.service.trim() === '' || form.description.trim() === '') {
-      CustomAlert.alert('Please fill all fields');
+      CustomAlert.alert('Error', 'Please fill all fields');
+      return;
+    }
+
+    if (form.description.trim().length < 10) {
+      CustomAlert.alert('Error', 'Please provide more details about your issue');
       return;
     }
 
@@ -88,7 +104,7 @@ const CreateTicket = () => {
 
   return (
     <SafeAreaView className="h-full w-full bg-white">
-      <PageHeader title="New Request" iconName="times" />
+      <PageHeader title="New Request" iconName="times" onPress={handleClose} />
 
       <KeyboardAwareScrollView
         bottomOffset={62}
@@ -126,7 +142,7 @@ const CreateTicket = () => {
           handlePress={handleSubmit}
           containerStyles="min-h-[62px] mt-10"
           isLoading={isSubmitting}
-          isDisabled={form.service === '' || form.description === ''}
+          isDisabled={form.service === '' || form.description.trim().length < 10}
         />
       </KeyboardAwareScrollView>
     </SafeAreaView>

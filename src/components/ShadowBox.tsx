@@ -51,16 +51,22 @@ export function ShadowBox({
   isDisabled = false,
   isLoading = false,
   className = '',
-  interactive = false,
+  interactive,
   ...props
 }: ShadowBoxProps) {
+  // A caller that didn't explicitly pass `interactive` gets true for the
+  // "button" variant (styled as a button should be tappable by default) and
+  // false otherwise — the root cause of a prior bug where ShadowButton
+  // silently rendered as a non-touchable View. An explicit interactive={true
+  // | false} from the caller always wins.
+  const isInteractive = interactive ?? variant === 'button';
   const shadowClass = shadowClasses[intensity];
   const variantClass = variantClasses[variant];
   const disabledClass = isDisabled ? 'opacity-50' : '';
 
   const baseClassName = `${variantClass} ${shadowClass} ${disabledClass} ${className}`;
 
-  if (interactive && 'onPress' in props) {
+  if (isInteractive && 'onPress' in props) {
     return (
       <TouchableOpacity
         className={baseClassName}
