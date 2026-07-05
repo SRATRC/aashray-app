@@ -3,6 +3,7 @@ import { Image, Keyboard, Modal, Pressable, Text, View } from 'react-native';
 import Reanimated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { images } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
 import { useNotification } from '@/src/context/NotificationContext';
@@ -113,7 +114,7 @@ const SignIn = () => {
           Jai Sadgurudev{'\n'}Vandan!
         </Text>
         <Text className="mb-8 mt-1 font-pregular text-base text-gray-400">
-          Sign in to continue your journey
+          Sign in to continue your journey inwards
         </Text>
 
         <FormField
@@ -148,6 +149,16 @@ const SignIn = () => {
           isLoading={isSubmitting}
           isDisabled={!isReady}
         />
+
+        <Pressable
+          onPress={() => router.push('/(auth)/sign-up')}
+          className="mt-6 mb-2 items-center py-1"
+          hitSlop={8}>
+          <Text className="font-pregular text-sm text-gray-400">
+            Don't have an account?{' '}
+            <Text className="font-pmedium text-black">Sign Up</Text>
+          </Text>
+        </Pressable>
       </Reanimated.View>
 
       <PasswordResetModal
