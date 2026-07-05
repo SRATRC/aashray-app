@@ -111,8 +111,10 @@ export function ShadowButton({
   className = '',
   ...props
 }: Omit<ShadowBoxTouchableProps, 'variant'>) {
+  // No need to pass interactive={true} here — ShadowBox already defaults
+  // variant="button" to interactive.
   return (
-    <ShadowBox {...props} variant="button" interactive={true} className={className}>
+    <ShadowBox {...props} variant="button" className={className}>
       {children}
     </ShadowBox>
   );

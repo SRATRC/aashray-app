@@ -12,13 +12,14 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { colors, icons } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
 import { FlashList } from '@shopify/flash-list';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { ShadowButton } from '@/src/components/ShadowBox';
 import PageHeader from '@/src/components/PageHeader';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomTag from '@/src/components/CustomTag';
 import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
 import { getStatusColor } from '@/src/utils/ticketStatus';
+import { useRefetchOnFocus } from '@/src/hooks/useRefetchOnFocus';
 import moment from 'moment';
 
 const SupportHome = () => {
@@ -61,21 +62,7 @@ const SupportHome = () => {
     refetch().finally(() => setRefreshing(false));
   }, [refetch]);
 
-  // Query defaults don't refetch on focus, so without this, returning here
-  // from a ticket (e.g. after an admin changed its status) would show stale
-  // data until a manual pull-to-refresh. Skip the very first focus, which
-  // fires immediately on mount alongside useInfiniteQuery's own fetch —
-  // without the skip this doubles the initial page-1 request.
-  const isInitialFocusRef = useRef(true);
-  useFocusEffect(
-    useCallback(() => {
-      if (isInitialFocusRef.current) {
-        isInitialFocusRef.current = false;
-        return;
-      }
-      refetch();
-    }, [refetch])
-  );
+  useRefetchOnFocus(refetch);
 
   const renderItem = ({ item }: any) => {
     const statusStyle = getStatusColor(item.status);

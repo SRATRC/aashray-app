@@ -11,7 +11,6 @@ interface UseTicketStreamOptions {
   cardno: string | undefined;
   queryClient: QueryClient;
   refetch: () => void;
-  flatListRef: React.RefObject<any>;
 }
 
 /**
@@ -31,7 +30,6 @@ export function useTicketStream({
   cardno,
   queryClient,
   refetch,
-  flatListRef,
 }: UseTicketStreamOptions) {
   useEffect(() => {
     if (!ticketId || !cardno) return;
@@ -70,21 +68,32 @@ export function useTicketStream({
               queryClient.setQueryData(['ticket', ticketId, cardno], (old: any) => {
                 if (!old) return old;
 
-                const messageExists = old.messages?.some((m: any) => m.id === data.id);
-                if (messageExists) return old;
+                const existingMessages = old.messages || [];
 
-                let newMessages = [...(old.messages || [])];
-
+                // Single pass: bail out if we already have this message, and
+                // otherwise look for a matching optimistic temp placeholder
+                // to reconcile, at the same time.
+                //
                 // FIFO assumption: identical-text messages sent by the same
                 // client are broadcast by SSE in the same order they were
                 // sent (sequential POSTs, handled and broadcast in order by
                 // the backend), so matching the first unmatched temp entry
                 // with the same text is safe even for repeated identical text.
-                const tempIndex = newMessages.findIndex(
-                  (m: any) =>
-                    m.isTemp && m.message === data.message && m.sender_type === data.sender_type
-                );
+                let tempIndex = -1;
+                for (let i = 0; i < existingMessages.length; i++) {
+                  const m = existingMessages[i];
+                  if (m.id === data.id) return old;
+                  if (
+                    tempIndex === -1 &&
+                    m.isTemp &&
+                    m.message === data.message &&
+                    m.sender_type === data.sender_type
+                  ) {
+                    tempIndex = i;
+                  }
+                }
 
+                const newMessages = [...existingMessages];
                 if (tempIndex !== -1) {
                   // Preserve the original stable _key so FlashList treats this
                   // as an update to the existing cell instead of a remove+add
@@ -100,7 +109,11 @@ export function useTicketStream({
                 };
               });
 
-              setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+              // No scroll-to-end here: the caller's own effect watching
+              // `messages.length` already handles that for every case that
+              // actually adds a message (this cache update always changes
+              // that length, since only the "existing message" early-return
+              // above can leave it unchanged).
             }
           } catch (err) {
             if (__DEV__) console.error('[SSE] Failed to parse message:', err);
@@ -165,5 +178,5 @@ export function useTicketStream({
         es.close();
       }
     };
-  }, [ticketId, cardno, queryClient, refetch, flatListRef]);
+  }, [ticketId, cardno, queryClient, refetch]);
 }

@@ -6,9 +6,9 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
 } from 'react-native';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useFocusEffect } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FlashList } from '@shopify/flash-list';
@@ -22,6 +22,7 @@ import CustomAlert from '@/src/components/CustomAlert';
 import Shimmer from '@/src/components/Shimmer';
 import { getStatusColor } from '@/src/utils/ticketStatus';
 import { useTicketStream } from '@/src/hooks/useTicketStream';
+import { useRefetchOnFocus } from '@/src/hooks/useRefetchOnFocus';
 
 const TicketDetails = () => {
   const { id } = useLocalSearchParams();
@@ -55,27 +56,13 @@ const TicketDetails = () => {
     queryFn: fetchTicketDetails,
   });
 
-  // Query defaults don't refetch on focus, so without this, returning here
-  // after a status change elsewhere would show stale data. Skip the very
-  // first focus, which fires immediately on mount alongside useQuery's own
-  // fetch-on-mount — without the skip this doubles the initial request.
-  const isInitialFocusRef = useRef(true);
-  useFocusEffect(
-    useCallback(() => {
-      if (isInitialFocusRef.current) {
-        isInitialFocusRef.current = false;
-        return;
-      }
-      refetch();
-    }, [refetch])
-  );
+  useRefetchOnFocus(refetch);
 
   useTicketStream({
     ticketId: id as string,
     cardno: user.cardno,
     queryClient,
     refetch,
-    flatListRef,
   });
 
   const sendMessageMutation = useMutation({

@@ -11,13 +11,6 @@ import { useDevStore, useAuthStore } from '../stores';
 import { resolveApiBaseUrl } from './resolveBaseUrl';
 
 /**
- * Collects a best-effort diagnostic snapshot to attach to a support ticket.
- *
- * Every field group is independently guarded — a failure reading one group
- * (e.g. network state on an unsupported platform) never prevents the rest of
- * the snapshot from being collected, and this function itself never throws.
- */
-/**
  * Races a promise against a timeout, resolving to `fallback` if the promise
  * does not settle in time. Guards against native calls that hang (rather than
  * reject) — a try/catch alone cannot recover from a promise that never
@@ -31,6 +24,13 @@ function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
+/**
+ * Collects a best-effort diagnostic snapshot to attach to a support ticket.
+ *
+ * Every field group is independently guarded — a failure reading one group
+ * (e.g. network state on an unsupported platform) never prevents the rest of
+ * the snapshot from being collected, and this function itself never throws.
+ */
 export async function collectDiagnostics(): Promise<Record<string, any>> {
   const [device, app, config, runtime, session, sentry] = await Promise.all([
     collectDevice(),
