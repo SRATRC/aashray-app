@@ -1,7 +1,7 @@
 import '../../global.css';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import * as Sentry from '@sentry/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
 import { Stack } from 'expo-router';
@@ -15,21 +15,10 @@ import Toast from 'react-native-toast-message';
 import { CustomAlert } from '@/src/components/CustomAlert';
 import { NotificationProvider } from '@/src/context/NotificationContext';
 import { useDeepLinkHandler } from '@/src/hooks/useDeepLinkHandler';
+import { queryClient } from '@/src/lib/queryClient';
 import { useAuthStore } from '@/src/stores';
 import { ParsedDeepLink } from '@/src/types/deeplink';
 import UpdateManager from '@/src/utils/updateManager';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
-    },
-  },
-});
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
