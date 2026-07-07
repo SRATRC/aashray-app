@@ -317,14 +317,22 @@ export const prepareMumukshuRequestBody = (user, input) => {
             mumukshus: transformMumukshuGroup(primaryData.mumukshuGroup),
           },
         };
-      case 'travel':
+      case 'travel': {
+        const travelDetails = {
+          date: primaryData.date,
+          mumukshuGroup: transformMumukshuGroup(primaryData.mumukshuGroup),
+        };
+        if (primaryData.return_date && primaryData.returnMumukshuGroup) {
+          travelDetails.return_date = primaryData.return_date;
+          travelDetails.returnMumukshuGroup = transformMumukshuGroup(
+            primaryData.returnMumukshuGroup
+          );
+        }
         return {
           booking_type: 'travel',
-          details: {
-            date: primaryData.date,
-            mumukshuGroup: transformMumukshuGroup(primaryData.mumukshuGroup),
-          },
+          details: travelDetails,
         };
+      }
       case 'flat':
         return {
           booking_type: 'flat',
@@ -387,14 +395,22 @@ export const prepareMumukshuRequestBody = (user, input) => {
                 mumukshus: input[key].mumukshus.map((mumukshu) => mumukshu.cardno),
               },
             };
-          case 'travel':
+          case 'travel': {
+            const travelDetails = {
+              date: input[key].date,
+              mumukshuGroup: transformMumukshuGroup(input[key].mumukshuGroup),
+            };
+            if (input[key].return_date && input[key].returnMumukshuGroup) {
+              travelDetails.return_date = input[key].return_date;
+              travelDetails.returnMumukshuGroup = transformMumukshuGroup(
+                input[key].returnMumukshuGroup
+              );
+            }
             return {
               booking_type: key,
-              details: {
-                date: input[key].date,
-                mumukshuGroup: transformMumukshuGroup(input[key].mumukshuGroup),
-              },
+              details: travelDetails,
             };
+          }
           case 'flat':
             return {
               booking_type: key,
