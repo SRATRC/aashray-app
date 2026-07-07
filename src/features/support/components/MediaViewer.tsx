@@ -5,7 +5,7 @@ import { Dimensions, Modal, StatusBar, TouchableOpacity, View } from 'react-nati
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
-import { AttachmentKind } from '@/features/support';
+import { AttachmentKind } from '../types';
 
 export interface MediaViewerItem {
   uri: string;

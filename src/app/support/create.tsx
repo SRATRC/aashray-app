@@ -8,12 +8,12 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
-import AttachmentPreviewStrip from '@/components/AttachmentPreviewStrip';
 import CustomButton from '@/components/CustomButton';
 import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
 import FormField from '@/components/FormField';
 import PageHeader from '@/components/PageHeader';
 import {
+  AttachmentPreviewStrip,
   AttachmentRef,
   MAX_IMAGES,
   MAX_VIDEOS,

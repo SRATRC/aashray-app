@@ -2,7 +2,8 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 
-import { ServedAttachment, buildAttachmentUri } from '@/features/support';
+import { buildAttachmentUri } from '../attachments';
+import { ServedAttachment } from '../types';
 
 interface Props {
   attachments: ServedAttachment[] | undefined;

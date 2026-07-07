@@ -11,17 +11,18 @@ import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Image } fro
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import AttachmentPreviewStrip from '@/components/AttachmentPreviewStrip';
 import CustomAlert from '@/components/CustomAlert';
 import CustomTag from '@/components/CustomTag';
-import MediaViewer, { MediaViewerItem } from '@/components/MediaViewer';
 import PageHeader from '@/components/PageHeader';
 import Shimmer from '@/components/Shimmer';
-import TicketMessageAttachments from '@/components/TicketMessageAttachments';
 import { status } from '@/constants';
 import {
+  AttachmentPreviewStrip,
   AttachmentRef,
+  MediaViewer,
+  MediaViewerItem,
   PendingAttachment,
+  TicketMessageAttachments,
   getStatusColor,
   runUpload,
   useTicketAttachments,
