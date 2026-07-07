@@ -14,3 +14,4 @@ export { default as AttachmentPreviewStrip } from './components/AttachmentPrevie
 export { default as TicketMessageAttachments } from './components/TicketMessageAttachments';
 export { default as TicketListScreen } from './screens/TicketListScreen';
 export { default as CreateTicketScreen } from './screens/CreateTicketScreen';
+export { default as TicketDetailScreen } from './screens/TicketDetailScreen';
