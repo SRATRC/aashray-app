@@ -95,10 +95,23 @@ export function useTicketStream({
 
                 const newMessages = [...existingMessages];
                 if (tempIndex !== -1) {
+                  const prevTemp = newMessages[tempIndex];
                   // Preserve the original stable _key so FlashList treats this
                   // as an update to the existing cell instead of a remove+add
                   // (which caused a visible flicker right as a message confirms).
-                  newMessages[tempIndex] = { ...data, _key: newMessages[tempIndex]._key };
+                  //
+                  // The SSE frame is the bare TicketMessage row and carries no
+                  // `attachments`; keep the optimistic `_localMedia` on the
+                  // confirmed message so just-sent media stays visible until the
+                  // onSettled refetch backfills the real served attachments (the
+                  // renderer prefers server attachments once they arrive).
+                  newMessages[tempIndex] = {
+                    ...data,
+                    _key: prevTemp._key,
+                    ...(!data.attachments?.length && prevTemp._localMedia
+                      ? { _localMedia: prevTemp._localMedia }
+                      : {}),
+                  };
                 } else {
                   newMessages.push({ ...data, _key: String(data.id) });
                 }

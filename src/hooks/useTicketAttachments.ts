@@ -41,7 +41,7 @@ export const UPLOAD_CANCELLED = 'UPLOAD_CANCELLED';
  * The add* helpers return a human-readable message string when something was
  * rejected/skipped (so the caller can surface it), or null on a clean add.
  */
-export function useTicketAttachments(cardno: string | undefined) {
+export function useTicketAttachments(cardno: string | undefined, existingVideoCount = 0) {
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -65,7 +65,10 @@ export function useTicketAttachments(cardno: string | undefined) {
   const imageCount = attachments.filter((a) => a.kind === 'image').length;
   const videoCount = attachments.filter((a) => a.kind === 'video').length;
   const canAddImage = imageCount < MAX_IMAGES;
-  const canAddVideo = videoCount < MAX_VIDEOS;
+  // Cap against videos already on the ticket too (the limit is per-TICKET), not
+  // just the ones staged in this compose batch. `existingVideoCount` is 0 for a
+  // brand-new ticket (the create screen).
+  const canAddVideo = existingVideoCount + videoCount < MAX_VIDEOS;
 
   const addImages = useCallback(async (): Promise<string | null> => {
     if (isUploading) return null;
@@ -84,6 +87,10 @@ export function useTicketAttachments(cardno: string | undefined) {
     });
     if (result.canceled) return null;
 
+    // Android often ignores selectionLimit, so the picker can return more than
+    // `remaining`. We take the first `remaining` and tell the user the rest
+    // were skipped instead of silently dropping them.
+    const overflow = Math.max(0, result.assets.length - remaining);
     const picked: PendingAttachment[] = [];
     let skipped = 0;
     for (const asset of result.assets.slice(0, remaining)) {
@@ -115,17 +122,32 @@ export function useTicketAttachments(cardno: string | undefined) {
     }
 
     if (picked.length) setAttachments((prev) => [...prev, ...picked]);
-    if (skipped > 0) {
-      return `${skipped} image${skipped > 1 ? 's' : ''} couldn't be added (over ${formatMB(
-        MAX_IMAGE_BYTES
-      )} or unreadable).`;
+
+    const notes: string[] = [];
+    if (overflow > 0) {
+      notes.push(
+        `You can attach up to ${MAX_IMAGES} images, so ${overflow} of the selected ${
+          overflow > 1 ? 'photos were' : 'photo was'
+        } skipped.`
+      );
     }
-    return null;
+    if (skipped > 0) {
+      notes.push(
+        `${skipped} image${skipped > 1 ? 's' : ''} couldn't be added (over ${formatMB(
+          MAX_IMAGE_BYTES
+        )} or unreadable).`
+      );
+    }
+    return notes.length ? notes.join(' ') : null;
   }, [imageCount, isUploading]);
 
   const addVideo = useCallback(async (): Promise<string | null> => {
     if (isUploading) return null;
-    if (videoCount >= MAX_VIDEOS) return `You can attach up to ${MAX_VIDEOS} videos.`;
+    if (existingVideoCount + videoCount >= MAX_VIDEOS) {
+      return existingVideoCount > 0
+        ? `This ticket can have at most ${MAX_VIDEOS} videos.`
+        : `You can attach up to ${MAX_VIDEOS} videos.`;
+    }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
@@ -165,7 +187,7 @@ export function useTicketAttachments(cardno: string | undefined) {
       },
     ]);
     return null;
-  }, [videoCount, isUploading]);
+  }, [existingVideoCount, videoCount, isUploading]);
 
   const remove = useCallback((id: string) => {
     setAttachments((prev) => prev.filter((a) => a.id !== id));
@@ -190,12 +212,33 @@ export function useTicketAttachments(cardno: string | undefined) {
 
     cancelledRef.current = false;
     controllersRef.current = [];
+
+    const refFor = (a: PendingAttachment, key: string): AttachmentRef => ({
+      key,
+      contentType: a.contentType,
+      kind: a.kind,
+    });
+
+    // On a retry after a partial-batch failure, files that already succeeded
+    // keep their S3 key — re-presigning/PUTting them would orphan the first
+    // copy — so we only upload the ones not yet 'uploaded'.
+    const pending = current.filter((a) => !(a.status === 'uploaded' && a.key));
+
+    // Everything was already uploaded on a prior attempt: reuse the stored keys.
+    if (pending.length === 0) {
+      return current.map((a) => refFor(a, a.key as string));
+    }
+
     setIsUploading(true);
     setProgress(0);
-    setAttachments((prev) => prev.map((a) => ({ ...a, status: 'uploading', error: undefined })));
+    setAttachments((prev) =>
+      prev.map((a) =>
+        pending.some((p) => p.id === a.id) ? { ...a, status: 'uploading', error: undefined } : a
+      )
+    );
 
     try {
-      const files: PresignFileInput[] = current.map((a) => ({
+      const files: PresignFileInput[] = pending.map((a) => ({
         filename: a.filename,
         contentType: a.contentType,
         size: a.size,
@@ -204,38 +247,39 @@ export function useTicketAttachments(cardno: string | undefined) {
       }));
 
       const presigned = await requestPresign(cardno, files);
-      if (presigned.length !== current.length) {
+      if (presigned.length !== pending.length) {
         throw new Error('Upload preparation failed. Please try again.');
       }
 
       let done = 0;
       const results = await Promise.allSettled(
-        current.map(async (a, i) => {
+        pending.map(async (a, i) => {
           const { key, uploadUrl } = presigned[i];
           const controller = new AbortController();
           controllersRef.current.push(controller);
           await putToS3(uploadUrl, a.uri, a.contentType, controller.signal);
           done += 1;
-          setProgress(done / current.length);
+          setProgress(done / pending.length);
           setAttachments((prev) =>
             prev.map((p) => (p.id === a.id ? { ...p, status: 'uploaded', key } : p))
           );
-          return { key, contentType: a.contentType, kind: a.kind } as AttachmentRef;
+          return { id: a.id, key };
         })
       );
 
       if (cancelledRef.current) throw new Error(UPLOAD_CANCELLED);
 
-      const refs: AttachmentRef[] = [];
+      // Map freshly-uploaded keys back to their file id.
+      const keyById = new Map<string, string>();
       let failed = 0;
       results.forEach((r, i) => {
         if (r.status === 'fulfilled') {
-          refs.push(r.value);
+          keyById.set(r.value.id, r.value.key);
         } else {
           failed += 1;
           setAttachments((prev) =>
             prev.map((p) =>
-              p.id === current[i].id ? { ...p, status: 'error', error: 'Upload failed' } : p
+              p.id === pending[i].id ? { ...p, status: 'error', error: 'Upload failed' } : p
             )
           );
         }
@@ -249,7 +293,11 @@ export function useTicketAttachments(cardno: string | undefined) {
         );
       }
 
-      return refs;
+      // Refs for the whole batch in original order: previously-uploaded files
+      // reuse their stored key, the rest use the key we just obtained.
+      return current.map((a) =>
+        refFor(a, a.status === 'uploaded' && a.key ? a.key : (keyById.get(a.id) as string))
+      );
     } finally {
       controllersRef.current = [];
       setIsUploading(false);

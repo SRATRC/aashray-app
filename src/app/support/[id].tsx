@@ -1,5 +1,5 @@
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // react-native's own KeyboardAvoidingView is unreliable on Android with
 // behavior="padding"; this library (already used across the app, provider set
@@ -67,19 +67,6 @@ const TicketDetails = () => {
   const [viewerItem, setViewerItem] = useState<MediaViewerItem | null>(null);
   const flatListRef = useRef<any>(null);
 
-  const {
-    attachments,
-    canAddImage,
-    canAddVideo,
-    hasAttachments,
-    addImages,
-    addVideo,
-    remove,
-    upload,
-    clear,
-    isUploading,
-  } = useTicketAttachments(user.cardno);
-
   const fetchTicketDetails = async () => {
     return new Promise((resolve, reject) => {
       handleAPICall(
@@ -110,6 +97,31 @@ const TicketDetails = () => {
     // mount fetch runs).
     refetchOnMount: 'always',
   });
+
+  // Videos already on this ticket (ticket-level + every message, excluding
+  // expired) count against the per-TICKET cap — the composer must block picking
+  // a video the backend would reject, which would otherwise upload it to S3
+  // first and orphan it.
+  const existingVideoCount = useMemo(() => {
+    if (!ticket) return 0;
+    const perMessage = (ticket.messages || []).flatMap((m: any) => m.attachments || []);
+    return [...(ticket.attachments || []), ...perMessage].filter(
+      (a: any) => a?.kind === 'video' && !a.expired
+    ).length;
+  }, [ticket]);
+
+  const {
+    attachments,
+    canAddImage,
+    canAddVideo,
+    hasAttachments,
+    addImages,
+    addVideo,
+    remove,
+    upload,
+    clear,
+    isUploading,
+  } = useTicketAttachments(user.cardno, existingVideoCount);
 
   useRefetchOnFocus(refetch);
 
@@ -170,8 +182,18 @@ const TicketDetails = () => {
 
       return { previousTicket };
     },
-    onError: (err: any, _payload, context: any) => {
+    onSuccess: () => {
+      // Only now that the message is accepted do we drop the staged
+      // attachments. Clearing earlier would lose their uploaded S3 keys on a
+      // failed POST (orphaning the objects and forcing a re-pick + re-upload).
+      clear();
+    },
+    onError: (err: any, payload, context: any) => {
       queryClient.setQueryData(['ticket', id, user.cardno], context?.previousTicket);
+      // Restore the text (only if the composer is still empty) so the user can
+      // retry without retyping; staged attachments were never cleared, so a
+      // retry reuses their already-uploaded keys.
+      setMessageText((prev) => (prev.trim() === '' ? payload.text : prev));
       CustomAlert.alert('Error', err.message || 'Failed to send message');
     },
     onSettled: () => {
@@ -263,7 +285,8 @@ const TicketDetails = () => {
     }
 
     setMessageText('');
-    clear();
+    // Staged attachments are cleared in the mutation's onSuccess (not here), so
+    // a failed send keeps them and their already-uploaded keys for retry.
     sendMessageMutation.mutate({ text, attachments: refs, localMedia });
   };
 
@@ -310,15 +333,15 @@ const TicketDetails = () => {
             {item.message}
           </Text>
         )}
-        {localMedia?.length ? (
-          <LocalMediaStrip media={localMedia} onOpen={setViewerItem} />
-        ) : (
+        {item.attachments?.length ? (
           <TicketMessageAttachments
             attachments={item.attachments}
             cardno={user.cardno}
             onOpenImage={(uri) => setViewerItem({ uri, kind: 'image' })}
           />
-        )}
+        ) : localMedia?.length ? (
+          <LocalMediaStrip media={localMedia} onOpen={setViewerItem} />
+        ) : null}
       </View>
     );
   };
