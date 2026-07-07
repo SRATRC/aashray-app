@@ -1,13 +1,9 @@
-import * as Sentry from '@sentry/react-native';
-import axios from 'axios';
-import * as Haptics from 'expo-haptics';
-import Toast from 'react-native-toast-message';
+import { apiClient } from '../lib/api/client';
 
-import { resolveApiBaseUrl } from './resolveBaseUrl';
-
-const generateRequestId = () =>
-  Array.from({ length: 12 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-
+// Legacy callback-style wrapper — now delegates to the promise-based apiClient.
+// New code should import apiClient directly; this shim exists so the ~45
+// existing call sites keep working until they are migrated (Phase 3) and it
+// is removed (Phase 4).
 const handleAPICall = async (
   method,
   endpoint,
@@ -18,101 +14,27 @@ const handleAPICall = async (
   errorCallback = (_error) => {},
   allowToast = true
 ) => {
-  const requestId = generateRequestId();
-
+  const m = String(method).toLowerCase();
   try {
-    const currentBaseUrl = resolveApiBaseUrl();
-
-    if (!currentBaseUrl) {
-      console.error('Base URL is undefined. Check your .env file and constants.');
-      throw new Error('Network configuration error: Base URL is missing.');
-    }
-
-    const url = `${currentBaseUrl}${endpoint}`;
-
-    let data = body;
-    const headers = { 'x-request-id': requestId };
-
-    if (body?.image) {
-      const formData = new FormData();
-      formData.append('image', {
-        uri: body.image,
-        name: 'pfp.jpg',
-        type: 'image/jpeg',
-      });
-
-      data = formData;
-      headers['Content-Type'] = 'multipart/form-data';
-    }
-
-    if (__DEV__) {
-      console.log('------------');
-      console.log('URL: ', url);
-      console.log('PARAMS: ', JSON.stringify(params));
-      console.log('BODY: ', JSON.stringify(body));
-      console.log('------------');
-    }
-
-    Sentry.addBreadcrumb({
-      category: 'api.request',
-      message: `${method.toUpperCase()} ${endpoint}`,
-      data: { params, body, requestId },
-      level: 'info',
-    });
-
-    const res = await axios({
-      method,
-      url,
-      params,
-      data,
-      headers,
-      // timeout: 10000,
-      validateStatus: () => true,
-    });
-
-    if (res.status === 200 || res.status === 201) {
-      successCallback(res.data);
+    let data;
+    if (m === 'get') {
+      data = await apiClient.get(endpoint, { params, allowToast });
+    } else if (m === 'delete') {
+      data = await apiClient.del(endpoint, { params, allowToast });
     } else {
-      const err = new Error(res.data.message || 'An error occurred');
-      err.correlationId = res.headers['x-request-id'] || requestId;
-      throw err;
+      data = await apiClient[m](endpoint, body, { params, allowToast });
     }
+    if (successCallback) successCallback(data);
   } catch (error) {
-    const correlationId =
-      error.correlationId || error.response?.headers?.['x-request-id'] || requestId;
-    const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
-    const errorDetails = {
-      message: errorMessage,
-      status: error.response?.status,
-      data: error.response?.data,
-      correlationId,
-      originalError: error,
-    };
-
-    if (errorCallback) errorCallback(errorDetails);
-
-    if (__DEV__) console.log('ERROR: ', errorMessage);
-
-    Sentry.addBreadcrumb({
-      category: 'api.error',
-      message: `${endpoint} failed: ${errorMessage}`,
-      data: errorDetails,
-      level: 'error',
-    });
-
-    Sentry.setTag('correlation_id', correlationId);
-
-    if (allowToast) {
-      Toast.show({
-        type: 'error',
-        text1: 'An error occurred!',
-        text2: errorMessage,
-        swipeable: false,
-        text1Style: { color: 'red' },
-        text2Style: { color: 'black', fontWeight: 'bold', fontSize: 14 },
+    // apiClient already showed the toast/haptic when allowToast is true.
+    if (errorCallback) {
+      errorCallback({
+        message: error.message,
+        status: error.status,
+        data: error.data,
+        correlationId: error.correlationId,
+        originalError: error,
       });
-
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   } finally {
     if (finallyCallback) finallyCallback();
