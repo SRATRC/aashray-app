@@ -15,9 +15,30 @@ import CustomChipGroup from '../CustomChipGroup';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import FormDisplayField from '../FormDisplayField';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
+import GuestForm from '../GuestForm';
+import handleAPICall from '@/src/utils/HandleApiCall';
 import moment from 'moment';
 
-let CHIPS = ['Self', 'Mumukshus'];
+let CHIPS = ['Self', 'Mumukshus', 'Guest'];
+
+const INITIAL_GUEST_TRAVEL_FORM = {
+  date: '',
+  guests: [
+    {
+      name: '',
+      gender: '',
+      mobno: '',
+      type: '',
+      pickup: '',
+      drop: '',
+      luggage: [],
+      travelType: dropdowns.BOOKING_TYPE_LIST[0].value,
+      arrival_time: '',
+      special_request: '',
+      total_people: null,
+    },
+  ],
+};
 
 const INITIAL_MUMUKSHU_FORM = {
   date: '',
@@ -41,6 +62,8 @@ const TravelBooking = () => {
   const user = useAuthStore((state) => state.user);
   const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
   const setMumukshuInfo = useBookingStore((state) => state.setMumukshuInfo);
+  const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
+  const setGuestInfo = useBookingStore((state) => state.setGuestInfo);
   const tabBarPadding = useTabBarPadding();
 
   const otherLocation = dropdowns.LOCATION_LIST.find((loc) => loc.key === 'other');
@@ -83,6 +106,7 @@ const TravelBooking = () => {
   const [modalMessage, setModalMessage] = useState('');
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [activeMumukshuIndex, setActiveMumukshuIndex] = useState(null);
+  const [activeGuestTravelIndex, setActiveGuestTravelIndex] = useState<number | null>(null);
 
   // Round-trip state (applies to both Self and Mumukshu branches)
   const [tripType, setTripType] = useState<'one_way' | 'round_trip'>('one_way');
@@ -229,6 +253,104 @@ const TravelBooking = () => {
     );
   };
 
+  const [guestTravelForm, setGuestTravelForm] = useState(INITIAL_GUEST_TRAVEL_FORM);
+
+  const addGuestTravelForm = () => {
+    setGuestTravelForm((prev) => ({
+      ...prev,
+      guests: [
+        ...prev.guests,
+        {
+          name: '',
+          gender: '',
+          mobno: '',
+          type: '',
+          pickup: '',
+          drop: '',
+          luggage: [],
+          travelType: dropdowns.BOOKING_TYPE_LIST[0].value,
+          arrival_time: '',
+          special_request: '',
+          total_people: null,
+        },
+      ],
+    }));
+  };
+
+  const removeGuestTravelForm = (indexToRemove: any) => {
+    setGuestTravelForm((prev) => ({
+      ...prev,
+      guests: prev.guests.filter((_, index) => index !== indexToRemove),
+    }));
+  };
+
+  const handleGuestTravelFormChange = (index: any, field: any, value: any) => {
+    setGuestTravelForm((prev) => ({
+      ...prev,
+      guests: prev.guests.map((guest, i) => {
+        if (i !== index) return guest;
+
+        const updated = { ...guest, [field]: value } as any;
+
+        if (field === 'pickup') {
+          if (value == 'Research Centre') {
+            updated.drop = guest.drop === 'Research Centre' ? '' : guest.drop;
+          } else {
+            updated.drop = 'Research Centre';
+          }
+          if (!requiresArrivalTime(value, updated.drop)) updated.arrival_time = '';
+        }
+        if (field === 'drop') {
+          if (value === 'Research Centre') {
+            updated.pickup = guest.pickup === 'Research Centre' ? '' : guest.pickup;
+          } else {
+            updated.pickup = 'Research Centre';
+          }
+          if (!requiresArrivalTime(updated.pickup, value)) updated.arrival_time = '';
+        }
+        return updated;
+      }),
+    }));
+  };
+
+  const isGuestTravelFormValid = () => {
+    return (
+      guestTravelForm.date &&
+      guestTravelForm.guests.every((guest: any) => {
+        const requiresTime = requiresArrivalTime(guest.pickup, guest.drop);
+
+        if (guest.travelType == dropdowns.BOOKING_TYPE_LIST[1].value && !guest.total_people) {
+          return false;
+        }
+
+        const requiresSpecialRequest =
+          guest.pickup === otherLocation?.value || guest.drop === otherLocation?.value;
+
+        const hasGuestIdentity = guest.cardno
+          ? guest.mobno?.length === 10
+          : guest.name && guest.gender && guest.type && guest.mobno?.length === 10;
+
+        return (
+          hasGuestIdentity &&
+          guest.pickup &&
+          guest.drop &&
+          guest.luggage.length > 0 &&
+          guest.travelType &&
+          (!requiresTime || (requiresTime && guest.arrival_time)) &&
+          (!requiresSpecialRequest ||
+            (requiresSpecialRequest && guest.special_request.trim() !== '')) &&
+          !(
+            (guest.pickup === dropdowns.LOCATION_LIST[0].value &&
+              guest.drop === dropdowns.LOCATION_LIST[0].value) ||
+            (guest.pickup !== dropdowns.LOCATION_LIST[0].value &&
+              guest.drop !== dropdowns.LOCATION_LIST[0].value)
+          )
+        );
+      }) &&
+      isReturnLegValid()
+    );
+  };
+
   const { isUtsavDate } = useUtsavDate();
 
   const getLocationOptions = useCallback(
@@ -243,28 +365,41 @@ const TravelBooking = () => {
 
   // Default reversed route shown/used when the user hasn't overridden return pickup/drop
   const defaultReturnPickup =
-    selectedChip == CHIPS[0] ? travelForm.drop : mumukshuForm.mumukshus[0]?.drop || '';
+    selectedChip == CHIPS[0]
+      ? travelForm.drop
+      : selectedChip == 'Guest'
+        ? guestTravelForm.guests[0]?.drop || ''
+        : mumukshuForm.mumukshus[0]?.drop || '';
   const defaultReturnDrop =
-    selectedChip == CHIPS[0] ? travelForm.pickup : mumukshuForm.mumukshus[0]?.pickup || '';
+    selectedChip == CHIPS[0]
+      ? travelForm.pickup
+      : selectedChip == 'Guest'
+        ? guestTravelForm.guests[0]?.pickup || ''
+        : mumukshuForm.mumukshus[0]?.pickup || '';
 
-  // Mirrors the onward mumukshuGroup into a return leg, keeping the same per-group shape
-  // (pickup/drop/type/luggage/special_request/total_people/mumukshus) so preparingRequestBody
-  // can run both legs through the identical transform.
+  // Mirrors the onward mumukshuGroup/guestGroup into a return leg, keeping the same per-group
+  // shape (pickup/drop/type/luggage/special_request/total_people/mumukshus|guests) so
+  // preparingRequestBody can run both legs through the identical transform.
   const attachReturnLeg = (temp: any) => {
     if (tripType !== 'round_trip') return temp;
 
-    const returnGroup = (temp.mumukshuGroup || []).map((g: any) => ({
+    const sourceGroup = temp.mumukshuGroup || temp.guestGroup;
+    if (!sourceGroup) return temp;
+
+    const returnGroup = sourceGroup.map((g: any) => ({
       ...g,
       pickup: returnPickup || g.drop,
       drop: returnDrop || g.pickup,
       arrival_time: returnArrivalTime || '',
     }));
 
-    return {
-      ...temp,
-      return_date: returnDate,
-      returnMumukshuGroup: returnGroup,
-    };
+    const result = { ...temp, return_date: returnDate };
+    if (temp.mumukshuGroup) {
+      result.returnMumukshuGroup = returnGroup;
+    } else {
+      result.returnGuestGroup = returnGroup;
+    }
+    return result;
   };
 
   return (
@@ -284,6 +419,7 @@ const TravelBooking = () => {
           setSelectedDay={(day: any) => {
             setTravelForm((prev) => ({ ...prev, date: day }));
             setMumukshuForm((prev) => ({ ...prev, date: day }));
+            setGuestTravelForm((prev) => ({ ...prev, date: day }));
           }}
           minDate={moment(new Date()).format('YYYY-MM-DD')}
         />
@@ -687,6 +823,143 @@ const TravelBooking = () => {
             </OtherMumukshuForm>
           </View>
         )}
+
+        {selectedChip == 'Guest' && (
+          <View>
+            <GuestForm
+              guestForm={guestTravelForm}
+              setGuestForm={setGuestTravelForm}
+              handleGuestFormChange={handleGuestTravelFormChange}
+              addGuestForm={addGuestTravelForm}
+              removeGuestForm={removeGuestTravelForm}>
+              {(index: any) => (
+                <>
+                  <CustomSelectBottomSheet
+                    className="mt-7"
+                    label="Booking Type"
+                    placeholder="Select Booking Type"
+                    options={dropdowns.BOOKING_TYPE_LIST}
+                    selectedValue={guestTravelForm.guests[index].travelType}
+                    onValueChange={(val: any) =>
+                      handleGuestTravelFormChange(index, 'travelType', val)
+                    }
+                    saveKeyInsteadOfValue={false}
+                  />
+
+                  {guestTravelForm.guests[index].travelType ==
+                    dropdowns.BOOKING_TYPE_LIST[1].value && (
+                    <FormField
+                      text="Total People"
+                      value={guestTravelForm.guests[index].total_people}
+                      handleChangeText={(e: any) =>
+                        handleGuestTravelFormChange(index, 'total_people', e)
+                      }
+                      otherStyles="mt-7"
+                      containerStyles="bg-gray-100"
+                      keyboardType="number-pad"
+                      placeholder="please specify total people here..."
+                      inputStyles={'font-pmedium text-black text-lg'}
+                    />
+                  )}
+
+                  <CustomSelectBottomSheet
+                    className="mt-7"
+                    label="Pickup Location"
+                    placeholder="Select Pickup Location"
+                    options={getLocationOptions(guestTravelForm.date)}
+                    selectedValue={guestTravelForm.guests[index].pickup}
+                    onValueChange={(val: any) =>
+                      handleGuestTravelFormChange(index, 'pickup', val)
+                    }
+                    saveKeyInsteadOfValue={false}
+                  />
+
+                  <CustomSelectBottomSheet
+                    className="mt-7"
+                    label="Drop Location"
+                    placeholder="Select Drop Location"
+                    options={getLocationOptions(guestTravelForm.date)}
+                    selectedValue={guestTravelForm.guests[index].drop}
+                    onValueChange={(val: any) => handleGuestTravelFormChange(index, 'drop', val)}
+                    saveKeyInsteadOfValue={false}
+                  />
+
+                  {requiresArrivalTime(
+                    guestTravelForm.guests[index].pickup,
+                    guestTravelForm.guests[index].drop
+                  ) ? (
+                    <>
+                      <FormDisplayField
+                        text="Flight/Train Time"
+                        value={
+                          guestTravelForm.guests[index].arrival_time
+                            ? moment(guestTravelForm.guests[index].arrival_time, 'HH:mm').format(
+                                'h:mm a'
+                              )
+                            : ''
+                        }
+                        placeholder="Flight/Train Time"
+                        otherStyles="mt-5"
+                        inputStyles="font-pmedium text-black text-lg"
+                        backgroundColor="bg-gray-100"
+                        onPress={() => {
+                          setDatePickerVisibility(true);
+                          setActiveGuestTravelIndex(index);
+                        }}
+                      />
+                      <DateTimePickerModal
+                        isVisible={isDatePickerVisible && activeGuestTravelIndex === index}
+                        mode="time"
+                        date={
+                          guestTravelForm.guests[index].arrival_time
+                            ? moment(guestTravelForm.guests[index].arrival_time, 'HH:mm').toDate()
+                            : new Date()
+                        }
+                        onConfirm={(date: Date) => {
+                          const timeOnly = moment(date).format('HH:mm');
+                          handleGuestTravelFormChange(index, 'arrival_time', timeOnly);
+                          setDatePickerVisibility(false);
+                        }}
+                        onCancel={() => setDatePickerVisibility(false)}
+                      />
+                    </>
+                  ) : null}
+
+                  <CustomSelectBottomSheet
+                    className="mt-7"
+                    label="Luggage"
+                    placeholder="Select any luggage"
+                    options={dropdowns.LUGGAGE_LIST}
+                    selectedValues={guestTravelForm.guests[index].luggage}
+                    onValuesChange={(val: any) =>
+                      handleGuestTravelFormChange(index, 'luggage', val)
+                    }
+                    saveKeyInsteadOfValue={false}
+                    multiSelect={true}
+                    confirmButtonText="Select"
+                    maxSelectedDisplay={3}
+                  />
+
+                  <FormField
+                    text="Comments"
+                    value={guestTravelForm.guests[index].special_request}
+                    handleChangeText={(e: any) =>
+                      handleGuestTravelFormChange(index, 'special_request', e)
+                    }
+                    otherStyles="mt-7"
+                    containerStyles="bg-gray-100"
+                    keyboardType="default"
+                    inputStyles={'font-pmedium text-black text-lg'}
+                    placeholder="Please specify a location if 'Other' is selected, or provide any additional requests here..."
+                    multiline={true}
+                    numberOfLines={2}
+                  />
+                </>
+              )}
+            </GuestForm>
+          </View>
+        )}
+
         <CustomButton
           text="Book Now"
           handlePress={async () => {
@@ -735,10 +1008,63 @@ const TravelBooking = () => {
               await updateMumukshuBooking('travel', attachReturnLeg(temp));
               router.push(`/mumukshuBooking/${types.TRAVEL_DETAILS_TYPE}`);
             }
+            if (selectedChip == 'Guest') {
+              if (!isGuestTravelFormValid()) {
+                setModalVisible(true);
+                setModalMessage('Please fill all fields');
+                setIsSubmitting(false);
+                return;
+              }
+
+              await handleAPICall(
+                'POST',
+                '/guest',
+                null,
+                {
+                  cardno: user.cardno,
+                  guests: guestTravelForm.guests,
+                },
+                async (res: any) => {
+                  const guestInfoArray = res.guests.map((apiGuest: any) => ({
+                    cardno: apiGuest.cardno,
+                    name: apiGuest.issuedto || apiGuest.name,
+                  }));
+                  setGuestInfo(guestInfoArray);
+
+                  const updatedGuests = guestTravelForm.guests.map((formGuest) => {
+                    const matchingApiGuest = res.guests.find(
+                      (apiGuest: any) => apiGuest.issuedto === formGuest.name
+                    );
+                    return matchingApiGuest
+                      ? { ...formGuest, cardno: matchingApiGuest.cardno }
+                      : formGuest;
+                  });
+
+                  const temp = transformGuestTravelData({
+                    date: guestTravelForm.date,
+                    guests: updatedGuests,
+                  });
+
+                  updateGuestBooking('travel', attachReturnLeg(temp));
+                  setIsSubmitting(false);
+                  setGuestTravelForm(INITIAL_GUEST_TRAVEL_FORM);
+                  router.push(`/guestBooking/${types.TRAVEL_DETAILS_TYPE}`);
+                },
+                () => {
+                  setIsSubmitting(false);
+                }
+              );
+            }
           }}
           containerStyles="mt-7 w-full px-1 min-h-[62px]"
           isLoading={isSubmitting}
-          isDisabled={selectedChip == CHIPS[0] ? !isSelfFormValid() : !isMumukshuFormValid()}
+          isDisabled={
+            selectedChip == CHIPS[0]
+              ? !isSelfFormValid()
+              : selectedChip == 'Guest'
+                ? !isGuestTravelFormValid()
+                : !isMumukshuFormValid()
+          }
         />
       </KeyboardAwareScrollView>
       <CustomModal
@@ -778,6 +1104,39 @@ function transformMumukshuData(inputData: any) {
   return {
     date: date,
     mumukshuGroup: mumukshuGroup,
+  };
+}
+
+function transformGuestTravelData(inputData: any) {
+  const { date, guests } = inputData;
+
+  const groupedGuests = guests.reduce((acc: any, guest: any) => {
+    const key = `${guest.pickup}-${guest.drop}-${guest.travelType}-${guest.total_people || 'none'}`;
+    if (!acc[key]) {
+      acc[key] = {
+        pickup: guest.pickup,
+        drop: guest.drop,
+        type: guest.travelType,
+        arrival_time: guest.arrival_time,
+        luggage: guest.luggage,
+        special_request: guest.special_request,
+        total_people: guest.total_people,
+        guests: [],
+      };
+    }
+    acc[key].guests.push({
+      issuedto: guest.issuedto || guest.name,
+      cardno: guest.cardno,
+    });
+
+    return acc;
+  }, {});
+
+  const guestGroup = Object.values(groupedGuests);
+
+  return {
+    date: date,
+    guestGroup: guestGroup,
   };
 }
 

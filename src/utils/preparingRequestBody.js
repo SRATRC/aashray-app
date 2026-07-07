@@ -109,6 +109,24 @@ export const prepareGuestRequestBody = (user, input) => {
   const transformGuestGroup = (guestGroup) =>
     guestGroup.map((group) => {
       const transformed = {};
+
+      // Travel groups carry pickup/drop and map to a distinct wire shape (mirrors
+      // mumukshu travel groups so normalizeGuestTravelDetails on the backend can
+      // treat guest and mumukshu travel groups uniformly).
+      if (group.pickup !== undefined || group.drop !== undefined) {
+        if (group.pickup) transformed.pickup_point = group.pickup;
+        if (group.drop) transformed.drop_point = group.drop;
+        if (group.arrival_time) transformed.arrival_time = group.arrival_time;
+        if (group.luggage) {
+          transformed.luggage = group.luggage.length > 0 ? group.luggage.join(', ') : '';
+        }
+        if (group.type) transformed.type = group.type;
+        if (group.special_request) transformed.comments = group.special_request;
+        if (group.total_people) transformed.total_people = group.total_people;
+        if (group.guests) transformed.mumukshus = group.guests.map((guest) => guest.cardno);
+        return transformed;
+      }
+
       if (group.roomType) transformed.roomType = group.roomType;
       if (group.floorType && group.floorType !== 'n') transformed.floorType = group.floorType;
       if (group.guests) transformed.guests = group.guests.map((guest) => guest.cardno);
@@ -173,6 +191,20 @@ export const prepareGuestRequestBody = (user, input) => {
             }),
           },
         };
+      case 'travel': {
+        const details = {
+          date: primaryData.date,
+          guestGroup: transformGuestGroup(primaryData.guestGroup),
+        };
+        if (primaryData.return_date && primaryData.returnGuestGroup) {
+          details.return_date = primaryData.return_date;
+          details.returnGuestGroup = transformGuestGroup(primaryData.returnGuestGroup);
+        }
+        return {
+          booking_type: 'travel',
+          details,
+        };
+      }
       default:
         throw new Error(`Unsupported primary booking type: ${primaryKey}`);
     }

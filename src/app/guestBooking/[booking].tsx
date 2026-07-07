@@ -14,6 +14,7 @@ import PageHeader from '@/src/components/PageHeader';
 import GuestRoomBookingDetails from '@/src/components/booking details cards/GuestRoomBookingDetails';
 import GuestAdhyayanBookingDetails from '@/src/components/booking details cards/GuestAdhyayanBookingDetails';
 import GuestFlatBookingDetails from '@/src/components/booking details cards/GuestFlatBookingDetails';
+import GuestTravelBookingDetails from '@/src/components/booking details cards/GuestTravelBookingDetails';
 import GuestRoomAddon from '@/src/components/booking addons/GuestRoomAddon';
 import GuestFoodAddon from '@/src/components/booking addons/GuestFoodAddon';
 import GuestAdhyayanAddon from '@/src/components/booking addons/GuestAdhyayanAddon';
@@ -527,6 +528,9 @@ const GuestAddons = () => {
         {booking === types.ROOM_DETAILS_TYPE && <GuestRoomBookingDetails containerStyles="mt-2" />}
         {booking === types.ADHYAYAN_DETAILS_TYPE && (
           <GuestAdhyayanBookingDetails containerStyles="mt-2" />
+        )}
+        {booking === types.TRAVEL_DETAILS_TYPE && (
+          <GuestTravelBookingDetails containerStyles="mt-2" />
         )}
 
         {booking === types.EVENT_DETAILS_TYPE ? (
