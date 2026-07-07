@@ -12,6 +12,8 @@ const STATUS_INACTIVE = 'inactive';
 const STATUS_AVAILABLE = 'available';
 const STATUS_TAKEN = 'taken';
 const STATUS_OPEN = 'open';
+const STATUS_IN_PROGRESS = 'in progress';
+const STATUS_RESOLVED = 'resolved';
 const STATUS_CLOSED = 'closed';
 const STATUS_ADMIN_CANCELLED = 'admin cancelled';
 const STATUS_PAYMENT_PENDING = 'pending';
@@ -51,6 +53,8 @@ export default {
   STATUS_AVAILABLE,
   STATUS_TAKEN,
   STATUS_OPEN,
+  STATUS_IN_PROGRESS,
+  STATUS_RESOLVED,
   STATUS_CLOSED,
   STATUS_ADMIN_CANCELLED,
   STATUS_PAYMENT_PENDING,
