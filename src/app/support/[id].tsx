@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { useState, useRef, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // react-native's own KeyboardAvoidingView is unreliable on Android with
@@ -17,9 +17,46 @@ import CustomTag from '@/src/components/CustomTag';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomAlert from '@/src/components/CustomAlert';
 import Shimmer from '@/src/components/Shimmer';
+import AttachmentPreviewStrip from '@/src/components/AttachmentPreviewStrip';
+import TicketMessageAttachments from '@/src/components/TicketMessageAttachments';
+import MediaViewer, { MediaViewerItem } from '@/src/components/MediaViewer';
 import { getStatusColor } from '@/src/utils/ticketStatus';
 import { useTicketStream } from '@/src/hooks/useTicketStream';
 import { useRefetchOnFocus } from '@/src/hooks/useRefetchOnFocus';
+import { useTicketAttachments, UPLOAD_CANCELLED } from '@/src/hooks/useTicketAttachments';
+import { AttachmentRef, PendingAttachment } from '@/src/utils/ticketAttachments';
+
+// Optimistic (local) media rendered on a just-sent message before the server
+// echoes back the stored attachments. Tapping opens the full-screen viewer.
+const LocalMediaStrip = ({
+  media,
+  onOpen,
+}: {
+  media: PendingAttachment[];
+  onOpen: (item: MediaViewerItem) => void;
+}) => (
+  <View className="mt-1.5 flex-row flex-wrap gap-2">
+    {media.map((m) =>
+      m.kind === 'image' ? (
+        <TouchableOpacity
+          key={m.id}
+          activeOpacity={0.85}
+          onPress={() => onOpen({ uri: m.uri, kind: 'image' })}
+          className="overflow-hidden rounded-xl">
+          <Image source={{ uri: m.uri }} style={{ width: 160, height: 120 }} resizeMode="cover" />
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          key={m.id}
+          activeOpacity={0.85}
+          onPress={() => onOpen({ uri: m.uri, kind: 'video' })}
+          className="h-[120px] w-[160px] items-center justify-center rounded-xl bg-gray-800">
+          <FontAwesome5 name="play" size={20} color="#fff" solid />
+        </TouchableOpacity>
+      )
+    )}
+  </View>
+);
 
 const TicketDetails = () => {
   const { id } = useLocalSearchParams();
@@ -27,7 +64,21 @@ const TicketDetails = () => {
   const queryClient = useQueryClient();
   const [messageText, setMessageText] = useState('');
   const [copied, setCopied] = useState(false);
+  const [viewerItem, setViewerItem] = useState<MediaViewerItem | null>(null);
   const flatListRef = useRef<any>(null);
+
+  const {
+    attachments,
+    canAddImage,
+    canAddVideo,
+    hasAttachments,
+    addImages,
+    addVideo,
+    remove,
+    upload,
+    clear,
+    isUploading,
+  } = useTicketAttachments(user.cardno);
 
   const fetchTicketDetails = async () => {
     return new Promise((resolve, reject) => {
@@ -70,13 +121,22 @@ const TicketDetails = () => {
   });
 
   const sendMessageMutation = useMutation({
-    mutationFn: async (text: string) => {
+    mutationFn: async (payload: {
+      text: string;
+      attachments: AttachmentRef[];
+      localMedia: PendingAttachment[];
+    }) => {
       return new Promise((resolve, reject) => {
         handleAPICall(
           'POST',
           `/tickets/${id}/messages`,
           null,
-          { cardno: user.cardno, message: text, sender_type: 'user' },
+          {
+            cardno: user.cardno,
+            sender_type: 'user',
+            ...(payload.text ? { message: payload.text } : {}),
+            ...(payload.attachments.length ? { attachments: payload.attachments } : {}),
+          },
           (res: any) => resolve(res.data),
           () => {},
           (err: any) => reject(err),
@@ -84,7 +144,7 @@ const TicketDetails = () => {
         );
       });
     },
-    onMutate: async (newMessage) => {
+    onMutate: async (payload) => {
       await queryClient.cancelQueries({ queryKey: ['ticket', id, user.cardno] });
       const previousTicket = queryClient.getQueryData(['ticket', id, user.cardno]);
 
@@ -98,10 +158,11 @@ const TicketDetails = () => {
             {
               id: tempId,
               _key: tempId,
-              message: newMessage,
+              message: payload.text,
               sender_type: 'user',
               createdAt: new Date().toISOString(),
               isTemp: true,
+              _localMedia: payload.localMedia,
             },
           ],
         };
@@ -109,7 +170,7 @@ const TicketDetails = () => {
 
       return { previousTicket };
     },
-    onError: (err: any, _newMessage, context: any) => {
+    onError: (err: any, _payload, context: any) => {
       queryClient.setQueryData(['ticket', id, user.cardno], context?.previousTicket);
       CustomAlert.alert('Error', err.message || 'Failed to send message');
     },
@@ -149,7 +210,11 @@ const TicketDetails = () => {
       'Are you sure you want to close this ticket? You can always create a new one if the issue comes back.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Close Ticket', style: 'destructive', onPress: () => resolveTicketMutation.mutate() },
+        {
+          text: 'Close Ticket',
+          style: 'destructive',
+          onPress: () => resolveTicketMutation.mutate(),
+        },
       ]
     );
   };
@@ -161,11 +226,45 @@ const TicketDetails = () => {
     setTimeout(() => setCopied(false), 1500);
   };
 
-  const handleSend = () => {
-    if (messageText.trim() === '') return;
+  const handleAddImages = async () => {
+    const msg = await addImages();
+    if (msg) CustomAlert.alert('Heads up', msg);
+  };
+
+  const handleAddVideo = async () => {
+    const msg = await addVideo();
+    if (msg) CustomAlert.alert('Heads up', msg);
+  };
+
+  const handleAttach = () => {
+    const buttons: any[] = [];
+    if (canAddImage) buttons.push({ text: 'Photo', onPress: handleAddImages });
+    if (canAddVideo) buttons.push({ text: 'Video', onPress: handleAddVideo });
+    buttons.push({ text: 'Cancel', style: 'cancel' });
+    CustomAlert.alert('Add attachment', undefined, buttons);
+  };
+
+  const handleSend = async () => {
     const text = messageText.trim();
+    if (text === '' && !hasAttachments) return;
+
+    // Snapshot the local media for the optimistic bubble before we clear.
+    const localMedia = attachments;
+    let refs: AttachmentRef[] = [];
+    if (hasAttachments) {
+      try {
+        refs = await upload();
+      } catch (err: any) {
+        if (err?.message !== UPLOAD_CANCELLED) {
+          CustomAlert.alert('Upload failed', err?.message || 'Could not upload your attachments.');
+        }
+        return;
+      }
+    }
+
     setMessageText('');
-    sendMessageMutation.mutate(text);
+    clear();
+    sendMessageMutation.mutate({ text, attachments: refs, localMedia });
   };
 
   // The FlashList is fed the ticket's original description (shown as the
@@ -184,24 +283,42 @@ const TicketDetails = () => {
           <Text className="font-pregular text-[15px] leading-[21px] text-gray-700">
             {item.description}
           </Text>
+          <TicketMessageAttachments
+            attachments={item.attachments}
+            cardno={user.cardno}
+            onOpenImage={(uri) => setViewerItem({ uri, kind: 'image' })}
+          />
         </View>
       );
     }
 
     const isUser = item.sender_type === 'user';
     const isTemp = item.isTemp;
+    const hasText = !!item.message;
+    const localMedia = item._localMedia as PendingAttachment[] | undefined;
     return (
       <View
-        className={`my-1 max-w-[78%] rounded-[20px] px-4 py-2.5 ${
+        className={`my-1 max-w-[82%] rounded-[20px] px-3 py-2 ${
           isUser ? 'self-end bg-secondary' : 'self-start bg-[#E5E5EA]'
         }`}
         style={isTemp ? { opacity: 0.6 } : undefined}>
-        <Text
-          className={`font-pregular text-[16px] leading-[21px] ${
-            isUser ? 'text-white' : 'text-black'
-          }`}>
-          {item.message}
-        </Text>
+        {hasText && (
+          <Text
+            className={`px-1 font-pregular text-[16px] leading-[21px] ${
+              isUser ? 'text-white' : 'text-black'
+            }`}>
+            {item.message}
+          </Text>
+        )}
+        {localMedia?.length ? (
+          <LocalMediaStrip media={localMedia} onOpen={setViewerItem} />
+        ) : (
+          <TicketMessageAttachments
+            attachments={item.attachments}
+            cardno={user.cardno}
+            onOpenImage={(uri) => setViewerItem({ uri, kind: 'image' })}
+          />
+        )}
       </View>
     );
   };
@@ -249,9 +366,17 @@ const TicketDetails = () => {
   const statusStyle = getStatusColor(ticket.status);
   const isResolved = ticket.status === status.STATUS_RESOLVED;
   const chatItems = [
-    { __kind: 'description', service: ticket.service, description: ticket.description },
+    {
+      __kind: 'description',
+      service: ticket.service,
+      description: ticket.description,
+      attachments: ticket.attachments,
+    },
     ...(ticket.messages || []),
   ];
+
+  const canSend = (messageText.trim() !== '' || hasAttachments) && !isUploading;
+  const sending = sendMessageMutation.isPending || isUploading;
 
   return (
     <SafeAreaView className="h-full w-full bg-white">
@@ -340,35 +465,53 @@ const TicketDetails = () => {
         {/* Input Area */}
         <View className="border-t border-gray-100 bg-white px-4 py-3">
           {isTicketActive ? (
-            <View className="flex-row items-end gap-x-3">
-              <TextInput
-                className="max-h-24 min-h-[44px] flex-1 rounded-[22px] bg-gray-100 px-4 py-2.5 font-pregular text-[15px] text-gray-900"
-                placeholder="Message..."
-                placeholderTextColor="#9CA3AF"
-                value={messageText}
-                onChangeText={setMessageText}
-                multiline
-                maxLength={500}
-              />
-              <TouchableOpacity
-                onPress={handleSend}
-                disabled={messageText.trim() === '' || sendMessageMutation.isPending}
-                className={`h-11 w-11 items-center justify-center rounded-full ${
-                  messageText.trim() ? 'bg-secondary' : 'bg-gray-200'
-                }`}
-                activeOpacity={0.7}>
-                {sendMessageMutation.isPending ? (
-                  <ActivityIndicator color="white" size="small" />
-                ) : (
-                  <FontAwesome5
-                    name="arrow-up"
-                    size={16}
-                    color={messageText.trim() ? 'white' : '#9CA3AF'}
-                    solid
+            <>
+              {hasAttachments && (
+                <View className="mb-2">
+                  <AttachmentPreviewStrip
+                    attachments={attachments}
+                    onRemove={remove}
+                    disabled={isUploading}
                   />
-                )}
-              </TouchableOpacity>
-            </View>
+                </View>
+              )}
+              <View className="flex-row items-end gap-x-2">
+                <TouchableOpacity
+                  onPress={handleAttach}
+                  disabled={(!canAddImage && !canAddVideo) || isUploading}
+                  className="h-11 w-11 items-center justify-center rounded-full bg-gray-100"
+                  activeOpacity={0.7}>
+                  <FontAwesome5 name="paperclip" size={16} color="#6B7280" />
+                </TouchableOpacity>
+                <TextInput
+                  className="max-h-24 min-h-[44px] flex-1 rounded-[22px] bg-gray-100 px-4 py-2.5 font-pregular text-[15px] text-gray-900"
+                  placeholder="Message..."
+                  placeholderTextColor="#9CA3AF"
+                  value={messageText}
+                  onChangeText={setMessageText}
+                  multiline
+                  maxLength={500}
+                />
+                <TouchableOpacity
+                  onPress={handleSend}
+                  disabled={!canSend || sending}
+                  className={`h-11 w-11 items-center justify-center rounded-full ${
+                    canSend ? 'bg-secondary' : 'bg-gray-200'
+                  }`}
+                  activeOpacity={0.7}>
+                  {sending ? (
+                    <ActivityIndicator color="white" size="small" />
+                  ) : (
+                    <FontAwesome5
+                      name="arrow-up"
+                      size={16}
+                      color={canSend ? 'white' : '#9CA3AF'}
+                      solid
+                    />
+                  )}
+                </TouchableOpacity>
+              </View>
+            </>
           ) : (
             <View className="items-center py-2">
               <Text className="font-pregular text-sm text-gray-400">This ticket is closed</Text>
@@ -376,6 +519,8 @@ const TicketDetails = () => {
           )}
         </View>
       </KeyboardAvoidingView>
+
+      <MediaViewer visible={!!viewerItem} item={viewerItem} onClose={() => setViewerItem(null)} />
     </SafeAreaView>
   );
 };

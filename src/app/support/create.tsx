@@ -1,8 +1,9 @@
-import { Platform, Text } from 'react-native';
+import { Platform, Text, TouchableOpacity, View } from 'react-native';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useAuthStore } from '@/src/stores';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import PageHeader from '@/src/components/PageHeader';
@@ -10,18 +11,29 @@ import FormField from '@/src/components/FormField';
 import CustomButton from '@/src/components/CustomButton';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
 import CustomAlert from '@/src/components/CustomAlert';
+import AttachmentPreviewStrip from '@/src/components/AttachmentPreviewStrip';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import { collectDiagnostics } from '@/src/utils/collectDiagnostics';
+import { useTicketAttachments, UPLOAD_CANCELLED } from '@/src/hooks/useTicketAttachments';
+import { MAX_IMAGES, MAX_VIDEOS } from '@/src/utils/ticketAttachments';
 import * as Application from 'expo-application';
 
-// Canonical services list — kept in sync with the admin panel's service filter.
+// The 12 support departments — labels + order mirror the backend's
+// TICKET_SERVICE_ROLE_MAP (config/constants.js), which is the source of truth.
+// The stored `service` value is the label string itself.
 const SERVICE_LIST = [
-  { key: 'Maintenance', value: 'Maintenance' },
-  { key: 'IT Support', value: 'IT Support' },
+  { key: 'Electrical', value: 'Electrical' },
   { key: 'Housekeeping', value: 'Housekeeping' },
-  { key: 'Food', value: 'Food' },
-  { key: 'Travel', value: 'Travel' },
-  { key: 'Other', value: 'Other' },
+  { key: 'Maintenance', value: 'Maintenance' },
+  { key: 'Raj Prasad', value: 'Raj Prasad' },
+  { key: 'Raj Adhyayan', value: 'Raj Adhyayan' },
+  { key: 'Raj Sharan', value: 'Raj Sharan' },
+  { key: 'Raj Pravas', value: 'Raj Pravas' },
+  { key: 'Raj Utsav', value: 'Raj Utsav' },
+  { key: 'WiFi', value: 'WiFi' },
+  { key: 'Payment/Accounts', value: 'Payment/Accounts' },
+  { key: 'IT', value: 'IT' },
+  { key: 'Others', value: 'Others' },
 ];
 
 const CreateTicket = () => {
@@ -35,15 +47,50 @@ const CreateTicket = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const {
+    attachments,
+    imageCount,
+    videoCount,
+    canAddImage,
+    canAddVideo,
+    hasAttachments,
+    addImages,
+    addVideo,
+    remove,
+    upload,
+    cancel,
+    isUploading,
+  } = useTicketAttachments(user.cardno);
+
+  const busy = isSubmitting || isUploading;
+
   const handleClose = () => {
-    if (form.service.trim() !== '' || form.description.trim() !== '') {
+    const dirty = form.service.trim() !== '' || form.description.trim() !== '' || hasAttachments;
+    if (dirty) {
       CustomAlert.alert('Discard Changes?', 'You have unsaved changes that will be lost.', [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Discard', style: 'destructive', onPress: () => router.back() },
+        {
+          text: 'Discard',
+          style: 'destructive',
+          onPress: () => {
+            cancel();
+            router.back();
+          },
+        },
       ]);
     } else {
       router.back();
     }
+  };
+
+  const handleAddImages = async () => {
+    const msg = await addImages();
+    if (msg) CustomAlert.alert('Heads up', msg);
+  };
+
+  const handleAddVideo = async () => {
+    const msg = await addVideo();
+    if (msg) CustomAlert.alert('Heads up', msg);
   };
 
   const handleSubmit = async () => {
@@ -58,6 +105,18 @@ const CreateTicket = () => {
     }
 
     setIsSubmitting(true);
+
+    // Compress + presign + upload any attachments first, then create the ticket
+    // referencing the returned keys. A failed upload aborts before creation.
+    let attachmentRefs;
+    try {
+      attachmentRefs = hasAttachments ? await upload() : [];
+    } catch (err: any) {
+      setIsSubmitting(false);
+      if (err?.message === UPLOAD_CANCELLED) return;
+      CustomAlert.alert('Upload failed', err?.message || 'Could not upload your attachments.');
+      return;
+    }
 
     const appVersion = Application.nativeApplicationVersion;
     const os = Platform.OS === 'ios' ? 'iOS' : Platform.OS === 'android' ? 'Android' : 'Other';
@@ -95,6 +154,7 @@ const CreateTicket = () => {
         os,
         app_version: appVersion,
         metadata,
+        ...(attachmentRefs.length ? { attachments: attachmentRefs } : {}),
       },
       onSuccess,
       onFinally,
@@ -137,12 +197,47 @@ const CreateTicket = () => {
           placeholder="Describe your issue in detail..."
         />
 
+        {/* Attachments */}
+        <Text className="mb-2 mt-7 font-pmedium text-base text-black">Attachments (optional)</Text>
+        <View className="flex-row gap-x-3">
+          <TouchableOpacity
+            onPress={handleAddImages}
+            disabled={!canAddImage || busy}
+            activeOpacity={0.7}
+            className={`flex-1 flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 bg-gray-50 py-3 ${
+              !canAddImage || busy ? 'opacity-40' : ''
+            }`}>
+            <FontAwesome5 name="image" size={15} color="#4B5563" />
+            <Text className="font-pmedium text-sm text-gray-700">
+              Photo{imageCount ? ` (${imageCount}/${MAX_IMAGES})` : ''}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleAddVideo}
+            disabled={!canAddVideo || busy}
+            activeOpacity={0.7}
+            className={`flex-1 flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 bg-gray-50 py-3 ${
+              !canAddVideo || busy ? 'opacity-40' : ''
+            }`}>
+            <FontAwesome5 name="video" size={15} color="#4B5563" />
+            <Text className="font-pmedium text-sm text-gray-700">
+              Video{videoCount ? ` (${videoCount}/${MAX_VIDEOS})` : ''}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <Text className="mt-2 font-pregular text-xs text-gray-400">
+          Up to {MAX_IMAGES} photos and {MAX_VIDEOS} videos (max 60s each).
+        </Text>
+        <View className="mt-3">
+          <AttachmentPreviewStrip attachments={attachments} onRemove={remove} disabled={busy} />
+        </View>
+
         <CustomButton
-          text="Submit Request"
+          text={isUploading ? 'Uploading...' : 'Submit Request'}
           handlePress={handleSubmit}
           containerStyles="min-h-[62px] mt-10"
-          isLoading={isSubmitting}
-          isDisabled={form.service === '' || form.description.trim().length < 10}
+          isLoading={busy}
+          isDisabled={form.service === '' || form.description.trim().length < 10 || busy}
         />
       </KeyboardAwareScrollView>
     </SafeAreaView>
