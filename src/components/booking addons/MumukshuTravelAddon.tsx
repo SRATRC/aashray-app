@@ -281,18 +281,6 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             maxSelectedDisplay={3}
           />
 
-          {assignment.pickup == dropdowns.LOCATION_LIST[0].value && (
-            <CustomSelectBottomSheet
-              className="mt-5"
-              label="Leaving post adhyayan?"
-              placeholder="Leaving post adhyayan?"
-              options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
-              selectedValue={assignment.adhyayan}
-              onValueChange={(val: any) => updateTravelForm(index, 'adhyayan', val)}
-              saveKeyInsteadOfValue={false}
-            />
-          )}
-
           <FormField
             text="Comments"
             value={assignment.special_request}

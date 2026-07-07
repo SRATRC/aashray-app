@@ -60,7 +60,6 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           drop: '',
           arrival_time: '',
           luggage: [],
-          adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
           type: dropdowns.BOOKING_TYPE_LIST[0].value,
           total_people: null,
           special_request: '',
@@ -243,18 +242,6 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         confirmButtonText="Select"
         maxSelectedDisplay={3}
       />
-
-      {travelForm.pickup == dropdowns.LOCATION_LIST[0].value && (
-        <CustomSelectBottomSheet
-          className="mt-7"
-          label="Leaving post adhyayan?"
-          placeholder="Leaving post adhyayan?"
-          options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
-          selectedValue={travelForm.adhyayan}
-          onValueChange={(val: any) => setTravelForm({ ...travelForm, adhyayan: val })}
-          saveKeyInsteadOfValue={false}
-        />
-      )}
 
       <FormField
         text="Comments"

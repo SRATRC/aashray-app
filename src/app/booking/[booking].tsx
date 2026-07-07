@@ -147,7 +147,6 @@ const BookingDetails = () => {
       date: initialDates.startDate,
       pickup: '',
       drop: '',
-      adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1]?.value || '',
       type: dropdowns.BOOKING_TYPE_LIST[0]?.value || '',
       arrival_time: '',
       total_people: null,
