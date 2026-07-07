@@ -4,15 +4,12 @@ import * as ImagePicker from 'expo-image-picker';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
-  AttachmentRef,
   COMPRESS_QUALITY,
   MAX_IMAGE_BYTES,
   MAX_IMAGES,
   MAX_VIDEO_BYTES,
   MAX_VIDEO_SECONDS,
   MAX_VIDEOS,
-  PendingAttachment,
-  PresignFileInput,
   formatMB,
   getFileSize,
   putToS3,
@@ -20,7 +17,8 @@ import {
   resizeAction,
   uid,
   videoContentType,
-} from '@/utils/ticketAttachments';
+} from '../attachments';
+import type { AttachmentRef, PendingAttachment, PresignFileInput } from '../types';
 
 // Thrown by upload() when the caller cancels; screens use it to skip the
 // error alert (the user initiated the stop).

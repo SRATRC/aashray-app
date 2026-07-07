@@ -19,12 +19,16 @@ import PageHeader from '@/components/PageHeader';
 import Shimmer from '@/components/Shimmer';
 import TicketMessageAttachments from '@/components/TicketMessageAttachments';
 import { status } from '@/constants';
+import {
+  AttachmentRef,
+  PendingAttachment,
+  runUpload,
+  useTicketAttachments,
+} from '@/features/support';
 import { useRefetchOnFocus } from '@/hooks/useRefetchOnFocus';
-import { useTicketAttachments } from '@/hooks/useTicketAttachments';
 import { useTicketStream } from '@/hooks/useTicketStream';
 import { useAuthStore } from '@/stores';
 import handleAPICall from '@/utils/HandleApiCall';
-import { AttachmentRef, PendingAttachment, runUpload } from '@/utils/ticketAttachments';
 import { getStatusColor } from '@/utils/ticketStatus';
 
 // Optimistic (local) media rendered on a just-sent message before the server

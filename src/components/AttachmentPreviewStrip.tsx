@@ -1,7 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
-import { PendingAttachment } from '@/utils/ticketAttachments';
+import { PendingAttachment } from '@/features/support';
 
 interface Props {
   attachments: PendingAttachment[];

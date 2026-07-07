@@ -1,61 +1,14 @@
 import { File as ExpoFile } from 'expo-file-system';
 
-import { resolveApiBaseUrl } from '@/lib/api/resolveBaseUrl';
-import handleAPICall from '@/utils/HandleApiCall';
+import type { AttachmentRef, PresignFileInput, PresignResult } from './types';
 
-// Pure (React-free) types + helpers for ticket media attachments, shared by the
+import { apiClient } from '@/lib/api/client';
+import { resolveApiBaseUrl } from '@/lib/api/resolveBaseUrl';
+
+// Pure (React-free) helpers for ticket media attachments, shared by the
 // useTicketAttachments hook and the create / chat screens. Limits mirror
 // aashray-backend/config/constants.js — the backend re-validates every batch on
 // presign and every key on attach, so these are UX-only pre-checks.
-
-export type AttachmentKind = 'image' | 'video';
-
-export type PendingStatus = 'pending' | 'uploading' | 'uploaded' | 'error';
-
-// A locally-picked (and, for images, compressed) asset staged for upload.
-export interface PendingAttachment {
-  id: string; // local uid, used for list keys + removal
-  uri: string; // local file:// uri (compressed output for images)
-  kind: AttachmentKind;
-  contentType: string; // exact type declared to presign + sent as the PUT header
-  filename: string;
-  size: number; // bytes
-  durationSec?: number; // video only
-  width?: number;
-  height?: number;
-  status: PendingStatus;
-  key?: string; // s3 key, set once presigned/uploaded
-  error?: string;
-}
-
-// The shape create/message endpoints expect in their `attachments` array.
-export interface AttachmentRef {
-  key: string;
-  contentType: string;
-  kind: AttachmentKind;
-}
-
-// The shape GET /tickets/:id returns for each stored attachment.
-export interface ServedAttachment {
-  id: number;
-  kind: AttachmentKind;
-  contentType: string;
-  url: string; // serve-endpoint PATH (not a raw S3 url); 302s to a presigned GET
-  expired: boolean;
-}
-
-export interface PresignFileInput {
-  filename: string;
-  contentType: string;
-  size: number;
-  kind: AttachmentKind;
-  durationSec?: number;
-}
-
-export interface PresignResult {
-  key: string;
-  uploadUrl: string;
-}
 
 // ---- Limits (mirror the backend) ----------------------------------------
 export const MAX_IMAGES = 5;
@@ -142,23 +95,16 @@ export function extFromContentType(contentType: string): string {
 
 // POST /tickets/attachments/presign. Returns order-matched [{ key, uploadUrl }].
 // allowToast=false: we surface upload errors ourselves (inline / CustomAlert).
-export function requestPresign(
+export async function requestPresign(
   cardno: string,
   files: PresignFileInput[]
 ): Promise<PresignResult[]> {
-  return new Promise((resolve, reject) => {
-    handleAPICall(
-      'POST',
-      '/tickets/attachments/presign',
-      null,
-      { cardno, files },
-      (res: any) => resolve(res?.data ?? []),
-      () => {},
-      (err: any) =>
-        reject(new Error(err?.message || 'Could not prepare the upload. Please try again.')),
-      false
-    );
-  });
+  const res = await apiClient.post<{ message?: string; data: PresignResult[] }>(
+    '/tickets/attachments/presign',
+    { cardno, files },
+    { allowToast: false }
+  );
+  return res.data;
 }
 
 // Upload one local file straight to S3 via its presigned PUT url. The signature

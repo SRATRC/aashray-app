@@ -13,11 +13,16 @@ import CustomButton from '@/components/CustomButton';
 import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
 import FormField from '@/components/FormField';
 import PageHeader from '@/components/PageHeader';
-import { useTicketAttachments } from '@/hooks/useTicketAttachments';
+import {
+  AttachmentRef,
+  MAX_IMAGES,
+  MAX_VIDEOS,
+  runUpload,
+  useTicketAttachments,
+} from '@/features/support';
 import { useAuthStore } from '@/stores';
 import handleAPICall from '@/utils/HandleApiCall';
 import { collectDiagnostics } from '@/utils/collectDiagnostics';
-import { AttachmentRef, MAX_IMAGES, MAX_VIDEOS, runUpload } from '@/utils/ticketAttachments';
 
 // The 12 support departments — labels + order mirror the backend's
 // TICKET_SERVICE_ROLE_MAP (config/constants.js), which is the source of truth.
