@@ -5,6 +5,7 @@ import { useAuthStore, useBookingStore } from '@/src/stores';
 import { useUtsavDate } from '@/src/hooks/useUtsavDate';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
+import CustomCalender from '../CustomCalender';
 import FormDisplayField from '../FormDisplayField';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -29,10 +30,6 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
   const mumukshuData = useBookingStore((state) => state.mumukshuData);
   const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
-  const [tempTravelDate, setTempTravelDate] = useState(
-    travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()
-  );
-
   const { isUtsavDate } = useUtsavDate();
 
   const getLocationOptions = useCallback(
@@ -56,6 +53,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
             mumukshuData.flat?.startDay ||
             mumukshuData.utsav?.utsav?.utsav_start ||
             '',
+          return_date: '',
           pickup: '',
           drop: '',
           arrival_time: '',
@@ -76,35 +74,24 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         </View>
       }
       containerStyles={'mt-3'}>
-      <FormDisplayField
-        text="Date"
-        value={travelForm.date ? moment(travelForm.date).format('Do MMMM YYYY') : ''}
-        placeholder="Date"
-        otherStyles="mt-7"
-        backgroundColor="bg-gray-100"
-        onPress={() => setDatePickerVisibility('travel', true)}
+      <Text className="mt-7 font-pmedium text-base text-gray-600">Travel Date</Text>
+      <Text className="mb-1 font-pregular text-sm text-gray-500">
+        Pick one date for a one-way trip, or select a return date too for a round trip.
+      </Text>
+      <CustomCalender
+        type={'period'}
+        startDay={travelForm.date}
+        setStartDay={(day: any) => setTravelForm({ ...travelForm, date: day, return_date: '' })}
+        endDay={travelForm.return_date}
+        setEndDay={(day: any) => setTravelForm({ ...travelForm, return_date: day || '' })}
+        minDate={moment(new Date()).format('YYYY-MM-DD')}
       />
-      <DateTimePickerModal
-        isVisible={isDatePickerVisible.travel}
-        mode="date"
-        date={tempTravelDate}
-        onConfirm={(date: Date) => {
-          // Ensure the selected date isn't before tomorrow
-          const selectedMoment = moment(date);
-          const today = moment().format('YYYY-MM-DD');
-          const validDate = selectedMoment.isBefore(today)
-            ? today
-            : selectedMoment.format('YYYY-MM-DD');
-
-          setTravelForm({
-            ...travelForm,
-            date: validDate,
-          });
-          setDatePickerVisibility('travel', false);
-        }}
-        onCancel={() => setDatePickerVisibility('travel', false)}
-        minimumDate={moment().toDate()}
-      />
+      {travelForm.return_date ? (
+        <Text className="mt-2 font-pregular text-sm text-gray-500">
+          Round trip — return (reverse route) on{' '}
+          {moment(travelForm.return_date).format('DD MMM YYYY')}.
+        </Text>
+      ) : null}
 
       <CustomSelectBottomSheet
         className="mt-7"

@@ -428,15 +428,21 @@ export const prepareMumukshuRequestBody = (user, input) => {
               },
             };
           case 'travel': {
+            const onwardGroup = transformMumukshuGroup(input[key].mumukshuGroup);
             const travelDetails = {
               date: input[key].date,
-              mumukshuGroup: transformMumukshuGroup(input[key].mumukshuGroup),
+              mumukshuGroup: onwardGroup,
             };
-            if (input[key].return_date && input[key].returnMumukshuGroup) {
+            // A return date turns this into a round trip: the return leg is the exact reverse
+            // of the onward route (pickup/drop swapped), booked on the return date.
+            if (input[key].return_date) {
               travelDetails.return_date = input[key].return_date;
-              travelDetails.returnMumukshuGroup = transformMumukshuGroup(
-                input[key].returnMumukshuGroup
-              );
+              travelDetails.returnMumukshuGroup = onwardGroup.map((g) => ({
+                ...g,
+                pickup_point: g.drop_point,
+                drop_point: g.pickup_point,
+                arrival_time: undefined,
+              }));
             }
             return {
               booking_type: key,

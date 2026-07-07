@@ -108,13 +108,10 @@ const TravelBooking = () => {
   const [activeMumukshuIndex, setActiveMumukshuIndex] = useState(null);
   const [activeGuestTravelIndex, setActiveGuestTravelIndex] = useState<number | null>(null);
 
-  // Round-trip state (applies to both Self and Mumukshu branches)
-  const [tripType, setTripType] = useState<'one_way' | 'round_trip'>('one_way');
+  // Round trip = a date RANGE (like room booking): the calendar's start day is the onward
+  // date and the end day is the return date. A single date (no end day) is one-way; when an
+  // end day is chosen the return leg is the exact reverse of the onward route on that date.
   const [returnDate, setReturnDate] = useState<string>('');
-  const [returnPickup, setReturnPickup] = useState<string>('');
-  const [returnDrop, setReturnDrop] = useState<string>('');
-  const [returnArrivalTime, setReturnArrivalTime] = useState<string>('');
-  const [isReturnDatePickerVisible, setReturnDatePickerVisibility] = useState(false);
 
   const [travelForm, setTravelForm] = useState({
     date: '',
@@ -127,10 +124,10 @@ const TravelBooking = () => {
     special_request: '',
   });
 
-  // Round trip is valid when off, or when a return date on/after the onward date is chosen
+  // One-way (no return date) is always valid; a chosen return date must be on/after onward.
   const isReturnLegValid = () => {
-    if (tripType !== 'round_trip') return true;
-    return !!returnDate && !moment(returnDate).isBefore(moment(travelForm.date), 'day');
+    if (!returnDate) return true;
+    return !moment(returnDate).isBefore(moment(travelForm.date), 'day');
   };
 
   const isSelfFormValid = () => {
@@ -363,34 +360,21 @@ const TravelBooking = () => {
     [isUtsavDate]
   );
 
-  // Default reversed route shown/used when the user hasn't overridden return pickup/drop
-  const defaultReturnPickup =
-    selectedChip == CHIPS[0]
-      ? travelForm.drop
-      : selectedChip == 'Guest'
-        ? guestTravelForm.guests[0]?.drop || ''
-        : mumukshuForm.mumukshus[0]?.drop || '';
-  const defaultReturnDrop =
-    selectedChip == CHIPS[0]
-      ? travelForm.pickup
-      : selectedChip == 'Guest'
-        ? guestTravelForm.guests[0]?.pickup || ''
-        : mumukshuForm.mumukshus[0]?.pickup || '';
-
-  // Mirrors the onward mumukshuGroup/guestGroup into a return leg, keeping the same per-group
-  // shape (pickup/drop/type/luggage/special_request/total_people/mumukshus|guests) so
-  // preparingRequestBody can run both legs through the identical transform.
+  // A round trip books a second leg that is the exact reverse of the onward route
+  // (pickup/drop swapped) on the chosen return date. Return timing is coordinated by staff,
+  // so the return leg carries no arrival_time. Both legs keep the same per-group shape so
+  // preparingRequestBody runs them through the identical transform.
   const attachReturnLeg = (temp: any) => {
-    if (tripType !== 'round_trip') return temp;
+    if (!returnDate) return temp;
 
     const sourceGroup = temp.mumukshuGroup || temp.guestGroup;
     if (!sourceGroup) return temp;
 
     const returnGroup = sourceGroup.map((g: any) => ({
       ...g,
-      pickup: returnPickup || g.drop,
-      drop: returnDrop || g.pickup,
-      arrival_time: returnArrivalTime || '',
+      pickup: g.drop,
+      drop: g.pickup,
+      arrival_time: '',
     }));
 
     const result = { ...temp, return_date: returnDate };
@@ -414,119 +398,29 @@ const TravelBooking = () => {
         showsVerticalScrollIndicator={false}
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled">
+        <Text className="font-pmedium text-base text-gray-600">Travel Date</Text>
+        <Text className="mb-1 font-pregular text-sm text-gray-500">
+          Pick one date for a one-way trip, or select a return date too for a round trip.
+        </Text>
         <CustomCalender
-          selectedDay={travelForm.date}
-          setSelectedDay={(day: any) => {
+          type={'period'}
+          startDay={travelForm.date}
+          setStartDay={(day: any) => {
             setTravelForm((prev) => ({ ...prev, date: day }));
             setMumukshuForm((prev) => ({ ...prev, date: day }));
             setGuestTravelForm((prev) => ({ ...prev, date: day }));
+            setReturnDate('');
           }}
+          endDay={returnDate}
+          setEndDay={(day: any) => setReturnDate(day || '')}
           minDate={moment(new Date()).format('YYYY-MM-DD')}
         />
-
-        <View className="mt-7 flex w-full flex-col">
-          <Text className="font-pmedium text-base text-gray-600">Trip Type</Text>
-          <CustomChipGroup
-            chips={['One-way', 'Round trip']}
-            selectedChip={tripType === 'one_way' ? 'One-way' : 'Round trip'}
-            handleChipPress={(chip: any) =>
-              setTripType(chip === 'One-way' ? 'one_way' : 'round_trip')
-            }
-            containerStyles={'mt-1'}
-            chipContainerStyles={'py-2'}
-            textStyles={'text-sm'}
-          />
-        </View>
-
-        {tripType === 'round_trip' && (
-          <View className="mt-7 flex w-full flex-col">
-            <CustomCalender
-              selectedDay={returnDate}
-              setSelectedDay={(day: any) => setReturnDate(day)}
-              minDate={travelForm.date || moment(new Date()).format('YYYY-MM-DD')}
-            />
-            <Text className="mt-2 font-pregular text-sm text-gray-500">
-              We'll book your return trip on this date. Edit the return stops below if needed.
-            </Text>
-            <Text className="mt-3 font-pregular text-xs text-gray-400">
-              Default return route: {defaultReturnPickup || '—'} → {defaultReturnDrop || '—'}{' '}
-              (reverse of onward route)
-            </Text>
-
-            <CustomSelectBottomSheet
-              className="mt-7"
-              label="Return Pickup Location"
-              placeholder="Select Return Pickup Location"
-              options={getLocationOptions(returnDate || travelForm.date)}
-              selectedValue={returnPickup || defaultReturnPickup}
-              onValueChange={(val: any) => {
-                const currentDrop = returnDrop || defaultReturnDrop;
-                let newDrop = currentDrop;
-                if (val === 'Research Centre') {
-                  newDrop = currentDrop === 'Research Centre' ? '' : currentDrop;
-                } else {
-                  newDrop = 'Research Centre';
-                }
-                setReturnPickup(val);
-                setReturnDrop(newDrop);
-                if (!requiresArrivalTime(val, newDrop)) setReturnArrivalTime('');
-              }}
-              saveKeyInsteadOfValue={false}
-            />
-
-            <CustomSelectBottomSheet
-              className="mt-7"
-              label="Return Drop Location"
-              placeholder="Select Return Drop Location"
-              options={getLocationOptions(returnDate || travelForm.date)}
-              selectedValue={returnDrop || defaultReturnDrop}
-              onValueChange={(val: any) => {
-                const currentPickup = returnPickup || defaultReturnPickup;
-                let newPickup = currentPickup;
-                if (val === 'Research Centre') {
-                  newPickup = currentPickup === 'Research Centre' ? '' : currentPickup;
-                } else {
-                  newPickup = 'Research Centre';
-                }
-                setReturnDrop(val);
-                setReturnPickup(newPickup);
-                if (!requiresArrivalTime(newPickup, val)) setReturnArrivalTime('');
-              }}
-              saveKeyInsteadOfValue={false}
-            />
-
-            {requiresArrivalTime(
-              returnPickup || defaultReturnPickup,
-              returnDrop || defaultReturnDrop
-            ) ? (
-              <>
-                <FormDisplayField
-                  text="Return Flight/Train Time"
-                  value={
-                    returnArrivalTime ? moment(returnArrivalTime, 'HH:mm').format('h:mm a') : ''
-                  }
-                  placeholder="Return Flight/Train Time"
-                  otherStyles="mt-5"
-                  inputStyles="font-pmedium text-black text-lg"
-                  backgroundColor="bg-gray-100"
-                  onPress={() => setReturnDatePickerVisibility(true)}
-                />
-                <DateTimePickerModal
-                  isVisible={isReturnDatePickerVisible}
-                  mode="time"
-                  date={
-                    returnArrivalTime ? moment(returnArrivalTime, 'HH:mm').toDate() : new Date()
-                  }
-                  onConfirm={(date: Date) => {
-                    setReturnArrivalTime(moment(date).format('HH:mm'));
-                    setReturnDatePickerVisibility(false);
-                  }}
-                  onCancel={() => setReturnDatePickerVisibility(false)}
-                />
-              </>
-            ) : null}
-          </View>
-        )}
+        {returnDate ? (
+          <Text className="mt-2 font-pregular text-sm text-gray-500">
+            Round trip — we'll book your return (reverse route) on{' '}
+            {moment(returnDate).format('DD MMM YYYY')}.
+          </Text>
+        ) : null}
 
         <View className="mt-7 flex w-full flex-col">
           <Text className="font-pmedium text-base text-gray-600">Book for</Text>

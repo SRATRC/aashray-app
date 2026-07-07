@@ -150,6 +150,7 @@ const MumukshuAddons = () => {
 
   const createInitialTravelForm = (existingData: any = null) => ({
     date: getInitialDates?.startDate || '',
+    return_date: existingData?.return_date || '',
     mumukshuGroup: existingData?.mumukshuGroup || [
       {
         pickup: '',

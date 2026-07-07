@@ -63,13 +63,13 @@ const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string)
     case 'travel':
       return {
         date: simpleForm.date,
+        return_date: simpleForm.return_date || '',
         mumukshuGroup: [
           {
             pickup: simpleForm.pickup,
             drop: simpleForm.drop,
             luggage: simpleForm.luggage,
             type: simpleForm.type,
-            adhyayan: simpleForm.adhyayan,
             arrival_time: simpleForm.arrival_time,
             total_people: simpleForm.total_people,
             special_request: simpleForm.special_request,
@@ -145,6 +145,7 @@ const BookingDetails = () => {
     },
     travel: {
       date: initialDates.startDate,
+      return_date: '',
       pickup: '',
       drop: '',
       type: dropdowns.BOOKING_TYPE_LIST[0]?.value || '',
