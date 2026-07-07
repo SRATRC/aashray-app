@@ -253,6 +253,7 @@ const MumukshuAddons = () => {
     foodEnd: false,
     travel: false,
     travel_time: false,
+    travel_return: false,
   });
 
   const toggleAddon = useCallback((addonType: any, isOpen: any) => {

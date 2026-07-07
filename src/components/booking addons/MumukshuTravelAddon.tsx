@@ -9,7 +9,6 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import FormDisplayField from '../FormDisplayField';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
-import CustomCalender from '../CustomCalender';
 import moment from 'moment';
 
 interface MumukshuTravelAddonProps {
@@ -88,17 +87,53 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
         </View>
       }
       containerStyles={'mt-3'}>
-      <Text className="mt-7 font-pmedium text-base text-gray-600">Travel Date</Text>
-      <Text className="mb-1 font-pregular text-sm text-gray-500">
-        Pick one date for a one-way trip, or select a return date too for a round trip.
-      </Text>
-      <CustomCalender
-        type={'period'}
-        startDay={travelForm.date}
-        setStartDay={(day: any) => setTravelForm({ ...travelForm, date: day, return_date: '' })}
-        endDay={travelForm.return_date}
-        setEndDay={(day: any) => setTravelForm({ ...travelForm, return_date: day || '' })}
-        minDate={moment(new Date()).format('YYYY-MM-DD')}
+      <FormDisplayField
+        text="Travel Date"
+        value={travelForm.date ? moment(travelForm.date).format('Do MMMM YYYY') : ''}
+        placeholder="Travel Date"
+        otherStyles="mt-7"
+        backgroundColor="bg-gray-100"
+        onPress={() => setDatePickerVisibility('travel', true)}
+      />
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible.travel}
+        mode="date"
+        date={travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()}
+        minimumDate={moment().toDate()}
+        onConfirm={(date: Date) => {
+          const selected = moment(date);
+          const today = moment().format('YYYY-MM-DD');
+          const validDate = selected.isBefore(today) ? today : selected.format('YYYY-MM-DD');
+          setTravelForm({ ...travelForm, date: validDate });
+          setDatePickerVisibility('travel', false);
+        }}
+        onCancel={() => setDatePickerVisibility('travel', false)}
+      />
+
+      <FormDisplayField
+        text="Return Date (optional)"
+        value={travelForm.return_date ? moment(travelForm.return_date).format('Do MMMM YYYY') : ''}
+        placeholder="Add a return date for a round trip"
+        otherStyles="mt-5"
+        backgroundColor="bg-gray-100"
+        onPress={() => setDatePickerVisibility('travel_return', true)}
+      />
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible.travel_return}
+        mode="date"
+        date={
+          travelForm.return_date
+            ? moment(travelForm.return_date).toDate()
+            : travelForm.date
+              ? moment(travelForm.date).toDate()
+              : moment().add(1, 'days').toDate()
+        }
+        minimumDate={travelForm.date ? moment(travelForm.date).toDate() : moment().toDate()}
+        onConfirm={(date: Date) => {
+          setTravelForm({ ...travelForm, return_date: moment(date).format('YYYY-MM-DD') });
+          setDatePickerVisibility('travel_return', false);
+        }}
+        onCancel={() => setDatePickerVisibility('travel_return', false)}
       />
       {travelForm.return_date ? (
         <Text className="mb-2 mt-2 font-pregular text-sm text-gray-500">

@@ -10,6 +10,8 @@ import moment from 'moment';
 const GuestTravelBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const guestData = useBookingStore((store) => store.guestData);
 
+  const isRoundTrip = !!guestData.travel?.return_date;
+
   return (
     <PrimaryAddonBookingCard containerStyles={containerStyles} title={'Raj Pravas Booking'}>
       <View className="flex flex-row items-center gap-x-4 p-4">
@@ -22,9 +24,24 @@ const GuestTravelBookingDetails: React.FC<{ containerStyles: any }> = ({ contain
               containerStyles={'bg-red-100'}
             />
           )}
+          {isRoundTrip && (
+            <CustomTag
+              text={'Round trip'}
+              textStyles={'text-blue-200'}
+              containerStyles={'bg-blue-100'}
+            />
+          )}
           <Text className="text-md font-pmedium">
             {moment(guestData.travel?.date).format('Do MMMM, YYYY')}
+            {isRoundTrip
+              ? `  →  ${moment(guestData.travel?.return_date).format('Do MMMM, YYYY')}`
+              : ''}
           </Text>
+          {isRoundTrip && (
+            <Text className="font-pregular text-xs text-gray-500">
+              Return trip runs the reverse of the onward route.
+            </Text>
+          )}
         </View>
       </View>
 

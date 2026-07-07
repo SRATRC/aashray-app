@@ -165,6 +165,7 @@ const BookingDetails = () => {
     foodEnd: false,
     travel: false,
     travel_time: false,
+    travel_return: false,
   });
 
   // Memoized handlers to prevent unnecessary re-renders
