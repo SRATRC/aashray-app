@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 import { zustandMmkvStorage } from '../lib/storage';
-import { wifiCache } from '../utils/wifiCache';
+
+import { wifiCache } from '@/lib/wifiCache';
 
 export const useAuthStore = create(
   persist(

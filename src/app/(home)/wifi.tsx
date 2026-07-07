@@ -12,9 +12,9 @@ import PageHeader from '@/components/PageHeader';
 import PermanentWifiSection from '@/components/PermanentWifiSection';
 import TemporaryWifiSection from '@/components/TemporaryWifiSection';
 import { status } from '@/constants';
+import { wifiCache } from '@/lib/wifiCache';
 import { useAuthStore } from '@/stores';
 import handleAPICall from '@/utils/HandleApiCall';
-import { wifiCache } from '@/utils/wifiCache';
 
 const wifiTutorials = {
   mumukshu: [

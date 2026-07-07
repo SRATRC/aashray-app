@@ -6,22 +6,22 @@ const storage = new MMKV({ id: 'wifi-cache' });
 // on each successful fetch and cleared on logout. All ops are best-effort — a
 // storage failure must never break a fetch or logout.
 export const wifiCache = {
-  get: (key) => {
+  get: <T = unknown>(key: string): T | null => {
     try {
       const value = storage.getString(key);
-      return value ? JSON.parse(value) : null;
+      return value ? (JSON.parse(value) as T) : null;
     } catch {
       return null;
     }
   },
-  set: (key, value) => {
+  set: (key: string, value: unknown): void => {
     try {
       storage.set(key, JSON.stringify(value));
     } catch {
       // ignore write failures
     }
   },
-  clear: () => {
+  clear: (): void => {
     try {
       storage.clearAll();
     } catch {
