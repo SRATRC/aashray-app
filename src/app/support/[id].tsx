@@ -22,6 +22,7 @@ import { status } from '@/constants';
 import {
   AttachmentRef,
   PendingAttachment,
+  getStatusColor,
   runUpload,
   useTicketAttachments,
 } from '@/features/support';
@@ -29,7 +30,6 @@ import { useRefetchOnFocus } from '@/hooks/useRefetchOnFocus';
 import { useTicketStream } from '@/hooks/useTicketStream';
 import { useAuthStore } from '@/stores';
 import handleAPICall from '@/utils/HandleApiCall';
-import { getStatusColor } from '@/utils/ticketStatus';
 
 // Optimistic (local) media rendered on a just-sent message before the server
 // echoes back the stored attachments. Tapping opens the full-screen viewer.

@@ -18,10 +18,10 @@ import CustomTag from '@/components/CustomTag';
 import PageHeader from '@/components/PageHeader';
 import { ShadowButton } from '@/components/ShadowBox';
 import { colors, icons } from '@/constants';
+import { getStatusColor } from '@/features/support';
 import { useRefetchOnFocus } from '@/hooks/useRefetchOnFocus';
 import { useAuthStore } from '@/stores';
 import handleAPICall from '@/utils/HandleApiCall';
-import { getStatusColor } from '@/utils/ticketStatus';
 
 const SupportHome = () => {
   const { user } = useAuthStore();

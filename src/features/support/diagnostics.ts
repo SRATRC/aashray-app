@@ -8,9 +8,8 @@ import * as Network from 'expo-network';
 import * as Updates from 'expo-updates';
 import { Dimensions } from 'react-native';
 
-import { useDevStore, useAuthStore } from '../stores';
-
 import { resolveApiBaseUrl } from '@/lib/api/resolveBaseUrl';
+import { useDevStore, useAuthStore } from '@/stores';
 
 /**
  * Races a promise against a timeout, resolving to `fallback` if the promise

@@ -17,12 +17,12 @@ import {
   AttachmentRef,
   MAX_IMAGES,
   MAX_VIDEOS,
+  collectDiagnostics,
   runUpload,
   useTicketAttachments,
 } from '@/features/support';
 import { useAuthStore } from '@/stores';
 import handleAPICall from '@/utils/HandleApiCall';
-import { collectDiagnostics } from '@/utils/collectDiagnostics';
 
 // The 12 support departments — labels + order mirror the backend's
 // TICKET_SERVICE_ROLE_MAP (config/constants.js), which is the source of truth.
