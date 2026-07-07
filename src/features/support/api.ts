@@ -25,9 +25,15 @@ export function useTicketList(cardno: string, pageSize = 10) {
       return Array.isArray(res.data) ? res.data : [];
     },
     initialPageParam: 1,
+    // Match the original screen exactly: advance while the last page is
+    // non-empty; stop only on an empty page (not on a short page).
     getNextPageParam: (lastPage, pages) =>
-      lastPage.length === pageSize ? pages.length + 1 : undefined,
+      !lastPage || lastPage.length === 0 ? undefined : pages.length + 1,
     enabled: !!cardno,
+    // Global default is refetchOnMount:false; the list refreshes on mount so a
+    // remounted list reflects tickets created/updated elsewhere instead of a
+    // stale cached page (useRefetchOnFocus skips its first pass).
+    refetchOnMount: 'always',
   });
 }
 
