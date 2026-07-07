@@ -2,15 +2,16 @@
 
 **Date:** 2026-07-07
 **Status:** Approved (direction) — pending spec review
-**Branch:** `worktree-refactor-modularization` (from `main`)
+**Branch:** `worktree-refactor-modularization` (from `main`, with `feat/support-ticketing` merged in so the refactor accounts for the soon-to-merge ticketing feature)
 
 ## Problem
 
 The app works but is hard to change safely and inconsistently built. Concrete, measured issues in the current `src/` (177 source files):
 
 - **Fractured styling / no consistency.** Four parallel systems: NativeWind `className` (105 files), a JS `colors` constant (50 files), **159 inline hex colors**, and `StyleSheet.create` (10 files). Colors are defined **twice** with different values — `constants/colors.js` and `tailwind.config.js`.
-- **Split-brain data layer.** A callback-style `handleAPICall` wrapper is called directly in **42 files**; React Query is used in **31 files**. Two competing fetch patterns, and the callback style fights React Query's promise model.
-- **God files.** e.g. `utsav/[id].tsx` (1281 lines), `pendingPayments.tsx` (984), `adhyayan/[id].tsx` (971), `EventsBooking.tsx` (894), `RoomBooking.tsx` (875) — each mixes data fetching, multiple form states, handlers, and layout, with heavy `any` typing.
+- **Split-brain data layer.** A callback-style `handleAPICall` wrapper is called directly in **45 files**; React Query is used in **29 files**. Two competing fetch patterns, and the callback style fights React Query's promise model.
+- **Scattered feature code (support/ticketing is the clearest case).** The merged ticketing feature already extracts logic into hooks/utils — but spread type-first across `hooks/` (`useTicketStream` 202, `useTicketAttachments` 322), `utils/` (`ticketAttachments` 225, `collectDiagnostics` 221, `ticketStatus`, `resolveBaseUrl`), and `components/` (`MediaViewer`, `AttachmentPreviewStrip`, `TicketMessageAttachments`) — plus screens in `app/support/` incl. a 536-line SSE chat god file. Nothing is co-located; some of it is actually generic infra sitting in feature-agnostic folders.
+- **God files.** e.g. `utsav/[id].tsx` (1281 lines), `pendingPayments.tsx` (984), `adhyayan/[id].tsx` (971), `EventsBooking.tsx` (894), `RoomBooking.tsx` (875), `support/[id].tsx` (536, SSE chat), plus large hooks like `useTicketAttachments` (322) — each mixes data fetching, multiple form states, handlers, and layout, with heavy `any` typing.
 - **One mega store.** `useBookingStore` holds room/travel/food/adhyayan/utsav/flat/guest/mumukshu together with defensive try/catch throughout.
 - **Type-organized, not feature-organized.** Booking logic is scattered across `app/`, `components/booking`, `components/booking addons`, `components/cancel booking`, `stores`, `utils/preparingRequestBody`.
 - **JS/TS mix.** 19 legacy `.js` files in core spots (stores, api wrapper, request-body prep, notification context). Folder names contain spaces (`booking addons`, `cancel booking`, `booking details cards`).
@@ -59,7 +60,13 @@ src/
   lib/              # typed axios client, QueryClient, MMKV storage, notifications, deeplinks
 ```
 
-**Domains:** `auth`, `onboarding`, `profile`, `services` (wifi/maintenance/menu/contact/support), `booking` (stay+food+travel+flat incl. guest/mumukshu variants, review, validation, `preparingRequestBody`), `events` (adhyayan+utsav), `payments` (pending/transactions/razorpay).
+**Domains:** `auth`, `onboarding`, `profile`, `services` (wifi/maintenance/menu/contact), `support` (ticketing — its own domain given its size: list + create + SSE chat + media), `booking` (stay+food+travel+flat incl. guest/mumukshu variants, review, validation, `preparingRequestBody`), `events` (adhyayan+utsav), `payments` (pending/transactions/razorpay).
+
+**Support-specific reclassification (from the merged ticketing feature):**
+- → `features/support/`: `app/support/*` screens, `useTicketStream`, `useTicketAttachments`, `ticketAttachments`, `ticketStatus`, `collectDiagnostics`, `TicketMessageAttachments`.
+- → `lib/`: `resolveBaseUrl` (base-URL resolution is infra; the new axios client should own it — `handleAPICall` currently duplicates this logic inline).
+- → shared `hooks/`: `useRefetchOnFocus` (generic).
+- → `components/ui/`: `MediaViewer` and `AttachmentPreviewStrip` (reusable media primitives, not ticket-specific).
 
 ## Shared conventions (the "write once, reuse anywhere" contract)
 
@@ -92,7 +99,7 @@ For each domain, **in one pass** (touch the file once), do all of:
 - Slice its state out of the mega `useBookingStore`.
 - Migrate its JS→TS; replace `any` with backend-accurate types.
 
-**Order (value/risk):** `services` → `profile` → `events` → `payments` → `booking` (biggest/riskiest last). Each domain ships & is verified independently.
+**Order (value/risk):** `support` → `services` → `profile` → `events` → `payments` → `booking` (biggest/riskiest last). `support` goes first among full domains: it's the richest end-to-end example (list + create + realtime SSE chat + media), it's already partly extracted, and it's about to merge to `main` — modularizing it early keeps it current with the refactor. Each domain ships & is verified independently.
 
 ### Phase 4 — Consolidate & ratchet
 - Delete legacy `handleAPICall`; remove old dirs (incl. space-named `booking addons/`, `cancel booking/`, `booking details cards/`); remove dead/wildcard barrels.
@@ -112,6 +119,7 @@ For each domain, **in one pass** (touch the file once), do all of:
 - **Import churn from alias/move.** Do it as mechanical codemods; lint + typecheck catch stragglers; one domain at a time in Phase 3.
 - **Backend types drift from reality.** Derive from backend source + business-logic docs; verify against `aashray` DB-schema MCP and actual responses where unsure.
 - **Booking is the riskiest domain** (mega store + `preparingRequestBody` + guest/mumukshu variants). It goes last, after the pattern is proven and every other domain is done.
+- **Support has realtime (SSE) + media upload.** `useTicketStream` (SSE + reconnect/watchdog) and the media pick/compress/upload flow are subtle — move them intact into `features/support/` without rewriting their logic; only relocate + re-type. Media primitives are generalized into `components/ui/` only where clearly reusable.
 - **Silent behavior change during god-file breakup.** Extract without rewriting logic; keep diffs mechanical and reviewable.
 
 ## Out of scope / deferred
