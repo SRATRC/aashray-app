@@ -170,17 +170,26 @@ export async function putToS3(
   contentType: string,
   signal?: AbortSignal
 ): Promise<void> {
-  const fileResp = await fetch(uri);
-  const raw = await fileResp.blob();
-  const body = raw.slice(0, raw.size, contentType);
-  const putResp = await fetch(uploadUrl, {
-    method: 'PUT',
-    body,
+  if (signal?.aborted) throw new Error('Upload cancelled');
+  // Upload the local file with expo-file-system's native binary upload rather
+  // than `fetch(uri).blob()` + a fetch PUT: React Native's fetch can't reliably
+  // read a file:// URI (it rejects with "Network request failed" before the
+  // request is even sent), so no bytes ever reach S3. `File.upload` streams the
+  // file's raw bytes (UploadType.BINARY_CONTENT by default) straight to the
+  // presigned PUT URL with the exact Content-Type the URL was signed for.
+  const task = new ExpoFile(uri).createUploadTask(uploadUrl, {
+    httpMethod: 'PUT',
     headers: { 'Content-Type': contentType },
-    signal,
   });
-  if (!putResp.ok) {
-    throw new Error(`Upload failed (HTTP ${putResp.status})`);
+  const onAbort = () => task.cancel();
+  signal?.addEventListener('abort', onAbort);
+  try {
+    const result = await task.uploadAsync();
+    if (result.status < 200 || result.status >= 300) {
+      throw new Error(`Upload failed (HTTP ${result.status})`);
+    }
+  } finally {
+    signal?.removeEventListener('abort', onAbort);
   }
 }
 

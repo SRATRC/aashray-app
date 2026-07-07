@@ -24,7 +24,13 @@ import { getStatusColor } from '@/src/utils/ticketStatus';
 import { useTicketStream } from '@/src/hooks/useTicketStream';
 import { useRefetchOnFocus } from '@/src/hooks/useRefetchOnFocus';
 import { useTicketAttachments, UPLOAD_CANCELLED } from '@/src/hooks/useTicketAttachments';
-import { AttachmentRef, PendingAttachment } from '@/src/utils/ticketAttachments';
+import {
+  AttachmentRef,
+  PendingAttachment,
+  MAX_IMAGES,
+  MAX_VIDEOS,
+} from '@/src/utils/ticketAttachments';
+import AttachmentActionSheet from '@/src/components/AttachmentActionSheet';
 
 // Optimistic (local) media rendered on a just-sent message before the server
 // echoes back the stored attachments. Tapping opens the full-screen viewer.
@@ -64,6 +70,7 @@ const TicketDetails = () => {
   const queryClient = useQueryClient();
   const [messageText, setMessageText] = useState('');
   const [copied, setCopied] = useState(false);
+  const [attachSheetOpen, setAttachSheetOpen] = useState(false);
   const [viewerItem, setViewerItem] = useState<MediaViewerItem | null>(null);
   const flatListRef = useRef<any>(null);
 
@@ -114,6 +121,8 @@ const TicketDetails = () => {
     attachments,
     canAddImage,
     canAddVideo,
+    imageCount,
+    videoCount,
     hasAttachments,
     addImages,
     addVideo,
@@ -258,13 +267,7 @@ const TicketDetails = () => {
     if (msg) CustomAlert.alert('Heads up', msg);
   };
 
-  const handleAttach = () => {
-    const buttons: any[] = [];
-    if (canAddImage) buttons.push({ text: 'Photo', onPress: handleAddImages });
-    if (canAddVideo) buttons.push({ text: 'Video', onPress: handleAddVideo });
-    buttons.push({ text: 'Cancel', style: 'cancel' });
-    CustomAlert.alert('Add attachment', undefined, buttons);
-  };
+  const handleAttach = () => setAttachSheetOpen(true);
 
   const handleSend = async () => {
     const text = messageText.trim();
@@ -544,6 +547,32 @@ const TicketDetails = () => {
       </KeyboardAvoidingView>
 
       <MediaViewer visible={!!viewerItem} item={viewerItem} onClose={() => setViewerItem(null)} />
+
+      <AttachmentActionSheet
+        visible={attachSheetOpen}
+        onClose={() => setAttachSheetOpen(false)}
+        title="Add photo or video"
+        options={[
+          {
+            icon: 'image',
+            label: 'Photo',
+            subtitle: canAddImage
+              ? `JPEG · up to ${MAX_IMAGES}${imageCount ? ` · ${imageCount} added` : ''}`
+              : `Limit reached (${MAX_IMAGES})`,
+            disabled: !canAddImage,
+            onPress: handleAddImages,
+          },
+          {
+            icon: 'video',
+            label: 'Video',
+            subtitle: canAddVideo
+              ? `Up to ${MAX_VIDEOS} · max 60s${videoCount ? ` · ${videoCount} added` : ''}`
+              : `Limit reached (${MAX_VIDEOS})`,
+            disabled: !canAddVideo,
+            onPress: handleAddVideo,
+          },
+        ]}
+      />
     </SafeAreaView>
   );
 };

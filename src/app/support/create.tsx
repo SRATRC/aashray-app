@@ -1,4 +1,4 @@
-import { Platform, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -10,8 +10,9 @@ import PageHeader from '@/src/components/PageHeader';
 import FormField from '@/src/components/FormField';
 import CustomButton from '@/src/components/CustomButton';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
-import CustomAlert from '@/src/components/CustomAlert';
+import Toast from 'react-native-toast-message';
 import AttachmentPreviewStrip from '@/src/components/AttachmentPreviewStrip';
+import AttachmentActionSheet from '@/src/components/AttachmentActionSheet';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import { collectDiagnostics } from '@/src/utils/collectDiagnostics';
 import { useTicketAttachments, UPLOAD_CANCELLED } from '@/src/hooks/useTicketAttachments';
@@ -46,6 +47,7 @@ const CreateTicket = () => {
     description: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [attachSheetOpen, setAttachSheetOpen] = useState(false);
 
   const {
     attachments,
@@ -67,7 +69,7 @@ const CreateTicket = () => {
   const handleClose = () => {
     const dirty = form.service.trim() !== '' || form.description.trim() !== '' || hasAttachments;
     if (dirty) {
-      CustomAlert.alert('Discard Changes?', 'You have unsaved changes that will be lost.', [
+      Alert.alert('Discard Changes?', 'You have unsaved changes that will be lost.', [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Discard',
@@ -85,17 +87,17 @@ const CreateTicket = () => {
 
   const handleAddImages = async () => {
     const msg = await addImages();
-    if (msg) CustomAlert.alert('Heads up', msg);
+    if (msg) Alert.alert('Heads up', msg);
   };
 
   const handleAddVideo = async () => {
     const msg = await addVideo();
-    if (msg) CustomAlert.alert('Heads up', msg);
+    if (msg) Alert.alert('Heads up', msg);
   };
 
   const handleSubmit = async () => {
     if (form.service.trim() === '') {
-      CustomAlert.alert('Error', 'Please select a service type');
+      Alert.alert('Error', 'Please select a service type');
       return;
     }
 
@@ -103,7 +105,7 @@ const CreateTicket = () => {
     // tickets are valid (the backend accepts them), so staged media can stand
     // in for the 10-char minimum.
     if (form.description.trim().length < 10 && !hasAttachments) {
-      CustomAlert.alert(
+      Alert.alert(
         'Error',
         'Please describe your issue (at least 10 characters) or add a photo/video.'
       );
@@ -120,7 +122,7 @@ const CreateTicket = () => {
     } catch (err: any) {
       setIsSubmitting(false);
       if (err?.message === UPLOAD_CANCELLED) return;
-      CustomAlert.alert('Upload failed', err?.message || 'Could not upload your attachments.');
+      Alert.alert('Upload failed', err?.message || 'Could not upload your attachments.');
       return;
     }
 
@@ -134,11 +136,16 @@ const CreateTicket = () => {
 
     const onSuccess = async () => {
       await queryClient.invalidateQueries({ queryKey: ['tickets', user.cardno] });
-      CustomAlert.alert(
-        'Request Submitted',
-        "We've received your request. Our team typically responds within 3 business days — you'll be notified here as soon as there's an update.",
-        [{ text: 'OK', onPress: () => router.back() }]
-      );
+      // Close the modal first, then confirm via a toast. (A modal-presented
+      // screen can't reliably show the root CustomAlert/Modal over itself on
+      // iOS, which is what previously left the screen stuck; the toast renders
+      // on the list once this screen has closed.)
+      router.back();
+      Toast.show({
+        type: 'success',
+        text1: 'Request submitted',
+        text2: "We typically respond within 3 business days — you'll be notified here.",
+      });
     };
 
     const onFinally = () => {
@@ -146,7 +153,7 @@ const CreateTicket = () => {
     };
 
     const onError = (error: any) => {
-      CustomAlert.alert('Error', error.message);
+      Alert.alert('Error', error.message);
     };
 
     await handleAPICall(
@@ -205,32 +212,22 @@ const CreateTicket = () => {
 
         {/* Attachments */}
         <Text className="mb-2 mt-7 font-pmedium text-base text-black">Attachments (optional)</Text>
-        <View className="flex-row gap-x-3">
-          <TouchableOpacity
-            onPress={handleAddImages}
-            disabled={!canAddImage || busy}
-            activeOpacity={0.7}
-            className={`flex-1 flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 bg-gray-50 py-3 ${
-              !canAddImage || busy ? 'opacity-40' : ''
-            }`}>
-            <FontAwesome5 name="image" size={15} color="#4B5563" />
-            <Text className="font-pmedium text-sm text-gray-700">
-              Photo{imageCount ? ` (${imageCount}/${MAX_IMAGES})` : ''}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleAddVideo}
-            disabled={!canAddVideo || busy}
-            activeOpacity={0.7}
-            className={`flex-1 flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 bg-gray-50 py-3 ${
-              !canAddVideo || busy ? 'opacity-40' : ''
-            }`}>
-            <FontAwesome5 name="video" size={15} color="#4B5563" />
-            <Text className="font-pmedium text-sm text-gray-700">
-              Video{videoCount ? ` (${videoCount}/${MAX_VIDEOS})` : ''}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          onPress={() => setAttachSheetOpen(true)}
+          disabled={busy || (!canAddImage && !canAddVideo)}
+          activeOpacity={0.7}
+          className={`flex-row items-center justify-center gap-x-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 py-3.5 ${
+            busy || (!canAddImage && !canAddVideo) ? 'opacity-40' : ''
+          }`}>
+          <FontAwesome5 name="paperclip" size={14} color="#4B5563" />
+          <Text className="font-pmedium text-sm text-gray-700">
+            {!canAddImage && !canAddVideo
+              ? 'Attachment limit reached'
+              : `Add photo or video${
+                  imageCount || videoCount ? ` (${imageCount + videoCount} added)` : ''
+                }`}
+          </Text>
+        </TouchableOpacity>
         <Text className="mt-2 font-pregular text-xs text-gray-400">
           Up to {MAX_IMAGES} photos and {MAX_VIDEOS} videos (max 60s each).
         </Text>
@@ -248,6 +245,32 @@ const CreateTicket = () => {
           }
         />
       </KeyboardAwareScrollView>
+
+      <AttachmentActionSheet
+        visible={attachSheetOpen}
+        onClose={() => setAttachSheetOpen(false)}
+        title="Add photo or video"
+        options={[
+          {
+            icon: 'image',
+            label: 'Photo',
+            subtitle: canAddImage
+              ? `JPEG · up to ${MAX_IMAGES}${imageCount ? ` · ${imageCount} added` : ''}`
+              : `Limit reached (${MAX_IMAGES})`,
+            disabled: !canAddImage,
+            onPress: handleAddImages,
+          },
+          {
+            icon: 'video',
+            label: 'Video',
+            subtitle: canAddVideo
+              ? `Up to ${MAX_VIDEOS} · max 60s${videoCount ? ` · ${videoCount} added` : ''}`
+              : `Limit reached (${MAX_VIDEOS})`,
+            disabled: !canAddVideo,
+            onPress: handleAddVideo,
+          },
+        ]}
+      />
     </SafeAreaView>
   );
 };
