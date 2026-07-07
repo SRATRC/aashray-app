@@ -97,7 +97,39 @@
   },
   "eslintConfig": {
     "extends": "universe/native",
-    "root": true
+    "root": true,
+    "rules": {
+      "no-restricted-imports": [
+        "error",
+        {
+          "patterns": [
+            {
+              "group": [
+                "axios"
+              ],
+              "message": "Import the shared apiClient from @/lib/api/client instead of axios directly."
+            },
+            {
+              "group": [
+                "@/features/*/*"
+              ],
+              "message": "Import a feature only through its public entry (@/features/<name>), not its internals."
+            }
+          ]
+        }
+      ]
+    },
+    "overrides": [
+      {
+        "files": [
+          "src/lib/api/client.ts",
+          "src/utils/updateManager.tsx"
+        ],
+        "rules": {
+          "no-restricted-imports": "off"
+        }
+      }
+    ]
   },
   "private": true
 }
