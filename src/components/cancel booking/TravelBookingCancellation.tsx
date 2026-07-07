@@ -23,6 +23,7 @@ import ExpandableItem from '../ExpandableItem';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import BookingStatusDisplay from '../BookingStatusDisplay';
+import CustomTag from '../CustomTag';
 import moment from 'moment';
 
 const TravelBookingCancellation = () => {
@@ -188,6 +189,13 @@ const TravelBookingCancellation = () => {
               bookingStatus={item.status}
               transactionStatus={item.transaction_status}
             />
+            {item.trip_group_id && (
+              <CustomTag
+                text="Round trip"
+                textStyles={'text-blue-600'}
+                containerStyles={'bg-blue-100'}
+              />
+            )}
             <Text className="font-pmedium">{moment(item.date).format('Do MMMM, YYYY')}</Text>
             <Text className="font-pmedium text-secondary">
               {item.pickup_point == 'Research Centre'
