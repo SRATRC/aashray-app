@@ -5,10 +5,10 @@ import * as Linking from 'expo-linking';
 import React, { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 
-import UpdateModal, { UpdateInfo } from '@/src/components/UpdateModal';
-import { BASE_URL } from '@/src/constants';
-import { getSnoozeUntil, setSnoozeUntil } from '@/src/utils/updatePrefs';
-import { isNewerVersion } from '@/src/utils/version';
+import UpdateModal, { UpdateInfo } from '@/components/UpdateModal';
+import { BASE_URL } from '@/constants';
+import { getSnoozeUntil, setSnoozeUntil } from '@/utils/updatePrefs';
+import { isNewerVersion } from '@/utils/version';
 
 interface ApiResponse {
   message?: string;

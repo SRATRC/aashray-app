@@ -2,8 +2,8 @@ import * as Linking from 'expo-linking';
 import { useRouter, useSegments } from 'expo-router';
 import { useEffect, useRef, useCallback } from 'react';
 
-import { ParsedDeepLink, DeepLinkType } from '@/src/types/deeplink';
-import { parseDeepLink, buildRoute } from '@/src/utils/deeplinkParser';
+import { ParsedDeepLink, DeepLinkType } from '@/types/deeplink';
+import { parseDeepLink, buildRoute } from '@/utils/deeplinkParser';
 
 interface UseDeepLinkHandlerProps {
   isAuthenticated: boolean;

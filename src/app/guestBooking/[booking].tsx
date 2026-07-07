@@ -5,23 +5,23 @@ import { View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import Callout from '@/src/components/Callout';
-import CustomAlert from '@/src/components/CustomAlert';
-import CustomButton from '@/src/components/CustomButton';
-import CustomModal from '@/src/components/CustomModal';
-import PageHeader from '@/src/components/PageHeader';
-import { ShadowBox } from '@/src/components/ShadowBox';
-import GuestAdhyayanAddon from '@/src/components/booking addons/GuestAdhyayanAddon';
-import GuestFoodAddon from '@/src/components/booking addons/GuestFoodAddon';
-import GuestRoomAddon from '@/src/components/booking addons/GuestRoomAddon';
-import GuestAdhyayanBookingDetails from '@/src/components/booking details cards/GuestAdhyayanBookingDetails';
-import GuestEventBookingDetails from '@/src/components/booking details cards/GuestEventBookingDetails';
-import GuestFlatBookingDetails from '@/src/components/booking details cards/GuestFlatBookingDetails';
-import GuestRoomBookingDetails from '@/src/components/booking details cards/GuestRoomBookingDetails';
-import { dropdowns, types } from '@/src/constants';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import { prepareGuestRequestBody } from '@/src/utils/preparingRequestBody';
+import Callout from '@/components/Callout';
+import CustomAlert from '@/components/CustomAlert';
+import CustomButton from '@/components/CustomButton';
+import CustomModal from '@/components/CustomModal';
+import PageHeader from '@/components/PageHeader';
+import { ShadowBox } from '@/components/ShadowBox';
+import GuestAdhyayanAddon from '@/components/booking addons/GuestAdhyayanAddon';
+import GuestFoodAddon from '@/components/booking addons/GuestFoodAddon';
+import GuestRoomAddon from '@/components/booking addons/GuestRoomAddon';
+import GuestAdhyayanBookingDetails from '@/components/booking details cards/GuestAdhyayanBookingDetails';
+import GuestEventBookingDetails from '@/components/booking details cards/GuestEventBookingDetails';
+import GuestFlatBookingDetails from '@/components/booking details cards/GuestFlatBookingDetails';
+import GuestRoomBookingDetails from '@/components/booking details cards/GuestRoomBookingDetails';
+import { dropdowns, types } from '@/constants';
+import { useAuthStore, useBookingStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
+import { prepareGuestRequestBody } from '@/utils/preparingRequestBody';
 
 // Define initial form structures
 const createInitialRoomForm = (existingData: any = null) => ({

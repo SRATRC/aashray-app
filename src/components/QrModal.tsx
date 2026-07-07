@@ -15,7 +15,7 @@ import {
 import QRCodeStyled from 'react-native-qrcode-styled';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useAuthStore } from '@/src/stores';
+import { useAuthStore } from '@/stores';
 
 // @ts-ignore
 

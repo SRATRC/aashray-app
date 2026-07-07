@@ -4,13 +4,13 @@ import moment from 'moment';
 import { useState } from 'react';
 import { View, Platform, Text } from 'react-native';
 
-import CustomButton from '@/src/components/CustomButton';
-import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
-import ErrorText from '@/src/components/ErrorText';
-import FormDisplayField from '@/src/components/FormDisplayField';
-import FormField from '@/src/components/FormField';
-import { dropdowns } from '@/src/constants';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import CustomButton from '@/components/CustomButton';
+import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
+import ErrorText from '@/components/ErrorText';
+import FormDisplayField from '@/components/FormDisplayField';
+import FormField from '@/components/FormField';
+import { dropdowns } from '@/constants';
+import handleAPICall from '@/utils/HandleApiCall';
 
 export interface ProfileFormData {
   issuedto: string;

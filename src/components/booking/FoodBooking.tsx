@@ -17,11 +17,11 @@ import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 
-import { colors, dropdowns, status } from '@/src/constants';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
-import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
+import { colors, dropdowns, status } from '@/constants';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
+import { useAuthStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
+import { prepareMumukshuRequestBody } from '@/utils/preparingRequestBody';
 
 // @ts-ignore
 

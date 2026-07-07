@@ -13,15 +13,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
-import CustomTag from '@/src/components/CustomTag';
-import PageHeader from '@/src/components/PageHeader';
-import { ShadowButton } from '@/src/components/ShadowBox';
-import { colors, icons } from '@/src/constants';
-import { useRefetchOnFocus } from '@/src/hooks/useRefetchOnFocus';
-import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import { getStatusColor } from '@/src/utils/ticketStatus';
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
+import CustomTag from '@/components/CustomTag';
+import PageHeader from '@/components/PageHeader';
+import { ShadowButton } from '@/components/ShadowBox';
+import { colors, icons } from '@/constants';
+import { useRefetchOnFocus } from '@/hooks/useRefetchOnFocus';
+import { useAuthStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
+import { getStatusColor } from '@/utils/ticketStatus';
 
 const SupportHome = () => {
   const { user } = useAuthStore();

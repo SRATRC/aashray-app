@@ -3,13 +3,13 @@ import React, { useState, useCallback } from 'react';
 import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import CustomChipGroup from '@/src/components/CustomChipGroup';
-import AdhyayanBookingCancellation from '@/src/components/cancel booking/AdhyayanBookingCancellation';
-import EventBookingCancellation from '@/src/components/cancel booking/EventBookingCancellation';
-import FoodBookingCancellation from '@/src/components/cancel booking/FoodBookingCancellation';
-import RoomBookingCancellation from '@/src/components/cancel booking/RoomBookingCancellation';
-import TravelBookingCancellation from '@/src/components/cancel booking/TravelBookingCancellation';
-import { types } from '@/src/constants';
+import CustomChipGroup from '@/components/CustomChipGroup';
+import AdhyayanBookingCancellation from '@/components/cancel booking/AdhyayanBookingCancellation';
+import EventBookingCancellation from '@/components/cancel booking/EventBookingCancellation';
+import FoodBookingCancellation from '@/components/cancel booking/FoodBookingCancellation';
+import RoomBookingCancellation from '@/components/cancel booking/RoomBookingCancellation';
+import TravelBookingCancellation from '@/components/cancel booking/TravelBookingCancellation';
+import { types } from '@/constants';
 
 const BookingCategories = () => {
   const queryClient = useQueryClient();

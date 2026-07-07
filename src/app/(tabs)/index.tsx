@@ -13,10 +13,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import CustomHomeIcon from '@/src/components/CustomHomeIcon';
-import { useBottomTabOverflow } from '@/src/components/TabBarBackground';
-import { icons, images, quotes } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
+import CustomHomeIcon from '@/components/CustomHomeIcon';
+import { useBottomTabOverflow } from '@/components/TabBarBackground';
+import { icons, images, quotes } from '@/constants';
+import { useAuthStore } from '@/stores';
 
 const QuotesBanner = ({ user, images }: any) => {
   const randomQuote = useMemo(() => {

@@ -1,4 +1,4 @@
-import type { Question } from '@/src/components/SteppedFeedback/types';
+import type { Question } from '@/components/SteppedFeedback/types';
 
 export const ADHYAYAN_QUESTIONS: Question[] = [
   {

@@ -19,14 +19,14 @@ import RazorpayCheckout from 'react-native-razorpay';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
-import CustomButton from '@/src/components/CustomButton';
-import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
-import CustomErrorMessage from '@/src/components/CustomErrorMessage';
-import CustomModal from '@/src/components/CustomModal';
-import PageHeader from '@/src/components/PageHeader';
-import { colors, icons } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import CustomButton from '@/components/CustomButton';
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
+import CustomErrorMessage from '@/components/CustomErrorMessage';
+import CustomModal from '@/components/CustomModal';
+import PageHeader from '@/components/PageHeader';
+import { colors, icons } from '@/constants';
+import { useAuthStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
 
 // @ts-ignore
 

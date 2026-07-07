@@ -4,9 +4,9 @@ import { useEffect, useRef, useMemo } from 'react';
 import { View, Text, Image, TouchableOpacity, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import CustomButton from '@/src/components/CustomButton';
-import { icons, quotes } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
+import CustomButton from '@/components/CustomButton';
+import { icons, quotes } from '@/constants';
+import { useAuthStore } from '@/stores';
 
 const BookingSuccess = () => {
   const { user } = useAuthStore();

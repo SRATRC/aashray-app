@@ -9,11 +9,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import CustomButton from '@/src/components/CustomButton';
-import { colors, icons, images } from '@/src/constants';
-import { useQuickImagePicker } from '@/src/hooks/useQuickImagePicker';
-import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import CustomButton from '@/components/CustomButton';
+import { colors, icons, images } from '@/constants';
+import { useQuickImagePicker } from '@/hooks/useQuickImagePicker';
+import { useAuthStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
 
 const ImageCaptureOnboarding: React.FC = () => {
   const user = useAuthStore((state) => state.user);

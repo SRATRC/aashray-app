@@ -5,24 +5,24 @@ import { View, Text, ActivityIndicator } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import Callout from '@/src/components/Callout';
-import CustomAlert from '@/src/components/CustomAlert';
-import CustomButton from '@/src/components/CustomButton';
-import CustomModal from '@/src/components/CustomModal';
-import PageHeader from '@/src/components/PageHeader';
-import { ShadowBox } from '@/src/components/ShadowBox';
-import AdhyayanAddon from '@/src/components/booking addons/AdhyayanAddon';
-import FoodAddon from '@/src/components/booking addons/FoodAddon';
-import RoomAddon from '@/src/components/booking addons/RoomAddon';
-import TravelAddon from '@/src/components/booking addons/TravelAddon';
-import AdhyayanBookingDetails from '@/src/components/booking details cards/AdhyayanBookingDetails';
-import EventBookingDetails from '@/src/components/booking details cards/EventBookingDetails';
-import RoomBookingDetails from '@/src/components/booking details cards/RoomBookingDetails';
-import TravelBookingDetails from '@/src/components/booking details cards/TravelBookingDetails';
-import { dropdowns, types } from '@/src/constants';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
+import Callout from '@/components/Callout';
+import CustomAlert from '@/components/CustomAlert';
+import CustomButton from '@/components/CustomButton';
+import CustomModal from '@/components/CustomModal';
+import PageHeader from '@/components/PageHeader';
+import { ShadowBox } from '@/components/ShadowBox';
+import AdhyayanAddon from '@/components/booking addons/AdhyayanAddon';
+import FoodAddon from '@/components/booking addons/FoodAddon';
+import RoomAddon from '@/components/booking addons/RoomAddon';
+import TravelAddon from '@/components/booking addons/TravelAddon';
+import AdhyayanBookingDetails from '@/components/booking details cards/AdhyayanBookingDetails';
+import EventBookingDetails from '@/components/booking details cards/EventBookingDetails';
+import RoomBookingDetails from '@/components/booking details cards/RoomBookingDetails';
+import TravelBookingDetails from '@/components/booking details cards/TravelBookingDetails';
+import { dropdowns, types } from '@/constants';
+import { useAuthStore, useBookingStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
+import { prepareMumukshuRequestBody } from '@/utils/preparingRequestBody';
 
 // Transform simple form to mumukshu format for API compatibility
 const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string) => {

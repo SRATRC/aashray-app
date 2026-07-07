@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-import { useBottomTabOverflow } from '@/src/components/TabBarBackground';
+import { useBottomTabOverflow } from '@/components/TabBarBackground';
 
 /**
  * Custom hook to get the appropriate bottom padding for scrollable content

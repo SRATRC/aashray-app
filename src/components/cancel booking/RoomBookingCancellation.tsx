@@ -19,11 +19,11 @@ import ExpandableItem from '../ExpandableItem';
 import HorizontalSeparator from '../HorizontalSeparator';
 import OldBookingsTrigger from '../OldBookingsTrigger';
 
-import { icons, status } from '@/src/constants';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
-import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import { splitActiveAndPastBookings } from '@/src/utils/bookingHistoryFilter';
+import { icons, status } from '@/constants';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
+import { useAuthStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
+import { splitActiveAndPastBookings } from '@/utils/bookingHistoryFilter';
 
 const RoomBookingCancellation: React.FC = () => {
   const { user } = useAuthStore();

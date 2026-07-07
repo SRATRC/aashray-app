@@ -8,9 +8,9 @@ import CustomEmptyMessage from '../CustomEmptyMessage';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import HorizontalSeparator from '../HorizontalSeparator';
 
-import { icons } from '@/src/constants';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import { icons } from '@/constants';
+import { useAuthStore, useBookingStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
 
 interface MumukshuAdhyayanAddonProps {
   adhyayanForm: any;

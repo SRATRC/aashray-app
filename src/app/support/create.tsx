@@ -8,16 +8,16 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
-import AttachmentPreviewStrip from '@/src/components/AttachmentPreviewStrip';
-import CustomButton from '@/src/components/CustomButton';
-import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
-import FormField from '@/src/components/FormField';
-import PageHeader from '@/src/components/PageHeader';
-import { useTicketAttachments } from '@/src/hooks/useTicketAttachments';
-import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import { collectDiagnostics } from '@/src/utils/collectDiagnostics';
-import { AttachmentRef, MAX_IMAGES, MAX_VIDEOS, runUpload } from '@/src/utils/ticketAttachments';
+import AttachmentPreviewStrip from '@/components/AttachmentPreviewStrip';
+import CustomButton from '@/components/CustomButton';
+import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
+import FormField from '@/components/FormField';
+import PageHeader from '@/components/PageHeader';
+import { useTicketAttachments } from '@/hooks/useTicketAttachments';
+import { useAuthStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
+import { collectDiagnostics } from '@/utils/collectDiagnostics';
+import { AttachmentRef, MAX_IMAGES, MAX_VIDEOS, runUpload } from '@/utils/ticketAttachments';
 
 // The 12 support departments — labels + order mirror the backend's
 // TICKET_SERVICE_ROLE_MAP (config/constants.js), which is the source of truth.

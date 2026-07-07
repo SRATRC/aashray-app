@@ -22,10 +22,10 @@ import CustomEmptyMessage from '../CustomEmptyMessage';
 import { ShadowBox } from '../ShadowBox';
 import { useBottomTabOverflow } from '../TabBarBackground';
 
-import { icons } from '@/src/constants';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
-import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import { icons } from '@/constants';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
+import { useAuthStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
 
 const FOOD_TYPE_LIST = [
   { key: 'breakfast', value: 'Breakfast' },

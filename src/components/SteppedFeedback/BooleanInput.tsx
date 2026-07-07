@@ -1,7 +1,7 @@
 import React from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '@/src/constants';
+import { colors } from '@/constants';
 
 type BooleanInputProps = {
   value: boolean | undefined;

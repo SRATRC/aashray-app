@@ -4,11 +4,11 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
-import PageHeader from '@/src/components/PageHeader';
-import Shimmer from '@/src/components/Shimmer';
-import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
+import PageHeader from '@/components/PageHeader';
+import Shimmer from '@/components/Shimmer';
+import { useAuthStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
 
 interface Meal {
   _id: string;

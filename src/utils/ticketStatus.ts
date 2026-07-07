@@ -1,4 +1,4 @@
-import { status } from '@/src/constants';
+import { status } from '@/constants';
 
 export const getStatusColor = (ticketStatus: string) => {
   switch (ticketStatus) {

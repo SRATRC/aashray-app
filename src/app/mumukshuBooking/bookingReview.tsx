@@ -8,21 +8,21 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import RazorpayCheckout from 'react-native-razorpay';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import ChargeBreakdownBottomSheet from '@/src/components/ChargeBreakdownBottomSheet';
-import CustomButton from '@/src/components/CustomButton';
-import CustomModal from '@/src/components/CustomModal';
-import PageHeader from '@/src/components/PageHeader';
-import { ShadowBox } from '@/src/components/ShadowBox';
-import MumukshuAdhyayanBookingDetails from '@/src/components/booking details cards/MumukshuAdhyayanBookingDetails';
-import MumukshuEventBookingDetails from '@/src/components/booking details cards/MumukshuEventBookingDetails';
-import MumukshuFlatBookingDetails from '@/src/components/booking details cards/MumukshuFlatBookingDetails';
-import MumukshuFoodBookingDetails from '@/src/components/booking details cards/MumukshuFoodBookingDetails';
-import MumukshuRoomBookingDetails from '@/src/components/booking details cards/MumukshuRoomBookingDetails';
-import MumukshuTravelBookingDetails from '@/src/components/booking details cards/MumukshuTravelBookingDetails';
-import { colors } from '@/src/constants';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
+import ChargeBreakdownBottomSheet from '@/components/ChargeBreakdownBottomSheet';
+import CustomButton from '@/components/CustomButton';
+import CustomModal from '@/components/CustomModal';
+import PageHeader from '@/components/PageHeader';
+import { ShadowBox } from '@/components/ShadowBox';
+import MumukshuAdhyayanBookingDetails from '@/components/booking details cards/MumukshuAdhyayanBookingDetails';
+import MumukshuEventBookingDetails from '@/components/booking details cards/MumukshuEventBookingDetails';
+import MumukshuFlatBookingDetails from '@/components/booking details cards/MumukshuFlatBookingDetails';
+import MumukshuFoodBookingDetails from '@/components/booking details cards/MumukshuFoodBookingDetails';
+import MumukshuRoomBookingDetails from '@/components/booking details cards/MumukshuRoomBookingDetails';
+import MumukshuTravelBookingDetails from '@/components/booking details cards/MumukshuTravelBookingDetails';
+import { colors } from '@/constants';
+import { useAuthStore, useBookingStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
+import { prepareMumukshuRequestBody } from '@/utils/preparingRequestBody';
 
 // @ts-ignore
 

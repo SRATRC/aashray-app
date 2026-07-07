@@ -8,20 +8,20 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import RazorpayCheckout from 'react-native-razorpay';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import ChargeBreakdownBottomSheet from '@/src/components/ChargeBreakdownBottomSheet';
-import CustomButton from '@/src/components/CustomButton';
-import CustomModal from '@/src/components/CustomModal';
-import PageHeader from '@/src/components/PageHeader';
-import { ShadowBox } from '@/src/components/ShadowBox';
-import GuestAdhyayanBookingDetails from '@/src/components/booking details cards/GuestAdhyayanBookingDetails';
-import GuestEventBookingDetails from '@/src/components/booking details cards/GuestEventBookingDetails';
-import GuestFlatBookingDetails from '@/src/components/booking details cards/GuestFlatBookingDetails';
-import GuestFoodBookingDetails from '@/src/components/booking details cards/GuestFoodBookingDetails';
-import GuestRoomBookingDetails from '@/src/components/booking details cards/GuestRoomBookingDetails';
-import { colors } from '@/src/constants';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import { prepareGuestRequestBody } from '@/src/utils/preparingRequestBody';
+import ChargeBreakdownBottomSheet from '@/components/ChargeBreakdownBottomSheet';
+import CustomButton from '@/components/CustomButton';
+import CustomModal from '@/components/CustomModal';
+import PageHeader from '@/components/PageHeader';
+import { ShadowBox } from '@/components/ShadowBox';
+import GuestAdhyayanBookingDetails from '@/components/booking details cards/GuestAdhyayanBookingDetails';
+import GuestEventBookingDetails from '@/components/booking details cards/GuestEventBookingDetails';
+import GuestFlatBookingDetails from '@/components/booking details cards/GuestFlatBookingDetails';
+import GuestFoodBookingDetails from '@/components/booking details cards/GuestFoodBookingDetails';
+import GuestRoomBookingDetails from '@/components/booking details cards/GuestRoomBookingDetails';
+import { colors } from '@/constants';
+import { useAuthStore, useBookingStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
+import { prepareGuestRequestBody } from '@/utils/preparingRequestBody';
 
 // @ts-ignore
 

@@ -9,8 +9,8 @@ import FormDisplayField from '../FormDisplayField';
 import FormField from '../FormField';
 import HorizontalSeparator from '../HorizontalSeparator';
 
-import { icons, colors, dropdowns } from '@/src/constants';
-import { useUtsavDate } from '@/src/hooks/useUtsavDate';
+import { icons, colors, dropdowns } from '@/constants';
+import { useUtsavDate } from '@/hooks/useUtsavDate';
 
 interface MumukshuTravelAddonProps {
   travelForm: any;

@@ -7,9 +7,9 @@ import AddonItem from '../AddonItem';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import HorizontalSeparator from '../HorizontalSeparator';
 
-import { icons, types } from '@/src/constants';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import { icons, types } from '@/constants';
+import { useAuthStore, useBookingStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
 
 interface AdhyayanAddonProps {
   adhyayanBookingList: any;

@@ -1,4 +1,4 @@
-import { DeepLinkType } from '@/src/types/deeplink';
+import { DeepLinkType } from '@/types/deeplink';
 
 export interface DeeplinkRoute {
   name: DeepLinkType;

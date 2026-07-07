@@ -9,14 +9,14 @@ import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 
-import CustomButton from '@/src/components/CustomButton';
-import CustomCalender from '@/src/components/CustomCalender';
-import CustomChipGroup from '@/src/components/CustomChipGroup';
-import SegmentedControl from '@/src/components/SegmentedControl';
-import { types, dropdowns, status } from '@/src/constants';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import CustomButton from '@/components/CustomButton';
+import CustomCalender from '@/components/CustomCalender';
+import CustomChipGroup from '@/components/CustomChipGroup';
+import SegmentedControl from '@/components/SegmentedControl';
+import { types, dropdowns, status } from '@/constants';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
+import { useAuthStore, useBookingStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
 
 const SWITCH_OPTIONS = ['Select Dates', 'One Day Visit'];
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];

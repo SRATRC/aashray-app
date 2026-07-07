@@ -27,10 +27,10 @@ import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import { ShadowBox } from '../ShadowBox';
 
-import { status, types } from '@/src/constants';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import { status, types } from '@/constants';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
+import { useAuthStore, useBookingStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
 
 const CHIPS = ['Self', 'Guest', 'Mumukshus'];
 const ARRIVAL = [

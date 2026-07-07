@@ -14,19 +14,19 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import CustomAlert from '@/src/components/CustomAlert';
-import CustomButton from '@/src/components/CustomButton';
-import CustomChipGroup from '@/src/components/CustomChipGroup';
-import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
-import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
-import CustomTag from '@/src/components/CustomTag';
-import ExpandableItem from '@/src/components/ExpandableItem';
-import FormField from '@/src/components/FormField';
-import HorizontalSeparator from '@/src/components/HorizontalSeparator';
-import PageHeader from '@/src/components/PageHeader';
-import { colors, icons, status, types } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import CustomAlert from '@/components/CustomAlert';
+import CustomButton from '@/components/CustomButton';
+import CustomChipGroup from '@/components/CustomChipGroup';
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
+import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
+import CustomTag from '@/components/CustomTag';
+import ExpandableItem from '@/components/ExpandableItem';
+import FormField from '@/components/FormField';
+import HorizontalSeparator from '@/components/HorizontalSeparator';
+import PageHeader from '@/components/PageHeader';
+import { colors, icons, status, types } from '@/constants';
+import { useAuthStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
 
 const CHIPS = [
   types.MAINTENANCE_TYPE_ALL,

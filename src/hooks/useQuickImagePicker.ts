@@ -3,9 +3,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { useState, useCallback } from 'react';
 import Toast from 'react-native-toast-message';
 
-import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import { invalidateCachedImage } from '@/src/utils/imageCache';
+import { useAuthStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
+import { invalidateCachedImage } from '@/utils/imageCache';
 
 interface UploadState {
   isUploading: boolean;

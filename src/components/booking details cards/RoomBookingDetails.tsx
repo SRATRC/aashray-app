@@ -6,9 +6,9 @@ import CustomTag from '../CustomTag';
 import HorizontalSeparator from '../HorizontalSeparator';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 
-import { colors, icons, status } from '@/src/constants';
-import { useBookingStore } from '@/src/stores';
-import { countStatusesForField } from '@/src/utils/BookingValidationStatusCounter';
+import { colors, icons, status } from '@/constants';
+import { useBookingStore } from '@/stores';
+import { countStatusesForField } from '@/utils/BookingValidationStatusCounter';
 
 const RoomBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const data = useBookingStore((state) => state.mumukshuData);

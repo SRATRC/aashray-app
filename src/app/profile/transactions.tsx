@@ -13,12 +13,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
-import PageHeader from '@/src/components/PageHeader';
-import { ShadowBox } from '@/src/components/ShadowBox';
-import { icons } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
+import PageHeader from '@/components/PageHeader';
+import { ShadowBox } from '@/components/ShadowBox';
+import { icons } from '@/constants';
+import { useAuthStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
 
 const Transactions = () => {
   const { user } = useAuthStore();

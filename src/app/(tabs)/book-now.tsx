@@ -2,15 +2,15 @@ import React, { useState, useMemo } from 'react';
 import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import CustomChipGroup from '@/src/components/CustomChipGroup';
-import AdhyayanBooking from '@/src/components/booking/AdhyayanBooking';
-import EventsBooking from '@/src/components/booking/EventsBooking';
-import FlatBooking from '@/src/components/booking/FlatBooking';
-import FoodBooking from '@/src/components/booking/FoodBooking';
-import RoomBooking from '@/src/components/booking/RoomBooking';
-import TravelBooking from '@/src/components/booking/TravelBooking';
-import { types } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
+import CustomChipGroup from '@/components/CustomChipGroup';
+import AdhyayanBooking from '@/components/booking/AdhyayanBooking';
+import EventsBooking from '@/components/booking/EventsBooking';
+import FlatBooking from '@/components/booking/FlatBooking';
+import FoodBooking from '@/components/booking/FoodBooking';
+import RoomBooking from '@/components/booking/RoomBooking';
+import TravelBooking from '@/components/booking/TravelBooking';
+import { types } from '@/constants';
+import { useAuthStore } from '@/stores';
 
 const BookingCategories = () => {
   const { user } = useAuthStore();

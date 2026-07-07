@@ -20,7 +20,7 @@ import {
   resizeAction,
   uid,
   videoContentType,
-} from '@/src/utils/ticketAttachments';
+} from '@/utils/ticketAttachments';
 
 // Thrown by upload() when the caller cancels; screens use it to skip the
 // error alert (the user initiated the stop).

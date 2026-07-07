@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text } from 'react-native';
 
-import ErrorFallback from '@/src/components/ErrorFallback';
+import ErrorFallback from '@/components/ErrorFallback';
 
 const NotFoundScreen = () => {
   return (

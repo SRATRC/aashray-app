@@ -18,17 +18,17 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import CustomAlert from '@/src/components/CustomAlert';
-import CustomButton from '@/src/components/CustomButton';
-import CustomChipGroup from '@/src/components/CustomChipGroup';
-import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
-import FormField from '@/src/components/FormField';
-import GuestForm from '@/src/components/GuestForm';
-import HorizontalSeparator from '@/src/components/HorizontalSeparator';
-import OtherMumukshuForm from '@/src/components/OtherMumukshuForm';
-import { icons, status, types } from '@/src/constants';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import CustomAlert from '@/components/CustomAlert';
+import CustomButton from '@/components/CustomButton';
+import CustomChipGroup from '@/components/CustomChipGroup';
+import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
+import FormField from '@/components/FormField';
+import GuestForm from '@/components/GuestForm';
+import HorizontalSeparator from '@/components/HorizontalSeparator';
+import OtherMumukshuForm from '@/components/OtherMumukshuForm';
+import { icons, status, types } from '@/constants';
+import { useAuthStore, useBookingStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
 
 // Types
 type Package = {

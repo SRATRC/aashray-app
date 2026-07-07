@@ -5,8 +5,8 @@ import { View, Text, Image } from 'react-native';
 import HorizontalSeparator from '../HorizontalSeparator';
 import { ShadowBox } from '../ShadowBox';
 
-import { colors, icons } from '@/src/constants';
-import { useBookingStore } from '@/src/stores';
+import { colors, icons } from '@/constants';
+import { useBookingStore } from '@/stores';
 
 const FoodBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const data = useBookingStore((state) => state.mumukshuData);

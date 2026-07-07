@@ -3,13 +3,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useState, useEffect } from 'react';
 import { View } from 'react-native';
 
-import CustomAlert from '@/src/components/CustomAlert';
-import CustomErrorMessage from '@/src/components/CustomErrorMessage';
-import { SteppedFeedback, SteppedFeedbackShimmer } from '@/src/components/SteppedFeedback';
-import type { AnswerValue } from '@/src/components/SteppedFeedback';
-import { UTSAV_QUESTIONS } from '@/src/questions/utsavFeedback';
-import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import CustomAlert from '@/components/CustomAlert';
+import CustomErrorMessage from '@/components/CustomErrorMessage';
+import { SteppedFeedback, SteppedFeedbackShimmer } from '@/components/SteppedFeedback';
+import type { AnswerValue } from '@/components/SteppedFeedback';
+import { UTSAV_QUESTIONS } from '@/questions/utsavFeedback';
+import { useAuthStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
 
 const mapAnswersToPayload = (
   answers: Record<string | number, AnswerValue>,

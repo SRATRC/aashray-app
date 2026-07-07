@@ -10,7 +10,7 @@ import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import FormDisplayField from '../FormDisplayField';
 import HorizontalSeparator from '../HorizontalSeparator';
 
-import { colors, icons, dropdowns } from '@/src/constants';
+import { colors, icons, dropdowns } from '@/constants';
 
 interface MumukshuRoomAddonProps {
   roomForm: any;

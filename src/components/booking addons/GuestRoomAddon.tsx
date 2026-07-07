@@ -10,8 +10,8 @@ import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import FormDisplayField from '../FormDisplayField';
 import HorizontalSeparator from '../HorizontalSeparator';
 
-import { colors, icons, dropdowns } from '@/src/constants';
-import { useBookingStore } from '@/src/stores';
+import { colors, icons, dropdowns } from '@/constants';
+import { useBookingStore } from '@/stores';
 
 interface GuestRoomAddonProps {
   roomForm: any;

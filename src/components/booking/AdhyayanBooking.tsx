@@ -26,10 +26,10 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import { ShadowBox } from '../ShadowBox';
 
-import { icons, status, types } from '@/src/constants';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import { icons, status, types } from '@/constants';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
+import { useAuthStore, useBookingStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 
-import { colors } from '@/src/constants';
+import { colors } from '@/constants';
 
 type ProgressBarProps = {
   progressAnim: Animated.Value;

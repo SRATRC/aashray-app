@@ -7,19 +7,19 @@ import { View, Text, ScrollView } from 'react-native';
 import RazorpayCheckout from 'react-native-razorpay';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import CustomButton from '@/src/components/CustomButton';
-import CustomModal from '@/src/components/CustomModal';
-import PageHeader from '@/src/components/PageHeader';
-import { ShadowBox } from '@/src/components/ShadowBox';
-import AdhyayanBookingDetails from '@/src/components/booking details cards/AdhyayanBookingDetails';
-import EventBookingDetails from '@/src/components/booking details cards/EventBookingDetails';
-import FoodBookingDetails from '@/src/components/booking details cards/FoodBookingDetails';
-import RoomBookingDetails from '@/src/components/booking details cards/RoomBookingDetails';
-import TravelBookingDetails from '@/src/components/booking details cards/TravelBookingDetails';
-import { colors } from '@/src/constants';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
+import CustomButton from '@/components/CustomButton';
+import CustomModal from '@/components/CustomModal';
+import PageHeader from '@/components/PageHeader';
+import { ShadowBox } from '@/components/ShadowBox';
+import AdhyayanBookingDetails from '@/components/booking details cards/AdhyayanBookingDetails';
+import EventBookingDetails from '@/components/booking details cards/EventBookingDetails';
+import FoodBookingDetails from '@/components/booking details cards/FoodBookingDetails';
+import RoomBookingDetails from '@/components/booking details cards/RoomBookingDetails';
+import TravelBookingDetails from '@/components/booking details cards/TravelBookingDetails';
+import { colors } from '@/constants';
+import { useAuthStore, useBookingStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
+import { prepareMumukshuRequestBody } from '@/utils/preparingRequestBody';
 
 // @ts-ignore
 

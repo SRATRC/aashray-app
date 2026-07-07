@@ -28,15 +28,15 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
-import CustomModal from '@/src/components/CustomModal';
-import FormField from '@/src/components/FormField';
-import { ShadowBox } from '@/src/components/ShadowBox';
-import { useBottomTabOverflow } from '@/src/components/TabBarBackground';
-import { icons } from '@/src/constants';
-import { useQuickImagePicker } from '@/src/hooks/useQuickImagePicker';
-import { useAuthStore, useDevStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import getCachedImageUri, { invalidateCachedImage } from '@/src/utils/imageCache';
+import CustomModal from '@/components/CustomModal';
+import FormField from '@/components/FormField';
+import { ShadowBox } from '@/components/ShadowBox';
+import { useBottomTabOverflow } from '@/components/TabBarBackground';
+import { icons } from '@/constants';
+import { useQuickImagePicker } from '@/hooks/useQuickImagePicker';
+import { useAuthStore, useDevStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
+import getCachedImageUri, { invalidateCachedImage } from '@/utils/imageCache';
 
 const { height: screenHeight } = Dimensions.get('window');
 

@@ -8,9 +8,9 @@ import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import FormDisplayField from '../FormDisplayField';
 import FormField from '../FormField';
 
-import { icons, dropdowns } from '@/src/constants';
-import { useUtsavDate } from '@/src/hooks/useUtsavDate';
-import { useBookingStore } from '@/src/stores';
+import { icons, dropdowns } from '@/constants';
+import { useUtsavDate } from '@/hooks/useUtsavDate';
+import { useBookingStore } from '@/stores';
 
 interface TravelAddonProps {
   travelForm: any;

@@ -15,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 
-import { colors } from '@/src/constants';
+import { colors } from '@/constants';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.85;
@@ -139,7 +139,7 @@ const UpdateModal: React.FC<UpdateModalProps> = ({ visible, info, onUpdateNow, o
               borderRadius: 24,
             }}>
             <Image
-              source={require('@/src/assets/images/icon.png')}
+              source={require('@/assets/images/icon.png')}
               style={{
                 width: 100,
                 height: 100,

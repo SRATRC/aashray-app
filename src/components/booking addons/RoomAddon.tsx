@@ -9,8 +9,8 @@ import AddonItem from '../AddonItem';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import FormDisplayField from '../FormDisplayField';
 
-import { icons, dropdowns } from '@/src/constants';
-import { useBookingStore } from '@/src/stores';
+import { icons, dropdowns } from '@/constants';
+import { useBookingStore } from '@/stores';
 
 interface RoomAddonProps {
   roomForm: any;

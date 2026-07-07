@@ -6,7 +6,7 @@ import { colors, icons } from '../constants';
 import FormField from './FormField';
 import handleAPICall from '../utils/HandleApiCall';
 
-import { useAuthStore } from '@/src/stores';
+import { useAuthStore } from '@/stores';
 
 interface OtherUsersFormProps {
   userForm: any;

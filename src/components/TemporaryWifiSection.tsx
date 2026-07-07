@@ -8,9 +8,9 @@ import Toast from 'react-native-toast-message';
 import CustomErrorMessage from './CustomErrorMessage';
 import { ShadowBox } from './ShadowBox';
 
-import CustomButton from '@/src/components/CustomButton';
-import Shimmer from '@/src/components/Shimmer';
-import { colors } from '@/src/constants';
+import CustomButton from '@/components/CustomButton';
+import Shimmer from '@/components/Shimmer';
+import { colors } from '@/constants';
 
 interface TemporaryWifiCode {
   id?: string;

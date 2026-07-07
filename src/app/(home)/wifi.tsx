@@ -6,15 +6,15 @@ import { useState, useCallback } from 'react';
 import { View, Text, RefreshControl, TouchableOpacity, ScrollView, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import CustomErrorMessage from '@/src/components/CustomErrorMessage';
-import ExpandableItem from '@/src/components/ExpandableItem';
-import PageHeader from '@/src/components/PageHeader';
-import PermanentWifiSection from '@/src/components/PermanentWifiSection';
-import TemporaryWifiSection from '@/src/components/TemporaryWifiSection';
-import { status } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import { wifiCache } from '@/src/utils/wifiCache';
+import CustomErrorMessage from '@/components/CustomErrorMessage';
+import ExpandableItem from '@/components/ExpandableItem';
+import PageHeader from '@/components/PageHeader';
+import PermanentWifiSection from '@/components/PermanentWifiSection';
+import TemporaryWifiSection from '@/components/TemporaryWifiSection';
+import { status } from '@/constants';
+import { useAuthStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
+import { wifiCache } from '@/utils/wifiCache';
 
 const wifiTutorials = {
   mumukshu: [

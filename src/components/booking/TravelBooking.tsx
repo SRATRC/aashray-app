@@ -14,10 +14,10 @@ import FormDisplayField from '../FormDisplayField';
 import FormField from '../FormField';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 
-import { types, dropdowns, status } from '@/src/constants';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
-import { useUtsavDate } from '@/src/hooks/useUtsavDate';
-import { useAuthStore, useBookingStore } from '@/src/stores';
+import { types, dropdowns, status } from '@/constants';
+import { useTabBarPadding } from '@/hooks/useTabBarPadding';
+import { useUtsavDate } from '@/hooks/useUtsavDate';
+import { useAuthStore, useBookingStore } from '@/stores';
 
 let CHIPS = ['Self', 'Mumukshus'];
 

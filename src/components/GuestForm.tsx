@@ -7,7 +7,7 @@ import CustomSelectBottomSheet from './CustomSelectBottomSheet';
 import FormField from './FormField';
 import handleAPICall from '../utils/HandleApiCall';
 
-import { useAuthStore } from '@/src/stores';
+import { useAuthStore } from '@/stores';
 
 interface GuestFormProps {
   guestForm: any;

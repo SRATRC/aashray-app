@@ -12,7 +12,7 @@ import { FeedbackTextInput } from './TextInput';
 import type { SteppedFeedbackProps } from './types';
 import { useSteppedFeedback } from './useSteppedFeedback';
 
-import { colors } from '@/src/constants';
+import { colors } from '@/constants';
 
 const DEFAULTS = {
   accentColor: colors.orange,

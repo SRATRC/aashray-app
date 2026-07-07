@@ -11,21 +11,21 @@ import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Image } fro
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import AttachmentPreviewStrip from '@/src/components/AttachmentPreviewStrip';
-import CustomAlert from '@/src/components/CustomAlert';
-import CustomTag from '@/src/components/CustomTag';
-import MediaViewer, { MediaViewerItem } from '@/src/components/MediaViewer';
-import PageHeader from '@/src/components/PageHeader';
-import Shimmer from '@/src/components/Shimmer';
-import TicketMessageAttachments from '@/src/components/TicketMessageAttachments';
-import { status } from '@/src/constants';
-import { useRefetchOnFocus } from '@/src/hooks/useRefetchOnFocus';
-import { useTicketAttachments } from '@/src/hooks/useTicketAttachments';
-import { useTicketStream } from '@/src/hooks/useTicketStream';
-import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import { AttachmentRef, PendingAttachment, runUpload } from '@/src/utils/ticketAttachments';
-import { getStatusColor } from '@/src/utils/ticketStatus';
+import AttachmentPreviewStrip from '@/components/AttachmentPreviewStrip';
+import CustomAlert from '@/components/CustomAlert';
+import CustomTag from '@/components/CustomTag';
+import MediaViewer, { MediaViewerItem } from '@/components/MediaViewer';
+import PageHeader from '@/components/PageHeader';
+import Shimmer from '@/components/Shimmer';
+import TicketMessageAttachments from '@/components/TicketMessageAttachments';
+import { status } from '@/constants';
+import { useRefetchOnFocus } from '@/hooks/useRefetchOnFocus';
+import { useTicketAttachments } from '@/hooks/useTicketAttachments';
+import { useTicketStream } from '@/hooks/useTicketStream';
+import { useAuthStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
+import { AttachmentRef, PendingAttachment, runUpload } from '@/utils/ticketAttachments';
+import { getStatusColor } from '@/utils/ticketStatus';
 
 // Optimistic (local) media rendered on a just-sent message before the server
 // echoes back the stored attachments. Tapping opens the full-screen viewer.

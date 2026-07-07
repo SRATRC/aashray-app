@@ -4,13 +4,13 @@ import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller
 import Reanimated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import CustomAlert from '@/src/components/CustomAlert';
-import CustomButton from '@/src/components/CustomButton';
-import FormField from '@/src/components/FormField';
-import { images } from '@/src/constants';
-import { useNotification } from '@/src/context/NotificationContext';
-import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import CustomAlert from '@/components/CustomAlert';
+import CustomButton from '@/components/CustomButton';
+import FormField from '@/components/FormField';
+import { images } from '@/constants';
+import { useNotification } from '@/context/NotificationContext';
+import { useAuthStore } from '@/stores';
+import handleAPICall from '@/utils/HandleApiCall';
 
 const PasswordResetModal = ({ visible, onClose, email }: any) => (
   <Modal

@@ -12,13 +12,13 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import Toast from 'react-native-toast-message';
 
-import { CustomAlert } from '@/src/components/CustomAlert';
-import { NotificationProvider } from '@/src/context/NotificationContext';
-import { useDeepLinkHandler } from '@/src/hooks/useDeepLinkHandler';
-import { queryClient } from '@/src/lib/queryClient';
-import { useAuthStore } from '@/src/stores';
-import { ParsedDeepLink } from '@/src/types/deeplink';
-import UpdateManager from '@/src/utils/updateManager';
+import { CustomAlert } from '@/components/CustomAlert';
+import { NotificationProvider } from '@/context/NotificationContext';
+import { useDeepLinkHandler } from '@/hooks/useDeepLinkHandler';
+import { queryClient } from '@/lib/queryClient';
+import { useAuthStore } from '@/stores';
+import { ParsedDeepLink } from '@/types/deeplink';
+import UpdateManager from '@/utils/updateManager';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -130,19 +130,19 @@ const AppNavigator = () => {
 
 const RootLayout = () => {
   const [fontsLoaded, fontError] = useFonts({
-    'Poppins-Black': require('@/src/assets/fonts/Poppins-Black.ttf'),
-    'Poppins-Bold': require('@/src/assets/fonts/Poppins-Bold.ttf'),
-    'Poppins-ExtraBold': require('@/src/assets/fonts/Poppins-ExtraBold.ttf'),
-    'Poppins-ExtraLight': require('@/src/assets/fonts/Poppins-ExtraLight.ttf'),
-    'Poppins-Light': require('@/src/assets/fonts/Poppins-Light.ttf'),
-    'Poppins-Medium': require('@/src/assets/fonts/Poppins-Medium.ttf'),
-    'Poppins-Regular': require('@/src/assets/fonts/Poppins-Regular.ttf'),
-    'Poppins-SemiBold': require('@/src/assets/fonts/Poppins-SemiBold.ttf'),
-    'Poppins-Thin': require('@/src/assets/fonts/Poppins-Thin.ttf'),
-    'DMSerifDisplay-Regular': require('@/src/assets/fonts/DMSerifDisplay-Regular.ttf'),
-    'DMSans-Regular': require('@/src/assets/fonts/DMSans-Regular.ttf'),
-    'DMSans-Medium': require('@/src/assets/fonts/DMSans-Medium.ttf'),
-    'DMSans-Light': require('@/src/assets/fonts/DMSans-Light.ttf'),
+    'Poppins-Black': require('@/assets/fonts/Poppins-Black.ttf'),
+    'Poppins-Bold': require('@/assets/fonts/Poppins-Bold.ttf'),
+    'Poppins-ExtraBold': require('@/assets/fonts/Poppins-ExtraBold.ttf'),
+    'Poppins-ExtraLight': require('@/assets/fonts/Poppins-ExtraLight.ttf'),
+    'Poppins-Light': require('@/assets/fonts/Poppins-Light.ttf'),
+    'Poppins-Medium': require('@/assets/fonts/Poppins-Medium.ttf'),
+    'Poppins-Regular': require('@/assets/fonts/Poppins-Regular.ttf'),
+    'Poppins-SemiBold': require('@/assets/fonts/Poppins-SemiBold.ttf'),
+    'Poppins-Thin': require('@/assets/fonts/Poppins-Thin.ttf'),
+    'DMSerifDisplay-Regular': require('@/assets/fonts/DMSerifDisplay-Regular.ttf'),
+    'DMSans-Regular': require('@/assets/fonts/DMSans-Regular.ttf'),
+    'DMSans-Medium': require('@/assets/fonts/DMSans-Medium.ttf'),
+    'DMSans-Light': require('@/assets/fonts/DMSans-Light.ttf'),
   });
 
   const [isAuthReady, setIsAuthReady] = useState(false);

@@ -6,8 +6,8 @@ import { View, Text, StyleSheet, ScrollView, Linking, TouchableOpacity } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
-import PageHeader from '@/src/components/PageHeader';
-import AppColors from '@/src/constants/colors';
+import PageHeader from '@/components/PageHeader';
+import AppColors from '@/constants/colors';
 
 interface ContactPerson {
   name: string;

@@ -3,7 +3,7 @@ import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Polygon, Defs, LinearGradient, Stop } from 'react-native-svg';
 
-import { colors } from '@/src/constants';
+import { colors } from '@/constants';
 
 interface Props {
   isExpanded: boolean;

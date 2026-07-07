@@ -11,10 +11,10 @@ import CustomSelectBottomSheet, { CustomSelectBottomSheetRef } from './CustomSel
 import HorizontalSeparator from './HorizontalSeparator';
 import { ShadowBox } from './ShadowBox';
 
-import CustomButton from '@/src/components/CustomButton';
-import CustomErrorMessage from '@/src/components/CustomErrorMessage';
-import Shimmer from '@/src/components/Shimmer';
-import { colors } from '@/src/constants';
+import CustomButton from '@/components/CustomButton';
+import CustomErrorMessage from '@/components/CustomErrorMessage';
+import Shimmer from '@/components/Shimmer';
+import { colors } from '@/constants';
 
 interface PermanentWifiData {
   id: string;

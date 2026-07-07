@@ -3,9 +3,9 @@ import React from 'react';
 import { View, ImageBackground, Modal } from 'react-native';
 import QRCodeStyled from 'react-native-qrcode-styled';
 
-import PageHeader from '@/src/components/PageHeader';
-import { images, colors } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
+import PageHeader from '@/components/PageHeader';
+import { images, colors } from '@/constants';
+import { useAuthStore } from '@/stores';
 
 const QrScreen = () => {
   const { user } = useAuthStore();
@@ -48,7 +48,7 @@ const QrScreen = () => {
                 color: colors.orange,
               }}
               logo={{
-                href: require('@/src/assets/images/logo.png'),
+                href: require('@/assets/images/logo.png'),
                 padding: 4,
               }}
             />

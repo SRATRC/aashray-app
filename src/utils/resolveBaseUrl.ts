@@ -1,5 +1,5 @@
-import { BASE_URL, DEV_URL } from '@/src/constants';
-import { useDevStore } from '@/src/stores';
+import { BASE_URL, DEV_URL } from '@/constants';
+import { useDevStore } from '@/stores';
 
 // Resolves the API base URL from the dev-backend toggle. Used by
 // HandleApiCall.js, useTicketStream.ts, and collectDiagnostics.ts — new

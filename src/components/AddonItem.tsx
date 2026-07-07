@@ -3,7 +3,7 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { View, TouchableOpacity, Image, Platform } from 'react-native';
 
-import { icons } from '@/src/constants';
+import { icons } from '@/constants';
 
 interface AddonItemProps {
   children: any;

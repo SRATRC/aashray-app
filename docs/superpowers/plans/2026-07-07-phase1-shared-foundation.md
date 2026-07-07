@@ -447,7 +447,7 @@ export const queryClient = new QueryClient({
 
 - Remove the inline `const queryClient = new QueryClient({...})` block.
 - Change the import line `import { QueryClient, QueryClientProvider } from '@tanstack/react-query';` to `import { QueryClientProvider } from '@tanstack/react-query';`
-- Add `import { queryClient } from '@/src/lib/queryClient';`
+- Add `import { queryClient } from '@/lib/queryClient';`
 
 (The `<QueryClientProvider client={queryClient}>` usage stays unchanged.)
 
@@ -521,7 +521,7 @@ import axios, { type AxiosRequestConfig } from 'axios';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
 import * as Sentry from '@sentry/react-native';
-import { resolveApiBaseUrl } from '@/src/utils/resolveBaseUrl';
+import { resolveApiBaseUrl } from '@/utils/resolveBaseUrl';
 import { ApiError } from './types';
 
 const generateRequestId = () =>
@@ -749,7 +749,7 @@ git commit -m "refactor(api): handleAPICall delegates to shared apiClient"
 
 **Files:**
 - Modify: `tsconfig.json`
-- Modify: all files importing `@/src/...` (mechanical rewrite to `@/...`)
+- Modify: all files importing `@/...` (mechanical rewrite to `@/...`)
 
 **Interfaces:**
 - Produces: shorter, conventional imports (`@/lib/...`, `@/components/ui/...`). No runtime change (Metro resolves tsconfig `paths`).
@@ -764,16 +764,16 @@ git commit -m "refactor(api): handleAPICall delegates to shared apiClient"
 }
 ```
 
-- [ ] **Step 2: Rewrite all `@/src/` imports to `@/`**
+- [ ] **Step 2: Rewrite all `@/` imports to `@/`**
 
 Run (BSD sed on macOS):
 ```bash
-grep -rl "@/src/" src | xargs sed -i '' 's#@/src/#@/#g'
+grep -rl "@/" src | xargs sed -i '' 's#@/#@/#g'
 ```
 
 - [ ] **Step 3: Confirm no stragglers remain**
 
-Run: `grep -rn "@/src/" src | wc -l`
+Run: `grep -rn "@/" src | wc -l`
 Expected: `0`.
 
 - [ ] **Step 4: Typecheck + lint + boot**
@@ -1017,7 +1017,7 @@ Before declaring Phase 1 done:
 - [ ] `npm run lint` clean.
 - [ ] `npm run typecheck` clean.
 - [ ] `npm run start` boots; spot-check home, a data-fetch screen, login persistence across reload, and one error toast.
-- [ ] `grep -rn "@/src/" src | wc -l` → 0.
+- [ ] `grep -rn "@/" src | wc -l` → 0.
 - [ ] Only `src/lib/api/client.ts` imports `axios` directly (`grep -rln "from 'axios'" src`).
 - [ ] Colors defined once (`src/theme/palette.js`); `constants/colors.js` and `tailwind.config.js` both derive from it.
 
