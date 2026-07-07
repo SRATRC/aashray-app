@@ -1,14 +1,16 @@
+import * as Haptics from 'expo-haptics';
+import moment from 'moment';
 import React, { useState } from 'react';
 import { View, Text, Image } from 'react-native';
-import { icons, dropdowns } from '@/src/constants';
-import { useBookingStore } from '@/src/stores';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import Toast from 'react-native-toast-message';
+
+import AddonItem from '../AddonItem';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import FormDisplayField from '../FormDisplayField';
-import AddonItem from '../AddonItem';
-import Toast from 'react-native-toast-message';
-import moment from 'moment';
-import * as Haptics from 'expo-haptics';
+
+import { icons, dropdowns } from '@/src/constants';
+import { useBookingStore } from '@/src/stores';
 
 interface FoodAddonProps {
   foodForm: any;
@@ -67,7 +69,7 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
           <Text className="font-pmedium">Raj Prasad Booking</Text>
         </View>
       }
-      containerStyles={'mt-3'}>
+      containerStyles="mt-3">
       <FormDisplayField
         text="Start Date"
         value={foodForm.startDay ? moment(foodForm.startDay).format('Do MMMM YYYY') : ''}
@@ -149,7 +151,7 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
         options={dropdowns.FOOD_TYPE_LIST}
         selectedValues={foodForm.meals}
         onValuesChange={(val) => setFoodForm({ ...foodForm, meals: val as string[] })}
-        multiSelect={true}
+        multiSelect
         confirmButtonText="Select"
         maxSelectedDisplay={3}
       />

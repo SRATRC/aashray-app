@@ -1,14 +1,16 @@
-import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
-import { icons } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import HorizontalSeparator from '../HorizontalSeparator';
+import * as Haptics from 'expo-haptics';
+import moment from 'moment';
+import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+
+import AddonItem from '../AddonItem';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import AddonItem from '../AddonItem';
-import moment from 'moment';
-import * as Haptics from 'expo-haptics';
+import HorizontalSeparator from '../HorizontalSeparator';
+
+import { icons } from '@/src/constants';
+import { useAuthStore, useBookingStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
 
 interface MumukshuAdhyayanAddonProps {
   adhyayanForm: any;
@@ -144,7 +146,7 @@ const MumukshuAdhyayanAddon: React.FC<MumukshuAdhyayanAddonProps> = ({
           <Text className="font-pmedium">Raj Adhyayan Booking</Text>
         </View>
       }
-      containerStyles={'mt-3'}>
+      containerStyles="mt-3">
       {(adhyayanList?.length > 0 || isError) && (
         <View className="w-full flex-col items-center justify-center">
           <CustomSelectBottomSheet
@@ -154,7 +156,7 @@ const MumukshuAdhyayanAddon: React.FC<MumukshuAdhyayanAddonProps> = ({
             options={mumukshu_dropdown}
             selectedValues={adhyayanForm.mumukshuIndices}
             onValuesChange={(val) => updateAdhyayanForm('mumukshuIndices', val)}
-            multiSelect={true}
+            multiSelect
             confirmButtonText="Select"
           />
         </View>
@@ -162,14 +164,14 @@ const MumukshuAdhyayanAddon: React.FC<MumukshuAdhyayanAddonProps> = ({
       <FlatList
         className="flex-grow-1 mt-2 w-full py-2"
         showsHorizontalScrollIndicator={false}
-        nestedScrollEnabled={true}
+        nestedScrollEnabled
         data={adhyayanList}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={
           <View className="mt-6 flex-1">
-            <CustomEmptyMessage message={'No Adhyayans available on selected dates!'} />
+            <CustomEmptyMessage message="No Adhyayans available on selected dates!" />
           </View>
         }
         scrollEnabled={false}

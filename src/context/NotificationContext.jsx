@@ -1,8 +1,9 @@
+import * as Notifications from 'expo-notifications';
+import { useRouter } from 'expo-router';
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
-import * as Notifications from 'expo-notifications';
+
 import { registerForPushNotificationsAsync } from '../utils/registerForPushNotificationsAsync';
-import { useRouter } from 'expo-router';
 
 const NotificationContext = createContext(undefined);
 

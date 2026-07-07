@@ -1,12 +1,14 @@
-import { View, Text, Image, ScrollView } from 'react-native';
-import { useMemo } from 'react';
-import { colors, icons, status } from '@/src/constants';
-import { useBookingStore } from '@/src/stores';
 import { Ionicons } from '@expo/vector-icons';
+import moment from 'moment';
+import { useMemo } from 'react';
+import { View, Text, Image, ScrollView } from 'react-native';
+
+import CustomTag from '../CustomTag';
 import HorizontalSeparator from '../HorizontalSeparator';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
-import CustomTag from '../CustomTag';
-import moment from 'moment';
+
+import { colors, icons, status } from '@/src/constants';
+import { useBookingStore } from '@/src/stores';
 
 const GuestRoomBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const guestData = useBookingStore((store) => store.guestData);
@@ -16,18 +18,20 @@ const GuestRoomBookingDetails: React.FC<{ containerStyles: any }> = ({ container
     const groups: { [key: string]: any } = {};
 
     roomDetails.forEach((booking: any) => {
-      const range = booking.range || (() => {
-        if (booking.dates) {
-          const parts = booking.dates.split(' to ');
-          if (parts.length === 2) {
-            return { start: parts[0], end: parts[1] };
+      const range =
+        booking.range ||
+        (() => {
+          if (booking.dates) {
+            const parts = booking.dates.split(' to ');
+            if (parts.length === 2) {
+              return { start: parts[0], end: parts[1] };
+            }
           }
-        }
-        return {
-          start: guestData?.room?.startDay,
-          end: guestData?.room?.endDay,
-        };
-      })();
+          return {
+            start: guestData?.room?.startDay,
+            end: guestData?.room?.endDay,
+          };
+        })();
 
       const key = `${range.start}-${range.end}`;
       if (!groups[key]) {
@@ -73,7 +77,7 @@ const GuestRoomBookingDetails: React.FC<{ containerStyles: any }> = ({ container
           </View>
         </View>
 
-        <HorizontalSeparator otherStyles={'mb-4'} />
+        <HorizontalSeparator otherStyles="mb-4" />
 
         <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
           <Ionicons name="people" size={16} color={colors.gray_400} />

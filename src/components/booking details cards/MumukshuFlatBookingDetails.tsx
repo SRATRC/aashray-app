@@ -1,12 +1,14 @@
-import { View, Text, Image, ScrollView } from 'react-native';
-import { colors, icons, status } from '@/src/constants';
-import { countStatusesForField } from '@/src/utils/BookingValidationStatusCounter';
-import { useBookingStore } from '@/src/stores';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import HorizontalSeparator from '../HorizontalSeparator';
-import CustomTag from '../CustomTag';
-import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import moment from 'moment';
+import { View, Text, Image, ScrollView } from 'react-native';
+
+import CustomTag from '../CustomTag';
+import HorizontalSeparator from '../HorizontalSeparator';
+import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
+
+import { colors, icons, status } from '@/src/constants';
+import { useBookingStore } from '@/src/stores';
+import { countStatusesForField } from '@/src/utils/BookingValidationStatusCounter';
 
 const MumukshuFlatBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const data = useBookingStore((state) => state.mumukshuData);
@@ -46,7 +48,7 @@ const MumukshuFlatBookingDetails: React.FC<{ containerStyles: any }> = ({ contai
         </View>
       </View>
 
-      <HorizontalSeparator otherStyles={'mb-4'} />
+      <HorizontalSeparator otherStyles="mb-4" />
 
       <View className="mb-4 gap-y-2">
         <View className="flex flex-row items-center gap-x-2 px-6">

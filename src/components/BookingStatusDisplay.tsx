@@ -1,5 +1,6 @@
-import { View } from 'react-native';
 import React from 'react';
+import { View } from 'react-native';
+
 import CustomTag from './CustomTag';
 import { status } from '../constants';
 

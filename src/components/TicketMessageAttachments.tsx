@@ -1,6 +1,7 @@
-import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
+
 import { ServedAttachment, buildAttachmentUri } from '@/src/utils/ticketAttachments';
 
 interface Props {

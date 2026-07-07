@@ -1,12 +1,13 @@
+import { MaterialIcons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
+import * as Haptics from 'expo-haptics';
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Linking, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
-import AppColors from '@/src/constants/colors';
-import PageHeader from '@/src/components/PageHeader';
-import * as Clipboard from 'expo-clipboard';
-import * as Haptics from 'expo-haptics';
 import Toast from 'react-native-toast-message';
+
+import PageHeader from '@/src/components/PageHeader';
+import AppColors from '@/src/constants/colors';
 
 interface ContactPerson {
   name: string;

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import * as ImagePicker from 'expo-image-picker';
-import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import * as Haptics from 'expo-haptics';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
+import * as ImagePicker from 'expo-image-picker';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
 import {
   AttachmentRef,
   COMPRESS_QUALITY,
@@ -173,7 +174,9 @@ export function useTicketAttachments(cardno: string | undefined, existingVideoCo
 
     const notes: string[] = [];
     if (skippedLimit > 0) {
-      notes.push(`${skippedLimit} skipped — limit is ${MAX_IMAGES} photos and ${MAX_VIDEOS} videos.`);
+      notes.push(
+        `${skippedLimit} skipped — limit is ${MAX_IMAGES} photos and ${MAX_VIDEOS} videos.`
+      );
     }
     if (skippedSize > 0) {
       notes.push(

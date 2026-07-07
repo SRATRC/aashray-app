@@ -1,21 +1,23 @@
-import { View, Text } from 'react-native';
-import React, { useState, useCallback, useEffect } from 'react';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useRouter } from 'expo-router';
-import { types, dropdowns, status } from '@/src/constants';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import { useUtsavDate } from '@/src/hooks/useUtsavDate';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
+import moment from 'moment';
+import React, { useState, useCallback, useEffect } from 'react';
+import { View, Text } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+
 import CustomButton from '../CustomButton';
 import CustomCalender from '../CustomCalender';
-import FormField from '../FormField';
-import CustomModal from '../CustomModal';
 import CustomChipGroup from '../CustomChipGroup';
-import OtherMumukshuForm from '../OtherMumukshuForm';
-import FormDisplayField from '../FormDisplayField';
+import CustomModal from '../CustomModal';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import moment from 'moment';
+import FormDisplayField from '../FormDisplayField';
+import FormField from '../FormField';
+import OtherMumukshuForm from '../OtherMumukshuForm';
+
+import { types, dropdowns, status } from '@/src/constants';
+import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
+import { useUtsavDate } from '@/src/hooks/useUtsavDate';
+import { useAuthStore, useBookingStore } from '@/src/stores';
 
 let CHIPS = ['Self', 'Mumukshus'];
 
@@ -255,9 +257,9 @@ const TravelBooking = () => {
             chips={CHIPS}
             selectedChip={selectedChip}
             handleChipPress={handleChipClick}
-            containerStyles={'mt-1'}
-            chipContainerStyles={'py-2'}
-            textStyles={'text-sm'}
+            containerStyles="mt-1"
+            chipContainerStyles="py-2"
+            textStyles="text-sm"
           />
         </View>
 
@@ -282,7 +284,7 @@ const TravelBooking = () => {
                 containerStyles="bg-gray-100"
                 keyboardType="number-pad"
                 placeholder="please specify total people here..."
-                inputStyles={'font-pmedium text-black text-lg'}
+                inputStyles="font-pmedium text-black text-lg"
               />
             )}
 
@@ -384,7 +386,7 @@ const TravelBooking = () => {
               selectedValues={travelForm.luggage}
               onValuesChange={(val: any) => setTravelForm({ ...travelForm, luggage: val })}
               saveKeyInsteadOfValue={false}
-              multiSelect={true}
+              multiSelect
               confirmButtonText="Select"
               maxSelectedDisplay={3}
             />
@@ -408,9 +410,9 @@ const TravelBooking = () => {
               otherStyles="mt-7"
               containerStyles="bg-gray-100"
               keyboardType="default"
-              inputStyles={'font-pmedium text-black text-lg'}
+              inputStyles="font-pmedium text-black text-lg"
               placeholder="Please specify a location if 'Other' is selected, or provide any additional requests here..."
-              multiline={true}
+              multiline
               numberOfLines={2}
             />
           </View>
@@ -447,7 +449,7 @@ const TravelBooking = () => {
                       containerStyles="bg-gray-100"
                       keyboardType="number-pad"
                       placeholder="please specify total people here..."
-                      inputStyles={'font-pmedium text-black text-lg'}
+                      inputStyles="font-pmedium text-black text-lg"
                     />
                   )}
 
@@ -532,7 +534,7 @@ const TravelBooking = () => {
                     selectedValues={mumukshuForm.mumukshus[index].luggage}
                     onValuesChange={(val: any) => handleMumukshuFormChange(index, 'luggage', val)}
                     saveKeyInsteadOfValue={false}
-                    multiSelect={true}
+                    multiSelect
                     confirmButtonText="Select"
                     maxSelectedDisplay={3}
                   />
@@ -558,9 +560,9 @@ const TravelBooking = () => {
                     otherStyles="mt-7"
                     containerStyles="bg-gray-100"
                     keyboardType="default"
-                    inputStyles={'font-pmedium text-black text-lg'}
+                    inputStyles="font-pmedium text-black text-lg"
                     placeholder="Please specify a location if 'Other' is selected, or provide any additional requests here..."
-                    multiline={true}
+                    multiline
                     numberOfLines={2}
                   />
                 </>
@@ -627,7 +629,7 @@ const TravelBooking = () => {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         message={modalMessage}
-        btnText={'Okay'}
+        btnText="Okay"
       />
     </View>
   );
@@ -659,8 +661,8 @@ function transformMumukshuData(inputData: any) {
   const mumukshuGroup = Object.values(groupedMumukshus);
 
   return {
-    date: date,
-    mumukshuGroup: mumukshuGroup,
+    date,
+    mumukshuGroup,
   };
 }
 

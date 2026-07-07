@@ -1,3 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { useRouter, useFocusEffect } from 'expo-router';
+import moment from 'moment';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,23 +16,20 @@ import {
   RefreshControl,
   SectionList,
 } from 'react-native';
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
-import { Ionicons } from '@expo/vector-icons';
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { icons, status, types } from '@/src/constants';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import { ShadowBox } from '../ShadowBox';
-import { useRouter, useFocusEffect } from 'expo-router';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import CustomButton from '../CustomButton';
-import HorizontalSeparator from '../HorizontalSeparator';
-import CustomChipGroup from '../CustomChipGroup';
-import GuestForm from '../GuestForm';
-import OtherMumukshuForm from '../OtherMumukshuForm';
-import CustomEmptyMessage from '../CustomEmptyMessage';
+
 import CustomAlert from '../CustomAlert';
-import moment from 'moment';
+import CustomButton from '../CustomButton';
+import CustomChipGroup from '../CustomChipGroup';
+import CustomEmptyMessage from '../CustomEmptyMessage';
+import GuestForm from '../GuestForm';
+import HorizontalSeparator from '../HorizontalSeparator';
+import OtherMumukshuForm from '../OtherMumukshuForm';
+import { ShadowBox } from '../ShadowBox';
+
+import { icons, status, types } from '@/src/constants';
+import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
+import { useAuthStore, useBookingStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
@@ -338,8 +340,8 @@ const AdhyayanBooking = () => {
       <Modal
         visible={isModalVisible}
         animationType="fade"
-        transparent={true}
-        statusBarTranslucent={true}
+        transparent
+        statusBarTranslucent
         onRequestClose={toggleModal}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -369,14 +371,14 @@ const AdhyayanBooking = () => {
                 <TouchableOpacity onPress={toggleModal}>
                   <Image
                     source={icons.remove}
-                    tintColor={'black'}
+                    tintColor="black"
                     className="h-4 w-4"
                     resizeMode="contain"
                   />
                 </TouchableOpacity>
               </View>
 
-              <HorizontalSeparator otherStyles={'w-full'} />
+              <HorizontalSeparator otherStyles="w-full" />
 
               <ScrollView
                 keyboardShouldPersistTaps="handled"
@@ -389,9 +391,9 @@ const AdhyayanBooking = () => {
                     chips={CHIPS}
                     selectedChip={selectedChip}
                     handleChipPress={handleChipClick}
-                    containerStyles={'mt-1'}
-                    chipContainerStyles={'py-1'}
-                    textStyles={'text-sm'}
+                    containerStyles="mt-1"
+                    chipContainerStyles="py-1"
+                    textStyles="text-sm"
                   />
                 </View>
 
@@ -520,10 +522,10 @@ const AdhyayanBooking = () => {
                     setSelectedChip('Self');
                     toggleModal();
                   }}
-                  text={'Confirm'}
+                  text="Confirm"
                   bgcolor="bg-secondary"
                   containerStyles="mt-4 p-2"
-                  textStyles={'text-sm text-white'}
+                  textStyles="text-sm text-white"
                   isDisabled={
                     selectedChip === CHIPS[1]
                       ? !isGuestFormValid()
@@ -547,7 +549,7 @@ const AdhyayanBooking = () => {
         }}
         sections={sections}
         showsVerticalScrollIndicator={false}
-        nestedScrollEnabled={true}
+        nestedScrollEnabled
         stickySectionHeadersEnabled={false}
         renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}
@@ -572,7 +574,7 @@ const AdhyayanBooking = () => {
                 </TouchableOpacity>
               </View>
             ) : (
-              <CustomEmptyMessage message={'No upcoming Adhyayans at this moment!'} />
+              <CustomEmptyMessage message="No upcoming Adhyayans at this moment!" />
             )}
           </View>
         )}
@@ -617,7 +619,7 @@ function transformGuestData(inputData: any) {
   const { adhyayan, guests } = inputData;
 
   return {
-    adhyayan: adhyayan,
+    adhyayan,
     guestGroup: guests.map((guest: any) => ({
       cardno: guest.cardno,
       issuedto: guest.issuedto || guest.name,
@@ -629,7 +631,7 @@ function transformMumukshuData(inputData: any) {
   const { adhyayan, mumukshus } = inputData;
 
   return {
-    adhyayan: adhyayan,
+    adhyayan,
     mumukshuGroup: mumukshus.map((mumukshu: any) => mumukshu),
   };
 }

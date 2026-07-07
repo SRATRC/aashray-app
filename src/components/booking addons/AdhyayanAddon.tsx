@@ -1,13 +1,15 @@
-import { View, Text, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { icons, types } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import AddonItem from '../AddonItem';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import HorizontalSeparator from '../HorizontalSeparator';
-import CustomEmptyMessage from '../CustomEmptyMessage';
-import moment from 'moment';
 import * as Haptics from 'expo-haptics';
+import moment from 'moment';
+import { View, Text, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+
+import AddonItem from '../AddonItem';
+import CustomEmptyMessage from '../CustomEmptyMessage';
+import HorizontalSeparator from '../HorizontalSeparator';
+
+import { icons, types } from '@/src/constants';
+import { useAuthStore, useBookingStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
 
 interface AdhyayanAddonProps {
   adhyayanBookingList: any;
@@ -146,7 +148,7 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
     if (!user?.cardno || !startDate) {
       return (
         <View style={{ marginTop: 24, flex: 1 }}>
-          <CustomEmptyMessage message={'Please select dates to view available Adhyayans!'} />
+          <CustomEmptyMessage message="Please select dates to view available Adhyayans!" />
         </View>
       );
     }
@@ -184,7 +186,7 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
     if (!adhyayanList || adhyayanList.length === 0) {
       return (
         <View style={{ marginTop: 24, flex: 1 }}>
-          <CustomEmptyMessage message={'No Adhyayans available on selected dates!'} />
+          <CustomEmptyMessage message="No Adhyayans available on selected dates!" />
         </View>
       );
     }
@@ -211,7 +213,7 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
           <Text className="font-pmedium">Raj Adhyayan Booking</Text>
         </View>
       }
-      containerStyles={'mt-3'}>
+      containerStyles="mt-3">
       {renderContent()}
     </AddonItem>
   );

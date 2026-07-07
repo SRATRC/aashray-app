@@ -1,7 +1,8 @@
-import { View, Text, TouchableOpacity, Image, Platform } from 'react-native';
-import { useState } from 'react';
-import { icons } from '../constants';
 import * as Haptics from 'expo-haptics';
+import { useState } from 'react';
+import { View, Text, TouchableOpacity, Image, Platform } from 'react-native';
+
+import { icons } from '../constants';
 
 interface ExpandableItemProps {
   children: any;

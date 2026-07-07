@@ -1,13 +1,14 @@
-import { View, Text, Image, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import moment from 'moment';
 import { useMemo } from 'react';
+import { View, Text, Image, ScrollView } from 'react-native';
+
+import CustomTag from '../CustomTag';
+import HorizontalSeparator from '../HorizontalSeparator';
+import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
+
 import { colors, icons, status } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
-
-import { Ionicons } from '@expo/vector-icons';
-import HorizontalSeparator from '../HorizontalSeparator';
-import CustomTag from '../CustomTag';
-import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
-import moment from 'moment';
 
 const MumukshuRoomBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const mumukshuData = useBookingStore((store) => store.mumukshuData);
@@ -17,18 +18,20 @@ const MumukshuRoomBookingDetails: React.FC<{ containerStyles: any }> = ({ contai
     const groups: { [key: string]: any } = {};
 
     roomDetails.forEach((booking: any) => {
-      const range = booking.range || (() => {
-        if (booking.dates) {
-          const parts = booking.dates.split(' to ');
-          if (parts.length === 2) {
-            return { start: parts[0], end: parts[1] };
+      const range =
+        booking.range ||
+        (() => {
+          if (booking.dates) {
+            const parts = booking.dates.split(' to ');
+            if (parts.length === 2) {
+              return { start: parts[0], end: parts[1] };
+            }
           }
-        }
-        return {
-          start: mumukshuData?.room?.startDay,
-          end: mumukshuData?.room?.endDay,
-        };
-      })();
+          return {
+            start: mumukshuData?.room?.startDay,
+            end: mumukshuData?.room?.endDay,
+          };
+        })();
 
       const key = `${range.start}-${range.end}`;
       if (!groups[key]) {
@@ -74,7 +77,7 @@ const MumukshuRoomBookingDetails: React.FC<{ containerStyles: any }> = ({ contai
           </View>
         </View>
 
-        <HorizontalSeparator otherStyles={'mb-4'} />
+        <HorizontalSeparator otherStyles="mb-4" />
 
         <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
           <Ionicons name="people" size={16} color={colors.gray_400} />

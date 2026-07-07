@@ -1,5 +1,6 @@
-import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+
 import { PendingAttachment } from '@/src/utils/ticketAttachments';
 
 interface Props {

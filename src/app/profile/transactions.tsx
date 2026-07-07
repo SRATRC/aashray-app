@@ -1,3 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
+import { FlashList } from '@shopify/flash-list';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import moment from 'moment';
+import { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,18 +11,14 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
-import { useState, useCallback, useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { FlashList } from '@shopify/flash-list';
-import { useAuthStore } from '@/src/stores';
+
+import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
+import PageHeader from '@/src/components/PageHeader';
 import { ShadowBox } from '@/src/components/ShadowBox';
 import { icons } from '@/src/constants';
-import { Ionicons } from '@expo/vector-icons';
-import PageHeader from '@/src/components/PageHeader';
-import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
+import { useAuthStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
-import moment from 'moment';
 
 const Transactions = () => {
   const { user } = useAuthStore();
@@ -95,7 +96,7 @@ const Transactions = () => {
                 </TouchableOpacity>
               </View>
             ) : (
-              <CustomEmptyMessage message={'No transactions at this moment!'} />
+              <CustomEmptyMessage message="No transactions at this moment!" />
             )}
           </View>
         )}

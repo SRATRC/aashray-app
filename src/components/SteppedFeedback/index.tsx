@@ -1,15 +1,17 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useSteppedFeedback } from './useSteppedFeedback';
+
+import { BooleanInput } from './BooleanInput';
 import { ProgressBar } from './ProgressBar';
 import { RatingInput } from './RatingInput';
-import { BooleanInput } from './BooleanInput';
-import { FeedbackTextInput } from './TextInput';
 import { SuccessScreen } from './SuccessScreen';
+import { FeedbackTextInput } from './TextInput';
 import type { SteppedFeedbackProps } from './types';
+import { useSteppedFeedback } from './useSteppedFeedback';
+
 import { colors } from '@/src/constants';
 
 const DEFAULTS = {

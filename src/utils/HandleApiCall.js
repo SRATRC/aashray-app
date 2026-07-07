@@ -1,7 +1,8 @@
-import axios from 'axios';
-import Toast from 'react-native-toast-message';
-import * as Haptics from 'expo-haptics';
 import * as Sentry from '@sentry/react-native';
+import axios from 'axios';
+import * as Haptics from 'expo-haptics';
+import Toast from 'react-native-toast-message';
+
 import { resolveApiBaseUrl } from './resolveBaseUrl';
 
 const generateRequestId = () =>
@@ -77,7 +78,8 @@ const handleAPICall = async (
       throw err;
     }
   } catch (error) {
-    const correlationId = error.correlationId || error.response?.headers?.['x-request-id'] || requestId;
+    const correlationId =
+      error.correlationId || error.response?.headers?.['x-request-id'] || requestId;
     const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
     const errorDetails = {
       message: errorMessage,

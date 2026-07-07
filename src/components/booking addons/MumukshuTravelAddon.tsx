@@ -1,15 +1,17 @@
+import moment from 'moment';
 import React, { useState, useCallback } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
-import { icons, colors, dropdowns } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
-import { useUtsavDate } from '@/src/hooks/useUtsavDate';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+
+import AddonItem from '../AddonItem';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import HorizontalSeparator from '../HorizontalSeparator';
 import FormDisplayField from '../FormDisplayField';
 import FormField from '../FormField';
-import AddonItem from '../AddonItem';
-import moment from 'moment';
+import HorizontalSeparator from '../HorizontalSeparator';
+
+import { icons, colors, dropdowns } from '@/src/constants';
+import { useUtsavDate } from '@/src/hooks/useUtsavDate';
+import { useAuthStore } from '@/src/stores';
 
 interface MumukshuTravelAddonProps {
   travelForm: any;
@@ -90,7 +92,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
           <Text className="font-pmedium">Raj Pravas Booking</Text>
         </View>
       }
-      containerStyles={'mt-3'}>
+      containerStyles="mt-3">
       <FormDisplayField
         text="Date"
         value={travelForm.date ? moment(travelForm.date).format('Do MMMM YYYY') : ''}
@@ -126,13 +128,13 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
         <View key={index} style={{ marginBottom: 15 }}>
           {index > 0 && (
             <View>
-              <HorizontalSeparator otherStyles={'w-full mt-3'} />
+              <HorizontalSeparator otherStyles="w-full mt-3" />
               <TouchableOpacity
                 onPress={removeTravelForm(index)}
                 className="mt-3 flex-1 flex-row items-center justify-end gap-x-1">
                 <Image
                   source={icons.remove}
-                  tintColor={'red'}
+                  tintColor="red"
                   className="h-3 w-3"
                   resizeMode="contain"
                 />
@@ -148,7 +150,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             options={getAvailableMumukshus(index)}
             selectedValues={assignment.mumukshuIndices}
             onValuesChange={(val) => updateTravelForm(index, 'mumukshus', val)}
-            multiSelect={true}
+            multiSelect
             confirmButtonText="Select"
           />
 
@@ -171,7 +173,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
               containerStyles="bg-gray-100"
               keyboardType="number-pad"
               placeholder="please specify total people here..."
-              inputStyles={'font-pmedium text-black text-lg'}
+              inputStyles="font-pmedium text-black text-lg"
             />
           )}
 
@@ -243,7 +245,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
                 }
                 placeholder="Flight/Train Time"
                 otherStyles="mt-5"
-                inputStyles={'font-pmedium text-black text-lg'}
+                inputStyles="font-pmedium text-black text-lg"
                 backgroundColor="bg-gray-100"
                 onPress={() => {
                   setDatePickerVisibility('travel_time', true);
@@ -276,7 +278,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             selectedValues={assignment.luggage}
             onValuesChange={(val: any) => updateTravelForm(index, 'luggage', val)}
             saveKeyInsteadOfValue={false}
-            multiSelect={true}
+            multiSelect
             confirmButtonText="Select"
             maxSelectedDisplay={3}
           />
@@ -301,9 +303,9 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             containerStyles="bg-gray-100"
             keyboardType="default"
             placeholder="Please specify a location if 'Other' is selected, or provide any additional requests here..."
-            multiline={true}
+            multiline
             numberOfLines={2}
-            inputStyles={'font-pmedium text-black text-lg'}
+            inputStyles="font-pmedium text-black text-lg"
           />
         </View>
       ))}

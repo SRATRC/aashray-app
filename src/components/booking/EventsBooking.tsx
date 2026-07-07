@@ -1,3 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { useRouter, useFocusEffect } from 'expo-router';
+import moment from 'moment';
+import { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,26 +14,23 @@ import {
   RefreshControl,
   Keyboard,
 } from 'react-native';
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { useCallback, useEffect, useState } from 'react';
-import { status, types } from '@/src/constants';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import { useRouter, useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ShadowBox } from '../ShadowBox';
+
+import CustomAlert from '../CustomAlert';
 import CustomButton from '../CustomButton';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import moment from 'moment';
 import CustomChipGroup from '../CustomChipGroup';
-import GuestForm from '../GuestForm';
-import FormField from '../FormField';
-import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import CustomAlert from '../CustomAlert';
+import FormField from '../FormField';
+import GuestForm from '../GuestForm';
+import OtherMumukshuForm from '../OtherMumukshuForm';
+import { ShadowBox } from '../ShadowBox';
+
+import { status, types } from '@/src/constants';
+import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
+import { useAuthStore, useBookingStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
 
 const CHIPS = ['Self', 'Guest', 'Mumukshus'];
 const ARRIVAL = [
@@ -399,7 +401,7 @@ const EventBooking = () => {
         visible={isModalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
-        statusBarTranslucent={true}
+        statusBarTranslucent
         transparent={false}
         onRequestClose={toggleModal}>
         <SafeAreaView className="flex-1 bg-white" edges={['top']}>
@@ -439,9 +441,9 @@ const EventBooking = () => {
                       chips={CHIPS}
                       selectedChip={selectedChip}
                       handleChipPress={handleChipClick}
-                      containerStyles={'mt-3'}
-                      chipContainerStyles={'py-2 px-4'}
-                      textStyles={'text-base'}
+                      containerStyles="mt-3"
+                      chipContainerStyles="py-2 px-4"
+                      textStyles="text-base"
                     />
                   </View>
 
@@ -480,8 +482,8 @@ const EventBooking = () => {
                             containerStyles="bg-gray-100"
                             placeholder="XX-XXX-XXXX"
                             maxLength={10}
-                            autoCapitalize={'characters'}
-                            autoComplete={'off'}
+                            autoCapitalize="characters"
+                            autoComplete="off"
                           />
                         )}
 
@@ -501,7 +503,7 @@ const EventBooking = () => {
                           inputStyles="font-pmedium text-base"
                           containerStyles="bg-gray-100"
                           placeholder="Enter details here..."
-                          multiline={true}
+                          multiline
                           numberOfLines={3}
                         />
                       </View>
@@ -551,7 +553,7 @@ const EventBooking = () => {
                                 inputStyles="font-pmedium text-base"
                                 containerStyles="bg-gray-100"
                                 placeholder="XX-XXX-XXXX"
-                                autoCapitalize={'characters'}
+                                autoCapitalize="characters"
                                 maxLength={10}
                               />
                             )}
@@ -576,7 +578,7 @@ const EventBooking = () => {
                               inputStyles="font-pmedium text-bases"
                               containerStyles="bg-gray-100"
                               placeholder="Enter details here..."
-                              multiline={true}
+                              multiline
                               numberOfLines={3}
                             />
                           </View>
@@ -630,8 +632,8 @@ const EventBooking = () => {
                                 containerStyles="bg-gray-100"
                                 placeholder="XX-XXX-XXXX"
                                 maxLength={10}
-                                autoCapitalize={'characters'}
-                                autoComplete={'off'}
+                                autoCapitalize="characters"
+                                autoComplete="off"
                               />
                             )}
 
@@ -655,7 +657,7 @@ const EventBooking = () => {
                               inputStyles="font-pmedium text-base"
                               containerStyles="bg-gray-100"
                               placeholder="Enter details here..."
-                              multiline={true}
+                              multiline
                               numberOfLines={3}
                             />
                           </View>
@@ -793,10 +795,10 @@ const EventBooking = () => {
                     setSelectedChip('Self');
                     toggleModal();
                   }}
-                  text={'Continue'}
+                  text="Continue"
                   bgcolor="bg-secondary"
                   containerStyles="mb-6 py-3 rounded-xl"
-                  textStyles={'text-base text-white font-psemibold'}
+                  textStyles="text-base text-white font-psemibold"
                   isDisabled={
                     selectedChip === CHIPS[0]
                       ? !isSelfFormValid()
@@ -824,7 +826,7 @@ const EventBooking = () => {
         sections={data?.pages?.flatMap((page: any) => page) || []}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}
-        nestedScrollEnabled={true}
+        nestedScrollEnabled
         renderItem={renderItem}
         keyExtractor={(item) =>
           item?.utsav_id != null ? String(item.utsav_id) : String(item?.id ?? '0')
@@ -850,7 +852,7 @@ const EventBooking = () => {
                 </TouchableOpacity>
               </View>
             ) : (
-              <CustomEmptyMessage message={'No upcoming Utsavs at this moment!'} />
+              <CustomEmptyMessage message="No upcoming Utsavs at this moment!" />
             )}
           </View>
         )}

@@ -1,11 +1,13 @@
+import { useQueries } from '@tanstack/react-query';
 import React, { useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
+
 import { colors, icons, dropdowns } from '../constants';
-import { useQueries } from '@tanstack/react-query';
-import { useAuthStore } from '@/src/stores';
+import CustomSelectBottomSheet from './CustomSelectBottomSheet';
 import FormField from './FormField';
 import handleAPICall from '../utils/HandleApiCall';
-import CustomSelectBottomSheet from './CustomSelectBottomSheet';
+
+import { useAuthStore } from '@/src/stores';
 
 interface GuestFormProps {
   guestForm: any;

@@ -1,3 +1,7 @@
+import { Feather, FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { useRouter, useFocusEffect } from 'expo-router';
+import * as Updates from 'expo-updates';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Text,
@@ -21,21 +25,18 @@ import {
   KeyboardController,
   useKeyboardController,
 } from 'react-native-keyboard-controller';
-import { icons } from '@/src/constants';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAuthStore, useDevStore } from '@/src/stores';
-import { useRouter, useFocusEffect } from 'expo-router';
-import { Feather, FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { useBottomTabOverflow } from '@/src/components/TabBarBackground';
-import getCachedImageUri, { invalidateCachedImage } from '@/src/utils/imageCache';
-import { useQuickImagePicker } from '@/src/hooks/useQuickImagePicker';
-import { ShadowBox } from '@/src/components/ShadowBox';
 import Toast from 'react-native-toast-message';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import FormField from '@/src/components/FormField';
+
 import CustomModal from '@/src/components/CustomModal';
-import * as Haptics from 'expo-haptics';
-import * as Updates from 'expo-updates';
+import FormField from '@/src/components/FormField';
+import { ShadowBox } from '@/src/components/ShadowBox';
+import { useBottomTabOverflow } from '@/src/components/TabBarBackground';
+import { icons } from '@/src/constants';
+import { useQuickImagePicker } from '@/src/hooks/useQuickImagePicker';
+import { useAuthStore, useDevStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
+import getCachedImageUri, { invalidateCachedImage } from '@/src/utils/imageCache';
 
 const { height: screenHeight } = Dimensions.get('window');
 
@@ -597,9 +598,9 @@ const Profile: React.FC = () => {
         {/* Password Reset Modal */}
         <Modal
           visible={passwordModalVisible}
-          transparent={true}
+          transparent
           animationType="none"
-          statusBarTranslucent={true}
+          statusBarTranslucent
           onRequestClose={closePasswordModal}>
           <View className="flex-1 justify-end bg-black/50">
             <Pressable
@@ -644,7 +645,7 @@ const Profile: React.FC = () => {
                     otherStyles="mb-5"
                     containerStyles="bg-gray-50 border border-gray-200"
                     inputStyles="font-pmedium text-base text-gray-800"
-                    isPassword={true}
+                    isPassword
                   />
 
                   <FormField
@@ -655,7 +656,7 @@ const Profile: React.FC = () => {
                     otherStyles="mb-5"
                     containerStyles="bg-gray-50 border border-gray-200"
                     inputStyles="font-pmedium text-base text-gray-800"
-                    isPassword={true}
+                    isPassword
                   />
 
                   <FormField
@@ -666,7 +667,7 @@ const Profile: React.FC = () => {
                     otherStyles="mb-8"
                     containerStyles="bg-gray-50 border border-gray-200"
                     inputStyles="font-pmedium text-base text-gray-800"
-                    isPassword={true}
+                    isPassword
                   />
 
                   <View className="flex-row gap-x-3">
@@ -704,8 +705,8 @@ const Profile: React.FC = () => {
           onClose={() => setCreditsInfoModalVisible(false)}
           title="About Credits"
           btnText="Got it"
-          scrollable={true}
-          showCloseButton={true}>
+          scrollable
+          showCloseButton>
           <>
             <View className="mb-4">
               <Text className="mb-2 font-psemibold text-base text-gray-800">Credit Value</Text>

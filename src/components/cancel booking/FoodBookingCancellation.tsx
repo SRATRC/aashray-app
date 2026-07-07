@@ -1,3 +1,10 @@
+import { FontAwesome } from '@expo/vector-icons';
+import { useBottomSheetModal } from '@gorhom/bottom-sheet';
+import { FlashList } from '@shopify/flash-list';
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
+import moment from 'moment';
+import { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,22 +15,17 @@ import {
   ScrollView,
   RefreshControl,
 } from 'react-native';
-import { useState, useCallback, useRef } from 'react';
-import { FlashList } from '@shopify/flash-list';
-import { FontAwesome } from '@expo/vector-icons';
-import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useBottomSheetModal } from '@gorhom/bottom-sheet';
-import { icons } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
-import { useBottomTabOverflow } from '../TabBarBackground';
-import handleAPICall from '@/src/utils/HandleApiCall';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import CustomEmptyMessage from '../CustomEmptyMessage';
+
 import BottomSheetFilter from '../BottomSheetFilter';
-import moment from 'moment';
-import * as Haptics from 'expo-haptics';
+import CustomEmptyMessage from '../CustomEmptyMessage';
 import { ShadowBox } from '../ShadowBox';
+import { useBottomTabOverflow } from '../TabBarBackground';
+
+import { icons } from '@/src/constants';
+import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
+import { useAuthStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
 
 const FOOD_TYPE_LIST = [
   { key: 'breakfast', value: 'Breakfast' },
@@ -475,7 +477,7 @@ export default function FoodBookingCancellation() {
               <ActivityIndicator size="small" color="white" />
             ) : (
               <View className="flex-row items-center justify-center gap-x-2">
-                <FontAwesome size={16} name="trash" color={'white'} />
+                <FontAwesome size={16} name="trash" color="white" />
                 <Text className="font-psemibold text-white">
                   Cancel ({selectedItems.length}) Booking{selectedItems.length > 1 ? 's' : ''}
                 </Text>

@@ -1,9 +1,10 @@
+import { FontAwesome5 } from '@expo/vector-icons';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEffect } from 'react';
 import { Dimensions, Modal, StatusBar, TouchableOpacity, View } from 'react-native';
-import { FontAwesome5 } from '@expo/vector-icons';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { useVideoPlayer, VideoView } from 'expo-video';
+
 import { AttachmentKind } from '@/src/utils/ticketAttachments';
 
 export interface MediaViewerItem {

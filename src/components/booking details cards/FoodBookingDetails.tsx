@@ -1,10 +1,12 @@
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import moment from 'moment';
 import { View, Text, Image } from 'react-native';
+
+import HorizontalSeparator from '../HorizontalSeparator';
+import { ShadowBox } from '../ShadowBox';
+
 import { colors, icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
-import { ShadowBox } from '../ShadowBox';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import HorizontalSeparator from '../HorizontalSeparator';
-import moment from 'moment';
 
 const FoodBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const data = useBookingStore((state) => state.mumukshuData);
@@ -29,7 +31,7 @@ const FoodBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyle
           </View>
         </View>
 
-        <HorizontalSeparator otherStyles={'mb-4'} />
+        <HorizontalSeparator otherStyles="mb-4" />
 
         <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
           <Ionicons name="fast-food" size={14} color={colors.gray_400} />

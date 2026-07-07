@@ -1,12 +1,13 @@
-import { Dimensions } from 'react-native';
-import * as Device from 'expo-device';
+import * as Sentry from '@sentry/react-native';
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
+import * as Device from 'expo-device';
+import { Paths } from 'expo-file-system';
 import * as Localization from 'expo-localization';
 import * as Network from 'expo-network';
 import * as Updates from 'expo-updates';
-import { Paths } from 'expo-file-system';
-import * as Sentry from '@sentry/react-native';
+import { Dimensions } from 'react-native';
+
 import { useDevStore, useAuthStore } from '../stores';
 import { resolveApiBaseUrl } from './resolveBaseUrl';
 

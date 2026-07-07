@@ -1,9 +1,10 @@
+import { FontAwesome, FontAwesome6, Ionicons } from '@expo/vector-icons';
+import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
-import { Tabs } from 'expo-router';
-import { FontAwesome, FontAwesome6, Ionicons } from '@expo/vector-icons';
-import { QrModal } from '@/src/components/QrModal';
+
 import { HapticTab } from '@/src/components/HapticTab';
+import { QrModal } from '@/src/components/QrModal';
 import BlurTabBarBackground from '@/src/components/TabBarBackground';
 
 const TabsLayout: React.FC = () => {

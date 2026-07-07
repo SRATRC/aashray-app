@@ -1,10 +1,11 @@
-import { View, ImageBackground, Modal } from 'react-native';
-import { images, colors } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
 import { router } from 'expo-router';
 import React from 'react';
+import { View, ImageBackground, Modal } from 'react-native';
 import QRCodeStyled from 'react-native-qrcode-styled';
+
 import PageHeader from '@/src/components/PageHeader';
+import { images, colors } from '@/src/constants';
+import { useAuthStore } from '@/src/stores';
 
 const QrScreen = () => {
   const { user } = useAuthStore();
@@ -16,11 +17,11 @@ const QrScreen = () => {
   return (
     <Modal
       animationType="slide"
-      visible={true}
-      statusBarTranslucent={true}
+      visible
+      statusBarTranslucent
       presentationStyle="pageSheet"
       onRequestClose={closeModal}>
-      <PageHeader title={'QR Code'} />
+      <PageHeader title="QR Code" />
       <View className="mt-10 h-full">
         <ImageBackground
           source={images.ticketbg}
@@ -37,7 +38,7 @@ const QrScreen = () => {
               padding={20}
               pieceSize={10}
               color={colors.black_200}
-              errorCorrectionLevel={'H'}
+              errorCorrectionLevel="H"
               innerEyesOptions={{
                 borderRadius: 12,
                 color: colors.black_200,

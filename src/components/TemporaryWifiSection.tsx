@@ -1,14 +1,16 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '@/src/constants';
-import { ShadowBox } from './ShadowBox';
-import Shimmer from '@/src/components/Shimmer';
-import Toast from 'react-native-toast-message';
-import CustomButton from '@/src/components/CustomButton';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
+import React from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import Toast from 'react-native-toast-message';
+
 import CustomErrorMessage from './CustomErrorMessage';
+import { ShadowBox } from './ShadowBox';
+
+import CustomButton from '@/src/components/CustomButton';
+import Shimmer from '@/src/components/Shimmer';
+import { colors } from '@/src/constants';
 
 interface TemporaryWifiCode {
   id?: string;

@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { Image, Keyboard, Modal, Pressable, Text, View } from 'react-native';
-import Reanimated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
+import Reanimated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { images } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
-import { useNotification } from '@/src/context/NotificationContext';
-import handleAPICall from '@/src/utils/HandleApiCall';
+
 import CustomAlert from '@/src/components/CustomAlert';
-import FormField from '@/src/components/FormField';
 import CustomButton from '@/src/components/CustomButton';
+import FormField from '@/src/components/FormField';
+import { images } from '@/src/constants';
+import { useNotification } from '@/src/context/NotificationContext';
+import { useAuthStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
 
 const PasswordResetModal = ({ visible, onClose, email }: any) => (
   <Modal
@@ -25,7 +26,7 @@ const PasswordResetModal = ({ visible, onClose, email }: any) => (
         </View>
 
         <Text className="mb-3 font-dmserif text-[26px] text-black">Check Your Inbox</Text>
-        <Text className="font-pregular text-sm text-gray-600 text-center">
+        <Text className="text-center font-pregular text-sm text-gray-600">
           We've sent a temporary password to WhatsApp and your registered email:
         </Text>
         <Text className="mb-4 mt-1 font-pmedium text-base text-secondary">{email}</Text>

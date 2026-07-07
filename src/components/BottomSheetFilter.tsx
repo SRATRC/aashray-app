@@ -1,11 +1,11 @@
-import React, { forwardRef } from 'react';
-import { Text, TouchableOpacity } from 'react-native';
 import {
   BottomSheetModal,
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
   BottomSheetFlatList,
 } from '@gorhom/bottom-sheet';
+import React, { forwardRef } from 'react';
+import { Text, TouchableOpacity } from 'react-native';
 
 interface BottomSheetFilterProps {
   data: any;

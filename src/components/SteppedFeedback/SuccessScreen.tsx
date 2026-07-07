@@ -1,6 +1,7 @@
-import { colors } from '@/src/constants';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { colors } from '@/src/constants';
 
 type SuccessScreenProps = {
   opacity: Animated.Value;

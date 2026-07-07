@@ -1,25 +1,27 @@
-import { View, Text, Image } from 'react-native';
-import { colors, icons } from '@/src/constants';
-import { useBookingStore } from '@/src/stores';
 import { Ionicons } from '@expo/vector-icons';
+import moment from 'moment';
+import { View, Text, Image } from 'react-native';
+
+import CustomTag from '../CustomTag';
 import HorizontalSeparator from '../HorizontalSeparator';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
-import CustomTag from '../CustomTag';
-import moment from 'moment';
+
+import { colors, icons } from '@/src/constants';
+import { useBookingStore } from '@/src/stores';
 
 const MumukshuTravelBookingDetail: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const mumukshuData = useBookingStore((store) => store.mumukshuData);
 
   return (
-    <PrimaryAddonBookingCard containerStyles={containerStyles} title={'Raj Pravas Booking'}>
+    <PrimaryAddonBookingCard containerStyles={containerStyles} title="Raj Pravas Booking">
       <View className="flex flex-row items-center gap-x-4 p-4">
         <Image source={icons.travel} className="h-10 w-10" resizeMode="contain" />
         <View className="w-full flex-1 justify-center gap-y-1">
           {mumukshuData.validationData?.travelDetails && (
             <CustomTag
               text={mumukshuData.validationData.travelDetails.status}
-              textStyles={'text-red-200'}
-              containerStyles={'bg-red-100'}
+              textStyles="text-red-200"
+              containerStyles="bg-red-100"
             />
           )}
           <Text className="text-md font-pmedium">
@@ -28,7 +30,7 @@ const MumukshuTravelBookingDetail: React.FC<{ containerStyles: any }> = ({ conta
         </View>
       </View>
 
-      <HorizontalSeparator otherStyles={'mb-4'} />
+      <HorizontalSeparator otherStyles="mb-4" />
 
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
         <Ionicons name="people" size={16} color={colors.gray_400} />

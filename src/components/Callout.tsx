@@ -1,6 +1,6 @@
+import { FontAwesome } from '@expo/vector-icons';
 import React from 'react';
 import { View, Text } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
 
 type CalloutVariant = 'default' | 'warning' | 'error' | 'success';
 

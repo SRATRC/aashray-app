@@ -1,5 +1,6 @@
-import { View, Text, TextInput, TouchableOpacity, Image, Platform } from 'react-native';
 import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Image, Platform } from 'react-native';
+
 import { colors, icons } from '../constants';
 
 interface FormFieldProps {

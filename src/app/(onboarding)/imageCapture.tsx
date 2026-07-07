@@ -8,10 +8,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, icons, images } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
-import { useQuickImagePicker } from '@/src/hooks/useQuickImagePicker';
+
 import CustomButton from '@/src/components/CustomButton';
+import { colors, icons, images } from '@/src/constants';
+import { useQuickImagePicker } from '@/src/hooks/useQuickImagePicker';
+import { useAuthStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
 
 const ImageCaptureOnboarding: React.FC = () => {

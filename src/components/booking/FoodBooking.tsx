@@ -1,27 +1,30 @@
+import { FontAwesome } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
+import moment from 'moment';
 import React, { useState } from 'react';
 import { View, Alert, Text, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { useAuthStore } from '@/src/stores';
-import { colors, dropdowns, status } from '@/src/constants';
-import { FontAwesome } from '@expo/vector-icons';
-import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import RazorpayCheckout from 'react-native-razorpay';
+import Toast from 'react-native-toast-message';
+
+import Callout from '../Callout';
+import CustomAlert from '../CustomAlert';
 import CustomButton from '../CustomButton';
 import CustomCalender from '../CustomCalender';
 import CustomChipGroup from '../CustomChipGroup';
 import CustomModal from '../CustomModal';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
+
+import { colors, dropdowns, status } from '@/src/constants';
+import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
+import { useAuthStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
+import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
+
 // @ts-ignore
-import RazorpayCheckout from 'react-native-razorpay';
-import Toast from 'react-native-toast-message';
-import moment from 'moment';
-import * as Haptics from 'expo-haptics';
-import CustomAlert from '../CustomAlert';
-import Callout from '../Callout';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
@@ -214,7 +217,7 @@ const FoodBooking = () => {
         keyboardShouldPersistTaps="handled">
         <BookingNote />
         <CustomCalender
-          type={'period'}
+          type="period"
           startDay={foodForm.startDay}
           setStartDay={(day: any) => {
             setFoodForm((prev) => ({ ...prev, startDay: day, endDay: '' }));
@@ -240,9 +243,9 @@ const FoodBooking = () => {
             chips={CHIPS}
             selectedChip={selectedChip}
             handleChipPress={handleChipClick}
-            containerStyles={'mt-1'}
-            chipContainerStyles={'py-2'}
-            textStyles={'text-sm'}
+            containerStyles="mt-1"
+            chipContainerStyles="py-2"
+            textStyles="text-sm"
           />
         </View>
 
@@ -255,7 +258,7 @@ const FoodBooking = () => {
               options={dropdowns.FOOD_TYPE_LIST}
               selectedValues={foodForm.meals}
               onValuesChange={(val) => setFoodForm({ ...foodForm, meals: val as string[] })}
-              multiSelect={true}
+              multiSelect
               confirmButtonText="Select"
               maxSelectedDisplay={3}
             />
@@ -357,7 +360,7 @@ const FoodBooking = () => {
                     options={dropdowns.FOOD_TYPE_LIST}
                     selectedValues={guestForm.guests[index].meals}
                     onValuesChange={(val) => handleGuestFormChange(index, 'meals', val)}
-                    multiSelect={true}
+                    multiSelect
                     confirmButtonText="Select"
                     maxSelectedDisplay={3}
                   />
@@ -408,7 +411,7 @@ const FoodBooking = () => {
                   null,
                   {
                     cardno: user.cardno,
-                    guests: guests,
+                    guests,
                   },
                   async (res: any) => {
                     const updatedGuests = guestForm.guests.map((formGuest) => {
@@ -440,7 +443,7 @@ const FoodBooking = () => {
                         if (data.data.amount == 0) {
                           router.replace('/bookingConfirmation');
                         } else {
-                          var options = {
+                          const options = {
                             key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
                             name: 'Vitraag Vigyaan',
                             image: 'https://vitraagvigyaan.org/img/logo.png',
@@ -507,7 +510,7 @@ const FoodBooking = () => {
                     options={dropdowns.FOOD_TYPE_LIST}
                     selectedValues={mumukshuForm.mumukshus[index].meals}
                     onValuesChange={(val) => handleMumukshuFormChange(index, 'meals', val)}
-                    multiSelect={true}
+                    multiSelect
                     confirmButtonText="Select"
                     maxSelectedDisplay={3}
                   />
@@ -583,7 +586,7 @@ const FoodBooking = () => {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         message={modalMessage}
-        btnText={'Okay'}
+        btnText="Okay"
       />
     </View>
   );

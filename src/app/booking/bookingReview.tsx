@@ -1,32 +1,34 @@
-import { View, Text, ScrollView, Platform } from 'react-native';
-import { useState, useCallback } from 'react';
-import { useRouter, useFocusEffect } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '@/src/constants';
-import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
 import { Ionicons } from '@expo/vector-icons';
-import RoomBookingDetails from '@/src/components/booking details cards/RoomBookingDetails';
-import PageHeader from '@/src/components/PageHeader';
-import TravelBookingDetails from '@/src/components/booking details cards/TravelBookingDetails';
-import AdhyayanBookingDetails from '@/src/components/booking details cards/AdhyayanBookingDetails';
-import CustomButton from '@/src/components/CustomButton';
-import FoodBookingDetails from '@/src/components/booking details cards/FoodBookingDetails';
-import handleAPICall from '@/src/utils/HandleApiCall';
-// @ts-ignore
-import RazorpayCheckout from 'react-native-razorpay';
-import CustomModal from '@/src/components/CustomModal';
-import EventBookingDetails from '@/src/components/booking details cards/EventBookingDetails';
+import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useState, useCallback } from 'react';
+import { View, Text, ScrollView, Platform } from 'react-native';
+import RazorpayCheckout from 'react-native-razorpay';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import CustomButton from '@/src/components/CustomButton';
+import CustomModal from '@/src/components/CustomModal';
+import PageHeader from '@/src/components/PageHeader';
 import { ShadowBox } from '@/src/components/ShadowBox';
+import AdhyayanBookingDetails from '@/src/components/booking details cards/AdhyayanBookingDetails';
+import EventBookingDetails from '@/src/components/booking details cards/EventBookingDetails';
+import FoodBookingDetails from '@/src/components/booking details cards/FoodBookingDetails';
+import RoomBookingDetails from '@/src/components/booking details cards/RoomBookingDetails';
+import TravelBookingDetails from '@/src/components/booking details cards/TravelBookingDetails';
+import { colors } from '@/src/constants';
+import { useAuthStore, useBookingStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
+import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
+
+// @ts-ignore
 
 // Define validation data type
 interface ValidationData {
-  roomDetails?: Array<{ charge: number; availableCredits?: number }>;
+  roomDetails?: { charge: number; availableCredits?: number }[];
   travelDetails?: { charge: number; availableCredits?: number };
-  adhyayanDetails?: Array<{ charge: number; availableCredits?: number }>;
-  utsavDetails?: Array<{ charge: number; availableCredits?: number }>;
+  adhyayanDetails?: { charge: number; availableCredits?: number }[];
+  utsavDetails?: { charge: number; availableCredits?: number }[];
   totalCharge: number;
 }
 
@@ -123,11 +125,11 @@ const bookingReview = () => {
         contentContainerStyle={{ paddingBottom: 20 }}>
         <PageHeader title="Review Booking" />
 
-        {mumukshuData.room && <RoomBookingDetails containerStyles={'mt-2'} />}
-        {mumukshuData.travel && <TravelBookingDetails containerStyles={'mt-2'} />}
-        {mumukshuData.adhyayan && <AdhyayanBookingDetails containerStyles={'mt-2'} />}
-        {mumukshuData.food && <FoodBookingDetails containerStyles={'mt-2'} />}
-        {mumukshuData.utsav && <EventBookingDetails containerStyles={'mt-2'} />}
+        {mumukshuData.room && <RoomBookingDetails containerStyles="mt-2" />}
+        {mumukshuData.travel && <TravelBookingDetails containerStyles="mt-2" />}
+        {mumukshuData.adhyayan && <AdhyayanBookingDetails containerStyles="mt-2" />}
+        {mumukshuData.food && <FoodBookingDetails containerStyles="mt-2" />}
+        {mumukshuData.utsav && <EventBookingDetails containerStyles="mt-2" />}
 
         {validationData && validationData.totalCharge > 0 && (
           <View className="mt-4 w-full px-4">
@@ -354,7 +356,7 @@ const bookingReview = () => {
                 setIsSubmitting(true);
 
                 const onSuccess = (data: any) => {
-                  var options = {
+                  const options = {
                     key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,
                     name: 'Vitraag Vigyaan Aashray',
                     image: 'https://vitraagvigyaan.org/img/logo.png',
@@ -433,10 +435,10 @@ const bookingReview = () => {
 
       {validationDataError && (
         <CustomModal
-          visible={true}
+          visible
           onClose={handleCloseValidationModal}
           message={validationDataError.message}
-          btnText={'Okay'}
+          btnText="Okay"
         />
       )}
 

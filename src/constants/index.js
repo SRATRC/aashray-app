@@ -1,3 +1,10 @@
+import colors from './colors';
+import dropdowns from './dropdowns';
+import icons from './icons';
+import images from './images';
+import status from './status';
+import types from './types';
+
 const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL;
 const DEV_URL = process.env.EXPO_PUBLIC_DEV_BASE_URL;
 
@@ -158,12 +165,5 @@ const quotes = [
     author: 'Param Pujya Pappaji',
   },
 ];
-
-import icons from './icons';
-import images from './images';
-import types from './types';
-import colors from './colors';
-import status from './status';
-import dropdowns from './dropdowns';
 
 export { icons, images, BASE_URL, DEV_URL, types, colors, status, dropdowns, quotes };

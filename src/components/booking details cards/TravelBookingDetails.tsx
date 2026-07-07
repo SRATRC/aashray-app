@@ -1,11 +1,13 @@
-import { View, Text, Image } from 'react-native';
 import { FontAwesome, FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import moment from 'moment';
+import { View, Text, Image } from 'react-native';
+
+import CustomTag from '../CustomTag';
+import HorizontalSeparator from '../HorizontalSeparator';
+import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
+
 import { colors, icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
-import HorizontalSeparator from '../HorizontalSeparator';
-import CustomTag from '../CustomTag';
-import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
-import moment from 'moment';
 
 const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerStyles }) => {
   const data = useBookingStore((state) => state.mumukshuData);
@@ -13,15 +15,15 @@ const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerSt
   console.log('DATA: ', JSON.stringify(data));
 
   return (
-    <PrimaryAddonBookingCard containerStyles={containerStyles} title={'Raj Pravas Booking'}>
+    <PrimaryAddonBookingCard containerStyles={containerStyles} title="Raj Pravas Booking">
       <View className="flex flex-row items-center gap-x-4 p-4">
         <Image source={icons.travel} className="h-10 w-10" resizeMode="contain" />
         <View className="w-full flex-1 justify-center gap-y-1">
           {data.validationData?.travelDetails && (
             <CustomTag
               text={data.validationData.travelDetails.status}
-              textStyles={'text-red-200'}
-              containerStyles={'bg-red-100'}
+              textStyles="text-red-200"
+              containerStyles="bg-red-100"
             />
           )}
           <Text className="text-md font-pmedium">
@@ -30,7 +32,7 @@ const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerSt
         </View>
       </View>
 
-      <HorizontalSeparator otherStyles={'mb-4'} />
+      <HorizontalSeparator otherStyles="mb-4" />
 
       <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
         <FontAwesome5 name="car" size={14} color={colors.gray_400} />

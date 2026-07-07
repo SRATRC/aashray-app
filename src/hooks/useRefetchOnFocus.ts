@@ -1,5 +1,5 @@
-import { useCallback, useRef } from 'react';
 import { useFocusEffect } from 'expo-router';
+import { useCallback, useRef } from 'react';
 
 /**
  * Refetches on every screen focus except the very first one.

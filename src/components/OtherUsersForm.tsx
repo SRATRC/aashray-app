@@ -1,10 +1,12 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native';
-import { colors, icons } from '../constants';
 import { useQueries } from '@tanstack/react-query';
-import { useAuthStore } from '@/src/stores';
 import React from 'react';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
+
+import { colors, icons } from '../constants';
 import FormField from './FormField';
 import handleAPICall from '../utils/HandleApiCall';
+
+import { useAuthStore } from '@/src/stores';
 
 interface OtherUsersFormProps {
   userForm: any;
@@ -32,7 +34,7 @@ const OtherUsersForm: React.FC<OtherUsersFormProps> = ({
         '/mumukshu',
         {
           cardno: user.cardno,
-          mobno: mobno,
+          mobno,
         },
         null,
         (res: any) => {

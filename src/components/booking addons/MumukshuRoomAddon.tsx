@@ -1,14 +1,16 @@
+import * as Haptics from 'expo-haptics';
+import moment from 'moment';
 import { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
-import { colors, icons, dropdowns } from '@/src/constants';
-import moment from 'moment';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import AddonItem from '../AddonItem';
-import HorizontalSeparator from '../HorizontalSeparator';
-import FormDisplayField from '../FormDisplayField';
 import Toast from 'react-native-toast-message';
+
+import AddonItem from '../AddonItem';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import * as Haptics from 'expo-haptics';
+import FormDisplayField from '../FormDisplayField';
+import HorizontalSeparator from '../HorizontalSeparator';
+
+import { colors, icons, dropdowns } from '@/src/constants';
 
 interface MumukshuRoomAddonProps {
   roomForm: any;
@@ -73,7 +75,7 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
           <Text className="font-pmedium">Raj Sharan Booking</Text>
         </View>
       }
-      containerStyles={'mt-3'}>
+      containerStyles="mt-3">
       <FormDisplayField
         text="Checkin Date"
         value={roomForm.startDay ? moment(roomForm.startDay).format('Do MMMM YYYY') : ''}
@@ -147,13 +149,13 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
         <View key={index} style={{ marginBottom: 15 }}>
           {index > 0 && (
             <View>
-              <HorizontalSeparator otherStyles={'w-full mt-3'} />
+              <HorizontalSeparator otherStyles="w-full mt-3" />
               <TouchableOpacity
                 onPress={reomveRoomForm(index)}
                 className="mt-3 flex-1 flex-row items-center justify-end gap-x-1">
                 <Image
                   source={icons.remove}
-                  tintColor={'red'}
+                  tintColor="red"
                   className="h-3 w-3"
                   resizeMode="contain"
                 />
@@ -168,7 +170,7 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
             options={getAvailableMumukshus(index)}
             selectedValues={assignment.mumukshuIndices}
             onValuesChange={(val) => updateRoomForm(index, 'mumukshus', val)}
-            multiSelect={true}
+            multiSelect
             confirmButtonText="Select"
           />
 

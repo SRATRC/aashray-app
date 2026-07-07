@@ -1,19 +1,20 @@
-import { View, Text, RefreshControl, TouchableOpacity, ScrollView, Modal } from 'react-native';
-import { useState, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthStore } from '@/src/stores';
-import { status } from '@/src/constants';
 import { FontAwesome5 } from '@expo/vector-icons';
-import PageHeader from '@/src/components/PageHeader';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import { wifiCache } from '@/src/utils/wifiCache';
-import CustomErrorMessage from '@/src/components/CustomErrorMessage';
-import PermanentWifiSection from '@/src/components/PermanentWifiSection';
-import TemporaryWifiSection from '@/src/components/TemporaryWifiSection';
-import ExpandableItem from '@/src/components/ExpandableItem';
+import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import * as Linking from 'expo-linking';
+import { useState, useCallback } from 'react';
+import { View, Text, RefreshControl, TouchableOpacity, ScrollView, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import CustomErrorMessage from '@/src/components/CustomErrorMessage';
+import ExpandableItem from '@/src/components/ExpandableItem';
+import PageHeader from '@/src/components/PageHeader';
+import PermanentWifiSection from '@/src/components/PermanentWifiSection';
+import TemporaryWifiSection from '@/src/components/TemporaryWifiSection';
+import { status } from '@/src/constants';
+import { useAuthStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
+import { wifiCache } from '@/src/utils/wifiCache';
 
 const wifiTutorials = {
   mumukshu: [
@@ -89,7 +90,7 @@ const Wifi = () => {
           wifiCache.set(`wifi:${user.cardno}`, data);
           resolve(data);
         },
-        () => { },
+        () => {},
         () => reject(new Error('Failed to fetch wifi passwords')),
         false
       );
@@ -111,7 +112,7 @@ const Wifi = () => {
           wifiCache.set(`permanent:${user.cardno}`, data);
           resolve(data);
         },
-        () => { },
+        () => {},
         () => reject(new Error('Failed to fetch permanent wifi code')),
         false
       );
@@ -192,7 +193,7 @@ const Wifi = () => {
         '/wifi/permanent/reset',
         null,
         {
-          id: id,
+          id,
           cardno: user.cardno,
         },
         (res: any) => {
@@ -273,17 +274,17 @@ const Wifi = () => {
 
     return (
       <View key={title} className="mb-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-        <Text className="font-psemibold text-sm text-gray-800 mb-3">{title}</Text>
+        <Text className="mb-3 font-psemibold text-sm text-gray-800">{title}</Text>
         <View className="flex-row gap-x-3">
           <TouchableOpacity
             onPress={() => handleOpenLink(appleUrl)}
-            className="flex-1 flex-row items-center justify-center gap-x-2 rounded-xl bg-gray-50 border border-gray-200 py-3 active:bg-gray-100">
+            className="flex-1 flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 bg-gray-50 py-3 active:bg-gray-100">
             <FontAwesome5 name="apple" size={14} color="#374151" />
             <Text className="font-pmedium text-xs text-gray-700">Apple / iOS</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => handleOpenLink(androidUrl)}
-            className="flex-1 flex-row items-center justify-center gap-x-2 rounded-xl bg-green-50 border border-green-200 py-3 active:bg-green-100">
+            className="flex-1 flex-row items-center justify-center gap-x-2 rounded-xl border border-green-200 bg-green-50 py-3 active:bg-green-100">
             <FontAwesome5 name="android" size={13} color="#16a34a" />
             <Text className="font-pmedium text-xs text-green-700">Android</Text>
           </TouchableOpacity>
@@ -298,11 +299,17 @@ const Wifi = () => {
         className="flex-1"
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-        <PageHeader title={'WiFi Passwords'} />
+        <PageHeader title="WiFi Passwords" />
 
-        {isError && isPermanentError && (!wifiList || wifiList.length === 0) && (!permanentWifiData || permanentWifiData.length === 0) ? (
+        {isError &&
+        isPermanentError &&
+        (!wifiList || wifiList.length === 0) &&
+        (!permanentWifiData || permanentWifiData.length === 0) ? (
           <View className="flex-1 items-center justify-center px-4">
-            <CustomErrorMessage errorTitle="An Error Occurred" errorMessage={error?.message || "Failed to load WiFi details."} />
+            <CustomErrorMessage
+              errorTitle="An Error Occurred"
+              errorMessage={error?.message || 'Failed to load WiFi details.'}
+            />
           </View>
         ) : (
           <>
@@ -336,45 +343,50 @@ const Wifi = () => {
         animationType="slide"
         visible={showInfoModal}
         presentationStyle="pageSheet"
-        statusBarTranslucent={true}>
+        statusBarTranslucent>
         <SafeAreaView className="flex-1">
-          <PageHeader title={'WiFi Instructions'} iconName="times" onPress={handleCloseModal} />
+          <PageHeader title="WiFi Instructions" iconName="times" onPress={handleCloseModal} />
           <ScrollView className="flex-1">
             <View className="gap-y-2 p-4">
               {/* Bullet Points Section */}
-              <View className="gap-y-3 px-1 mb-4">
+              <View className="mb-4 gap-y-3 px-1">
                 <View className="flex-row items-start gap-x-2.5">
-                  <Text className="text-gray-400 mt-0.5">•</Text>
-                  <Text className="flex-1 font-pregular text-sm text-gray-600 leading-5">
-                    Each password is for <Text className="font-psemibold text-gray-900">1 device only</Text>.
+                  <Text className="mt-0.5 text-gray-400">•</Text>
+                  <Text className="flex-1 font-pregular text-sm leading-5 text-gray-600">
+                    Each password is for{' '}
+                    <Text className="font-psemibold text-gray-900">1 device only</Text>.
                   </Text>
                 </View>
 
                 <View className="flex-row items-start gap-x-2.5">
-                  <Text className="text-gray-400 mt-0.5">•</Text>
-                  <Text className="flex-1 font-pregular text-sm text-gray-600 leading-5">
+                  <Text className="mt-0.5 text-gray-400">•</Text>
+                  <Text className="flex-1 font-pregular text-sm leading-5 text-gray-600">
                     Please allow us 7-10 days to process your request for permanent code.
                   </Text>
                 </View>
 
                 <View className="flex-row items-start gap-x-2.5">
-                  <Text className="text-gray-400 mt-0.5">•</Text>
-                  <Text className="flex-1 font-pregular text-sm text-gray-600 leading-5">
-                    <Text className="font-psemibold text-gray-900">Permanent Code:</Text> Provides long-term network access (valid for 1 year). Requires administrator review and approval.
+                  <Text className="mt-0.5 text-gray-400">•</Text>
+                  <Text className="flex-1 font-pregular text-sm leading-5 text-gray-600">
+                    <Text className="font-psemibold text-gray-900">Permanent Code:</Text> Provides
+                    long-term network access (valid for 1 year). Requires administrator review and
+                    approval.
                   </Text>
                 </View>
 
                 <View className="flex-row items-start gap-x-2.5">
-                  <Text className="text-gray-400 mt-0.5">•</Text>
-                  <Text className="flex-1 font-pregular text-sm text-gray-600 leading-5">
-                    <Text className="font-psemibold text-gray-900">Temporary Code:</Text> Provides immediate short-term access (valid for 2 weeks) with a data limit. Limit of 1 active request allowed.
+                  <Text className="mt-0.5 text-gray-400">•</Text>
+                  <Text className="flex-1 font-pregular text-sm leading-5 text-gray-600">
+                    <Text className="font-psemibold text-gray-900">Temporary Code:</Text> Provides
+                    immediate short-term access (valid for 2 weeks) with a data limit. Limit of 1
+                    active request allowed.
                   </Text>
                 </View>
               </View>
 
               {/* Setup Guides Subheader */}
-              <View className="mt-2 mb-1">
-                <Text className="font-psemibold text-base text-gray-900 px-1">Setup Guides</Text>
+              <View className="mb-1 mt-2">
+                <Text className="px-1 font-psemibold text-base text-gray-900">Setup Guides</Text>
               </View>
 
               {/* Mumukshus Tutorials */}
@@ -401,7 +413,9 @@ const Wifi = () => {
                     <View className="h-8 w-8 items-center justify-center rounded-full bg-blue-50">
                       <FontAwesome5 name="home" size={16} color="#2563eb" />
                     </View>
-                    <Text className="font-psemibold text-base text-gray-900">Permanent Residents</Text>
+                    <Text className="font-psemibold text-base text-gray-900">
+                      Permanent Residents
+                    </Text>
                   </View>
                 }>
                 <View className="px-1 pb-4 pt-2">

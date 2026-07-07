@@ -1,18 +1,20 @@
-import { View, Text, Alert } from 'react-native';
-import React, { useState } from 'react';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useRouter } from 'expo-router';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import { types } from '@/src/constants';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
+import moment from 'moment';
+import React, { useState } from 'react';
+import { View, Text, Alert } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+
+import CustomAlert from '../CustomAlert';
+import CustomButton from '../CustomButton';
 import CustomCalender from '../CustomCalender';
 import CustomChipGroup from '../CustomChipGroup';
-import OtherMumukshuForm from '../OtherMumukshuForm';
-import CustomButton from '../CustomButton';
 import GuestForm from '../GuestForm';
+import OtherMumukshuForm from '../OtherMumukshuForm';
+
+import { types } from '@/src/constants';
+import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
+import { useAuthStore, useBookingStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
-import moment from 'moment';
-import CustomAlert from '../CustomAlert';
 
 const CHIPS = ['Mumukshus', 'Guest'];
 const INITIAL_MUMUKSHU_FORM = {
@@ -159,7 +161,7 @@ const FlatBooking = () => {
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled">
         <CustomCalender
-          type={'period'}
+          type="period"
           startDay={mumukshuForm.startDay}
           setStartDay={(day: any) => {
             setGuestForm((prev) => ({ ...prev, startDay: day, endDay: '' }));
@@ -183,9 +185,9 @@ const FlatBooking = () => {
             chips={CHIPS}
             selectedChip={selectedChip}
             handleChipPress={handleChipClick}
-            containerStyles={'mt-1'}
-            chipContainerStyles={'py-2'}
-            textStyles={'text-sm'}
+            containerStyles="mt-1"
+            chipContainerStyles="py-2"
+            textStyles="text-sm"
           />
         </View>
 

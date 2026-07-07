@@ -1,3 +1,8 @@
+import { FlashList } from '@shopify/flash-list';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
+import moment from 'moment';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -6,23 +11,20 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
-import { useState } from 'react';
-import { FlashList } from '@shopify/flash-list';
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { icons, status } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import { splitActiveAndPastBookings } from '@/src/utils/bookingHistoryFilter';
-import CustomModal from '../CustomModal';
-import OldBookingsTrigger from '../OldBookingsTrigger';
+
+import BookingStatusDisplay from '../BookingStatusDisplay';
 import CustomButton from '../CustomButton';
+import CustomEmptyMessage from '../CustomEmptyMessage';
+import CustomModal from '../CustomModal';
 import ExpandableItem from '../ExpandableItem';
 import HorizontalSeparator from '../HorizontalSeparator';
-import CustomEmptyMessage from '../CustomEmptyMessage';
-import BookingStatusDisplay from '../BookingStatusDisplay';
-import moment from 'moment';
-import { useRouter } from 'expo-router';
+import OldBookingsTrigger from '../OldBookingsTrigger';
+
+import { icons, status } from '@/src/constants';
+import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
+import { useAuthStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
+import { splitActiveAndPastBookings } from '@/src/utils/bookingHistoryFilter';
 
 const EventBookingCancellation = () => {
   const { user } = useAuthStore();
@@ -198,7 +200,7 @@ const EventBookingCancellation = () => {
             </View>
           </View>
         }
-        containerStyles={'mt-3'}>
+        containerStyles="mt-3">
         <HorizontalSeparator />
         <View className="mt-3">
           <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
@@ -226,24 +228,24 @@ const EventBookingCancellation = () => {
             <View className="mt-5 flex-row gap-x-3 px-1">
               {/* Cancel Booking — only BEFORE event */}
               {canCancel && (
-                  <CustomButton
-                    text="Cancel Booking"
-                    containerStyles={'py-3 flex-1'}
-                    textStyles={'text-sm text-white'}
-                    handlePress={() => {
-                      setSelectedBooking(item);
-                      setShowCancelModal(true);
-                    }}
-                  />
-                )}
+                <CustomButton
+                  text="Cancel Booking"
+                  containerStyles="py-3 flex-1"
+                  textStyles="text-sm text-white"
+                  handlePress={() => {
+                    setSelectedBooking(item);
+                    setShowCancelModal(true);
+                  }}
+                />
+              )}
 
               {/* Give Feedback */}
               {item?.showFeedback && !item?.hasSubmittedFeedback && !bookedForSomeone && (
                 <CustomButton
                   text="Give Feedback"
-                  containerStyles={'py-3 flex-1'}
-                  textStyles={'text-sm text-white'}
-                  bgcolor={'bg-secondary'}
+                  containerStyles="py-3 flex-1"
+                  textStyles="text-sm text-white"
+                  bgcolor="bg-secondary"
                   handlePress={() => {
                     const utsavId = item.utsavid ?? item.id;
                     router.push(`/utsav/feedback/${utsavId}`);
@@ -301,9 +303,7 @@ const EventBookingCancellation = () => {
             return <View className="w-full">{renderOldBookingsSection()}</View>;
           return (
             <View className="h-full flex-1 items-center justify-center pt-40">
-              <CustomEmptyMessage
-                message={"No spiritual gatherings? Your soul's RSVP is missing."}
-              />
+              <CustomEmptyMessage message="No spiritual gatherings? Your soul's RSVP is missing." />
             </View>
           );
         }}
@@ -343,7 +343,7 @@ const EventBookingCancellation = () => {
         title="Cancel Booking"
         message="Are you sure you want to cancel this event booking?"
         btnText="Yes, Cancel"
-        showActionButton={true}
+        showActionButton
         btnOnPress={() => {
           if (selectedBooking) {
             cancelBookingMutation.mutate({

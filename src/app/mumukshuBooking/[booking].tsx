@@ -1,29 +1,30 @@
+import { FontAwesome } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { View, Text, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
-import { dropdowns, types } from '@/src/constants';
-import { FontAwesome } from '@expo/vector-icons';
-import { ShadowBox } from '@/src/components/ShadowBox';
-import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import PageHeader from '@/src/components/PageHeader';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import Callout from '@/src/components/Callout';
+import CustomAlert from '@/src/components/CustomAlert';
 import CustomButton from '@/src/components/CustomButton';
-import MumukshuRoomBookingDetails from '@/src/components/booking details cards/MumukshuRoomBookingDetails';
+import CustomModal from '@/src/components/CustomModal';
+import PageHeader from '@/src/components/PageHeader';
+import { ShadowBox } from '@/src/components/ShadowBox';
+import MumukshuAdhyayanAddon from '@/src/components/booking addons/MumukshuAdhyayanAddon';
+import MumukshuFoodAddon from '@/src/components/booking addons/MumukshuFoodAddon';
+import MumukshuRoomAddon from '@/src/components/booking addons/MumukshuRoomAddon';
+import MumukshuTravelAddon from '@/src/components/booking addons/MumukshuTravelAddon';
 import MumukshuAdhyayanBookingDetails from '@/src/components/booking details cards/MumukshuAdhyayanBookingDetails';
-import MumukshuTravelBookingDetails from '@/src/components/booking details cards/MumukshuTravelBookingDetails';
 import MumukshuEventBookingDetails from '@/src/components/booking details cards/MumukshuEventBookingDetails';
 import MumukshuFlatBookingDetails from '@/src/components/booking details cards/MumukshuFlatBookingDetails';
-import MumukshuRoomAddon from '@/src/components/booking addons/MumukshuRoomAddon';
-import MumukshuFoodAddon from '@/src/components/booking addons/MumukshuFoodAddon';
-import MumukshuAdhyayanAddon from '@/src/components/booking addons/MumukshuAdhyayanAddon';
-import MumukshuTravelAddon from '@/src/components/booking addons/MumukshuTravelAddon';
+import MumukshuRoomBookingDetails from '@/src/components/booking details cards/MumukshuRoomBookingDetails';
+import MumukshuTravelBookingDetails from '@/src/components/booking details cards/MumukshuTravelBookingDetails';
+import { dropdowns, types } from '@/src/constants';
+import { useAuthStore, useBookingStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
-import CustomModal from '@/src/components/CustomModal';
-import CustomAlert from '@/src/components/CustomAlert';
-import Callout from '@/src/components/Callout';
+import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
 
 const MumukshuAddons = () => {
   const router = useRouter();
@@ -783,7 +784,7 @@ const MumukshuAddons = () => {
 
       {validationDataError && (
         <CustomModal
-          visible={true}
+          visible
           onClose={handleCloseValidationModal}
           message={validationDataError.message}
           btnText="Okay"

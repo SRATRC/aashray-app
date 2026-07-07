@@ -1,3 +1,7 @@
+import { FlashList } from '@shopify/flash-list';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import moment from 'moment';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,25 +11,22 @@ import {
   TouchableOpacity,
   Modal,
 } from 'react-native';
-import { useState, useCallback } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import { colors, icons, status, types } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
-import { FlashList } from '@shopify/flash-list';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import PageHeader from '@/src/components/PageHeader';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import CustomChipGroup from '@/src/components/CustomChipGroup';
-import CustomTag from '@/src/components/CustomTag';
-import ExpandableItem from '@/src/components/ExpandableItem';
-import HorizontalSeparator from '@/src/components/HorizontalSeparator';
-import FormField from '@/src/components/FormField';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import CustomAlert from '@/src/components/CustomAlert';
 import CustomButton from '@/src/components/CustomButton';
+import CustomChipGroup from '@/src/components/CustomChipGroup';
 import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
-import CustomAlert from '@/src/components/CustomAlert';
-import moment from 'moment';
+import CustomTag from '@/src/components/CustomTag';
+import ExpandableItem from '@/src/components/ExpandableItem';
+import FormField from '@/src/components/FormField';
+import HorizontalSeparator from '@/src/components/HorizontalSeparator';
+import PageHeader from '@/src/components/PageHeader';
+import { colors, icons, status, types } from '@/src/constants';
+import { useAuthStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
 
 const CHIPS = [
   types.MAINTENANCE_TYPE_ALL,
@@ -100,7 +101,7 @@ const maintenanceRequestList = () => {
 
   const renderItem = ({ item }: any) => (
     <ExpandableItem
-      containerStyles={'mt-3'}
+      containerStyles="mt-3"
       visibleContent={
         <View className="flex flex-row items-center gap-x-4">
           <Image source={icons.id} className="h-10 w-10" resizeMode="contain" />
@@ -149,7 +150,7 @@ const maintenanceRequestList = () => {
 
   const renderHeader = () => (
     <View className="flex-col">
-      <PageHeader title={'Maintenance History'} />
+      <PageHeader title="Maintenance History" />
       <View className="mx-4 mb-6">
         <CustomChipGroup
           chips={CHIPS}
@@ -186,7 +187,7 @@ const maintenanceRequestList = () => {
         ListHeaderComponent={renderHeader}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={
-          <CustomEmptyMessage message={'You dont have any maintenance requests yet'} />
+          <CustomEmptyMessage message="You dont have any maintenance requests yet" />
         }
         onEndReachedThreshold={0.1}
         onEndReached={() => {
@@ -212,7 +213,7 @@ const maintenanceRequestList = () => {
         animationType="slide"
         visible={isModalVisible}
         presentationStyle="pageSheet"
-        statusBarTranslucent={true}
+        statusBarTranslucent
         onRequestClose={() => setIsModalVisible(false)}>
         <SafeAreaView className="h-full w-full bg-white">
           <KeyboardAwareScrollView
@@ -250,11 +251,11 @@ const maintenanceRequestList = () => {
                 text="Detail of Work"
                 value={form.work_detail}
                 handleChangeText={(e: any) => setForm({ ...form, work_detail: e })}
-                multiline={true}
+                multiline
                 numberOfLines={4}
                 otherStyles="mt-7"
                 inputStyles="font-pmedium text-base text-black"
-                containerStyles={'bg-gray-100'}
+                containerStyles="bg-gray-100"
                 placeholder="Work Description"
               />
 
@@ -264,7 +265,7 @@ const maintenanceRequestList = () => {
                 handleChangeText={(e: any) => setForm({ ...form, area_of_work: e })}
                 otherStyles="mt-7"
                 inputStyles="font-pmedium text-base text-black"
-                containerStyles={'bg-gray-100'}
+                containerStyles="bg-gray-100"
                 placeholder="Place where work is needed"
               />
 

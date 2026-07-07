@@ -1,13 +1,14 @@
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
-import { useAuthStore } from '@/src/stores';
-import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import PageHeader from '@/src/components/PageHeader';
+
 import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
+import PageHeader from '@/src/components/PageHeader';
 import Shimmer from '@/src/components/Shimmer';
+import { useAuthStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
 
 interface Meal {
   _id: string;

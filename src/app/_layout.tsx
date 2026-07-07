@@ -1,22 +1,23 @@
 import '../../global.css';
-import { useEffect, useState } from 'react';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { SystemBars } from 'react-native-edge-to-edge';
-import { KeyboardProvider } from 'react-native-keyboard-controller';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { NotificationProvider } from '@/src/context/NotificationContext';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useAuthStore } from '@/src/stores';
-import { useDeepLinkHandler } from '@/src/hooks/useDeepLinkHandler';
-import { ParsedDeepLink } from '@/src/types/deeplink';
-import Toast from 'react-native-toast-message';
-import UpdateManager from '@/src/utils/updateManager';
 import * as Sentry from '@sentry/react-native';
-import * as SplashScreen from 'expo-splash-screen';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
+import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect, useState } from 'react';
+import { SystemBars } from 'react-native-edge-to-edge';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
+import Toast from 'react-native-toast-message';
+
 import { CustomAlert } from '@/src/components/CustomAlert';
+import { NotificationProvider } from '@/src/context/NotificationContext';
+import { useDeepLinkHandler } from '@/src/hooks/useDeepLinkHandler';
+import { useAuthStore } from '@/src/stores';
+import { ParsedDeepLink } from '@/src/types/deeplink';
+import UpdateManager from '@/src/utils/updateManager';
 
 const queryClient = new QueryClient({
   defaultOptions: {

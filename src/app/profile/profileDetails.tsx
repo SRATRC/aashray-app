@@ -1,12 +1,13 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/src/stores';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import PageHeader from '@/src/components/PageHeader';
-import handleAPICall from '@/src/utils/HandleApiCall';
 import ProfileForm, { ProfileFormData } from '@/src/components/ProfileForm';
+import { useAuthStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
 
 const ProfileDetails = () => {
   const user = useAuthStore((state) => state.user);

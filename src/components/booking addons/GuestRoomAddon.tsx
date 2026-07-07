@@ -1,15 +1,17 @@
+import * as Haptics from 'expo-haptics';
+import moment from 'moment';
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
-import { useBookingStore } from '@/src/stores';
-import { colors, icons, dropdowns } from '@/src/constants';
-import AddonItem from '../AddonItem';
-import HorizontalSeparator from '../HorizontalSeparator';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import FormDisplayField from '../FormDisplayField';
 import Toast from 'react-native-toast-message';
-import moment from 'moment';
-import * as Haptics from 'expo-haptics';
+
+import AddonItem from '../AddonItem';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
+import FormDisplayField from '../FormDisplayField';
+import HorizontalSeparator from '../HorizontalSeparator';
+
+import { colors, icons, dropdowns } from '@/src/constants';
+import { useBookingStore } from '@/src/stores';
 
 interface GuestRoomAddonProps {
   roomForm: any;
@@ -80,7 +82,7 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
           <Text className="font-pmedium">Raj Sharan Booking</Text>
         </View>
       }
-      containerStyles={'mt-3'}>
+      containerStyles="mt-3">
       <FormDisplayField
         text="Checkin Date"
         value={roomForm.startDay ? moment(roomForm.startDay).format('Do MMMM YYYY') : ''}
@@ -157,13 +159,13 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
         <View key={index} style={{ marginBottom: 15 }}>
           {index > 0 && (
             <View>
-              <HorizontalSeparator otherStyles={'w-full mt-3'} />
+              <HorizontalSeparator otherStyles="w-full mt-3" />
               <TouchableOpacity
                 onPress={reomveRoomForm(index)}
                 className="mt-3 flex-1 flex-row items-center justify-end gap-x-1">
                 <Image
                   source={icons.remove}
-                  tintColor={'red'}
+                  tintColor="red"
                   className="h-3 w-3"
                   resizeMode="contain"
                 />
@@ -179,7 +181,7 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
             options={getAvailableGuests(index)}
             selectedValues={assignment.guestIndices}
             onValuesChange={(val) => updateRoomForm(index, 'guests', val)}
-            multiSelect={true}
+            multiSelect
             confirmButtonText="Select"
           />
 

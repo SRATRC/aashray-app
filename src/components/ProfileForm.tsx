@@ -1,15 +1,16 @@
+import RNDateTimePicker from '@react-native-community/datetimepicker';
+import { useQuery } from '@tanstack/react-query';
+import moment from 'moment';
 import { useState } from 'react';
 import { View, Platform, Text } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
-import { dropdowns } from '@/src/constants';
-import FormField from '@/src/components/FormField';
-import FormDisplayField from '@/src/components/FormDisplayField';
+
 import CustomButton from '@/src/components/CustomButton';
-import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
-import RNDateTimePicker from '@react-native-community/datetimepicker';
 import ErrorText from '@/src/components/ErrorText';
-import moment from 'moment';
+import FormDisplayField from '@/src/components/FormDisplayField';
+import FormField from '@/src/components/FormField';
+import { dropdowns } from '@/src/constants';
+import handleAPICall from '@/src/utils/HandleApiCall';
 
 export interface ProfileFormData {
   issuedto: string;

@@ -1,8 +1,9 @@
-import { View, TouchableOpacity, Image, Platform } from 'react-native';
-import { useCallback, useState } from 'react';
-import { useFocusEffect } from 'expo-router';
-import { icons } from '@/src/constants';
 import * as Haptics from 'expo-haptics';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { View, TouchableOpacity, Image, Platform } from 'react-native';
+
+import { icons } from '@/src/constants';
 
 interface AddonItemProps {
   children: any;

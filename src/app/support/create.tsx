@@ -1,22 +1,23 @@
-import { Alert, Platform, Text, TouchableOpacity, View } from 'react-native';
-import { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { useQueryClient } from '@tanstack/react-query';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useAuthStore } from '@/src/stores';
+import { useQueryClient } from '@tanstack/react-query';
+import * as Application from 'expo-application';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Alert, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import PageHeader from '@/src/components/PageHeader';
-import FormField from '@/src/components/FormField';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
+
+import AttachmentPreviewStrip from '@/src/components/AttachmentPreviewStrip';
 import CustomButton from '@/src/components/CustomButton';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
-import Toast from 'react-native-toast-message';
-import AttachmentPreviewStrip from '@/src/components/AttachmentPreviewStrip';
+import FormField from '@/src/components/FormField';
+import PageHeader from '@/src/components/PageHeader';
+import { useTicketAttachments } from '@/src/hooks/useTicketAttachments';
+import { useAuthStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import { collectDiagnostics } from '@/src/utils/collectDiagnostics';
-import { useTicketAttachments } from '@/src/hooks/useTicketAttachments';
 import { AttachmentRef, MAX_IMAGES, MAX_VIDEOS, runUpload } from '@/src/utils/ticketAttachments';
-import * as Application from 'expo-application';
 
 // The 12 support departments — labels + order mirror the backend's
 // TICKET_SERVICE_ROLE_MAP (config/constants.js), which is the source of truth.
@@ -197,11 +198,11 @@ const CreateTicket = () => {
           text="Description"
           value={form.description}
           handleChangeText={(e: string) => setForm({ ...form, description: e })}
-          multiline={true}
+          multiline
           numberOfLines={6}
           otherStyles="mt-7"
           inputStyles="font-pmedium text-base text-black h-32"
-          containerStyles={'bg-gray-100 items-start pt-2'}
+          containerStyles="bg-gray-100 items-start pt-2"
           placeholder="Describe your issue in detail..."
         />
 

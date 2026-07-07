@@ -1,7 +1,7 @@
-import { View, Text, Pressable } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
+import { View, Text, Pressable } from 'react-native';
 
 interface PageHeaderProps {
   title: string;

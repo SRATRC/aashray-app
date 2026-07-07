@@ -31,12 +31,7 @@ class CustomAlertService {
     this.changeListener = listener;
   }
 
-  static alert(
-    title: string,
-    message?: string,
-    buttons?: AlertButton[],
-    options?: AlertOptions
-  ) {
+  static alert(title: string, message?: string, buttons?: AlertButton[], options?: AlertOptions) {
     this.currentState = {
       visible: true,
       title,
@@ -84,7 +79,8 @@ export const CustomAlert = () => {
   if (!state.visible) return null;
 
   // Default button if none provided
-  const buttons = state.buttons && state.buttons.length > 0 ? state.buttons : [{ text: 'OK', style: 'default' }];
+  const buttons =
+    state.buttons && state.buttons.length > 0 ? state.buttons : [{ text: 'OK', style: 'default' }];
 
   return (
     <Modal
@@ -92,7 +88,7 @@ export const CustomAlert = () => {
       animationType="fade"
       visible={state.visible}
       onRequestClose={handleClose}
-      statusBarTranslucent={true}>
+      statusBarTranslucent>
       <View
         className="flex-1 items-center justify-center px-6"
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
@@ -105,26 +101,25 @@ export const CustomAlert = () => {
             shadowOpacity: 0.15,
             shadowRadius: 8,
           }}>
-          
           {/* Content */}
           <View className="mb-8">
             <Text className="mb-2 text-left font-psemibold text-xl text-gray-900">
               {state.title}
             </Text>
-            
+
             {state.message && (
-              <Text className="text-left font-pregular text-base text-gray-600 leading-6">
+              <Text className="text-left font-pregular text-base leading-6 text-gray-600">
                 {state.message}
               </Text>
             )}
           </View>
 
           {/* Buttons */}
-          <View className="flex-row justify-end gap-3 flex-wrap">
+          <View className="flex-row flex-wrap justify-end gap-3">
             {buttons.map((btn, index) => {
               const isDestructive = btn.style === 'destructive';
               const isCancel = btn.style === 'cancel';
-              
+
               // Cancel / Secondary: Text Button
               if (isCancel) {
                 return (
@@ -132,8 +127,7 @@ export const CustomAlert = () => {
                     key={index}
                     onPress={() => handleButtonPress(btn)}
                     activeOpacity={0.6}
-                    className="px-4 py-2 rounded-lg"
-                  >
+                    className="rounded-lg px-4 py-2">
                     <Text className="font-pmedium text-base text-gray-500">
                       {btn.text || 'Cancel'}
                     </Text>
@@ -148,13 +142,10 @@ export const CustomAlert = () => {
                   onPress={() => handleButtonPress(btn)}
                   activeOpacity={0.8}
                   className={`
-                    px-5 py-2 rounded-lg items-center justify-center
+                    items-center justify-center rounded-lg px-5 py-2
                     ${isDestructive ? 'bg-red-500' : 'bg-secondary'}
-                  `}
-                >
-                  <Text className="font-psemibold text-base text-white">
-                    {btn.text || 'OK'}
-                  </Text>
+                  `}>
+                  <Text className="font-psemibold text-base text-white">{btn.text || 'OK'}</Text>
                 </TouchableOpacity>
               );
             })}

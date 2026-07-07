@@ -1,32 +1,34 @@
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { useQuery } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useState, useCallback, useRef } from 'react';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import { useAuthStore, useBookingStore } from '@/src/stores';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import RazorpayCheckout from 'react-native-razorpay';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ShadowBox } from '@/src/components/ShadowBox';
-import { colors } from '@/src/constants';
-import { useQuery } from '@tanstack/react-query';
-import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
-import { Ionicons } from '@expo/vector-icons';
-import PageHeader from '@/src/components/PageHeader';
+
+import ChargeBreakdownBottomSheet from '@/src/components/ChargeBreakdownBottomSheet';
 import CustomButton from '@/src/components/CustomButton';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import CustomModal from '@/src/components/CustomModal';
+import PageHeader from '@/src/components/PageHeader';
+import { ShadowBox } from '@/src/components/ShadowBox';
 import MumukshuAdhyayanBookingDetails from '@/src/components/booking details cards/MumukshuAdhyayanBookingDetails';
-import MumukshuRoomBookingDetails from '@/src/components/booking details cards/MumukshuRoomBookingDetails';
-import MumukshuTravelBookingDetails from '@/src/components/booking details cards/MumukshuTravelBookingDetails';
-import MumukshuFoodBookingDetails from '@/src/components/booking details cards/MumukshuFoodBookingDetails';
 import MumukshuEventBookingDetails from '@/src/components/booking details cards/MumukshuEventBookingDetails';
 import MumukshuFlatBookingDetails from '@/src/components/booking details cards/MumukshuFlatBookingDetails';
-import CustomModal from '@/src/components/CustomModal';
-import ChargeBreakdownBottomSheet from '@/src/components/ChargeBreakdownBottomSheet';
+import MumukshuFoodBookingDetails from '@/src/components/booking details cards/MumukshuFoodBookingDetails';
+import MumukshuRoomBookingDetails from '@/src/components/booking details cards/MumukshuRoomBookingDetails';
+import MumukshuTravelBookingDetails from '@/src/components/booking details cards/MumukshuTravelBookingDetails';
+import { colors } from '@/src/constants';
+import { useAuthStore, useBookingStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
+import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
+
 // @ts-ignore
-import RazorpayCheckout from 'react-native-razorpay';
-import * as Haptics from 'expo-haptics';
 
 // Define validation data type
 interface ValidationData {
-  roomDetails?: Array<{
+  roomDetails?: {
     mumukshu?: string;
     roomno?: number;
     nights?: number;
@@ -34,8 +36,8 @@ interface ValidationData {
     availableCredits?: number;
     issuedto?: string;
     [key: string]: any;
-  }>;
-  foodDetails?: Array<{
+  }[];
+  foodDetails?: {
     mumukshu?: string;
     mealTypes?: string;
     dates?: string;
@@ -43,7 +45,7 @@ interface ValidationData {
     availableCredits?: number;
     issuedto?: string;
     [key: string]: any;
-  }>;
+  }[];
   travelDetails?: {
     mumukshu?: string;
     pickup?: string;
@@ -54,7 +56,7 @@ interface ValidationData {
     issuedto?: string;
     [key: string]: any;
   };
-  adhyayanDetails?: Array<{
+  adhyayanDetails?: {
     mumukshu?: string;
     shibirName?: string;
     dates?: string;
@@ -62,8 +64,8 @@ interface ValidationData {
     availableCredits?: number;
     issuedto?: string;
     [key: string]: any;
-  }>;
-  utsavDetails?: Array<{
+  }[];
+  utsavDetails?: {
     mumukshu?: string;
     eventName?: string;
     dates?: string;
@@ -71,8 +73,8 @@ interface ValidationData {
     availableCredits?: number;
     issuedto?: string;
     [key: string]: any;
-  }>;
-  flatDetails?: Array<{
+  }[];
+  flatDetails?: {
     mumukshu: string;
     flatno: number;
     nights: number;
@@ -80,7 +82,7 @@ interface ValidationData {
     availableCredits?: number;
     status: string;
     issuedto?: string;
-  }>;
+  }[];
   totalCharge: number;
 }
 
@@ -240,12 +242,12 @@ const mumukshuBookingReview = () => {
         contentContainerStyle={{ paddingBottom: 20 }}>
         <PageHeader title="Review Booking" />
 
-        {mumukshuData.room && <MumukshuRoomBookingDetails containerStyles={'mt-2'} />}
-        {mumukshuData.adhyayan && <MumukshuAdhyayanBookingDetails containerStyles={'mt-2'} />}
-        {mumukshuData.food && <MumukshuFoodBookingDetails containerStyles={'mt-2'} />}
-        {mumukshuData.travel && <MumukshuTravelBookingDetails containerStyles={'mt-2'} />}
-        {mumukshuData.utsav && <MumukshuEventBookingDetails containerStyles={'mt-2'} />}
-        {mumukshuData.flat && <MumukshuFlatBookingDetails containerStyles={'mt-2'} />}
+        {mumukshuData.room && <MumukshuRoomBookingDetails containerStyles="mt-2" />}
+        {mumukshuData.adhyayan && <MumukshuAdhyayanBookingDetails containerStyles="mt-2" />}
+        {mumukshuData.food && <MumukshuFoodBookingDetails containerStyles="mt-2" />}
+        {mumukshuData.travel && <MumukshuTravelBookingDetails containerStyles="mt-2" />}
+        {mumukshuData.utsav && <MumukshuEventBookingDetails containerStyles="mt-2" />}
+        {mumukshuData.flat && <MumukshuFlatBookingDetails containerStyles="mt-2" />}
 
         {validationData && validationData.totalCharge > 0 && (
           <View className="mt-4 w-full px-4">
@@ -534,7 +536,7 @@ const mumukshuBookingReview = () => {
                   const onSuccess = (data: any) => {
                     if (data.order?.amount == 0) router.replace('/bookingConfirmation');
                     else {
-                      var options = {
+                      const options = {
                         key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
                         name: 'Vitraag Vigyaan Aashray',
                         image: 'https://vitraagvigyaan.org/img/logo.png',
@@ -628,10 +630,10 @@ const mumukshuBookingReview = () => {
 
       {validationDataError && (
         <CustomModal
-          visible={true}
+          visible
           onClose={handleCloseValidationModal}
           message={validationDataError.message || 'An error occurred'}
-          btnText={'Okay'}
+          btnText="Okay"
         />
       )}
 

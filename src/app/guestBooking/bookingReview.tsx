@@ -1,27 +1,29 @@
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { useQuery } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useState, useCallback, useRef } from 'react';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import { useAuthStore, useBookingStore } from '@/src/stores';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import RazorpayCheckout from 'react-native-razorpay';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '@/src/constants';
-import { useQuery } from '@tanstack/react-query';
-import { prepareGuestRequestBody } from '@/src/utils/preparingRequestBody';
-import { Ionicons } from '@expo/vector-icons';
+
+import ChargeBreakdownBottomSheet from '@/src/components/ChargeBreakdownBottomSheet';
+import CustomButton from '@/src/components/CustomButton';
+import CustomModal from '@/src/components/CustomModal';
+import PageHeader from '@/src/components/PageHeader';
 import { ShadowBox } from '@/src/components/ShadowBox';
-import GuestRoomBookingDetails from '@/src/components/booking details cards/GuestRoomBookingDetails';
 import GuestAdhyayanBookingDetails from '@/src/components/booking details cards/GuestAdhyayanBookingDetails';
-import GuestFoodBookingDetails from '@/src/components/booking details cards/GuestFoodBookingDetails';
 import GuestEventBookingDetails from '@/src/components/booking details cards/GuestEventBookingDetails';
 import GuestFlatBookingDetails from '@/src/components/booking details cards/GuestFlatBookingDetails';
-import PageHeader from '@/src/components/PageHeader';
-import CustomButton from '@/src/components/CustomButton';
+import GuestFoodBookingDetails from '@/src/components/booking details cards/GuestFoodBookingDetails';
+import GuestRoomBookingDetails from '@/src/components/booking details cards/GuestRoomBookingDetails';
+import { colors } from '@/src/constants';
+import { useAuthStore, useBookingStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
-import CustomModal from '@/src/components/CustomModal';
-import ChargeBreakdownBottomSheet from '@/src/components/ChargeBreakdownBottomSheet';
+import { prepareGuestRequestBody } from '@/src/utils/preparingRequestBody';
+
 // @ts-ignore
-import RazorpayCheckout from 'react-native-razorpay';
-import * as Haptics from 'expo-haptics';
 
 const guestBookingReview = () => {
   const router = useRouter();
@@ -161,11 +163,11 @@ const guestBookingReview = () => {
         contentContainerStyle={{ paddingBottom: 20 }}>
         <PageHeader title="Review Booking" />
 
-        {guestData.room && <GuestRoomBookingDetails containerStyles={'mt-2'} />}
-        {guestData.utsav && <GuestEventBookingDetails containerStyles={'mt-2'} />}
-        {guestData.flat && <GuestFlatBookingDetails containerStyles={'mt-2'} />}
-        {guestData.adhyayan && <GuestAdhyayanBookingDetails containerStyles={'mt-2'} />}
-        {guestData.food && <GuestFoodBookingDetails containerStyles={'mt-2'} />}
+        {guestData.room && <GuestRoomBookingDetails containerStyles="mt-2" />}
+        {guestData.utsav && <GuestEventBookingDetails containerStyles="mt-2" />}
+        {guestData.flat && <GuestFlatBookingDetails containerStyles="mt-2" />}
+        {guestData.adhyayan && <GuestAdhyayanBookingDetails containerStyles="mt-2" />}
+        {guestData.food && <GuestFoodBookingDetails containerStyles="mt-2" />}
 
         {validationData && validationData.totalCharge > 0 && (
           <View className="mt-4 w-full px-4">
@@ -452,7 +454,7 @@ const guestBookingReview = () => {
                 const onSuccess = (data: any) => {
                   if (data.data?.amount == 0) router.replace('/bookingConfirmation');
                   else {
-                    var options = {
+                    const options = {
                       key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
                       name: 'Vitraag Vigyaan Aashray',
                       image: 'https://vitraagvigyaan.org/img/logo.png',
@@ -539,10 +541,10 @@ const guestBookingReview = () => {
 
       {validationDataError && (
         <CustomModal
-          visible={true}
+          visible
           onClose={handleCloseValidationModal}
           message={validationDataError.message}
-          btnText={'Okay'}
+          btnText="Okay"
         />
       )}
 

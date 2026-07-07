@@ -1,7 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Polygon, Defs, LinearGradient, Stop } from 'react-native-svg';
-import { Ionicons } from '@expo/vector-icons';
+
 import { colors } from '@/src/constants';
 
 interface Props {

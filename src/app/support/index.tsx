@@ -1,3 +1,8 @@
+import { FlashList } from '@shopify/flash-list';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
+import moment from 'moment';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,21 +11,17 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import { useState, useCallback, useRef, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { colors, icons } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
-import { FlashList } from '@shopify/flash-list';
-import { useRouter } from 'expo-router';
-import { ShadowButton } from '@/src/components/ShadowBox';
-import PageHeader from '@/src/components/PageHeader';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import CustomTag from '@/src/components/CustomTag';
+
 import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
-import { getStatusColor } from '@/src/utils/ticketStatus';
+import CustomTag from '@/src/components/CustomTag';
+import PageHeader from '@/src/components/PageHeader';
+import { ShadowButton } from '@/src/components/ShadowBox';
+import { colors, icons } from '@/src/constants';
 import { useRefetchOnFocus } from '@/src/hooks/useRefetchOnFocus';
-import moment from 'moment';
+import { useAuthStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
+import { getStatusColor } from '@/src/utils/ticketStatus';
 
 const SupportHome = () => {
   const { user } = useAuthStore();
@@ -165,7 +166,7 @@ const SupportHome = () => {
               <ActivityIndicator />
             ) : (
               <CustomEmptyMessage
-                message={'Yay! No tickets found'}
+                message="Yay! No tickets found"
                 imageClassName="h-[200px] w-[200px]"
               />
             )}

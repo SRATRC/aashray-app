@@ -1,11 +1,12 @@
-import React, { forwardRef, ReactNode } from 'react';
-import { View, Text } from 'react-native';
 import {
   BottomSheetModal,
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
   BottomSheetScrollView,
 } from '@gorhom/bottom-sheet';
+import React, { forwardRef, ReactNode } from 'react';
+import { View, Text } from 'react-native';
+
 import CustomButton from './CustomButton';
 
 export interface ChargeBreakdownItem {
@@ -83,7 +84,7 @@ const ChargeBreakdownBottomSheet = forwardRef<BottomSheetModal, ChargeBreakdownB
           <BottomSheetBackdrop appearsOnIndex={0} disappearsOnIndex={-1} {...backdropProps} />
         )}
         index={0}
-        enablePanDownToClose={true}>
+        enablePanDownToClose>
         <BottomSheetScrollView
           contentContainerStyle={{
             paddingHorizontal: 16,

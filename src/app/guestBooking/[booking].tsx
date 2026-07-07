@@ -1,27 +1,28 @@
+import { FontAwesome } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { View, Text, Alert } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { useAuthStore, useBookingStore } from '@/src/stores';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { dropdowns, types } from '@/src/constants';
-import { useQuery } from '@tanstack/react-query';
-import { prepareGuestRequestBody } from '@/src/utils/preparingRequestBody';
-import { FontAwesome } from '@expo/vector-icons';
-import { ShadowBox } from '@/src/components/ShadowBox';
-import CustomButton from '@/src/components/CustomButton';
-import PageHeader from '@/src/components/PageHeader';
-import GuestRoomBookingDetails from '@/src/components/booking details cards/GuestRoomBookingDetails';
-import GuestAdhyayanBookingDetails from '@/src/components/booking details cards/GuestAdhyayanBookingDetails';
-import GuestFlatBookingDetails from '@/src/components/booking details cards/GuestFlatBookingDetails';
-import GuestRoomAddon from '@/src/components/booking addons/GuestRoomAddon';
-import GuestFoodAddon from '@/src/components/booking addons/GuestFoodAddon';
-import GuestAdhyayanAddon from '@/src/components/booking addons/GuestAdhyayanAddon';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import CustomModal from '@/src/components/CustomModal';
-import GuestEventBookingDetails from '@/src/components/booking details cards/GuestEventBookingDetails';
-import CustomAlert from '@/src/components/CustomAlert';
+
 import Callout from '@/src/components/Callout';
+import CustomAlert from '@/src/components/CustomAlert';
+import CustomButton from '@/src/components/CustomButton';
+import CustomModal from '@/src/components/CustomModal';
+import PageHeader from '@/src/components/PageHeader';
+import { ShadowBox } from '@/src/components/ShadowBox';
+import GuestAdhyayanAddon from '@/src/components/booking addons/GuestAdhyayanAddon';
+import GuestFoodAddon from '@/src/components/booking addons/GuestFoodAddon';
+import GuestRoomAddon from '@/src/components/booking addons/GuestRoomAddon';
+import GuestAdhyayanBookingDetails from '@/src/components/booking details cards/GuestAdhyayanBookingDetails';
+import GuestEventBookingDetails from '@/src/components/booking details cards/GuestEventBookingDetails';
+import GuestFlatBookingDetails from '@/src/components/booking details cards/GuestFlatBookingDetails';
+import GuestRoomBookingDetails from '@/src/components/booking details cards/GuestRoomBookingDetails';
+import { dropdowns, types } from '@/src/constants';
+import { useAuthStore, useBookingStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
+import { prepareGuestRequestBody } from '@/src/utils/preparingRequestBody';
 
 // Define initial form structures
 const createInitialRoomForm = (existingData: any = null) => ({
@@ -596,7 +597,7 @@ const GuestAddons = () => {
 
       {validationDataError && (
         <CustomModal
-          visible={true}
+          visible
           onClose={handleCloseValidationModal}
           message={validationDataError.message}
           btnText="Okay"

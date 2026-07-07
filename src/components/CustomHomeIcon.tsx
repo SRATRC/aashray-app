@@ -1,5 +1,6 @@
-import { View, Text, Image, TouchableWithoutFeedback } from 'react-native';
 import React, { FC } from 'react';
+import { View, Text, Image, TouchableWithoutFeedback } from 'react-native';
+
 import { ShadowBox } from './ShadowBox';
 
 interface CustomHomeIconProps {

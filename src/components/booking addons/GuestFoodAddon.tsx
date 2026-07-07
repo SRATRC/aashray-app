@@ -1,14 +1,16 @@
+import * as Haptics from 'expo-haptics';
+import moment from 'moment';
 import { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
-import { colors, icons, dropdowns } from '@/src/constants';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import HorizontalSeparator from '../HorizontalSeparator';
-import FormDisplayField from '../FormDisplayField';
-import AddonItem from '../AddonItem';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import Toast from 'react-native-toast-message';
-import moment from 'moment';
-import * as Haptics from 'expo-haptics';
+
+import AddonItem from '../AddonItem';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
+import FormDisplayField from '../FormDisplayField';
+import HorizontalSeparator from '../HorizontalSeparator';
+
+import { colors, icons, dropdowns } from '@/src/constants';
 
 interface GuestFoodAddonProps {
   foodForm: any;
@@ -73,7 +75,7 @@ const GuestFoodAddon: React.FC<GuestFoodAddonProps> = ({
           <Text className="font-pmedium">Raj Prasad Booking</Text>
         </View>
       }
-      containerStyles={'mt-3'}>
+      containerStyles="mt-3">
       <FormDisplayField
         text="Start Date"
         value={foodForm.startDay ? moment(foodForm.startDay).format('Do MMMM YYYY') : ''}
@@ -149,13 +151,13 @@ const GuestFoodAddon: React.FC<GuestFoodAddonProps> = ({
         <View key={index} style={{ marginBottom: 15 }}>
           {index > 0 && (
             <View>
-              <HorizontalSeparator otherStyles={'w-full mt-3'} />
+              <HorizontalSeparator otherStyles="w-full mt-3" />
               <TouchableOpacity
                 onPress={reomveFoodForm(index)}
                 className="mt-3 flex-1 flex-row items-center justify-end gap-x-1">
                 <Image
                   source={icons.remove}
-                  tintColor={'red'}
+                  tintColor="red"
                   className="h-3 w-3"
                   resizeMode="contain"
                 />
@@ -171,7 +173,7 @@ const GuestFoodAddon: React.FC<GuestFoodAddonProps> = ({
             options={getAvailableGuests(index)}
             selectedValues={assignment.guestIndices}
             onValuesChange={(val) => updateFoodForm(index, 'guests', val)}
-            multiSelect={true}
+            multiSelect
             confirmButtonText="Select"
           />
 
@@ -182,7 +184,7 @@ const GuestFoodAddon: React.FC<GuestFoodAddonProps> = ({
             options={dropdowns.FOOD_TYPE_LIST}
             selectedValues={assignment.meals}
             onValuesChange={(val) => updateFoodForm(index, 'meals', val)}
-            multiSelect={true}
+            multiSelect
             confirmButtonText="Select"
             maxSelectedDisplay={3}
           />

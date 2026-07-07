@@ -1,10 +1,12 @@
+import { FontAwesome5, Ionicons } from '@expo/vector-icons';
+import moment from 'moment';
 import { View, Text, Image } from 'react-native';
+
+import HorizontalSeparator from '../HorizontalSeparator';
+import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
+
 import { colors, icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
-import { FontAwesome5, Ionicons } from '@expo/vector-icons';
-import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
-import HorizontalSeparator from '../HorizontalSeparator';
-import moment from 'moment';
 
 const GuestEventBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const guestData = useBookingStore((store) => store.guestData);
@@ -13,7 +15,7 @@ const GuestEventBookingDetails: React.FC<{ containerStyles: any }> = ({ containe
   const formattedEndDate = moment(guestData.utsav.utsav.utsav_end).format('Do MMMM, YYYY');
 
   return (
-    <PrimaryAddonBookingCard title={'Raj Utsav Booking'} containerStyles={containerStyles}>
+    <PrimaryAddonBookingCard title="Raj Utsav Booking" containerStyles={containerStyles}>
       <View className="item-center flex flex-row gap-x-4 p-4">
         <Image source={icons.events} className="h-10 w-10" resizeMode="contain" />
         <View className="w-full flex-1 justify-center gap-y-1">
@@ -46,7 +48,7 @@ const GuestEventBookingDetails: React.FC<{ containerStyles: any }> = ({ containe
         </View>
       </View>
 
-      <HorizontalSeparator otherStyles={'mb-4'} />
+      <HorizontalSeparator otherStyles="mb-4" />
 
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
         <FontAwesome5 name="clipboard-list" size={14} color={colors.gray_400} />

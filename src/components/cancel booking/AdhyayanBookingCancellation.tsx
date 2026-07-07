@@ -1,3 +1,7 @@
+import { FlashList } from '@shopify/flash-list';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
+import moment from 'moment';
 import { useState } from 'react';
 import {
   View,
@@ -7,22 +11,20 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { FlashList } from '@shopify/flash-list';
-import { icons, status } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import { splitActiveAndPastBookings } from '@/src/utils/bookingHistoryFilter';
-import CustomButton from '../CustomButton';
-import ExpandableItem from '../ExpandableItem';
+
 import BookingStatusDisplay from '../BookingStatusDisplay';
-import HorizontalSeparator from '../HorizontalSeparator';
+import CustomButton from '../CustomButton';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import CustomModal from '../CustomModal';
+import ExpandableItem from '../ExpandableItem';
+import HorizontalSeparator from '../HorizontalSeparator';
 import OldBookingsTrigger from '../OldBookingsTrigger';
-import moment from 'moment';
+
+import { icons, status } from '@/src/constants';
+import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
+import { useAuthStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
+import { splitActiveAndPastBookings } from '@/src/utils/bookingHistoryFilter';
 
 const AdhyayanBookingCancellation = () => {
   const { user } = useAuthStore();
@@ -201,7 +203,7 @@ const AdhyayanBookingCancellation = () => {
             </View>
           </View>
         }
-        containerStyles={'mt-3'}>
+        containerStyles="mt-3">
         <HorizontalSeparator />
         <View className="mt-3">
           <View className="flex flex-row items-center gap-x-2 px-2">
@@ -228,8 +230,8 @@ const AdhyayanBookingCancellation = () => {
                 ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
                   <CustomButton
                     text="Cancel Booking"
-                    containerStyles={'py-3 flex-1'}
-                    textStyles={'text-sm text-white'}
+                    containerStyles="py-3 flex-1"
+                    textStyles="text-sm text-white"
                     handlePress={() => {
                       setSelectedBooking(item);
                       setShowCancelModal(true);
@@ -239,9 +241,9 @@ const AdhyayanBookingCancellation = () => {
               {item?.showFeedback && !item?.hasSubmittedFeedback && !bookedForSomeone && (
                 <CustomButton
                   text="Give Feedback"
-                  containerStyles={'py-3 flex-1'}
-                  textStyles={'text-sm text-white'}
-                  bgcolor={'bg-secondary'}
+                  containerStyles="py-3 flex-1"
+                  textStyles="text-sm text-white"
+                  bgcolor="bg-secondary"
                   handlePress={() => {
                     const shibirId = item.shibir_id ?? item.id;
                     router.push(`/adhyayan/feedback/${shibirId}`);
@@ -299,7 +301,7 @@ const AdhyayanBookingCancellation = () => {
             return <View className="w-full">{renderOldBookingsSection()}</View>;
           return (
             <View className="h-full flex-1 items-center justify-center pt-40">
-              <CustomEmptyMessage message={'Zero adhyayans. Impressive...ly empty.'} />
+              <CustomEmptyMessage message="Zero adhyayans. Impressive...ly empty." />
             </View>
           );
         }}
@@ -339,7 +341,7 @@ const AdhyayanBookingCancellation = () => {
         title="Cancel Booking"
         message="Are you sure you want to cancel this booking?"
         btnText="Yes, Cancel"
-        showActionButton={true}
+        showActionButton
         btnOnPress={() => {
           if (selectedBooking) {
             cancelBookingMutation.mutate({

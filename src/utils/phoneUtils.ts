@@ -1,13 +1,13 @@
 export const cleanPhoneNumber = (input: string): string => {
   // Remove all non-numeric characters (spaces, +, -, etc.)
   const numbersOnly = input.replace(/\D/g, '');
-  
+
   // If empty, return empty
   if (!numbersOnly) return '';
-  
+
   // Remove common country codes and take last 10 digits
   let cleaned = numbersOnly;
-  
+
   // Handle various country code scenarios
   if (cleaned.length > 10) {
     // India: +91 (2 digits)
@@ -27,7 +27,7 @@ export const cleanPhoneNumber = (input: string): string => {
       cleaned = cleaned.slice(-10);
     }
   }
-  
+
   // Ensure we don't exceed 10 digits
   return cleaned.slice(0, 10);
 };

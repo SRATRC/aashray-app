@@ -1,10 +1,12 @@
+import { Ionicons } from '@expo/vector-icons';
+import moment from 'moment';
 import { View, Text, Image, Platform } from 'react-native';
+
+import HorizontalSeparator from '../HorizontalSeparator';
+import { ShadowBox } from '../ShadowBox';
+
 import { colors, icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
-import { Ionicons } from '@expo/vector-icons';
-import { ShadowBox } from '../ShadowBox';
-import HorizontalSeparator from '../HorizontalSeparator';
-import moment from 'moment';
 
 const GuestFoodBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const guestData = useBookingStore((store) => store.guestData);
@@ -37,7 +39,7 @@ const GuestFoodBookingDetails: React.FC<{ containerStyles: any }> = ({ container
           </View>
         </View>
 
-        <HorizontalSeparator otherStyles={'mb-4'} />
+        <HorizontalSeparator otherStyles="mb-4" />
 
         <View className="flex flex-row items-center gap-x-1 px-6 pb-4">
           <Ionicons name="people" size={16} color={colors.gray_400} />

@@ -1,10 +1,11 @@
-import { useState, useCallback } from 'react';
-import { useAuthStore } from '@/src/stores';
-import { invalidateCachedImage } from '@/src/utils/imageCache';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
+import { useState, useCallback } from 'react';
+import Toast from 'react-native-toast-message';
+
+import { useAuthStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
+import { invalidateCachedImage } from '@/src/utils/imageCache';
 
 interface UploadState {
   isUploading: boolean;
@@ -15,7 +16,7 @@ interface UploadState {
 export const useQuickImagePicker = () => {
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
-  
+
   const [uploadState, setUploadState] = useState<UploadState>({
     isUploading: false,
     progress: 0,
@@ -34,7 +35,7 @@ export const useQuickImagePicker = () => {
     try {
       // Reset previous state
       resetUploadState();
-      
+
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
       // Uses the system photo picker (Android PickVisualMedia / iOS PHPicker),
@@ -52,7 +53,7 @@ export const useQuickImagePicker = () => {
       const imageUri = result.assets[0].uri;
 
       // Start upload
-      setUploadState(prev => ({
+      setUploadState((prev) => ({
         ...prev,
         isUploading: true,
         progress: 10, // Initial progress
@@ -62,7 +63,7 @@ export const useQuickImagePicker = () => {
 
       // Simulate progress updates (you can replace this with actual progress from your API)
       const progressInterval = setInterval(() => {
-        setUploadState(prev => {
+        setUploadState((prev) => {
           if (prev.progress < 90) {
             return { ...prev, progress: prev.progress + 20 };
           }
@@ -77,10 +78,10 @@ export const useQuickImagePicker = () => {
         { image: imageUri },
         async (data: any) => {
           clearInterval(progressInterval);
-          
+
           // Complete progress
-          setUploadState(prev => ({ ...prev, progress: 100 }));
-          
+          setUploadState((prev) => ({ ...prev, progress: 100 }));
+
           // Cache invalidation and user update
           if (user?.pfp) {
             await invalidateCachedImage(user.pfp);
@@ -96,14 +97,14 @@ export const useQuickImagePicker = () => {
           });
 
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          
+
           // Reset state after a short delay
           setTimeout(resetUploadState, 1000);
         },
         () => {},
         (error) => {
           clearInterval(progressInterval);
-          setUploadState(prev => ({
+          setUploadState((prev) => ({
             ...prev,
             isUploading: false,
             error: error.message || 'Upload failed',
@@ -112,12 +113,12 @@ export const useQuickImagePicker = () => {
       );
     } catch (err: any) {
       console.error('Image upload failed:', err);
-      setUploadState(prev => ({
+      setUploadState((prev) => ({
         ...prev,
         isUploading: false,
         error: err.message || 'Upload failed',
       }));
-      
+
       Toast.show({
         type: 'error',
         text1: 'Upload Failed',

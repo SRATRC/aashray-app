@@ -1,3 +1,10 @@
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { FlashList } from '@shopify/flash-list';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
+import moment from 'moment';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,25 +15,20 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import RazorpayCheckout from 'react-native-razorpay';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FlashList } from '@shopify/flash-list';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { colors, icons } from '@/src/constants';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/src/stores';
-import PageHeader from '@/src/components/PageHeader';
+import Toast from 'react-native-toast-message';
+
+import CustomButton from '@/src/components/CustomButton';
 import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
 import CustomErrorMessage from '@/src/components/CustomErrorMessage';
-import CustomButton from '@/src/components/CustomButton';
 import CustomModal from '@/src/components/CustomModal';
+import PageHeader from '@/src/components/PageHeader';
+import { colors, icons } from '@/src/constants';
+import { useAuthStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
-import moment from 'moment';
-import Toast from 'react-native-toast-message';
-import * as Haptics from 'expo-haptics';
+
 // @ts-ignore
-import RazorpayCheckout from 'react-native-razorpay';
 
 interface Transaction {
   bookingid: string;
@@ -182,7 +184,7 @@ const PendingPayments = () => {
           null,
           {
             cardno: user.cardno,
-            data: data,
+            data,
           },
           (res: any) => {
             resolve(res);

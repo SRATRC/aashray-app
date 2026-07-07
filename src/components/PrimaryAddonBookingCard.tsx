@@ -1,6 +1,7 @@
-import { View, Text } from 'react-native';
-import { ShadowBox } from './ShadowBox';
 import React from 'react';
+import { View, Text } from 'react-native';
+
+import { ShadowBox } from './ShadowBox';
 
 interface PrimaryAddonBookingCardProps {
   containerStyles: any;

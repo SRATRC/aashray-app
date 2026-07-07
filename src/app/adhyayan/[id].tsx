@@ -1,3 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
+import moment from 'moment';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,21 +17,17 @@ import {
   Image,
   Share,
 } from 'react-native';
-import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { icons, status, types } from '@/src/constants';
-import { useQuery } from '@tanstack/react-query';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+
+import CustomAlert from '@/src/components/CustomAlert';
 import CustomButton from '@/src/components/CustomButton';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import moment from 'moment';
 import CustomChipGroup from '@/src/components/CustomChipGroup';
 import GuestForm from '@/src/components/GuestForm';
-import OtherMumukshuForm from '@/src/components/OtherMumukshuForm';
 import HorizontalSeparator from '@/src/components/HorizontalSeparator';
-import CustomAlert from '@/src/components/CustomAlert';
+import OtherMumukshuForm from '@/src/components/OtherMumukshuForm';
+import { icons, status, types } from '@/src/constants';
+import { useAuthStore, useBookingStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
@@ -63,7 +64,7 @@ const transformSelfAdhyayanToMumukshu = (user: any, adhyayan: any) => {
   };
 
   return {
-    adhyayan: adhyayan,
+    adhyayan,
     mumukshuGroup: [selfMumukshu],
   };
 };
@@ -261,11 +262,11 @@ const AdhyayanDetails = () => {
     if (adhyayan) {
       setGuestForm((prev: any) => ({
         ...prev,
-        adhyayan: adhyayan,
+        adhyayan,
       }));
       setMumukshuForm((prev: any) => ({
         ...prev,
-        adhyayan: adhyayan,
+        adhyayan,
       }));
     }
   }, [adhyayan]);
@@ -291,7 +292,7 @@ const AdhyayanDetails = () => {
 
         setGuestForm((prev: any) => ({
           ...prev,
-          adhyayan: adhyayan,
+          adhyayan,
         }));
 
         if (guestForm.guests.filter((guest: any) => !guest.cardno).length > 0) {
@@ -307,7 +308,7 @@ const AdhyayanDetails = () => {
               const transformedData = transformData({
                 ...guestForm,
                 guests: res.guests,
-                adhyayan: adhyayan,
+                adhyayan,
               });
 
               await updateGuestBooking('adhyayan', transformedData);
@@ -324,7 +325,7 @@ const AdhyayanDetails = () => {
         } else {
           const transformedData = transformData({
             ...guestForm,
-            adhyayan: adhyayan,
+            adhyayan,
           });
 
           await updateGuestBooking('adhyayan', transformedData);
@@ -343,7 +344,7 @@ const AdhyayanDetails = () => {
 
         const temp = transformMumukshuData({
           ...mumukshuForm,
-          adhyayan: adhyayan,
+          adhyayan,
         });
 
         await updateMumukshuBooking('adhyayan', temp);
@@ -842,8 +843,8 @@ const AdhyayanDetails = () => {
       <Modal
         visible={isModalVisible}
         animationType="fade"
-        transparent={true}
-        statusBarTranslucent={true}
+        transparent
+        statusBarTranslucent
         onRequestClose={toggleModal}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -869,14 +870,14 @@ const AdhyayanDetails = () => {
                 <TouchableOpacity onPress={toggleModal}>
                   <Image
                     source={icons.remove}
-                    tintColor={'black'}
+                    tintColor="black"
                     className="h-4 w-4"
                     resizeMode="contain"
                   />
                 </TouchableOpacity>
               </View>
 
-              <HorizontalSeparator otherStyles={'w-full'} />
+              <HorizontalSeparator otherStyles="w-full" />
 
               <ScrollView
                 keyboardShouldPersistTaps="handled"
@@ -889,9 +890,9 @@ const AdhyayanDetails = () => {
                     chips={CHIPS}
                     selectedChip={selectedChip}
                     handleChipPress={handleChipClick}
-                    containerStyles={'mt-1'}
-                    chipContainerStyles={'py-1'}
-                    textStyles={'text-sm'}
+                    containerStyles="mt-1"
+                    chipContainerStyles="py-1"
+                    textStyles="text-sm"
                   />
                 </View>
 
@@ -924,10 +925,10 @@ const AdhyayanDetails = () => {
                 {/* Confirm Button Section */}
                 <CustomButton
                   handlePress={handleBookingConfirm}
-                  text={'Confirm'}
+                  text="Confirm"
                   bgcolor="bg-secondary"
                   containerStyles="mt-4 p-2"
-                  textStyles={'text-sm text-white'}
+                  textStyles="text-sm text-white"
                   isDisabled={
                     selectedChip === CHIPS[1]
                       ? !isGuestFormValid()
@@ -951,7 +952,7 @@ function transformData(inputData: any) {
   const { adhyayan, guests } = inputData;
 
   return {
-    adhyayan: adhyayan,
+    adhyayan,
     guestGroup: guests.map((guest: any) => ({
       cardno: guest.cardno,
       issuedto: guest.issuedto || guest.name,
@@ -963,7 +964,7 @@ function transformMumukshuData(inputData: any) {
   const { adhyayan, mumukshus } = inputData;
 
   return {
-    adhyayan: adhyayan,
+    adhyayan,
     mumukshuGroup: mumukshus.map((mumukshu: any) => mumukshu),
   };
 }

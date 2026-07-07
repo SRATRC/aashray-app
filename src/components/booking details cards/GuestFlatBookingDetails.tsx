@@ -1,12 +1,14 @@
+import { Ionicons } from '@expo/vector-icons';
+import moment from 'moment';
 import { View, Text, Image, ScrollView } from 'react-native';
+
+import CustomTag from '../CustomTag';
+import HorizontalSeparator from '../HorizontalSeparator';
+import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
+
 import { colors, icons, status } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
 import { countStatusesForField } from '@/src/utils/BookingValidationStatusCounter';
-import { Ionicons } from '@expo/vector-icons';
-import HorizontalSeparator from '../HorizontalSeparator';
-import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
-import CustomTag from '../CustomTag';
-import moment from 'moment';
 
 const GuestFlatBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const guestData = useBookingStore((store) => store.guestData);
@@ -44,7 +46,7 @@ const GuestFlatBookingDetails: React.FC<{ containerStyles: any }> = ({ container
         </View>
       </View>
 
-      <HorizontalSeparator otherStyles={'mb-4'} />
+      <HorizontalSeparator otherStyles="mb-4" />
 
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
         <Ionicons name="people" size={16} color={colors.gray_400} />

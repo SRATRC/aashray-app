@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, FlatList } from 'react-native';
+
 import { icons } from '../constants';
-import { ShadowBox } from './ShadowBox';
 import CustomButton from './CustomButton';
+import { ShadowBox } from './ShadowBox';
 
 const renderItem = ({ item }: any) => <ExpandableListItem item={item} />;
 const CustomExpandableList: React.FC<{ data: any }> = ({ data }) => (

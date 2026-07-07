@@ -1,30 +1,31 @@
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
-import { useState, useRef, useEffect, useMemo } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 // react-native's own KeyboardAvoidingView is unreliable on Android with
 // behavior="padding"; this library (already used across the app, provider set
 // up in _layout.tsx) handles both platforms correctly for a pinned-input chat.
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
-import { useLocalSearchParams } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FlashList } from '@shopify/flash-list';
-import { status } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Clipboard from 'expo-clipboard';
-import PageHeader from '@/src/components/PageHeader';
-import CustomTag from '@/src/components/CustomTag';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import CustomAlert from '@/src/components/CustomAlert';
-import Shimmer from '@/src/components/Shimmer';
+import { useLocalSearchParams } from 'expo-router';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import AttachmentPreviewStrip from '@/src/components/AttachmentPreviewStrip';
-import TicketMessageAttachments from '@/src/components/TicketMessageAttachments';
+import CustomAlert from '@/src/components/CustomAlert';
+import CustomTag from '@/src/components/CustomTag';
 import MediaViewer, { MediaViewerItem } from '@/src/components/MediaViewer';
-import { getStatusColor } from '@/src/utils/ticketStatus';
-import { useTicketStream } from '@/src/hooks/useTicketStream';
+import PageHeader from '@/src/components/PageHeader';
+import Shimmer from '@/src/components/Shimmer';
+import TicketMessageAttachments from '@/src/components/TicketMessageAttachments';
+import { status } from '@/src/constants';
 import { useRefetchOnFocus } from '@/src/hooks/useRefetchOnFocus';
 import { useTicketAttachments } from '@/src/hooks/useTicketAttachments';
+import { useTicketStream } from '@/src/hooks/useTicketStream';
+import { useAuthStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
 import { AttachmentRef, PendingAttachment, runUpload } from '@/src/utils/ticketAttachments';
+import { getStatusColor } from '@/src/utils/ticketStatus';
 
 // Optimistic (local) media rendered on a just-sent message before the server
 // echoes back the stored attachments. Tapping opens the full-screen viewer.
@@ -110,16 +111,8 @@ const TicketDetails = () => {
     ).length;
   }, [ticket]);
 
-  const {
-    attachments,
-    canAddMedia,
-    hasAttachments,
-    addMedia,
-    remove,
-    upload,
-    clear,
-    isUploading,
-  } = useTicketAttachments(user.cardno, existingVideoCount);
+  const { attachments, canAddMedia, hasAttachments, addMedia, remove, upload, clear, isUploading } =
+    useTicketAttachments(user.cardno, existingVideoCount);
 
   useRefetchOnFocus(refetch);
 

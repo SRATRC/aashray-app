@@ -1,27 +1,28 @@
+import { useQuery } from '@tanstack/react-query';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useState, useMemo, useCallback } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { dropdowns, types } from '@/src/constants';
-import { useQuery } from '@tanstack/react-query';
-import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
-import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { ShadowBox } from '@/src/components/ShadowBox';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import Callout from '@/src/components/Callout';
+import CustomAlert from '@/src/components/CustomAlert';
 import CustomButton from '@/src/components/CustomButton';
+import CustomModal from '@/src/components/CustomModal';
 import PageHeader from '@/src/components/PageHeader';
-import RoomBookingDetails from '@/src/components/booking details cards/RoomBookingDetails';
-import TravelBookingDetails from '@/src/components/booking details cards/TravelBookingDetails';
+import { ShadowBox } from '@/src/components/ShadowBox';
+import AdhyayanAddon from '@/src/components/booking addons/AdhyayanAddon';
+import FoodAddon from '@/src/components/booking addons/FoodAddon';
+import RoomAddon from '@/src/components/booking addons/RoomAddon';
+import TravelAddon from '@/src/components/booking addons/TravelAddon';
 import AdhyayanBookingDetails from '@/src/components/booking details cards/AdhyayanBookingDetails';
 import EventBookingDetails from '@/src/components/booking details cards/EventBookingDetails';
-import RoomAddon from '@/src/components/booking addons/RoomAddon';
-import FoodAddon from '@/src/components/booking addons/FoodAddon';
-import AdhyayanAddon from '@/src/components/booking addons/AdhyayanAddon';
-import TravelAddon from '@/src/components/booking addons/TravelAddon';
+import RoomBookingDetails from '@/src/components/booking details cards/RoomBookingDetails';
+import TravelBookingDetails from '@/src/components/booking details cards/TravelBookingDetails';
+import { dropdowns, types } from '@/src/constants';
+import { useAuthStore, useBookingStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
-import CustomModal from '@/src/components/CustomModal';
-import CustomAlert from '@/src/components/CustomAlert';
-import Callout from '@/src/components/Callout';
+import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
 
 // Transform simple form to mumukshu format for API compatibility
 const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string) => {
@@ -509,7 +510,7 @@ const BookingDetails = () => {
 
       {validationDataError && (
         <CustomModal
-          visible={true}
+          visible
           onClose={handleCloseValidationModal}
           message={validationDataError.message}
           btnText="Okay"

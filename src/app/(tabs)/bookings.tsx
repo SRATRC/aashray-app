@@ -1,14 +1,15 @@
+import { useQueryClient } from '@tanstack/react-query';
 import React, { useState, useCallback } from 'react';
 import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { types } from '@/src/constants';
-import { useQueryClient } from '@tanstack/react-query';
-import RoomBookingCancellation from '@/src/components/cancel booking/RoomBookingCancellation';
-import FoodBookingCancellation from '@/src/components/cancel booking/FoodBookingCancellation';
-import TravelBookingCancellation from '@/src/components/cancel booking/TravelBookingCancellation';
+
+import CustomChipGroup from '@/src/components/CustomChipGroup';
 import AdhyayanBookingCancellation from '@/src/components/cancel booking/AdhyayanBookingCancellation';
 import EventBookingCancellation from '@/src/components/cancel booking/EventBookingCancellation';
-import CustomChipGroup from '@/src/components/CustomChipGroup';
+import FoodBookingCancellation from '@/src/components/cancel booking/FoodBookingCancellation';
+import RoomBookingCancellation from '@/src/components/cancel booking/RoomBookingCancellation';
+import TravelBookingCancellation from '@/src/components/cancel booking/TravelBookingCancellation';
+import { types } from '@/src/constants';
 
 const BookingCategories = () => {
   const queryClient = useQueryClient();

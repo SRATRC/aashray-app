@@ -1,14 +1,16 @@
+import * as Haptics from 'expo-haptics';
+import moment from 'moment';
 import React, { useState } from 'react';
 import { View, Text, Image } from 'react-native';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import Toast from 'react-native-toast-message';
+
+import AddonItem from '../AddonItem';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
+import FormDisplayField from '../FormDisplayField';
+
 import { icons, dropdowns } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
-import AddonItem from '../AddonItem';
-import FormDisplayField from '../FormDisplayField';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import moment from 'moment';
-import Toast from 'react-native-toast-message';
-import * as Haptics from 'expo-haptics';
 
 interface RoomAddonProps {
   roomForm: any;
@@ -63,7 +65,7 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
           <Text className="font-pmedium">Raj Sharan Booking</Text>
         </View>
       }
-      containerStyles={'mt-3'}>
+      containerStyles="mt-3">
       <FormDisplayField
         text="Checkin Date"
         value={roomForm.startDay ? moment(roomForm.startDay).format('Do MMMM YYYY') : ''}

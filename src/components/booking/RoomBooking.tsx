@@ -1,21 +1,22 @@
-import { View, Alert, Text } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useState, useEffect, useCallback } from 'react';
-import { useFocusEffect } from 'expo-router';
-import { useRouter } from 'expo-router';
+import { View, Alert, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { types, dropdowns, status } from '@/src/constants';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
-import SegmentedControl from '@/src/components/SegmentedControl';
-import CustomButton from '@/src/components/CustomButton';
-import CustomCalender from '@/src/components/CustomCalender';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import CustomChipGroup from '@/src/components/CustomChipGroup';
+
+import CustomAlert from '../CustomAlert';
 import CustomModal from '../CustomModal';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import CustomAlert from '../CustomAlert';
+
+import CustomButton from '@/src/components/CustomButton';
+import CustomCalender from '@/src/components/CustomCalender';
+import CustomChipGroup from '@/src/components/CustomChipGroup';
+import SegmentedControl from '@/src/components/SegmentedControl';
+import { types, dropdowns, status } from '@/src/constants';
+import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
+import { useAuthStore, useBookingStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
 
 const SWITCH_OPTIONS = ['Select Dates', 'One Day Visit'];
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
@@ -348,7 +349,7 @@ const RoomBooking = () => {
             <View>
               <CustomCalender
                 key={resetKey}
-                type={'period'}
+                type="period"
                 startDay={multiDayForm.startDay}
                 setStartDay={(day: any) => {
                   setMultiDayForm((prev) => ({
@@ -376,9 +377,9 @@ const RoomBooking = () => {
                   chips={CHIPS}
                   selectedChip={selectedChip}
                   handleChipPress={handleChipClick}
-                  containerStyles={'mt-1'}
-                  chipContainerStyles={'py-2'}
-                  textStyles={'text-sm'}
+                  containerStyles="mt-1"
+                  chipContainerStyles="py-2"
+                  textStyles="text-sm"
                 />
               </View>
               {selectedChip === CHIPS[0] && (
@@ -483,7 +484,6 @@ const RoomBooking = () => {
                         setIsSubmitting(false);
                         setModalMessage('Please fill all fields');
                         setModalVisible(true);
-                        return;
                       } else {
                         await handleAPICall(
                           'POST',
@@ -623,9 +623,9 @@ const RoomBooking = () => {
                   chips={CHIPS}
                   selectedChip={selectedChip}
                   handleChipPress={handleChipClick}
-                  containerStyles={'mt-1'}
-                  chipContainerStyles={'py-2'}
-                  textStyles={'text-sm'}
+                  containerStyles="mt-1"
+                  chipContainerStyles="py-2"
+                  textStyles="text-sm"
                 />
               </View>
 
@@ -716,7 +716,7 @@ const RoomBooking = () => {
                       null,
                       {
                         cardno: user.cardno,
-                        guests: guests,
+                        guests,
                       },
                       async (res: any) => {
                         const updatedGuests = res.guests.map((guest: any) => guest.cardno);
@@ -812,7 +812,7 @@ const RoomBooking = () => {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         message={modalMessage}
-        btnText={'Okay'}
+        btnText="Okay"
       />
     </View>
   );
@@ -868,7 +868,7 @@ function transformMumukshuResponse(data: any) {
   return {
     startDay: data.startDay,
     endDay: data.endDay,
-    mumukshuGroup: mumukshuGroup,
+    mumukshuGroup,
   };
 }
 

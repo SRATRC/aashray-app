@@ -1,19 +1,20 @@
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
+import * as Haptics from 'expo-haptics';
+import moment from 'moment';
 import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { colors } from '@/src/constants';
-import { ShadowBox } from './ShadowBox';
-import HorizontalSeparator from './HorizontalSeparator';
+import Toast from 'react-native-toast-message';
+
 import CustomAlert from './CustomAlert';
+import CustomSelectBottomSheet, { CustomSelectBottomSheetRef } from './CustomSelectBottomSheet';
+import HorizontalSeparator from './HorizontalSeparator';
+import { ShadowBox } from './ShadowBox';
+
 import CustomButton from '@/src/components/CustomButton';
 import CustomErrorMessage from '@/src/components/CustomErrorMessage';
 import Shimmer from '@/src/components/Shimmer';
-import moment from 'moment';
-import Toast from 'react-native-toast-message';
-import * as Haptics from 'expo-haptics';
-
-import * as Clipboard from 'expo-clipboard';
-import CustomSelectBottomSheet, { CustomSelectBottomSheetRef } from './CustomSelectBottomSheet';
+import { colors } from '@/src/constants';
 
 interface PermanentWifiData {
   id: string;
@@ -192,7 +193,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
                   {
                     text: 'Cancel',
                     style: 'cancel',
-                    onPress: () => { },
+                    onPress: () => {},
                   },
                   {
                     text: 'Reset',

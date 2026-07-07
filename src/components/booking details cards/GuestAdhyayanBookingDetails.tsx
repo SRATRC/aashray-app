@@ -1,11 +1,13 @@
+import { FontAwesome5, FontAwesome6, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import moment from 'moment';
 import { View, Text, Image, ScrollView } from 'react-native';
+
+import CustomTag from '../CustomTag';
+import HorizontalSeparator from '../HorizontalSeparator';
+import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
+
 import { colors, icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
-import { FontAwesome5, FontAwesome6, Ionicons, MaterialIcons } from '@expo/vector-icons';
-import HorizontalSeparator from '../HorizontalSeparator';
-import CustomTag from '../CustomTag';
-import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
-import moment from 'moment';
 
 const GuestAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const guestData = useBookingStore((store) => store.guestData);
@@ -14,7 +16,7 @@ const GuestAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ conta
   const formattedEndDate = moment(guestData.adhyayan?.adhyayan?.end_date).format('Do MMMM, YYYY');
 
   return (
-    <PrimaryAddonBookingCard title={'Raj Adhyayan Booking'} containerStyles={containerStyles}>
+    <PrimaryAddonBookingCard title="Raj Adhyayan Booking" containerStyles={containerStyles}>
       <View className="item-center flex flex-row gap-x-4 p-4">
         <Image source={icons.adhyayan} className="h-10 w-10" resizeMode="contain" />
         <View className="w-full flex-1 justify-center gap-y-1">
@@ -25,8 +27,8 @@ const GuestAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ conta
                 guestData.validationData.adhyayanDetails[0]?.available !== 0 && (
                   <CustomTag
                     text={`available: ${guestData.validationData.adhyayanDetails[0].available}`}
-                    textStyles={'text-green-200'}
-                    containerStyles={'bg-green-100'}
+                    textStyles="text-green-200"
+                    containerStyles="bg-green-100"
                   />
                 )}
 
@@ -35,8 +37,8 @@ const GuestAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ conta
                 guestData.validationData.adhyayanDetails[0]?.waiting !== 0 && (
                   <CustomTag
                     text={`waiting: ${guestData.validationData.adhyayanDetails[0].waiting}`}
-                    textStyles={'text-red-200'}
-                    containerStyles={'bg-red-100'}
+                    textStyles="text-red-200"
+                    containerStyles="bg-red-100"
                   />
                 )}
             </ScrollView>
@@ -48,7 +50,7 @@ const GuestAdhyayanBookingDetails: React.FC<{ containerStyles: any }> = ({ conta
         </View>
       </View>
 
-      <HorizontalSeparator otherStyles={'mb-4'} />
+      <HorizontalSeparator otherStyles="mb-4" />
 
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
         <FontAwesome6 name="book-bookmark" size={14} color={colors.gray_400} />

@@ -1,14 +1,16 @@
+import * as Haptics from 'expo-haptics';
+import moment from 'moment';
 import { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
-import { colors, icons, dropdowns } from '@/src/constants';
-import moment from 'moment';
-import AddonItem from '../AddonItem';
-import HorizontalSeparator from '../HorizontalSeparator';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import FormDisplayField from '../FormDisplayField';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import Toast from 'react-native-toast-message';
-import * as Haptics from 'expo-haptics';
+
+import AddonItem from '../AddonItem';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
+import FormDisplayField from '../FormDisplayField';
+import HorizontalSeparator from '../HorizontalSeparator';
+
+import { colors, icons, dropdowns } from '@/src/constants';
 
 interface MumukshuFoodAddonProps {
   foodForm: any;
@@ -74,7 +76,7 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
           <Text className="font-pmedium">Raj Prasad Booking</Text>
         </View>
       }
-      containerStyles={'mt-3'}>
+      containerStyles="mt-3">
       <FormDisplayField
         text="Start Date"
         value={foodForm.startDay ? moment(foodForm.startDay).format('Do MMMM YYYY') : ''}
@@ -148,13 +150,13 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
         <View key={index} style={{ marginBottom: 15 }}>
           {index > 0 && (
             <View>
-              <HorizontalSeparator otherStyles={'w-full mt-3'} />
+              <HorizontalSeparator otherStyles="w-full mt-3" />
               <TouchableOpacity
                 onPress={reomveFoodForm(index)}
                 className="mt-3 flex-1 flex-row items-center justify-end gap-x-1">
                 <Image
                   source={icons.remove}
-                  tintColor={'red'}
+                  tintColor="red"
                   className="h-3 w-3"
                   resizeMode="contain"
                 />
@@ -170,7 +172,7 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
             options={getAvailableMumukshus(index)}
             selectedValues={assignment.mumukshuIndices}
             onValuesChange={(val) => updateFoodForm(index, 'mumukshus', val)}
-            multiSelect={true}
+            multiSelect
             confirmButtonText="Select"
           />
 
@@ -181,7 +183,7 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
             options={dropdowns.FOOD_TYPE_LIST}
             selectedValues={assignment.meals}
             onValuesChange={(val) => updateFoodForm(index, 'meals', val)}
-            multiSelect={true}
+            multiSelect
             confirmButtonText="Select"
             maxSelectedDisplay={3}
           />

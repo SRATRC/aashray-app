@@ -1,14 +1,16 @@
+import moment from 'moment';
 import React, { useState, useCallback } from 'react';
 import { View, Text, Image } from 'react-native';
-import { icons, dropdowns } from '@/src/constants';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import { useUtsavDate } from '@/src/hooks/useUtsavDate';
-import FormField from '../FormField';
-import AddonItem from '../AddonItem';
-import FormDisplayField from '../FormDisplayField';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import moment from 'moment';
+
+import AddonItem from '../AddonItem';
+import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
+import FormDisplayField from '../FormDisplayField';
+import FormField from '../FormField';
+
+import { icons, dropdowns } from '@/src/constants';
+import { useUtsavDate } from '@/src/hooks/useUtsavDate';
+import { useAuthStore, useBookingStore } from '@/src/stores';
 
 interface TravelAddonProps {
   travelForm: any;
@@ -76,7 +78,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           <Text className="font-pmedium">Raj Pravas Booking</Text>
         </View>
       }
-      containerStyles={'mt-3'}>
+      containerStyles="mt-3">
       <FormDisplayField
         text="Date"
         value={travelForm.date ? moment(travelForm.date).format('Do MMMM YYYY') : ''}
@@ -126,7 +128,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           containerStyles="bg-gray-100"
           keyboardType="number-pad"
           placeholder="please specify total people here..."
-          inputStyles={'font-pmedium text-black text-lg'}
+          inputStyles="font-pmedium text-black text-lg"
         />
       )}
 
@@ -239,7 +241,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         selectedValues={travelForm.luggage}
         onValuesChange={(val: any) => setTravelForm({ ...travelForm, luggage: val })}
         saveKeyInsteadOfValue={false}
-        multiSelect={true}
+        multiSelect
         confirmButtonText="Select"
         maxSelectedDisplay={3}
       />
@@ -269,9 +271,9 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         containerStyles="bg-gray-100"
         keyboardType="default"
         placeholder="Please specify a location if 'Other' is selected, or provide any additional requests here..."
-        multiline={true}
+        multiline
         numberOfLines={2}
-        inputStyles={'font-pmedium text-black text-lg'}
+        inputStyles="font-pmedium text-black text-lg"
       />
     </AddonItem>
   );

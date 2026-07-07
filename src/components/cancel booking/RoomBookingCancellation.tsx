@@ -1,3 +1,6 @@
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import moment from 'moment';
 import React, { useState } from 'react';
 import {
   View,
@@ -7,21 +10,20 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
-import CustomModal from '../CustomModal';
-import OldBookingsTrigger from '../OldBookingsTrigger';
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { FlashList, ListRenderItem } from '@shopify/flash-list';
-import { icons, status } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import { splitActiveAndPastBookings } from '@/src/utils/bookingHistoryFilter';
+
+import BookingStatusDisplay from '../BookingStatusDisplay';
 import CustomButton from '../CustomButton';
+import CustomEmptyMessage from '../CustomEmptyMessage';
+import CustomModal from '../CustomModal';
 import ExpandableItem from '../ExpandableItem';
 import HorizontalSeparator from '../HorizontalSeparator';
-import CustomEmptyMessage from '../CustomEmptyMessage';
-import BookingStatusDisplay from '../BookingStatusDisplay';
-import moment from 'moment';
+import OldBookingsTrigger from '../OldBookingsTrigger';
+
+import { icons, status } from '@/src/constants';
+import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
+import { useAuthStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
+import { splitActiveAndPastBookings } from '@/src/utils/bookingHistoryFilter';
 
 const RoomBookingCancellation: React.FC = () => {
   const { user } = useAuthStore();
@@ -295,9 +297,7 @@ const RoomBookingCancellation: React.FC = () => {
             return <View className="w-full">{renderOldBookingsSection()}</View>;
           return (
             <View className="h-full flex-1 items-center justify-center pt-40">
-              <CustomEmptyMessage
-                message={'Your room bookings are currently in a state of nirvana...empty'}
-              />
+              <CustomEmptyMessage message="Your room bookings are currently in a state of nirvana...empty" />
             </View>
           );
         }}
@@ -337,7 +337,7 @@ const RoomBookingCancellation: React.FC = () => {
         title="Cancel Booking"
         message="Are you sure you want to cancel this room booking?"
         btnText="Yes, Cancel"
-        showActionButton={true}
+        showActionButton
         btnOnPress={() => {
           if (selectedBooking) {
             cancelBookingMutation.mutate({

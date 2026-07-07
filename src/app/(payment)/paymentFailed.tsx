@@ -1,8 +1,9 @@
-import { View, Text, TouchableOpacity, Animated } from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, Animated } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import CustomButton from '@/src/components/CustomButton';
 
 const PaymentFailed = () => {
