@@ -122,6 +122,13 @@ export function useTicketStream({
                 };
               });
 
+              // The SSE frame flags whether the message has attachments but
+              // can't carry them (the serve URL is audience-specific) — so when
+              // it does, refetch to backfill the served attachments (with this
+              // client's URLs) instead of leaving the bubble image-less until a
+              // manual reopen. Text-only messages skip the refetch.
+              if (data.hasAttachments) refetch();
+
               // No scroll-to-end here: the caller's own effect watching
               // `messages.length` already handles that for every case that
               // actually adds a message (this cache update always changes
