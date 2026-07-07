@@ -94,13 +94,19 @@ const CreateTicket = () => {
   };
 
   const handleSubmit = async () => {
-    if (form.service.trim() === '' || form.description.trim() === '') {
-      CustomAlert.alert('Error', 'Please fill all fields');
+    if (form.service.trim() === '') {
+      CustomAlert.alert('Error', 'Please select a service type');
       return;
     }
 
-    if (form.description.trim().length < 10) {
-      CustomAlert.alert('Error', 'Please provide more details about your issue');
+    // A detailed description is required on its own, but attachment-only
+    // tickets are valid (the backend accepts them), so staged media can stand
+    // in for the 10-char minimum.
+    if (form.description.trim().length < 10 && !hasAttachments) {
+      CustomAlert.alert(
+        'Error',
+        'Please describe your issue (at least 10 characters) or add a photo/video.'
+      );
       return;
     }
 
@@ -237,7 +243,9 @@ const CreateTicket = () => {
           handlePress={handleSubmit}
           containerStyles="min-h-[62px] mt-10"
           isLoading={busy}
-          isDisabled={form.service === '' || form.description.trim().length < 10 || busy}
+          isDisabled={
+            form.service === '' || (form.description.trim().length < 10 && !hasAttachments) || busy
+          }
         />
       </KeyboardAwareScrollView>
     </SafeAreaView>
