@@ -28,7 +28,6 @@ const INITIAL_MUMUKSHU_FORM = {
       pickup: '',
       drop: '',
       luggage: [],
-      adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
       type: dropdowns.BOOKING_TYPE_LIST[0].value,
       total_people: null,
       special_request: '',
@@ -91,7 +90,6 @@ const TravelBooking = () => {
     drop: '',
     arrival_time: '',
     luggage: [],
-    adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
     type: dropdowns.BOOKING_TYPE_LIST[0].value,
     total_people: null,
     special_request: '',
@@ -138,7 +136,6 @@ const TravelBooking = () => {
           pickup: '',
           drop: '',
           luggage: [],
-          adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
           type: dropdowns.BOOKING_TYPE_LIST[0].value,
           total_people: null,
           special_request: '',
@@ -389,18 +386,6 @@ const TravelBooking = () => {
               maxSelectedDisplay={3}
             />
 
-            {travelForm.pickup == dropdowns.LOCATION_LIST[0].value && (
-              <CustomSelectBottomSheet
-                className="mt-7"
-                label="Leaving post adhyayan?"
-                placeholder="Leaving post adhyayan?"
-                options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
-                selectedValue={travelForm.adhyayan}
-                onValueChange={(val: any) => setTravelForm({ ...travelForm, adhyayan: val })}
-                saveKeyInsteadOfValue={false}
-              />
-            )}
-
             <FormField
               text="Comments"
               value={travelForm.special_request}
@@ -537,18 +522,6 @@ const TravelBooking = () => {
                     maxSelectedDisplay={3}
                   />
 
-                  {mumukshuForm.mumukshus[index].pickup == dropdowns.LOCATION_LIST[0].value && (
-                    <CustomSelectBottomSheet
-                      className="mt-7"
-                      label="Leaving post adhyayan?"
-                      placeholder="Leaving post adhyayan?"
-                      options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
-                      selectedValue={mumukshuForm.mumukshus[index].adhyayan}
-                      onValueChange={(val: any) => handleMumukshuFormChange(index, 'adhyayan', val)}
-                      saveKeyInsteadOfValue={false}
-                    />
-                  )}
-
                   <FormField
                     text="Comments"
                     value={mumukshuForm.mumukshus[index].special_request}
@@ -589,7 +562,6 @@ const TravelBooking = () => {
                     pickup: travelForm.pickup,
                     drop: travelForm.drop,
                     luggage: travelForm.luggage,
-                    adhyayan: travelForm.adhyayan,
                     type: travelForm.type,
                     total_people: travelForm.total_people,
                     special_request: travelForm.special_request,
@@ -645,7 +617,6 @@ function transformMumukshuData(inputData: any) {
         type: mumukshu.type,
         arrival_time: mumukshu.arrival_time,
         luggage: mumukshu.luggage,
-        adhyayan: mumukshu.adhyayan,
         special_request: mumukshu.special_request,
         total_people: mumukshu.total_people,
         mumukshus: [],

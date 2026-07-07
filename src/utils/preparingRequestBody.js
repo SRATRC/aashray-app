@@ -22,7 +22,6 @@ export const prepareSelfRequestBody = (user, data) => {
         drop_point: data.travel?.drop,
         arrival_time: data.travel?.arrival_time,
         luggage: data.travel?.luggage.length > 0 ? data.travel?.luggage.join(', ') : '',
-        leaving_post_adhyayan: data.travel?.adhyayan == 'No' ? 0 : 1,
         type: data.travel?.type,
         total_people: data.travel?.total_people,
         comments: data.travel?.special_request,
@@ -84,7 +83,6 @@ export const prepareSelfRequestBody = (user, data) => {
         drop_point: data.travel?.drop,
         arrival_time: data.travel?.arrival_time,
         luggage: data.travel?.luggage.length > 0 ? data.travel?.luggage.join(', ') : '',
-        leaving_post_adhyayan: data.travel?.adhyayan == 'No' ? 0 : 1,
         type: data.travel?.type,
         total_people: data.travel?.total_people,
         comments: data.travel?.special_request,
@@ -252,11 +250,6 @@ export const prepareMumukshuRequestBody = (user, input) => {
           if (mumukshuWithArrivalTime)
             transformed.arrival_time = mumukshuWithArrivalTime.arrival_time;
         }
-        if (!group.adhyayan) {
-          const mumukshuWithAdhyayan = group.mumukshus.find((m) => m.adhyayan);
-          if (mumukshuWithAdhyayan)
-            transformed.leaving_post_adhyayan = mumukshuWithAdhyayan.adhyayan == 'No' ? 0 : 1;
-        }
         if (!group.luggage) {
           const mumukshuWithLuggage = group.mumukshus.find((m) => m.luggage);
           if (mumukshuWithLuggage)
@@ -281,10 +274,6 @@ export const prepareMumukshuRequestBody = (user, input) => {
       if (group.pickup) transformed.pickup_point = group.pickup;
       if (group.drop) transformed.drop_point = group.drop;
       if (group.arrival_time) transformed.arrival_time = group.arrival_time;
-      if (group.adhyayan)
-        group.adhyayan == 'No'
-          ? (transformed.leaving_post_adhyayan = 0)
-          : (transformed.leaving_post_adhyayan = 1);
       if (group.luggage) {
         transformed.luggage = group.luggage.length > 0 ? group.luggage.join(', ') : '';
       }
