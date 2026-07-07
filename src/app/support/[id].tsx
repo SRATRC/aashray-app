@@ -23,8 +23,8 @@ import MediaViewer, { MediaViewerItem } from '@/src/components/MediaViewer';
 import { getStatusColor } from '@/src/utils/ticketStatus';
 import { useTicketStream } from '@/src/hooks/useTicketStream';
 import { useRefetchOnFocus } from '@/src/hooks/useRefetchOnFocus';
-import { useTicketAttachments, UPLOAD_CANCELLED } from '@/src/hooks/useTicketAttachments';
-import { AttachmentRef, PendingAttachment } from '@/src/utils/ticketAttachments';
+import { useTicketAttachments } from '@/src/hooks/useTicketAttachments';
+import { AttachmentRef, PendingAttachment, runUpload } from '@/src/utils/ticketAttachments';
 
 // Optimistic (local) media rendered on a just-sent message before the server
 // echoes back the stored attachments. Tapping opens the full-screen viewer.
@@ -112,8 +112,7 @@ const TicketDetails = () => {
 
   const {
     attachments,
-    canAddImage,
-    canAddVideo,
+    canAddMedia,
     hasAttachments,
     addMedia,
     remove,
@@ -261,11 +260,11 @@ const TicketDetails = () => {
     let refs: AttachmentRef[] = [];
     if (hasAttachments) {
       try {
-        refs = await upload();
+        const uploaded = await runUpload(upload);
+        if (uploaded === null) return;
+        refs = uploaded;
       } catch (err: any) {
-        if (err?.message !== UPLOAD_CANCELLED) {
-          CustomAlert.alert('Upload failed', err?.message || 'Could not upload your attachments.');
-        }
+        CustomAlert.alert('Upload failed', err?.message || 'Could not upload your attachments.');
         return;
       }
     }
@@ -487,7 +486,7 @@ const TicketDetails = () => {
               <View className="flex-row items-end gap-x-2">
                 <TouchableOpacity
                   onPress={handleAttach}
-                  disabled={(!canAddImage && !canAddVideo) || isUploading}
+                  disabled={!canAddMedia || isUploading}
                   className="h-11 w-11 items-center justify-center rounded-full bg-gray-100"
                   activeOpacity={0.7}>
                   <FontAwesome5 name="paperclip" size={16} color="#6B7280" />

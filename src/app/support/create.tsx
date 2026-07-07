@@ -14,8 +14,8 @@ import Toast from 'react-native-toast-message';
 import AttachmentPreviewStrip from '@/src/components/AttachmentPreviewStrip';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import { collectDiagnostics } from '@/src/utils/collectDiagnostics';
-import { useTicketAttachments, UPLOAD_CANCELLED } from '@/src/hooks/useTicketAttachments';
-import { MAX_IMAGES, MAX_VIDEOS } from '@/src/utils/ticketAttachments';
+import { useTicketAttachments } from '@/src/hooks/useTicketAttachments';
+import { AttachmentRef, MAX_IMAGES, MAX_VIDEOS, runUpload } from '@/src/utils/ticketAttachments';
 import * as Application from 'expo-application';
 
 // The 12 support departments — labels + order mirror the backend's
@@ -51,8 +51,7 @@ const CreateTicket = () => {
     attachments,
     imageCount,
     videoCount,
-    canAddImage,
-    canAddVideo,
+    canAddMedia,
     hasAttachments,
     addMedia,
     remove,
@@ -108,12 +107,16 @@ const CreateTicket = () => {
 
     // Compress + presign + upload any attachments first, then create the ticket
     // referencing the returned keys. A failed upload aborts before creation.
-    let attachmentRefs;
+    let attachmentRefs: AttachmentRef[] = [];
     try {
-      attachmentRefs = hasAttachments ? await upload() : [];
+      const refs = hasAttachments ? await runUpload(upload) : [];
+      if (refs === null) {
+        setIsSubmitting(false);
+        return;
+      }
+      attachmentRefs = refs;
     } catch (err: any) {
       setIsSubmitting(false);
-      if (err?.message === UPLOAD_CANCELLED) return;
       Alert.alert('Upload failed', err?.message || 'Could not upload your attachments.');
       return;
     }
@@ -206,14 +209,14 @@ const CreateTicket = () => {
         <Text className="mb-2 mt-7 font-pmedium text-base text-black">Attachments (optional)</Text>
         <TouchableOpacity
           onPress={handleAddMedia}
-          disabled={busy || (!canAddImage && !canAddVideo)}
+          disabled={busy || !canAddMedia}
           activeOpacity={0.7}
           className={`flex-row items-center justify-center gap-x-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 py-3.5 ${
-            busy || (!canAddImage && !canAddVideo) ? 'opacity-40' : ''
+            busy || !canAddMedia ? 'opacity-40' : ''
           }`}>
           <FontAwesome5 name="paperclip" size={14} color="#4B5563" />
           <Text className="font-pmedium text-sm text-gray-700">
-            {!canAddImage && !canAddVideo
+            {!canAddMedia
               ? 'Attachment limit reached'
               : `Add photo or video${
                   imageCount || videoCount ? ` (${imageCount + videoCount} added)` : ''

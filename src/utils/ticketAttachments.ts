@@ -193,6 +193,22 @@ export async function putToS3(
   }
 }
 
+// Shared wrapper around the hook's upload() for the create/chat screens: runs
+// it, swallows a user-initiated cancel (returns null so the caller can bail
+// quietly), and otherwise re-throws with a fallback message. Each screen still
+// alerts with its own primitive (RN Alert vs CustomAlert) and owns its own
+// surrounding state handling.
+export async function runUpload(
+  upload: () => Promise<AttachmentRef[]>
+): Promise<AttachmentRef[] | null> {
+  try {
+    return await upload();
+  } catch (err: any) {
+    if (err?.message === 'UPLOAD_CANCELLED') return null;
+    throw new Error(err?.message || 'Could not upload your attachments.');
+  }
+}
+
 // Build a loadable URI from a served attachment's `url` (an absolute API path
 // like `/api/v1/tickets/.../attachments/..`). resolveApiBaseUrl() already ends
 // in `/api/v1`, so strip that version prefix from the base before joining to

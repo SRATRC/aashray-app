@@ -309,6 +309,7 @@ export function useTicketAttachments(cardno: string | undefined, existingVideoCo
     videoCount,
     canAddImage,
     canAddVideo,
+    canAddMedia: canAddImage || canAddVideo,
     hasAttachments: attachments.length > 0,
     addMedia,
     remove,
