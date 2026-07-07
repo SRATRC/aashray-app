@@ -70,124 +70,123 @@ export function useTicketAttachments(cardno: string | undefined, existingVideoCo
   // brand-new ticket (the create screen).
   const canAddVideo = existingVideoCount + videoCount < MAX_VIDEOS;
 
-  const addImages = useCallback(async (): Promise<string | null> => {
+  // One gallery picker for BOTH photos and videos — the user picks either (or a
+  // mix) in a single system picker. Each asset is routed by its type: images
+  // are compressed + size-checked, videos are duration/size-checked; per-type
+  // caps (MAX_IMAGES photos, MAX_VIDEOS videos-per-ticket) are enforced as we
+  // fill slots, and anything over is skipped with a summary message.
+  const addMedia = useCallback(async (): Promise<string | null> => {
     if (isUploading) return null;
-    const remaining = MAX_IMAGES - imageCount;
-    if (remaining <= 0) return `You can attach up to ${MAX_IMAGES} images.`;
+    let imgSlots = MAX_IMAGES - imageCount;
+    let vidSlots = MAX_VIDEOS - (existingVideoCount + videoCount);
+    if (imgSlots <= 0 && vidSlots <= 0) {
+      return `You've reached the attachment limit (${MAX_IMAGES} photos, ${MAX_VIDEOS} videos).`;
+    }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    // System photo picker (PHPicker / PickVisualMedia) — no media-library
-    // permission needed, grants access to just the selected items.
+    // System photo picker (PHPicker / PickVisualMedia) showing images AND
+    // videos — no media-library permission needed, grants access to just the
+    // selected items.
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
+      mediaTypes: ['images', 'videos'],
       allowsMultipleSelection: true,
-      selectionLimit: remaining,
+      selectionLimit: Math.max(1, imgSlots + vidSlots),
+      videoMaxDuration: MAX_VIDEO_SECONDS,
       quality: 1,
     });
     if (result.canceled) return null;
 
-    // Android often ignores selectionLimit, so the picker can return more than
-    // `remaining`. We take the first `remaining` and tell the user the rest
-    // were skipped instead of silently dropping them.
-    const overflow = Math.max(0, result.assets.length - remaining);
     const picked: PendingAttachment[] = [];
-    let skipped = 0;
-    for (const asset of result.assets.slice(0, remaining)) {
-      try {
-        const resize = resizeAction(asset.width, asset.height);
-        const compressed = await manipulateAsync(asset.uri, resize ? [{ resize }] : [], {
-          compress: COMPRESS_QUALITY,
-          format: SaveFormat.JPEG,
-        });
-        const size = getFileSize(compressed.uri);
-        if (size <= 0 || size > MAX_IMAGE_BYTES) {
-          skipped += 1;
+    let skippedLimit = 0;
+    let skippedSize = 0;
+    let skippedOther = 0;
+
+    for (const asset of result.assets) {
+      if (asset.type === 'video') {
+        if (vidSlots <= 0) {
+          skippedLimit += 1;
+          continue;
+        }
+        const durationSec = asset.duration != null ? asset.duration / 1000 : undefined;
+        if (durationSec == null || durationSec > MAX_VIDEO_SECONDS + 0.5) {
+          skippedOther += 1;
+          continue;
+        }
+        const size = getFileSize(asset.uri);
+        if (size <= 0) {
+          skippedOther += 1;
+          continue;
+        }
+        if (size > MAX_VIDEO_BYTES) {
+          skippedSize += 1;
           continue;
         }
         picked.push({
           id: uid(),
-          uri: compressed.uri,
-          kind: 'image',
-          contentType: 'image/jpeg',
-          filename: `${uid()}.jpg`,
+          uri: asset.uri,
+          kind: 'video',
+          contentType: videoContentType(asset),
+          filename: asset.fileName || `${uid()}.mp4`,
           size,
-          width: compressed.width,
-          height: compressed.height,
+          durationSec: Math.min(Math.round(durationSec), MAX_VIDEO_SECONDS),
+          width: asset.width,
+          height: asset.height,
           status: 'pending',
         });
-      } catch {
-        skipped += 1;
+        vidSlots -= 1;
+      } else {
+        if (imgSlots <= 0) {
+          skippedLimit += 1;
+          continue;
+        }
+        try {
+          const resize = resizeAction(asset.width, asset.height);
+          const compressed = await manipulateAsync(asset.uri, resize ? [{ resize }] : [], {
+            compress: COMPRESS_QUALITY,
+            format: SaveFormat.JPEG,
+          });
+          const size = getFileSize(compressed.uri);
+          if (size <= 0 || size > MAX_IMAGE_BYTES) {
+            skippedSize += 1;
+            continue;
+          }
+          picked.push({
+            id: uid(),
+            uri: compressed.uri,
+            kind: 'image',
+            contentType: 'image/jpeg',
+            filename: `${uid()}.jpg`,
+            size,
+            width: compressed.width,
+            height: compressed.height,
+            status: 'pending',
+          });
+          imgSlots -= 1;
+        } catch {
+          skippedOther += 1;
+        }
       }
     }
 
     if (picked.length) setAttachments((prev) => [...prev, ...picked]);
 
     const notes: string[] = [];
-    if (overflow > 0) {
+    if (skippedLimit > 0) {
+      notes.push(`${skippedLimit} skipped — limit is ${MAX_IMAGES} photos and ${MAX_VIDEOS} videos.`);
+    }
+    if (skippedSize > 0) {
       notes.push(
-        `You can attach up to ${MAX_IMAGES} images, so ${overflow} of the selected ${
-          overflow > 1 ? 'photos were' : 'photo was'
-        } skipped.`
+        `${skippedSize} too large (photos ≤ ${formatMB(MAX_IMAGE_BYTES)}, videos ≤ ${formatMB(
+          MAX_VIDEO_BYTES
+        )}).`
       );
     }
-    if (skipped > 0) {
-      notes.push(
-        `${skipped} image${skipped > 1 ? 's' : ''} couldn't be added (over ${formatMB(
-          MAX_IMAGE_BYTES
-        )} or unreadable).`
-      );
+    if (skippedOther > 0) {
+      notes.push(`${skippedOther} couldn't be added (unreadable or over ${MAX_VIDEO_SECONDS}s).`);
     }
     return notes.length ? notes.join(' ') : null;
-  }, [imageCount, isUploading]);
-
-  const addVideo = useCallback(async (): Promise<string | null> => {
-    if (isUploading) return null;
-    if (existingVideoCount + videoCount >= MAX_VIDEOS) {
-      return existingVideoCount > 0
-        ? `This ticket can have at most ${MAX_VIDEOS} videos.`
-        : `You can attach up to ${MAX_VIDEOS} videos.`;
-    }
-
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['videos'],
-      allowsMultipleSelection: false,
-      videoMaxDuration: MAX_VIDEO_SECONDS,
-      quality: 0.7,
-    });
-    if (result.canceled || !result.assets[0]) return null;
-
-    const asset = result.assets[0];
-    const durationSec = asset.duration != null ? asset.duration / 1000 : undefined;
-    if (durationSec == null) return "Couldn't read the video's length. Please try another.";
-    if (durationSec > MAX_VIDEO_SECONDS + 0.5) {
-      return `Videos must be ${MAX_VIDEO_SECONDS} seconds or shorter.`;
-    }
-
-    const size = getFileSize(asset.uri);
-    if (size <= 0) return "Couldn't read the video file. Please try another.";
-    if (size > MAX_VIDEO_BYTES) return `Videos must be ${formatMB(MAX_VIDEO_BYTES)} or smaller.`;
-
-    const contentType = videoContentType(asset);
-    setAttachments((prev) => [
-      ...prev,
-      {
-        id: uid(),
-        uri: asset.uri,
-        kind: 'video',
-        contentType,
-        filename: asset.fileName || `${uid()}.mp4`,
-        size,
-        durationSec: Math.min(Math.round(durationSec), MAX_VIDEO_SECONDS),
-        width: asset.width,
-        height: asset.height,
-        status: 'pending',
-      },
-    ]);
-    return null;
-  }, [existingVideoCount, videoCount, isUploading]);
+  }, [imageCount, videoCount, existingVideoCount, isUploading]);
 
   const remove = useCallback((id: string) => {
     setAttachments((prev) => prev.filter((a) => a.id !== id));
@@ -311,8 +310,7 @@ export function useTicketAttachments(cardno: string | undefined, existingVideoCo
     canAddImage,
     canAddVideo,
     hasAttachments: attachments.length > 0,
-    addImages,
-    addVideo,
+    addMedia,
     remove,
     clear,
     cancel,

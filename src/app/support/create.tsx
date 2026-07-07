@@ -12,7 +12,6 @@ import CustomButton from '@/src/components/CustomButton';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
 import Toast from 'react-native-toast-message';
 import AttachmentPreviewStrip from '@/src/components/AttachmentPreviewStrip';
-import AttachmentActionSheet from '@/src/components/AttachmentActionSheet';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import { collectDiagnostics } from '@/src/utils/collectDiagnostics';
 import { useTicketAttachments, UPLOAD_CANCELLED } from '@/src/hooks/useTicketAttachments';
@@ -47,7 +46,6 @@ const CreateTicket = () => {
     description: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [attachSheetOpen, setAttachSheetOpen] = useState(false);
 
   const {
     attachments,
@@ -56,8 +54,7 @@ const CreateTicket = () => {
     canAddImage,
     canAddVideo,
     hasAttachments,
-    addImages,
-    addVideo,
+    addMedia,
     remove,
     upload,
     cancel,
@@ -85,13 +82,8 @@ const CreateTicket = () => {
     }
   };
 
-  const handleAddImages = async () => {
-    const msg = await addImages();
-    if (msg) Alert.alert('Heads up', msg);
-  };
-
-  const handleAddVideo = async () => {
-    const msg = await addVideo();
+  const handleAddMedia = async () => {
+    const msg = await addMedia();
     if (msg) Alert.alert('Heads up', msg);
   };
 
@@ -213,7 +205,7 @@ const CreateTicket = () => {
         {/* Attachments */}
         <Text className="mb-2 mt-7 font-pmedium text-base text-black">Attachments (optional)</Text>
         <TouchableOpacity
-          onPress={() => setAttachSheetOpen(true)}
+          onPress={handleAddMedia}
           disabled={busy || (!canAddImage && !canAddVideo)}
           activeOpacity={0.7}
           className={`flex-row items-center justify-center gap-x-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 py-3.5 ${
@@ -245,32 +237,6 @@ const CreateTicket = () => {
           }
         />
       </KeyboardAwareScrollView>
-
-      <AttachmentActionSheet
-        visible={attachSheetOpen}
-        onClose={() => setAttachSheetOpen(false)}
-        title="Add photo or video"
-        options={[
-          {
-            icon: 'image',
-            label: 'Photo',
-            subtitle: canAddImage
-              ? `JPEG · up to ${MAX_IMAGES}${imageCount ? ` · ${imageCount} added` : ''}`
-              : `Limit reached (${MAX_IMAGES})`,
-            disabled: !canAddImage,
-            onPress: handleAddImages,
-          },
-          {
-            icon: 'video',
-            label: 'Video',
-            subtitle: canAddVideo
-              ? `Up to ${MAX_VIDEOS} · max 60s${videoCount ? ` · ${videoCount} added` : ''}`
-              : `Limit reached (${MAX_VIDEOS})`,
-            disabled: !canAddVideo,
-            onPress: handleAddVideo,
-          },
-        ]}
-      />
     </SafeAreaView>
   );
 };
