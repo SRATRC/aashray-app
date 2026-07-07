@@ -11,8 +11,8 @@
 ## Global Constraints
 
 - No user-visible behavior change in Phase 1 — structural only.
-- `npm run lint` (ESLint + Prettier) MUST pass clean at the end of every task.
-- `npx tsc --noEmit` MUST pass clean at the end of every task.
+- **Lint gate:** `npm run lint` (ESLint + Prettier) MUST be at **0 problems** at the end of every task. Phase 0 (lint baseline cleanup) established this; do not regress it. (This is the "perfectly linted" requirement.)
+- **Typecheck gate:** MUST NOT introduce NEW typecheck errors beyond the documented pre-existing baseline of **84 errors**. Measure reliably with `npx tsc --noEmit --pretty false 2>&1 | grep -c "error TS"` (note: colorized `tsc` output hides "error TS" behind ANSI codes — always use `--pretty false` when counting). The 84 pre-existing errors (missing dep type-decls, `global.css` decl, `{}`/implicit-any) are addressed in Phase 3 (backend types) and Phase 4 (ratchet strict), NOT here.
 - NativeWind only — no Tamagui/gluestack, no new heavyweight UI dependency.
 - No `export *` barrels; feature/public re-exports must be explicit named exports only.
 - Preserve MMKV on-disk persistence format exactly (store names `auth-store`, `dev-store`; same serialized bytes) — a format change would wipe users' persisted login.
