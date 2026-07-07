@@ -34,9 +34,9 @@ const MumukshuFlatBookingDetails: React.FC<{ containerStyles: any }> = ({ contai
                 <CustomTag
                   key={key}
                   text={`${key}: ${value}`}
-                  textStyles={key == status.STATUS_AVAILABLE ? 'text-green-200' : 'text-red-200'}
+                  textStyles={key === status.STATUS_AVAILABLE ? 'text-green-200' : 'text-red-200'}
                   containerStyles={`${
-                    key == status.STATUS_AVAILABLE ? 'bg-green-100' : 'bg-red-100'
+                    key === status.STATUS_AVAILABLE ? 'bg-green-100' : 'bg-red-100'
                   } mx-1`}
                 />
               ))}

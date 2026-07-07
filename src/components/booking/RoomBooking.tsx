@@ -87,7 +87,7 @@ const RoomBooking = () => {
 
   const [resetKey, setResetKey] = useState(0);
 
-  if (user.res_status == status.STATUS_GUEST) {
+  if (user.res_status === status.STATUS_GUEST) {
     CHIPS = ['Self'];
   }
 
@@ -155,10 +155,10 @@ const RoomBooking = () => {
     return (
       selectedDay &&
       singleDayGuestForm.guests.every((guest: any) => {
-        if (guest.cardno) return guest.mobno && guest.mobno?.length == 10;
+        if (guest.cardno) return guest.mobno && guest.mobno?.length === 10;
         else
           return (
-            guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length == 10
+            guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length === 10
           );
       })
     );
@@ -201,7 +201,7 @@ const RoomBooking = () => {
     return (
       selectedDay &&
       singleDayMumukshuForm.mumukshus.every((mumukshu) => {
-        return mumukshu.mobno && mumukshu.mobno?.length == 10 && mumukshu.cardno;
+        return mumukshu.mobno && mumukshu.mobno?.length === 10 && mumukshu.cardno;
       })
     );
   };
@@ -261,7 +261,7 @@ const RoomBooking = () => {
       guestForm.endDay &&
       guestForm.guests.every((guest: any) => {
         if (guest.cardno)
-          return guest.mobno && guest.mobno?.length == 10 && guest.roomType && guest.floorType;
+          return guest.mobno && guest.mobno?.length === 10 && guest.roomType && guest.floorType;
         else
           return (
             guest.name &&
@@ -270,7 +270,7 @@ const RoomBooking = () => {
             guest.roomType &&
             guest.floorType &&
             guest.mobno &&
-            guest.mobno?.length == 10
+            guest.mobno?.length === 10
           );
       })
     );
@@ -317,7 +317,7 @@ const RoomBooking = () => {
         return (
           mumukshu.cardno &&
           mumukshu.mobno &&
-          mumukshu.mobno?.length == 10 &&
+          mumukshu.mobno?.length === 10 &&
           mumukshu.roomType &&
           mumukshu.floorType
         );
@@ -659,7 +659,7 @@ const RoomBooking = () => {
                   }
                   setIsSubmitting(true);
 
-                  if (selectedChip == CHIPS[0]) {
+                  if (selectedChip === CHIPS[0]) {
                     const onSuccess = (_data: any) => {
                       CustomAlert.alert('Booking Successful');
                     };
@@ -695,7 +695,7 @@ const RoomBooking = () => {
                     );
                   }
 
-                  if (selectedChip == CHIPS[1]) {
+                  if (selectedChip === CHIPS[1]) {
                     if (!isSingleDayGuestFormValid()) {
                       CustomAlert.alert('Please fill all fields');
                       setIsSubmitting(false);
@@ -756,7 +756,7 @@ const RoomBooking = () => {
                     );
                   }
 
-                  if (selectedChip == CHIPS[2]) {
+                  if (selectedChip === CHIPS[2]) {
                     const onSuccess = (_data: any) => {
                       CustomAlert.alert('Booking Successful');
                     };

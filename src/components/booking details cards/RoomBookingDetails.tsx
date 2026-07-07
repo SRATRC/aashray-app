@@ -35,9 +35,9 @@ const RoomBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyle
                 <CustomTag
                   key={key}
                   text={`${key}: ${value}`}
-                  textStyles={key == status.STATUS_AVAILABLE ? 'text-green-200' : 'text-red-200'}
+                  textStyles={key === status.STATUS_AVAILABLE ? 'text-green-200' : 'text-red-200'}
                   containerStyles={`${
-                    key == status.STATUS_AVAILABLE ? 'bg-green-100' : 'bg-red-100'
+                    key === status.STATUS_AVAILABLE ? 'bg-green-100' : 'bg-red-100'
                   } mx-1`}
                 />
               ))}
@@ -55,7 +55,7 @@ const RoomBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyle
         <MaterialCommunityIcons name="air-conditioner" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Room Type: </Text>
         <Text className="font-pmedium text-black">
-          {data.room.mumukshuGroup[0].roomType == 'ac' ? 'AC ROOM' : 'Non AC ROOM'}
+          {data.room.mumukshuGroup[0].roomType === 'ac' ? 'AC ROOM' : 'Non AC ROOM'}
         </Text>
       </View>
       <View className="flex flex-row items-center gap-x-2 px-6 pb-4">

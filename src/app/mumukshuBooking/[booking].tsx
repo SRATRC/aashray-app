@@ -560,9 +560,9 @@ const MumukshuAddons = () => {
         group.luggage.length === 0 ||
         (group.pickup === otherLocation?.value && group.special_request.trim() === '') ||
         (group.drop === otherLocation?.value && group.special_request.trim() === '') ||
-        (group.pickup == 'Research Centre' && group.drop == 'Research Centre') ||
-        (group.pickup != 'Research Centre' && group.drop != 'Research Centre') ||
-        (group.type == dropdowns.BOOKING_TYPE_LIST[1].value && !group.total_people)
+        (group.pickup === 'Research Centre' && group.drop === 'Research Centre') ||
+        (group.pickup !== 'Research Centre' && group.drop !== 'Research Centre') ||
+        (group.type === dropdowns.BOOKING_TYPE_LIST[1].value && !group.total_people)
     );
     return !hasEmptyFields && travelForm.date;
   }, [travelForm]);
@@ -589,7 +589,7 @@ const MumukshuAddons = () => {
       (group: any) =>
         group.pickup !== '' ||
         group.drop !== '' ||
-        group.luggage.length == 0 ||
+        group.luggage.length === 0 ||
         group.mumukshus.length > 0
     );
   }, [travelForm]);

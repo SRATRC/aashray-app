@@ -66,7 +66,7 @@ const AdhyayanBooking = () => {
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  if (user?.res_status == status.STATUS_GUEST) {
+  if (user?.res_status === status.STATUS_GUEST) {
     CHIPS = ['Self'];
   }
 
@@ -133,9 +133,11 @@ const AdhyayanBooking = () => {
 
   const isGuestFormValid = () => {
     return guestForm.guests.every((guest: any) => {
-      if (guest.cardno) return guest.mobno && guest.mobno?.length == 10;
+      if (guest.cardno) return guest.mobno && guest.mobno?.length === 10;
       else
-        return guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length == 10;
+        return (
+          guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length === 10
+        );
     });
   };
 
@@ -172,7 +174,7 @@ const AdhyayanBooking = () => {
 
   const isMumukshuFormValid = () => {
     return mumukshuForm.mumukshus.every((mumukshu) => {
-      return mumukshu.mobno && mumukshu.mobno?.length == 10 && mumukshu.cardno;
+      return mumukshu.mobno && mumukshu.mobno?.length === 10 && mumukshu.cardno;
     });
   };
 
@@ -220,7 +222,7 @@ const AdhyayanBooking = () => {
                 : `${moment(item.start_date).format('MMM DD')} - ${moment(item.end_date).format('MMM DD, YYYY')}`}
             </Text>
           </View>
-          {(item.status == status.STATUS_CLOSED || item.available_seats == 0) && (
+          {(item.status === status.STATUS_CLOSED || item.available_seats === 0) && (
             <View className="rounded-full bg-orange-100 px-2 py-1">
               <Text className="font-pmedium text-xs text-orange-600">Waitlist</Text>
             </View>
@@ -275,7 +277,7 @@ const AdhyayanBooking = () => {
         <View className="mt-5 border-t border-gray-200 pt-4">
           <CustomButton
             text={
-              item.status == status.STATUS_CLOSED || item.available_seats == 0
+              item.status === status.STATUS_CLOSED || item.available_seats === 0
                 ? 'Join Waitlist'
                 : 'Register Now'
             }
@@ -293,7 +295,7 @@ const AdhyayanBooking = () => {
             }}
             containerStyles="min-h-[48px] rounded-xl"
             bgcolor={
-              item.status == status.STATUS_CLOSED || item.available_seats == 0
+              item.status === status.STATUS_CLOSED || item.available_seats === 0
                 ? 'bg-orange-500'
                 : 'bg-secondary'
             }
@@ -427,7 +429,7 @@ const AdhyayanBooking = () => {
                 <CustomButton
                   handlePress={async () => {
                     setIsSubmitting(true);
-                    if (selectedChip == CHIPS[0]) {
+                    if (selectedChip === CHIPS[0]) {
                       const temp = transformMumukshuData({
                         adhyayan: selectedItem,
                         mumukshus: [
@@ -446,7 +448,7 @@ const AdhyayanBooking = () => {
                         router.push('/booking/bookingReview');
                       else router.push(`/booking/${types.ADHYAYAN_DETAILS_TYPE}`);
                     }
-                    if (selectedChip == CHIPS[1]) {
+                    if (selectedChip === CHIPS[1]) {
                       if (!isGuestFormValid()) {
                         CustomAlert.alert('Fill all Fields');
                         return;
@@ -499,7 +501,7 @@ const AdhyayanBooking = () => {
                         setIsSubmitting(false);
                       }
                     }
-                    if (selectedChip == CHIPS[2]) {
+                    if (selectedChip === CHIPS[2]) {
                       if (!isMumukshuFormValid()) {
                         CustomAlert.alert('Fill all Fields');
                         return;

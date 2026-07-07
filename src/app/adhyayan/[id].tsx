@@ -86,7 +86,7 @@ const AdhyayanDetails = () => {
   const [guestForm, setGuestForm] = useState(INITIAL_GUEST_FORM);
   const [mumukshuForm, setMumukshuForm] = useState(INITIAL_MUMUKSHU_FORM);
 
-  if (user?.res_status == status.STATUS_GUEST) {
+  if (user?.res_status === status.STATUS_GUEST) {
     CHIPS = ['Self'];
   }
 
@@ -181,9 +181,11 @@ const AdhyayanDetails = () => {
 
   const isGuestFormValid = () => {
     return guestForm.guests.every((guest: any) => {
-      if (guest.cardno) return guest.mobno && guest.mobno?.length == 10;
+      if (guest.cardno) return guest.mobno && guest.mobno?.length === 10;
       else
-        return guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length == 10;
+        return (
+          guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length === 10
+        );
     });
   };
 
@@ -219,7 +221,7 @@ const AdhyayanDetails = () => {
 
   const isMumukshuFormValid = () => {
     return mumukshuForm.mumukshus.every((mumukshu) => {
-      return mumukshu.mobno && mumukshu.mobno?.length == 10 && mumukshu.cardno;
+      return mumukshu.mobno && mumukshu.mobno?.length === 10 && mumukshu.cardno;
     });
   };
 
@@ -275,14 +277,14 @@ const AdhyayanDetails = () => {
 
     setIsSubmitting(true);
     try {
-      if (selectedChip == CHIPS[0]) {
+      if (selectedChip === CHIPS[0]) {
         // Transform self booking to mumukshu format
         const mumukshuFormatData = transformSelfAdhyayanToMumukshu(user, adhyayan);
         await updateMumukshuBooking('adhyayan', mumukshuFormatData);
         if (adhyayan.location !== 'Research Centre') router.push('/booking/bookingReview');
         else router.push(`/booking/${types.ADHYAYAN_DETAILS_TYPE}`);
       }
-      if (selectedChip == CHIPS[1]) {
+      if (selectedChip === CHIPS[1]) {
         if (!isGuestFormValid()) {
           CustomAlert.alert('Fill all Fields');
           setIsSubmitting(false);
@@ -334,7 +336,7 @@ const AdhyayanDetails = () => {
           setIsSubmitting(false);
         }
       }
-      if (selectedChip == CHIPS[2]) {
+      if (selectedChip === CHIPS[2]) {
         if (!isMumukshuFormValid()) {
           CustomAlert.alert('Fill all Fields');
           setIsSubmitting(false);
@@ -368,7 +370,7 @@ const AdhyayanDetails = () => {
 
   // Get availability status
   const getAvailabilityInfo = () => {
-    if (adhyayan?.status == status.STATUS_CLOSED || adhyayan?.available_seats == 0) {
+    if (adhyayan?.status === status.STATUS_CLOSED || adhyayan?.available_seats === 0) {
       return {
         text: 'Waitlist only',
         shortText: 'Waitlist',

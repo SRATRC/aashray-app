@@ -163,7 +163,7 @@ const AdhyayanBookingCancellation = () => {
   };
 
   const renderItem = ({ item }: any) => {
-    const bookedForSomeone = item.bookedBy && user.cardno == item.bookedBy;
+    const bookedForSomeone = item.bookedBy && user.cardno === item.bookedBy;
     return (
       <ExpandableItem
         visibleContent={

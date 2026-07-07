@@ -162,7 +162,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             saveKeyInsteadOfValue={false}
           />
 
-          {assignment.type == dropdowns.BOOKING_TYPE_LIST[1].value && (
+          {assignment.type === dropdowns.BOOKING_TYPE_LIST[1].value && (
             <FormField
               text="Total People"
               value={assignment.total_people}
@@ -281,7 +281,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             maxSelectedDisplay={3}
           />
 
-          {assignment.pickup == dropdowns.LOCATION_LIST[0].value && (
+          {assignment.pickup === dropdowns.LOCATION_LIST[0].value && (
             <CustomSelectBottomSheet
               className="mt-5"
               label="Leaving post adhyayan?"

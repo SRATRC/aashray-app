@@ -192,7 +192,7 @@ const EventBooking = () => {
       if (guest.cardno)
         return (
           guest.mobno &&
-          guest.mobno?.length == 10 &&
+          guest.mobno?.length === 10 &&
           guest.package &&
           guest.arrival &&
           !(guest.arrival === ARRIVAL[0].key && (!guest.carno || guest.carno.length !== 10))
@@ -203,7 +203,7 @@ const EventBooking = () => {
           guest.gender &&
           guest.type &&
           guest.mobno &&
-          guest.mobno?.length == 10 &&
+          guest.mobno?.length === 10 &&
           guest.package &&
           guest.arrival &&
           !(guest.arrival === ARRIVAL[0].key && (!guest.carno || guest.carno.length !== 10))
@@ -305,7 +305,7 @@ const EventBooking = () => {
                 : `${moment(item.utsav_start).format('MMM DD')} - ${moment(item.utsav_end).format('MMM DD, YYYY')}`}
             </Text>
           </View>
-          {item.utsav_status == status.STATUS_CLOSED && (
+          {item.utsav_status === status.STATUS_CLOSED && (
             <View className="rounded-full bg-orange-100 px-2 py-1">
               <Text className="font-pmedium text-xs text-orange-600">Waitlist</Text>
             </View>
@@ -357,7 +357,7 @@ const EventBooking = () => {
 
         <View className="mb-4 border-t border-gray-200 pt-4">
           <CustomButton
-            text={item.utsav_status == status.STATUS_CLOSED ? 'Join Waitlist' : 'Register Now'}
+            text={item.utsav_status === status.STATUS_CLOSED ? 'Join Waitlist' : 'Register Now'}
             handlePress={() => {
               const packageOptions = item.packages.map((packageItem: any) => ({
                 key: packageItem.package_id,
@@ -373,7 +373,7 @@ const EventBooking = () => {
               toggleModal();
             }}
             containerStyles="min-h-[48px] rounded-xl"
-            bgcolor={item.utsav_status == status.STATUS_CLOSED ? 'bg-orange-500' : 'bg-secondary'}
+            bgcolor={item.utsav_status === status.STATUS_CLOSED ? 'bg-orange-500' : 'bg-secondary'}
             textStyles="font-psemibold text-white text-base"
             isLoading={isSubmitting}
           />
@@ -449,7 +449,7 @@ const EventBooking = () => {
 
                   <View className="mt-6">
                     {/* --- Self Form --- */}
-                    {selectedChip == CHIPS[0] && (
+                    {selectedChip === CHIPS[0] && (
                       <View className="gap-y-5">
                         <CustomSelectBottomSheet
                           label="Package"
@@ -460,7 +460,7 @@ const EventBooking = () => {
                             setSelfForm({
                               ...selfForm,
                               package: val,
-                              package_name: packages.find((item: any) => item.key == val)?.value,
+                              package_name: packages.find((item: any) => item.key === val)?.value,
                             })
                           }
                         />
@@ -473,7 +473,7 @@ const EventBooking = () => {
                           onValueChange={(val: any) => setSelfForm({ ...selfForm, arrival: val })}
                         />
 
-                        {selfForm.arrival == 'yes' && (
+                        {selfForm.arrival === 'yes' && (
                           <FormField
                             text="Enter Car Number"
                             value={selfForm.carno}
@@ -510,7 +510,7 @@ const EventBooking = () => {
                     )}
 
                     {/* --- Guest Form --- */}
-                    {selectedChip == CHIPS[1] && (
+                    {selectedChip === CHIPS[1] && (
                       <GuestForm
                         guestForm={guestForm}
                         setGuestForm={setGuestForm}
@@ -529,7 +529,7 @@ const EventBooking = () => {
                                 handleGuestFormChange(
                                   index,
                                   'package_name',
-                                  packages.find((item: any) => item.key == val)?.value
+                                  packages.find((item: any) => item.key === val)?.value
                                 );
                               }}
                             />
@@ -543,7 +543,7 @@ const EventBooking = () => {
                                 handleGuestFormChange(index, 'arrival', val);
                               }}
                             />
-                            {guestForm.guests[index].arrival == 'yes' && (
+                            {guestForm.guests[index].arrival === 'yes' && (
                               <FormField
                                 text="Enter Car Number"
                                 value={guestForm.guests[index].carno}
@@ -587,7 +587,7 @@ const EventBooking = () => {
                     )}
 
                     {/* --- Mumukshu Form --- */}
-                    {selectedChip == CHIPS[2] && (
+                    {selectedChip === CHIPS[2] && (
                       <OtherMumukshuForm
                         mumukshuForm={mumukshuForm}
                         setMumukshuForm={setMumukshuForm}
@@ -606,7 +606,7 @@ const EventBooking = () => {
                                 handleMumukshuFormChange(
                                   index,
                                   'package_name',
-                                  packages.find((item: any) => item.key == val)?.value
+                                  packages.find((item: any) => item.key === val)?.value
                                 );
                               }}
                             />
@@ -621,7 +621,7 @@ const EventBooking = () => {
                               }}
                             />
 
-                            {mumukshuForm.mumukshus[index].arrival == 'yes' && (
+                            {mumukshuForm.mumukshus[index].arrival === 'yes' && (
                               <FormField
                                 text="Enter Car Number"
                                 value={mumukshuForm.mumukshus[index].carno}
@@ -673,7 +673,7 @@ const EventBooking = () => {
                   handlePress={async () => {
                     Keyboard.dismiss();
                     setIsSubmitting(true);
-                    if (selectedChip == CHIPS[0]) {
+                    if (selectedChip === CHIPS[0]) {
                       if (!isSelfFormValid()) {
                         CustomAlert.alert('Validation Error', 'Please fill all required fields');
                         setIsSubmitting(false);
@@ -703,7 +703,7 @@ const EventBooking = () => {
                         router.push('/booking/bookingReview');
                       else router.push(`/booking/${types.EVENT_DETAILS_TYPE}`);
                     }
-                    if (selectedChip == CHIPS[1]) {
+                    if (selectedChip === CHIPS[1]) {
                       if (!isGuestFormValid()) {
                         CustomAlert.alert('Validation Error', 'Please fill all required fields');
                         setIsSubmitting(false);
@@ -768,7 +768,7 @@ const EventBooking = () => {
                         setIsSubmitting(false);
                       }
                     }
-                    if (selectedChip == CHIPS[2]) {
+                    if (selectedChip === CHIPS[2]) {
                       if (!isMumukshuFormValid()) {
                         CustomAlert.alert('Validation Error', 'Please fill all required fields');
                         setIsSubmitting(false);

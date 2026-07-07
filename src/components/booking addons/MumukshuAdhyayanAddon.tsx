@@ -64,7 +64,7 @@ const MumukshuAdhyayanAddon: React.FC<MumukshuAdhyayanAddonProps> = ({
   });
 
   const renderItem = ({ item }: any) => {
-    const isSelected = adhyayanForm.adhyayan?.id == item.id;
+    const isSelected = adhyayanForm.adhyayan?.id === item.id;
 
     return (
       <View className="mb-2 w-full rounded-2xl bg-gray-50 p-2">

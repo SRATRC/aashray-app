@@ -118,7 +118,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         saveKeyInsteadOfValue={false}
       />
 
-      {travelForm.type == dropdowns.BOOKING_TYPE_LIST[1].value && (
+      {travelForm.type === dropdowns.BOOKING_TYPE_LIST[1].value && (
         <FormField
           text="Total People"
           value={travelForm.total_people}
@@ -245,7 +245,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         maxSelectedDisplay={3}
       />
 
-      {travelForm.pickup == dropdowns.LOCATION_LIST[0].value && (
+      {travelForm.pickup === dropdowns.LOCATION_LIST[0].value && (
         <CustomSelectBottomSheet
           className="mt-7"
           label="Leaving post adhyayan?"

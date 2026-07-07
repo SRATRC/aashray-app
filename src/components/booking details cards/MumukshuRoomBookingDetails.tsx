@@ -63,10 +63,10 @@ const MumukshuRoomBookingDetails: React.FC<{ containerStyles: any }> = ({ contai
                   key={statusKey}
                   text={`${statusKey}${count > 1 ? `: ${count}` : ''}`}
                   textStyles={
-                    statusKey == status.STATUS_AVAILABLE ? 'text-green-200' : 'text-red-200'
+                    statusKey === status.STATUS_AVAILABLE ? 'text-green-200' : 'text-red-200'
                   }
                   containerStyles={`${
-                    statusKey == status.STATUS_AVAILABLE ? 'bg-green-100' : 'bg-red-100'
+                    statusKey === status.STATUS_AVAILABLE ? 'bg-green-100' : 'bg-red-100'
                   } mx-1`}
                 />
               ))}

@@ -45,7 +45,7 @@ const AddonItem: React.FC<AddonItemProps> = ({
     <View
       key={key}
       className={`mb-5 rounded-2xl p-3 ${
-        shadowShown == false
+        shadowShown === false
           ? ''
           : Platform.OS === 'ios'
             ? 'shadow-lg shadow-gray-200'

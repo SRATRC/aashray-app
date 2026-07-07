@@ -48,7 +48,7 @@ const ExpandableListItem: React.FC<{ item: any }> = ({ item }) => {
             <Text className="font-psemibold text-gray-400">Charges:</Text>
             <Text className="font-pregular">{item.amount}</Text>
           </View>
-          {item.status == 'closed' ? (
+          {item.status === 'closed' ? (
             <CustomButton
               text="Add to waitlist"
               handlePress={() => {}}

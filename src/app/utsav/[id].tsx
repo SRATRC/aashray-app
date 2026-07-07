@@ -150,7 +150,7 @@ const UtsavPage = () => {
   const [mumukshuForm, setMumukshuForm] = useState(INITIAL_MUMUKSHU_FORM);
   const [packages, setPackages] = useState<any[]>([]);
 
-  if (user?.res_status == status.STATUS_GUEST) {
+  if (user?.res_status === status.STATUS_GUEST) {
     CHIPS = ['Self'];
   }
 
@@ -263,7 +263,7 @@ const UtsavPage = () => {
       if (guest.cardno)
         return (
           guest.mobno &&
-          guest.mobno?.length == 10 &&
+          guest.mobno?.length === 10 &&
           guest.package &&
           guest.arrival &&
           !(guest.arrival === ARRIVAL[0].key && (!guest.carno || guest.carno.length !== 10))
@@ -274,7 +274,7 @@ const UtsavPage = () => {
           guest.gender &&
           guest.type &&
           guest.mobno &&
-          guest.mobno?.length == 10 &&
+          guest.mobno?.length === 10 &&
           guest.package &&
           guest.arrival &&
           !(guest.arrival === ARRIVAL[0].key && (!guest.carno || guest.carno.length !== 10))
@@ -421,7 +421,7 @@ const UtsavPage = () => {
 
     setIsSubmitting(true);
     try {
-      if (selectedChip == CHIPS[0]) {
+      if (selectedChip === CHIPS[0]) {
         if (!isSelfFormValid()) {
           CustomAlert.alert('Validation Error', 'Please fill all required fields');
           setIsSubmitting(false);
@@ -433,7 +433,7 @@ const UtsavPage = () => {
         await updateMumukshuBooking('utsav', mumukshuFormatData);
         router.push(`/booking/${types.EVENT_DETAILS_TYPE}`);
       }
-      if (selectedChip == CHIPS[1]) {
+      if (selectedChip === CHIPS[1]) {
         if (!isGuestFormValid()) {
           CustomAlert.alert('Validation Error', 'Please fill all required fields');
           setIsSubmitting(false);
@@ -490,7 +490,7 @@ const UtsavPage = () => {
           setIsSubmitting(false);
         }
       }
-      if (selectedChip == CHIPS[2]) {
+      if (selectedChip === CHIPS[2]) {
         if (!isMumukshuFormValid()) {
           CustomAlert.alert('Validation Error', 'Please fill all required fields');
           setIsSubmitting(false);
@@ -1018,7 +1018,7 @@ const UtsavPage = () => {
                 </View>
 
                 {/* Self Form */}
-                {selectedChip == CHIPS[0] && (
+                {selectedChip === CHIPS[0] && (
                   <View>
                     <CustomSelectBottomSheet
                       className="mt-7"
@@ -1030,7 +1030,7 @@ const UtsavPage = () => {
                         setSelfForm({
                           ...selfForm,
                           package: val,
-                          package_name: packages.find((item: any) => item.key == val)?.value,
+                          package_name: packages.find((item: any) => item.key === val)?.value,
                         })
                       }
                     />
@@ -1044,7 +1044,7 @@ const UtsavPage = () => {
                       onValueChange={(val: any) => setSelfForm({ ...selfForm, arrival: val })}
                     />
 
-                    {selfForm.arrival == 'yes' && (
+                    {selfForm.arrival === 'yes' && (
                       <View>
                         <FormField
                           text="Enter Car Number"
@@ -1086,7 +1086,7 @@ const UtsavPage = () => {
                 )}
 
                 {/* Guest Form */}
-                {selectedChip == CHIPS[1] && (
+                {selectedChip === CHIPS[1] && (
                   <View>
                     <GuestForm
                       guestForm={guestForm}
@@ -1107,7 +1107,7 @@ const UtsavPage = () => {
                               handleGuestFormChange(
                                 index,
                                 'package_name',
-                                packages.find((item: any) => item.key == val)?.value
+                                packages.find((item: any) => item.key === val)?.value
                               );
                             }}
                           />
@@ -1122,7 +1122,7 @@ const UtsavPage = () => {
                               handleGuestFormChange(index, 'arrival', val);
                             }}
                           />
-                          {guestForm.guests[index].arrival == 'yes' && (
+                          {guestForm.guests[index].arrival === 'yes' && (
                             <View>
                               <FormField
                                 text="Enter Car Number"
@@ -1170,7 +1170,7 @@ const UtsavPage = () => {
                 )}
 
                 {/* Mumukshu Form */}
-                {selectedChip == CHIPS[2] && (
+                {selectedChip === CHIPS[2] && (
                   <OtherMumukshuForm
                     mumukshuForm={mumukshuForm}
                     setMumukshuForm={setMumukshuForm}
@@ -1190,7 +1190,7 @@ const UtsavPage = () => {
                             handleMumukshuFormChange(
                               index,
                               'package_name',
-                              packages.find((item: any) => item.key == val)?.value
+                              packages.find((item: any) => item.key === val)?.value
                             );
                           }}
                         />
@@ -1206,7 +1206,7 @@ const UtsavPage = () => {
                           }}
                         />
 
-                        {mumukshuForm.mumukshus[index].arrival == 'yes' && (
+                        {mumukshuForm.mumukshus[index].arrival === 'yes' && (
                           <FormField
                             text="Enter Car Number"
                             value={mumukshuForm.mumukshus[index].carno}

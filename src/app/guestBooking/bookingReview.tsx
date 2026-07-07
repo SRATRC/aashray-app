@@ -450,7 +450,7 @@ const GuestBookingReview = () => {
               handlePress={async () => {
                 setIsSubmitting(true);
                 const onSuccess = (data: any) => {
-                  if (data.data?.amount == 0) router.replace('/bookingConfirmation');
+                  if (data.data?.amount === 0) router.replace('/bookingConfirmation');
                   else {
                     const options = {
                       key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,

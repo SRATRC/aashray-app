@@ -92,7 +92,7 @@ const FlatBooking = () => {
     }
 
     return mumukshuForm.mumukshus.every((mumukshu) => {
-      return mumukshu.mobno && mumukshu.mobno?.length == 10 && mumukshu.cardno;
+      return mumukshu.mobno && mumukshu.mobno?.length === 10 && mumukshu.cardno;
     });
   };
 
@@ -132,9 +132,11 @@ const FlatBooking = () => {
     }
 
     return guestForm.guests.every((guest: any) => {
-      if (guest.cardno) return guest.mobno && guest.mobno?.length == 10;
+      if (guest.cardno) return guest.mobno && guest.mobno?.length === 10;
       else
-        return guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length == 10;
+        return (
+          guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length === 10
+        );
     });
   };
 
@@ -215,7 +217,7 @@ const FlatBooking = () => {
           text="Book Now"
           handlePress={async () => {
             setIsSubmitting(true);
-            if (selectedChip == CHIPS[0]) {
+            if (selectedChip === CHIPS[0]) {
               if (!isMumukshuFormValid()) {
                 CustomAlert.alert('Validation Error', 'Please fill all required fields');
                 setIsSubmitting(false);
@@ -234,7 +236,7 @@ const FlatBooking = () => {
               setIsSubmitting(false);
             }
 
-            if (selectedChip == CHIPS[1]) {
+            if (selectedChip === CHIPS[1]) {
               if (!isGuestFormValid()) {
                 CustomAlert.alert('Validation Error', 'Please fill all required fields');
                 setIsSubmitting(false);

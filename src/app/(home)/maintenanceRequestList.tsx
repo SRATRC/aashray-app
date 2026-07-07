@@ -101,8 +101,8 @@ const MaintenanceRequestList = () => {
             <View className="flex flex-row">
               <CustomTag
                 text={item.status}
-                textStyles={item.status == status.STATUS_OPEN ? 'text-red-200' : 'text-green-200'}
-                containerStyles={item.status == status.STATUS_OPEN ? 'bg-red-100' : 'bg-green-100'}
+                textStyles={item.status === status.STATUS_OPEN ? 'text-red-200' : 'text-green-200'}
+                containerStyles={item.status === status.STATUS_OPEN ? 'bg-red-100' : 'bg-green-100'}
               />
             </View>
             <View className="flex flex-row gap-x-2">
@@ -266,9 +266,9 @@ const MaintenanceRequestList = () => {
                 handlePress={async () => {
                   setIsSubmitting(true);
                   if (
-                    form.department.trim() == '' ||
-                    form.work_detail.trim() == '' ||
-                    form.area_of_work.trim() == ''
+                    form.department.trim() === '' ||
+                    form.work_detail.trim() === '' ||
+                    form.area_of_work.trim() === ''
                   ) {
                     setIsSubmitting(false);
                     CustomAlert.alert('Please fill all fields');
@@ -309,7 +309,7 @@ const MaintenanceRequestList = () => {
                 containerStyles="min-h-[62px] mt-7"
                 isLoading={isSubmitting}
                 isDisabled={
-                  form.department == '' || form.work_detail == '' || form.area_of_work == ''
+                  form.department === '' || form.work_detail === '' || form.area_of_work === ''
                 }
               />
             </View>

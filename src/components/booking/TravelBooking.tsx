@@ -66,7 +66,7 @@ const TravelBooking = () => {
     );
   };
 
-  if (user.res_status == status.STATUS_GUEST) {
+  if (user.res_status === status.STATUS_GUEST) {
     CHIPS = ['Self'];
   }
 
@@ -102,7 +102,7 @@ const TravelBooking = () => {
   const isSelfFormValid = () => {
     const requiresTime = requiresArrivalTime(travelForm.pickup, travelForm.drop);
 
-    if (travelForm.type == dropdowns.BOOKING_TYPE_LIST[1].value && !travelForm.total_people) {
+    if (travelForm.type === dropdowns.BOOKING_TYPE_LIST[1].value && !travelForm.total_people) {
       return false;
     }
 
@@ -119,10 +119,10 @@ const TravelBooking = () => {
       (!requiresSpecialRequest ||
         (requiresSpecialRequest && travelForm.special_request.trim() !== '')) &&
       !(
-        (travelForm.pickup == dropdowns.LOCATION_LIST[0].value &&
-          travelForm.drop == dropdowns.LOCATION_LIST[0].value) ||
-        (travelForm.pickup != dropdowns.LOCATION_LIST[0].value &&
-          travelForm.drop != dropdowns.LOCATION_LIST[0].value)
+        (travelForm.pickup === dropdowns.LOCATION_LIST[0].value &&
+          travelForm.drop === dropdowns.LOCATION_LIST[0].value) ||
+        (travelForm.pickup !== dropdowns.LOCATION_LIST[0].value &&
+          travelForm.drop !== dropdowns.LOCATION_LIST[0].value)
       )
     );
   };
@@ -166,7 +166,7 @@ const TravelBooking = () => {
         const updated = { ...mumukshu, [key]: value } as any;
 
         if (key === 'pickup') {
-          if (value == 'Research Centre') {
+          if (value === 'Research Centre') {
             updated.drop = mumukshu.drop === 'Research Centre' ? '' : mumukshu.drop;
           } else {
             updated.drop = 'Research Centre';
@@ -190,7 +190,7 @@ const TravelBooking = () => {
       mumukshuForm.mumukshus.every((mumukshu) => {
         const requiresTime = requiresArrivalTime(mumukshu.pickup, mumukshu.drop);
 
-        if (mumukshu.type == dropdowns.BOOKING_TYPE_LIST[1].value && !mumukshu.total_people) {
+        if (mumukshu.type === dropdowns.BOOKING_TYPE_LIST[1].value && !mumukshu.total_people) {
           return false;
         }
 
@@ -263,7 +263,7 @@ const TravelBooking = () => {
           />
         </View>
 
-        {selectedChip == CHIPS[0] && (
+        {selectedChip === CHIPS[0] && (
           <View>
             <CustomSelectBottomSheet
               className="mt-7"
@@ -275,7 +275,7 @@ const TravelBooking = () => {
               saveKeyInsteadOfValue={false}
             />
 
-            {travelForm.type == dropdowns.BOOKING_TYPE_LIST[1].value && (
+            {travelForm.type === dropdowns.BOOKING_TYPE_LIST[1].value && (
               <FormField
                 text="Total People"
                 value={travelForm.total_people}
@@ -391,7 +391,7 @@ const TravelBooking = () => {
               maxSelectedDisplay={3}
             />
 
-            {travelForm.pickup == dropdowns.LOCATION_LIST[0].value && (
+            {travelForm.pickup === dropdowns.LOCATION_LIST[0].value && (
               <CustomSelectBottomSheet
                 className="mt-7"
                 label="Leaving post adhyayan?"
@@ -418,7 +418,7 @@ const TravelBooking = () => {
           </View>
         )}
 
-        {selectedChip == CHIPS[1] && (
+        {selectedChip === CHIPS[1] && (
           <View>
             <OtherMumukshuForm
               mumukshuForm={mumukshuForm}
@@ -438,7 +438,7 @@ const TravelBooking = () => {
                     saveKeyInsteadOfValue={false}
                   />
 
-                  {mumukshuForm.mumukshus[index].type == dropdowns.BOOKING_TYPE_LIST[1].value && (
+                  {mumukshuForm.mumukshus[index].type === dropdowns.BOOKING_TYPE_LIST[1].value && (
                     <FormField
                       text="Total People"
                       value={mumukshuForm.mumukshus[index].total_people}
@@ -539,7 +539,7 @@ const TravelBooking = () => {
                     maxSelectedDisplay={3}
                   />
 
-                  {mumukshuForm.mumukshus[index].pickup == dropdowns.LOCATION_LIST[0].value && (
+                  {mumukshuForm.mumukshus[index].pickup === dropdowns.LOCATION_LIST[0].value && (
                     <CustomSelectBottomSheet
                       className="mt-7"
                       label="Leaving post adhyayan?"
@@ -574,7 +574,7 @@ const TravelBooking = () => {
           text="Book Now"
           handlePress={async () => {
             setIsSubmitting(true);
-            if (selectedChip == CHIPS[0]) {
+            if (selectedChip === CHIPS[0]) {
               if (!isSelfFormValid()) {
                 setModalVisible(true);
                 setModalMessage('Please fill all fields');
@@ -603,7 +603,7 @@ const TravelBooking = () => {
               await updateMumukshuBooking('travel', temp);
               router.push(`/booking/${types.TRAVEL_DETAILS_TYPE}`);
             }
-            if (selectedChip == CHIPS[1]) {
+            if (selectedChip === CHIPS[1]) {
               if (!isMumukshuFormValid()) {
                 setModalVisible(true);
                 setModalMessage('Please fill all fields');
@@ -622,7 +622,7 @@ const TravelBooking = () => {
           }}
           containerStyles="mt-7 w-full px-1 min-h-[62px]"
           isLoading={isSubmitting}
-          isDisabled={selectedChip == CHIPS[0] ? !isSelfFormValid() : !isMumukshuFormValid()}
+          isDisabled={selectedChip === CHIPS[0] ? !isSelfFormValid() : !isMumukshuFormValid()}
         />
       </KeyboardAwareScrollView>
       <CustomModal

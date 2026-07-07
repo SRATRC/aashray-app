@@ -32,7 +32,7 @@ const FoodBooking = () => {
   const router: any = useRouter();
   const tabBarPadding = useTabBarPadding();
 
-  if (user.res_status == status.STATUS_GUEST) {
+  if (user.res_status === status.STATUS_GUEST) {
     CHIPS = ['Self'];
   }
 
@@ -131,8 +131,8 @@ const FoodBooking = () => {
         const baseValidation = guest.meals.length > 0 && guest.spicy !== null && guest.hightea;
 
         const identityValidation = guest.cardno
-          ? guest.mobno && guest.mobno?.length == 10
-          : guest.mobno && guest.mobno?.length == 10 && guest.name && guest.gender && guest.type;
+          ? guest.mobno && guest.mobno?.length === 10
+          : guest.mobno && guest.mobno?.length === 10 && guest.name && guest.gender && guest.type;
 
         return baseValidation && identityValidation;
       })
@@ -193,7 +193,7 @@ const FoodBooking = () => {
     return mumukshuForm.mumukshus.every((mumukshu) => {
       return (
         mumukshu.mobno &&
-        mumukshu.mobno?.length == 10 &&
+        mumukshu.mobno?.length === 10 &&
         mumukshu.cardno &&
         mumukshu.meals &&
         mumukshu.spicy !== null &&
@@ -248,7 +248,7 @@ const FoodBooking = () => {
           />
         </View>
 
-        {selectedChip == CHIPS[0] && (
+        {selectedChip === CHIPS[0] && (
           <View className="flex w-full flex-col">
             <CustomSelectBottomSheet
               className="mt-5 w-full px-1"
@@ -286,7 +286,7 @@ const FoodBooking = () => {
                 setIsSubmitting(true);
                 if (
                   !foodForm.startDay ||
-                  foodForm.meals.length == 0 ||
+                  foodForm.meals.length === 0 ||
                   foodForm.spicy == null ||
                   !foodForm.hightea
                 ) {
@@ -342,7 +342,7 @@ const FoodBooking = () => {
           </View>
         )}
 
-        {selectedChip == CHIPS[1] && (
+        {selectedChip === CHIPS[1] && (
           <View className="flex w-full flex-col">
             <GuestForm
               guestForm={guestForm}
@@ -439,7 +439,7 @@ const FoodBooking = () => {
                         },
                       },
                       (data: any) => {
-                        if (data.data.amount == 0) {
+                        if (data.data.amount === 0) {
                           router.replace('/bookingConfirmation');
                         } else {
                           const options = {
@@ -492,7 +492,7 @@ const FoodBooking = () => {
           </View>
         )}
 
-        {selectedChip == CHIPS[2] && (
+        {selectedChip === CHIPS[2] && (
           <View className="flex w-full flex-col">
             <OtherMumukshuForm
               mumukshuForm={mumukshuForm}

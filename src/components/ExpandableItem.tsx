@@ -37,7 +37,7 @@ const ExpandableItem: React.FC<ExpandableItemProps> = ({
   return (
     <View
       className={`${rootClassName} rounded-2xl p-3 ${
-        shadowShown == false
+        shadowShown === false
           ? ''
           : Platform.OS === 'ios'
             ? 'shadow-lg shadow-gray-200'

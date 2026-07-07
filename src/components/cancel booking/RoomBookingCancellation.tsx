@@ -68,7 +68,7 @@ const RoomBookingCancellation: React.FC = () => {
           'POST',
           '/stay/cancel',
           null,
-          { cardno: user.cardno, bookingid, bookedFor: bookedFor == 'NA' ? undefined : bookedFor },
+          { cardno: user.cardno, bookingid, bookedFor: bookedFor === 'NA' ? undefined : bookedFor },
           () => resolve(),
           () => reject(new Error('Failed to cancel booking'))
         );
@@ -175,7 +175,7 @@ const RoomBookingCancellation: React.FC = () => {
               {moment(item.checkin).format('Do MMMM')} -{' '}
               {moment(item.checkout).format('Do MMMM, YYYY')}
             </Text>
-            {item.bookedBy && user.cardno == item.bookedBy && (
+            {item.bookedBy && user.cardno === item.bookedBy && (
               <Text className="font-pmedium">
                 Booked For: <Text className="text-secondary">{item.name}</Text>
               </Text>

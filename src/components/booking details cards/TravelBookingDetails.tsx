@@ -42,10 +42,12 @@ const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerSt
       <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
         <MaterialIcons name="location-on" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">
-          {data.travel.mumukshuGroup[0].pickup == 'Research Centre' ? 'Drop Point' : 'Pickup Point'}
+          {data.travel.mumukshuGroup[0].pickup === 'Research Centre'
+            ? 'Drop Point'
+            : 'Pickup Point'}
         </Text>
         <Text className="flex-1 font-pmedium text-black" numberOfLines={1}>
-          {data.travel.mumukshuGroup[0].pickup == 'Research Centre'
+          {data.travel.mumukshuGroup[0].pickup === 'Research Centre'
             ? `${data.travel.mumukshuGroup[0].drop}`
             : `${data.travel.mumukshuGroup[0].pickup}`}
         </Text>

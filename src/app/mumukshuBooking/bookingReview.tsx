@@ -532,7 +532,7 @@ const MumukshuBookingReview = () => {
                 setIsSubmitting(true);
                 try {
                   const onSuccess = (data: any) => {
-                    if (data.order?.amount == 0) router.replace('/bookingConfirmation');
+                    if (data.order?.amount === 0) router.replace('/bookingConfirmation');
                     else {
                       const options = {
                         key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
