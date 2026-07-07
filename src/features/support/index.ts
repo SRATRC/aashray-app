@@ -4,6 +4,7 @@
 // migrated in a later task (9), which also adds the screen re-exports here.
 export { MAX_IMAGES, MAX_VIDEOS, buildAttachmentUri, runUpload } from './attachments';
 export { useTicketAttachments } from './hooks/useTicketAttachments';
+export { useTicketStream } from './hooks/useTicketStream';
 export { collectDiagnostics } from './diagnostics';
 export { getStatusColor } from './status';
 export type { AttachmentKind, AttachmentRef, PendingAttachment, ServedAttachment } from './types';

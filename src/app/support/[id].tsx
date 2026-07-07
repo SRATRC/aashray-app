@@ -26,9 +26,9 @@ import {
   getStatusColor,
   runUpload,
   useTicketAttachments,
+  useTicketStream,
 } from '@/features/support';
 import { useRefetchOnFocus } from '@/hooks/useRefetchOnFocus';
-import { useTicketStream } from '@/hooks/useTicketStream';
 import { useAuthStore } from '@/stores';
 import handleAPICall from '@/utils/HandleApiCall';
 
