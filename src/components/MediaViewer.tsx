@@ -19,6 +19,27 @@ interface Props {
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
+// The video branch is its own component so the native player is only created
+// while a video is actually being shown (it mounts/unmounts with this branch) —
+// no player is constructed on the image path.
+const VideoContent = ({ uri, playing }: { uri: string; playing: boolean }) => {
+  const player = useVideoPlayer(uri, (p) => {
+    p.loop = false;
+  });
+
+  // Autoplay the tapped video; pause when the viewer is dismissed.
+  useEffect(() => {
+    try {
+      if (playing) player.play();
+      else player.pause();
+    } catch {
+      // player may be released between renders — safe to ignore.
+    }
+  }, [playing, player]);
+
+  return <VideoView player={player} style={{ flex: 1 }} contentFit="contain" nativeControls />;
+};
+
 // Lightweight full-screen media viewer: pinch-zoom + pan + double-tap for
 // images, and an expo-video player (native controls) for video. Rendered in a
 // Modal, so its content is wrapped in its own GestureHandlerRootView (the
@@ -33,10 +54,6 @@ const MediaViewer = ({ visible, item, onClose }: Props) => {
   const savedTx = useSharedValue(0);
   const savedTy = useSharedValue(0);
 
-  const player = useVideoPlayer(isVideo && item ? item.uri : null, (p) => {
-    p.loop = false;
-  });
-
   // Reset the transform whenever the shown item changes / the viewer reopens.
   useEffect(() => {
     scale.value = 1;
@@ -46,17 +63,6 @@ const MediaViewer = ({ visible, item, onClose }: Props) => {
     savedTx.value = 0;
     savedTy.value = 0;
   }, [item?.uri, visible, scale, savedScale, tx, ty, savedTx, savedTy]);
-
-  // Autoplay the tapped video; pause when the viewer is dismissed.
-  useEffect(() => {
-    if (!player) return;
-    try {
-      if (visible && isVideo) player.play();
-      else player.pause();
-    } catch {
-      // player may be released between renders — safe to ignore.
-    }
-  }, [visible, isVideo, player]);
 
   const pinch = Gesture.Pinch()
     .onUpdate((e) => {
@@ -128,7 +134,7 @@ const MediaViewer = ({ visible, item, onClose }: Props) => {
 
           {item &&
             (isVideo ? (
-              <VideoView player={player} style={{ flex: 1 }} contentFit="contain" nativeControls />
+              <VideoContent uri={item.uri} playing={visible} />
             ) : (
               <GestureDetector gesture={composed}>
                 <Animated.Image
