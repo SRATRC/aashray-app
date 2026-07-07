@@ -6,7 +6,7 @@ import Toast from 'react-native-toast-message';
 
 import { ApiError } from './types';
 
-import { resolveApiBaseUrl } from '@/utils/resolveBaseUrl';
+import { resolveApiBaseUrl } from '@/lib/api/resolveBaseUrl';
 
 const generateRequestId = () =>
   Array.from({ length: 12 }, () => Math.floor(Math.random() * 16).toString(16)).join('');

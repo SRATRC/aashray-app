@@ -9,7 +9,8 @@ import * as Updates from 'expo-updates';
 import { Dimensions } from 'react-native';
 
 import { useDevStore, useAuthStore } from '../stores';
-import { resolveApiBaseUrl } from './resolveBaseUrl';
+
+import { resolveApiBaseUrl } from '@/lib/api/resolveBaseUrl';
 
 /**
  * Races a promise against a timeout, resolving to `fallback` if the promise

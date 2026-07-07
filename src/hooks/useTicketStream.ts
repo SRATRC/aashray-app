@@ -2,7 +2,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import EventSource, { EventSourceListener } from 'react-native-sse';
 
-import { resolveApiBaseUrl } from '@/utils/resolveBaseUrl';
+import { resolveApiBaseUrl } from '@/lib/api/resolveBaseUrl';
 
 const SSE_WATCHDOG_TIMEOUT_MS = 40000;
 const SSE_WATCHDOG_CHECK_INTERVAL_MS = 10000;

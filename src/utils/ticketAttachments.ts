@@ -1,7 +1,7 @@
 import { File as ExpoFile } from 'expo-file-system';
 
+import { resolveApiBaseUrl } from '@/lib/api/resolveBaseUrl';
 import handleAPICall from '@/utils/HandleApiCall';
-import { resolveApiBaseUrl } from '@/utils/resolveBaseUrl';
 
 // Pure (React-free) types + helpers for ticket media attachments, shared by the
 // useTicketAttachments hook and the create / chat screens. Limits mirror
