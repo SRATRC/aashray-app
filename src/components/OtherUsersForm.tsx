@@ -71,13 +71,8 @@ const OtherUsersForm: React.FC<OtherUsersFormProps> = ({
   return (
     <View>
       {userForm.users.map((user: any, index: number) => {
-        const {
-          data,
-          isLoading: isUserLoading,
-          isError: isVerifyUserError,
-        } = user.mobno?.length === 10
-          ? userQueries[index]
-          : { data: null, isLoading: false, isError: false };
+        const { data, isLoading: isUserLoading } =
+          user.mobno?.length === 10 ? userQueries[index] : { data: null, isLoading: false };
 
         return (
           <View key={index} className="mt-8">

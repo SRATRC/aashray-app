@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useState, useCallback } from 'react';
-import { View, Text, ScrollView, Platform } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import RazorpayCheckout from 'react-native-razorpay';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -32,7 +32,7 @@ interface ValidationData {
   totalCharge: number;
 }
 
-const bookingReview = () => {
+const BookingReview = () => {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const mumukshuData = useBookingStore((state) => state.mumukshuData);
@@ -61,8 +61,6 @@ const bookingReview = () => {
   }, [payload, setMumukshuData]);
 
   const {
-    isLoading: isValidationDataLoading,
-    isError: isValidationDataError,
     error: validationDataError,
     data: validationData,
     refetch: refetchValidation,
@@ -486,4 +484,4 @@ const bookingReview = () => {
   );
 };
 
-export default bookingReview;
+export default BookingReview;

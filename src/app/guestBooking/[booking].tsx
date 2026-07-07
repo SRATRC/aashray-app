@@ -1,8 +1,7 @@
-import { FontAwesome } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { View, Text, Alert } from 'react-native';
+import { View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -236,13 +235,7 @@ const GuestAddons = () => {
     });
   }, [transformedData, setGuestData]);
 
-  const {
-    isLoading: isValidationDataLoading,
-    isError: isValidationDataError,
-    error: validationDataError,
-    data: validationData,
-    refetch: refetchValidation,
-  } = useQuery({
+  const { error: validationDataError, refetch: refetchValidation } = useQuery({
     queryKey: ['guestValidations', user.cardno, JSON.stringify(guestData)],
     queryFn: fetchValidation,
     retry: false,

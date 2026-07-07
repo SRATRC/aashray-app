@@ -10,7 +10,7 @@ import FormField from '../FormField';
 
 import { icons, dropdowns } from '@/src/constants';
 import { useUtsavDate } from '@/src/hooks/useUtsavDate';
-import { useAuthStore, useBookingStore } from '@/src/stores';
+import { useBookingStore } from '@/src/stores';
 
 interface TravelAddonProps {
   travelForm: any;
@@ -27,11 +27,10 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
   setDatePickerVisibility,
   onToggle,
 }) => {
-  const user = useAuthStore((state) => state.user);
   const mumukshuData = useBookingStore((state) => state.mumukshuData);
   const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
-  const [tempTravelDate, setTempTravelDate] = useState(
+  const [tempTravelDate] = useState(
     travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()
   );
 

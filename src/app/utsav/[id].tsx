@@ -8,7 +8,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Alert,
   Platform,
   RefreshControl,
   Animated,

@@ -11,7 +11,6 @@ import HorizontalSeparator from '../HorizontalSeparator';
 
 import { icons, colors, dropdowns } from '@/src/constants';
 import { useUtsavDate } from '@/src/hooks/useUtsavDate';
-import { useAuthStore } from '@/src/stores';
 
 interface MumukshuTravelAddonProps {
   travelForm: any;
@@ -38,10 +37,9 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
   setDatePickerVisibility,
   onToggle,
 }) => {
-  const { user } = useAuthStore();
   const [activeMumukshuIndex, setActiveMumukshuIndex] = useState(null);
 
-  const [tempTravelDate, setTempTravelDate] = useState(
+  const [tempTravelDate] = useState(
     travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()
   );
 

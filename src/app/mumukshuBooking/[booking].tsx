@@ -1,8 +1,7 @@
-import { FontAwesome } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { View, Text, Alert } from 'react-native';
+import { View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -289,13 +288,7 @@ const MumukshuAddons = () => {
     });
   }, [transformedData, setMumukshuData]);
 
-  const {
-    isLoading: isValidationDataLoading,
-    isError: isValidationDataError,
-    error: validationDataError,
-    data: validationData,
-    refetch: refetchValidation,
-  } = useQuery({
+  const { error: validationDataError, refetch: refetchValidation } = useQuery({
     queryKey: ['mumukshuValidations', user.cardno, JSON.stringify(mumukshuData)],
     queryFn: fetchValidation,
     retry: false,

@@ -242,7 +242,7 @@ const CustomSelectBottomSheet = forwardRef<
 
     // Use keyboard controller hooks
     const { setEnabled } = useKeyboardController();
-    const { height: keyboardHeight, progress } = useKeyboardAnimation();
+    const { progress } = useKeyboardAnimation();
 
     // Track keyboard visibility
     useEffect(() => {

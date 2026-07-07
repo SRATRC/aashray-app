@@ -25,7 +25,7 @@ import { prepareGuestRequestBody } from '@/src/utils/preparingRequestBody';
 
 // @ts-ignore
 
-const guestBookingReview = () => {
+const GuestBookingReview = () => {
   const router = useRouter();
 
   const user = useAuthStore((state) => state.user);
@@ -84,8 +84,6 @@ const guestBookingReview = () => {
   }, [transformedData, setGuestData]);
 
   const {
-    isLoading: isValidationDataLoading,
-    isError: isValidationDataError,
     error: validationDataError,
     data: validationData,
     refetch: refetchValidation,
@@ -658,4 +656,4 @@ const guestBookingReview = () => {
   );
 };
 
-export default guestBookingReview;
+export default GuestBookingReview;

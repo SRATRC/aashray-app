@@ -9,7 +9,7 @@ export const getSnoozeUntil = (): number | null => {
     if (!value) return null;
     const ts = parseInt(value, 10);
     return Number.isFinite(ts) ? ts : null;
-  } catch (e) {
+  } catch {
     return null;
   }
 };
@@ -17,7 +17,7 @@ export const getSnoozeUntil = (): number | null => {
 export const setSnoozeUntil = (timestampMs: number) => {
   try {
     storage.set(SNOOZE_KEY, String(timestampMs));
-  } catch (e) {
+  } catch {
     // noop
   }
 };
@@ -25,7 +25,7 @@ export const setSnoozeUntil = (timestampMs: number) => {
 export const clearSnooze = () => {
   try {
     storage.delete(SNOOZE_KEY);
-  } catch (e) {
+  } catch {
     // noop
   }
 };

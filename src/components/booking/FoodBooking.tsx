@@ -1,9 +1,8 @@
-import { FontAwesome } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import moment from 'moment';
 import React, { useState } from 'react';
-import { View, Alert, Text, ScrollView } from 'react-native';
+import { View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';

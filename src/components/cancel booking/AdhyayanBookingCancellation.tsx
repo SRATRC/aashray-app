@@ -54,25 +54,17 @@ const AdhyayanBookingCancellation = () => {
     });
   };
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    status: queryStatus,
-    isLoading,
-    isError,
-    refetch,
-  }: any = useInfiniteQuery({
-    queryKey: ['adhyayanBooking', user.cardno],
-    queryFn: fetchAdhyayans,
-    initialPageParam: 1,
-    staleTime: 1000 * 60 * 5,
-    getNextPageParam: (lastPage: any, pages: any) => {
-      if (!lastPage || !Array.isArray(lastPage) || lastPage.length === 0) return undefined;
-      return (pages?.length || 0) + 1;
-    },
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch }: any =
+    useInfiniteQuery({
+      queryKey: ['adhyayanBooking', user.cardno],
+      queryFn: fetchAdhyayans,
+      initialPageParam: 1,
+      staleTime: 1000 * 60 * 5,
+      getNextPageParam: (lastPage: any, pages: any) => {
+        if (!lastPage || !Array.isArray(lastPage) || lastPage.length === 0) return undefined;
+        return (pages?.length || 0) + 1;
+      },
+    });
 
   const cancelBookingMutation = useMutation<any, any, any>({
     mutationFn: ({ cardno, bookingid }) => {

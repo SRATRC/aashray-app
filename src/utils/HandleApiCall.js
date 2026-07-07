@@ -15,7 +15,7 @@ const handleAPICall = async (
   body,
   successCallback,
   finallyCallback = () => {},
-  errorCallback = (error) => {},
+  errorCallback = (_error) => {},
   allowToast = true
 ) => {
   const requestId = generateRequestId();

@@ -37,7 +37,7 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
   setDatePickerVisibility,
   onToggle,
 }) => {
-  const [tempFoodStartDate, setTempFoodStartDate] = useState(
+  const [tempFoodStartDate] = useState(
     foodForm.startDay ? moment(foodForm.startDay).toDate() : moment().add(1, 'days').toDate()
   );
 

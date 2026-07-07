@@ -151,7 +151,7 @@ export default function FoodBookingCancellation() {
     });
   };
 
-  const { data: guestList, isLoading: isLoadingGuest } = useQuery({
+  const { data: guestList } = useQuery({
     queryKey: ['foodGuestList', user.cardno],
     queryFn: fetchGuests,
     staleTime: 1000 * 60 * 60 * 2,

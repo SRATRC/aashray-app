@@ -86,7 +86,7 @@ interface ValidationData {
   totalCharge: number;
 }
 
-const mumukshuBookingReview = () => {
+const MumukshuBookingReview = () => {
   const router = useRouter();
 
   const user = useAuthStore((state) => state.user);
@@ -143,8 +143,6 @@ const mumukshuBookingReview = () => {
   }, [transformedData, setMumukshuData]);
 
   const {
-    isLoading: isValidationDataLoading,
-    isError: isValidationDataError,
     error: validationDataError,
     data: validationData,
     refetch: refetchValidation,
@@ -196,7 +194,7 @@ const mumukshuBookingReview = () => {
 
       const payLaterPayload = { ...transformedData, pay_later: true };
       await handleAPICall('POST', '/mumukshu/booking', null, payLaterPayload, onSuccess, onFinally);
-    } catch (error: any) {
+    } catch {
       setIsSubmitting(false);
     }
   };
@@ -577,7 +575,7 @@ const mumukshuBookingReview = () => {
                     onSuccess,
                     onFinally
                   );
-                } catch (error: any) {
+                } catch {
                   setIsSubmitting(false);
                 }
               }}
@@ -617,7 +615,7 @@ const mumukshuBookingReview = () => {
                   onSuccess,
                   onFinally
                 );
-              } catch (error: any) {
+              } catch {
                 setIsSubmitting(false);
               }
             }}
@@ -749,4 +747,4 @@ const mumukshuBookingReview = () => {
   );
 };
 
-export default mumukshuBookingReview;
+export default MumukshuBookingReview;

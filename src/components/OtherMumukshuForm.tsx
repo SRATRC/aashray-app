@@ -5,7 +5,6 @@ import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { colors, icons } from '../constants';
 import FormField from './FormField';
 import handleAPICall from '../utils/HandleApiCall';
-import { cleanPhoneNumber } from '../utils/phoneUtils';
 
 import { useAuthStore } from '@/src/stores';
 

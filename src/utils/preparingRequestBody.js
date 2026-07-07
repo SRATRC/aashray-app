@@ -281,10 +281,13 @@ export const prepareMumukshuRequestBody = (user, input) => {
       if (group.pickup) transformed.pickup_point = group.pickup;
       if (group.drop) transformed.drop_point = group.drop;
       if (group.arrival_time) transformed.arrival_time = group.arrival_time;
-      if (group.adhyayan)
-        group.adhyayan == 'No'
-          ? (transformed.leaving_post_adhyayan = 0)
-          : (transformed.leaving_post_adhyayan = 1);
+      if (group.adhyayan) {
+        if (group.adhyayan == 'No') {
+          transformed.leaving_post_adhyayan = 0;
+        } else {
+          transformed.leaving_post_adhyayan = 1;
+        }
+      }
       if (group.luggage) {
         transformed.luggage = group.luggage.length > 0 ? group.luggage.join(', ') : '';
       }

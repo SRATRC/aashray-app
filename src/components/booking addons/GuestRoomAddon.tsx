@@ -40,7 +40,7 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
 }) => {
   const setGuestData = useBookingStore((store) => store.setGuestData);
 
-  const [tempCheckinDate, setTempCheckinDate] = useState(
+  const [tempCheckinDate] = useState(
     roomForm.startDay ? moment(roomForm.startDay).toDate() : moment().add(1, 'days').toDate()
   );
 

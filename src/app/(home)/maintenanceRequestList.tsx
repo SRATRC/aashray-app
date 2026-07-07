@@ -40,7 +40,7 @@ const DEPARTMENT_LIST = [
   { key: 'Maintenance', value: 'Maintenance' },
 ];
 
-const maintenanceRequestList = () => {
+const MaintenanceRequestList = () => {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
 
@@ -74,25 +74,17 @@ const maintenanceRequestList = () => {
     });
   };
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    status: queryStatus,
-    isLoading,
-    isError,
-    refetch,
-  }: any = useInfiniteQuery({
-    queryKey: ['maintenance', user.cardno, selectedChip],
-    queryFn: fetchMaintenance,
-    initialPageParam: 1,
-    staleTime: 1000 * 60 * 30,
-    getNextPageParam: (lastPage: any, pages: any) => {
-      if (!lastPage || !Array.isArray(lastPage) || lastPage.length === 0) return undefined;
-      return (pages?.length || 0) + 1;
-    },
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch }: any =
+    useInfiniteQuery({
+      queryKey: ['maintenance', user.cardno, selectedChip],
+      queryFn: fetchMaintenance,
+      initialPageParam: 1,
+      staleTime: 1000 * 60 * 30,
+      getNextPageParam: (lastPage: any, pages: any) => {
+        if (!lastPage || !Array.isArray(lastPage) || lastPage.length === 0) return undefined;
+        return (pages?.length || 0) + 1;
+      },
+    });
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -199,7 +191,7 @@ const maintenanceRequestList = () => {
       <TouchableOpacity
         className="absolute bottom-8 right-6 rounded-2xl bg-secondary p-4"
         onPress={() => {
-          isModalVisible ? setIsModalVisible(false) : setIsModalVisible(true);
+          setIsModalVisible(!isModalVisible);
         }}>
         <Image
           source={icons.add}
@@ -328,4 +320,4 @@ const maintenanceRequestList = () => {
   );
 };
 
-export default maintenanceRequestList;
+export default MaintenanceRequestList;

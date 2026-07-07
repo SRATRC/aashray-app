@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Platform } from 'react-native';
+import { View, TouchableOpacity, Image, Platform } from 'react-native';
 
 import { icons } from '../constants';
 

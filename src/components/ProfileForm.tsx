@@ -113,7 +113,7 @@ export const validateProfileForm = (form: ProfileFormData): boolean => {
     form.pin &&
     form.center &&
     form.mobno.toString().length === 10 &&
-    /^[A-Za-z0-9\s\-]{4,8}$/.test(form.pin.toString()) &&
+    /^[A-Za-z0-9\s-]{4,8}$/.test(form.pin.toString()) &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
   );
 };
@@ -452,7 +452,7 @@ const ProfileForm = ({
         placeholder="Enter Your Pin Code"
         maxLength={8}
         containerStyles="bg-gray-100"
-        error={fieldError(!form.pin || !/^[A-Za-z0-9\s\-]{4,8}$/.test(form.pin.toString()), 'pin')}
+        error={fieldError(!form.pin || !/^[A-Za-z0-9\s-]{4,8}$/.test(form.pin.toString()), 'pin')}
         errorMessage="Please enter a valid Pin / Postal Code"
       />
 

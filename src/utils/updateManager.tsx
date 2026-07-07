@@ -59,7 +59,7 @@ const fetchUpdateInfo = async (): Promise<{
       },
       raw: d,
     };
-  } catch (e) {
+  } catch {
     // Silent fail – do not show toast on startup
     return { info: null };
   }

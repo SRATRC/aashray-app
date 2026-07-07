@@ -17,7 +17,7 @@ const CustomExpandableList: React.FC<{ data: any }> = ({ data }) => (
 
 const ExpandableListItem: React.FC<{ item: any }> = ({ item }) => {
   const [expanded, setExpanded] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting] = useState(false);
 
   const toggleExpand = () => {
     setExpanded(!expanded);

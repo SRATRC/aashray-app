@@ -2,7 +2,7 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import moment from 'moment';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import Toast from 'react-native-toast-message';
 
@@ -60,7 +60,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
     });
   };
 
-  const [deviceType, setDeviceType] = React.useState('');
+  const [, setDeviceType] = React.useState('');
   const bottomSheetRef = React.useRef<CustomSelectBottomSheetRef>(null);
 
   const deviceTypeOptions = [

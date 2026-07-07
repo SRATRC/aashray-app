@@ -66,7 +66,7 @@ async function collectDevice(): Promise<Record<string, any>> {
       osVersion: Device.osVersion ?? null,
       androidApiLevel: Device.platformApiLevel ?? null,
     };
-  } catch (e) {
+  } catch {
     return {};
   }
 }
@@ -76,7 +76,7 @@ function getJsEngine(): string | null {
     // @ts-ignore - HermesInternal is a Hermes-only global, not typed.
     if (typeof global.HermesInternal !== 'undefined') return 'hermes';
     return 'jsc';
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -93,7 +93,7 @@ async function collectApp(): Promise<Record<string, any>> {
       updateId: Updates.updateId ?? null,
       jsEngine: getJsEngine(),
     };
-  } catch (e) {
+  } catch {
     return {};
   }
 }
@@ -108,7 +108,7 @@ async function collectConfig(): Promise<Record<string, any>> {
       devPrNumber: devPrNumber ?? '',
       resolvedBaseUrl: resolvedBaseUrl ?? null,
     };
-  } catch (e) {
+  } catch {
     return {};
   }
 }
@@ -122,7 +122,7 @@ async function collectNetwork(): Promise<Record<string, any>> {
       isInternetReachable: state.isInternetReachable ?? null,
       type: state.type ? String(state.type).toLowerCase() : null,
     };
-  } catch (e) {
+  } catch {
     return {};
   }
 }
@@ -131,7 +131,7 @@ function collectScreen(): Record<string, any> {
   try {
     const { width, height, scale, fontScale } = Dimensions.get('window');
     return { width, height, scale, fontScale };
-  } catch (e) {
+  } catch {
     return {};
   }
 }
@@ -145,7 +145,7 @@ function collectLocale(): Record<string, any> {
       region: locale?.regionCode ?? null,
       timezone: calendar?.timeZone ?? null,
     };
-  } catch (e) {
+  } catch {
     return {};
   }
 }
@@ -153,7 +153,7 @@ function collectLocale(): Record<string, any> {
 function collectFreeDiskStorage(): number | null {
   try {
     return Paths.availableDiskSpace ?? null;
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -171,7 +171,7 @@ async function collectRuntime(): Promise<Record<string, any>> {
       screen: collectScreen(),
       freeDiskStorage: collectFreeDiskStorage(),
     };
-  } catch (e) {
+  } catch {
     return {};
   }
 }
@@ -185,7 +185,7 @@ function getLastRoute(): string | undefined {
     const { store } = require('expo-router/build/global-state/router-store');
     const info = store?.getRouteInfo?.();
     return info?.pathname || info?.pathnameWithParams || undefined;
-  } catch (e) {
+  } catch {
     return undefined;
   }
 }
@@ -196,7 +196,7 @@ async function collectSession(): Promise<Record<string, any>> {
     let uptimeMs: number | null = null;
     try {
       uptimeMs = await withTimeout(Device.getUptimeAsync(), 1500, null);
-    } catch (e) {
+    } catch {
       uptimeMs = null;
     }
 
@@ -207,7 +207,7 @@ async function collectSession(): Promise<Record<string, any>> {
       filedAt: new Date().toISOString(),
       uptimeMs,
     };
-  } catch (e) {
+  } catch {
     return {};
   }
 }
@@ -216,7 +216,7 @@ async function collectSentry(): Promise<Record<string, any>> {
   try {
     const lastEventId = typeof Sentry.lastEventId === 'function' ? Sentry.lastEventId() : null;
     return { lastEventId: lastEventId ?? null };
-  } catch (e) {
+  } catch {
     return { lastEventId: null };
   }
 }

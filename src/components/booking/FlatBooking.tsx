@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import moment from 'moment';
 import React, { useState } from 'react';
-import { View, Text, Alert } from 'react-native';
+import { View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 import CustomAlert from '../CustomAlert';

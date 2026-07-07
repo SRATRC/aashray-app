@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import moment from 'moment';
-import { View, Text, Image, Platform } from 'react-native';
+import { View, Text, Image } from 'react-native';
 
 import HorizontalSeparator from '../HorizontalSeparator';
 import { ShadowBox } from '../ShadowBox';

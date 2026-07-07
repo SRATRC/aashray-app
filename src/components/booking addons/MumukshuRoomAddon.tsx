@@ -38,7 +38,7 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
   onToggle,
 }) => {
   // Temporary state to hold the date for the checkin picker
-  const [tempCheckinDate, setTempCheckinDate] = useState(
+  const [tempCheckinDate] = useState(
     roomForm.startDay ? moment(roomForm.startDay).toDate() : moment().add(1, 'days').toDate()
   );
 

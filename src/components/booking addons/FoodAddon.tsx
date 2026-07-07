@@ -31,7 +31,7 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
   const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
   // Temporary state to hold the date for the checkin picker
-  const [tempFoodStartDate, setTempFoodStartDate] = useState(
+  const [tempFoodStartDate] = useState(
     foodForm.startDay ? moment(foodForm.startDay).toDate() : moment().add(1, 'days').toDate()
   );
 
