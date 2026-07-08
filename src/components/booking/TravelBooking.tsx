@@ -417,7 +417,22 @@ const TravelBooking = () => {
             setReturnDate('');
           }}
           endDay={returnDate}
-          setEndDay={(day: any) => setReturnDate(day || '')}
+          setEndDay={(day: any) => {
+            if (!day) {
+              setReturnDate('');
+              return;
+            }
+            // A tap before the onward date restarts the range at that day (no invalid
+            // return-before-onward state) — mirrors setStartDay.
+            if (moment(day).isBefore(moment(travelForm.date), 'day')) {
+              setTravelForm((prev) => ({ ...prev, date: day }));
+              setMumukshuForm((prev) => ({ ...prev, date: day }));
+              setGuestTravelForm((prev) => ({ ...prev, date: day }));
+              setReturnDate('');
+              return;
+            }
+            setReturnDate(day);
+          }}
           minDate={moment(new Date()).format('YYYY-MM-DD')}
         />
 
