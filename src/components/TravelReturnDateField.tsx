@@ -52,7 +52,7 @@ const TravelReturnDateField: React.FC<TravelReturnDateFieldProps> = ({
     {returnDate ? (
       <View className={`${bannerWrapperClassName} flex-row items-center justify-between`}>
         <Text className="flex-1 font-pregular text-sm text-gray-500">
-          Round trip — return (reverse route) on {moment(returnDate).format('DD MMM YYYY')}.
+          Round trip: return (reverse route) on {moment(returnDate).format('DD MMM YYYY')}.
         </Text>
         <TouchableOpacity onPress={onClear} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Text className="font-pmedium text-sm text-orange-600">Clear</Text>

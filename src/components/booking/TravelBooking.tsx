@@ -406,7 +406,7 @@ const TravelBooking = () => {
         keyboardShouldPersistTaps="handled">
         <Callout
           variant="warning"
-          message="For a round trip, add a return date — the same route is booked in reverse."
+          message="For a round trip, add a return date. The same route is booked in reverse."
         />
         <CustomCalender
           type={'period'}
@@ -424,7 +424,7 @@ const TravelBooking = () => {
               return;
             }
             // A tap before the onward date restarts the range at that day (no invalid
-            // return-before-onward state) — mirrors setStartDay.
+            // return-before-onward state), mirroring setStartDay.
             if (moment(day).isBefore(moment(travelForm.date), 'day')) {
               setTravelForm((prev) => ({ ...prev, date: day }));
               setMumukshuForm((prev) => ({ ...prev, date: day }));

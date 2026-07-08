@@ -185,7 +185,7 @@ const TravelBookingCancellation = () => {
         <View className="flex flex-1 flex-row items-center gap-x-4">
           <Image source={icons.travel} className="h-10 w-10" resizeMode="contain" />
           <View className="flex-1 flex-col gap-y-1.5">
-            {/* Route — actual pickup → drop, prominent */}
+            {/* Route: actual pickup to drop, prominent */}
             <View className="flex-row flex-wrap items-center gap-x-1.5">
               <Text className="font-psemibold text-base text-black" numberOfLines={1}>
                 {item.pickup_point}
