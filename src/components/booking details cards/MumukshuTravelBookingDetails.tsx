@@ -27,8 +27,8 @@ const MumukshuTravelBookingDetail: React.FC<{ containerStyles: any }> = ({ conta
           {isRoundTrip && (
             <CustomTag
               text={'Round trip'}
-              textStyles={'text-blue-200'}
-              containerStyles={'bg-blue-100'}
+              textStyles={'text-orange-600'}
+              containerStyles={'bg-orange-100'}
             />
           )}
           <Text className="text-md font-pmedium">
@@ -37,11 +37,6 @@ const MumukshuTravelBookingDetail: React.FC<{ containerStyles: any }> = ({ conta
               ? `  →  ${moment(mumukshuData.travel.return_date).format('Do MMMM, YYYY')}`
               : ''}
           </Text>
-          {isRoundTrip && (
-            <Text className="font-pregular text-xs text-gray-500">
-              Return trip runs the reverse of the onward route.
-            </Text>
-          )}
         </View>
       </View>
 
