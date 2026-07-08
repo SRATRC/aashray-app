@@ -45,14 +45,21 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
     <AddonItem
       onToggle={onToggle}
       onCollapse={() => {
+        const primaryStart =
+          mumukshuData.room?.startDay ||
+          (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.start_date) ||
+          mumukshuData.flat?.startDay ||
+          mumukshuData.utsav?.utsav?.utsav_start ||
+          '';
+        const primaryEnd =
+          mumukshuData.room?.endDay ||
+          (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.end_date) ||
+          mumukshuData.flat?.endDay ||
+          mumukshuData.utsav?.utsav?.utsav_end ||
+          '';
         setTravelForm({
-          date:
-            mumukshuData.room?.startDay ||
-            (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.start_date) ||
-            mumukshuData.flat?.startDay ||
-            mumukshuData.utsav?.utsav?.utsav_start ||
-            '',
-          return_date: '',
+          date: primaryStart,
+          return_date: primaryEnd && primaryEnd !== primaryStart ? primaryEnd : '',
           pickup: '',
           drop: '',
           arrival_time: '',

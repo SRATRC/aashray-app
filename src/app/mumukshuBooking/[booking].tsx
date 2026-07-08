@@ -150,7 +150,12 @@ const MumukshuAddons = () => {
 
   const createInitialTravelForm = (existingData: any = null) => ({
     date: getInitialDates?.startDate || '',
-    return_date: existingData?.return_date || '',
+    // Inherit the primary booking's range: multi-day primary => round trip default, else one-way.
+    return_date:
+      existingData?.return_date ||
+      (getInitialDates?.endDate && getInitialDates?.endDate !== getInitialDates?.startDate
+        ? getInitialDates.endDate
+        : ''),
     mumukshuGroup: existingData?.mumukshuGroup || [
       {
         pickup: '',
@@ -241,6 +246,7 @@ const MumukshuAddons = () => {
       setTravelForm((prev) => ({
         ...prev,
         date: prev.date || startDate,
+        return_date: prev.return_date || (endDate && endDate !== startDate ? endDate : ''),
       }));
     }
   }, [mumukshuData]);

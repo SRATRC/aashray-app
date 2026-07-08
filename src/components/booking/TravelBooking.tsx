@@ -415,12 +415,6 @@ const TravelBooking = () => {
           setEndDay={(day: any) => setReturnDate(day || '')}
           minDate={moment(new Date()).format('YYYY-MM-DD')}
         />
-        {returnDate ? (
-          <Text className="mt-2 font-pregular text-sm text-gray-500">
-            Round trip — we'll book your return (reverse route) on{' '}
-            {moment(returnDate).format('DD MMM YYYY')}.
-          </Text>
-        ) : null}
 
         <View className="mt-7 flex w-full flex-col">
           <Text className="font-pmedium text-base text-gray-600">Book for</Text>

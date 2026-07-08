@@ -145,7 +145,12 @@ const BookingDetails = () => {
     },
     travel: {
       date: initialDates.startDate,
-      return_date: '',
+      // Inherit the primary booking's date range: a multi-day primary (e.g. a room stay)
+      // defaults travel to a round trip (arrive on start, depart on end); single-day stays one-way.
+      return_date:
+        initialDates.endDate && initialDates.endDate !== initialDates.startDate
+          ? initialDates.endDate
+          : '',
       pickup: '',
       drop: '',
       type: dropdowns.BOOKING_TYPE_LIST[0]?.value || '',
