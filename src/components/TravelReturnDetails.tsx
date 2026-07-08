@@ -26,6 +26,9 @@ interface TravelReturnDetailsProps {
   onClearReturnDate: () => void;
   locationOptions: { key: string; value: string }[];
   requiresArrivalTime: (pickup: string, drop: string) => boolean;
+  // Add-ons pick the return date with the built-in field (true); the standalone travel form
+  // picks it via the range calendar, so it hides the field and only shows the leg editor.
+  showDatePicker?: boolean;
 }
 
 // Optional return leg for a round trip. Picking a return date makes the trip round-trip; the
@@ -41,6 +44,7 @@ const TravelReturnDetails = ({
   onClearReturnDate,
   locationOptions,
   requiresArrivalTime,
+  showDatePicker = true,
 }: TravelReturnDetailsProps) => {
   const [isDateVisible, setDateVisible] = useState(false);
   const [isTimeVisible, setTimeVisible] = useState(false);
@@ -65,32 +69,36 @@ const TravelReturnDetails = ({
 
   return (
     <>
-      <FormDisplayField
-        text="Return Date (optional)"
-        value={returnDate ? moment(returnDate).format('Do MMMM YYYY') : ''}
-        placeholder="Add a return date for a round trip"
-        otherStyles="mt-5"
-        backgroundColor="bg-gray-100"
-        inputStyles="font-pmedium text-black text-lg"
-        onPress={() => setDateVisible(true)}
-      />
-      <DateTimePickerModal
-        isVisible={isDateVisible}
-        mode="date"
-        date={
-          returnDate
-            ? moment(returnDate).toDate()
-            : onwardDate
-              ? moment(onwardDate).toDate()
-              : moment().add(1, 'days').toDate()
-        }
-        minimumDate={onwardDate ? moment(onwardDate).toDate() : moment().toDate()}
-        onConfirm={(d: Date) => {
-          onPickReturnDate(moment(d).format('YYYY-MM-DD'));
-          setDateVisible(false);
-        }}
-        onCancel={() => setDateVisible(false)}
-      />
+      {showDatePicker ? (
+        <>
+          <FormDisplayField
+            text="Return Date (optional)"
+            value={returnDate ? moment(returnDate).format('Do MMMM YYYY') : ''}
+            placeholder="Add a return date for a round trip"
+            otherStyles="mt-5"
+            backgroundColor="bg-gray-100"
+            inputStyles="font-pmedium text-black text-lg"
+            onPress={() => setDateVisible(true)}
+          />
+          <DateTimePickerModal
+            isVisible={isDateVisible}
+            mode="date"
+            date={
+              returnDate
+                ? moment(returnDate).toDate()
+                : onwardDate
+                  ? moment(onwardDate).toDate()
+                  : moment().add(1, 'days').toDate()
+            }
+            minimumDate={onwardDate ? moment(onwardDate).toDate() : moment().toDate()}
+            onConfirm={(d: Date) => {
+              onPickReturnDate(moment(d).format('YYYY-MM-DD'));
+              setDateVisible(false);
+            }}
+            onCancel={() => setDateVisible(false)}
+          />
+        </>
+      ) : null}
 
       {returnDate ? (
         <View className="mt-3">
