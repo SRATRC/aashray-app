@@ -3,12 +3,11 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
-import AddonItem from '../AddonItem';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import FormDisplayField from '../FormDisplayField';
-import FormField from '../FormField';
-import HorizontalSeparator from '../HorizontalSeparator';
-
+import AddonItem from '@/components/AddonItem';
+import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
+import FormDisplayField from '@/components/FormDisplayField';
+import FormField from '@/components/FormField';
+import HorizontalSeparator from '@/components/HorizontalSeparator';
 import { icons, colors, dropdowns } from '@/constants';
 import { useUtsavDate } from '@/hooks/useUtsavDate';
 
