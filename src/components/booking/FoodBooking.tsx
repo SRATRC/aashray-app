@@ -197,7 +197,7 @@ const FoodBooking = () => {
         showsVerticalScrollIndicator={false}
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled">
-        <Text className="font-pmedium text-base text-gray-600">Meal Dates</Text>
+        <Text className="font-pmedium text-base text-gray-600">Booking Dates</Text>
         <Text className="mb-1 font-pregular text-sm text-gray-500">
           Bookings must be made before 11 AM of the previous day for upcoming meals.
         </Text>
