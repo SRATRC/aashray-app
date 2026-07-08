@@ -4,11 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { Adhyayan, AdhyayanFeedbackAnswers, Utsav, UtsavFeedbackAnswer } from './types';
 
 import { apiClient } from '@/lib/api/client';
-
-interface Envelope<T> {
-  data: T;
-  message?: string;
-}
+import type { ApiEnvelope } from '@/lib/api/types';
 
 export const eventKeys = {
   adhyayan: (id: string, cardno: string) => ['adhyayan', id, cardno],
@@ -22,7 +18,7 @@ export function useAdhyayanDetail(id: string, cardno: string) {
   return useQuery<Adhyayan>({
     queryKey: eventKeys.adhyayan(id, cardno),
     queryFn: async () => {
-      const res = await apiClient.get<Envelope<Adhyayan>>(`/adhyayan/${id}`, {
+      const res = await apiClient.get<ApiEnvelope<Adhyayan>>(`/adhyayan/${id}`, {
         params: { cardno },
       });
       return res.data;
@@ -40,7 +36,7 @@ export function useUtsavDetail(id: string, cardno: string) {
   return useQuery<Utsav>({
     queryKey: eventKeys.utsav(id, cardno),
     queryFn: async () => {
-      const res = await apiClient.get<Envelope<Utsav>>(`/utsav/${id}`, { params: { cardno } });
+      const res = await apiClient.get<ApiEnvelope<Utsav>>(`/utsav/${id}`, { params: { cardno } });
       const u = res.data;
       return { ...u, packages: Array.isArray(u?.packages) ? u.packages : [] };
     },

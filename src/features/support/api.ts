@@ -4,11 +4,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import type { AttachmentRef, TicketDetail, TicketListItem, TicketMessage } from './types';
 
 import { apiClient } from '@/lib/api/client';
-
-interface Envelope<T> {
-  message?: string;
-  data: T;
-}
+import type { ApiEnvelope } from '@/lib/api/types';
 
 export const ticketKeys = {
   list: (cardno: string) => ['tickets', cardno],
@@ -19,7 +15,7 @@ export function useTicketList(cardno: string, pageSize = 10) {
   return useInfiniteQuery({
     queryKey: ticketKeys.list(cardno),
     queryFn: async ({ pageParam = 1 }) => {
-      const res = await apiClient.get<Envelope<TicketListItem[]>>('/tickets', {
+      const res = await apiClient.get<ApiEnvelope<TicketListItem[]>>('/tickets', {
         params: { cardno, page: pageParam, page_size: pageSize },
       });
       return Array.isArray(res.data) ? res.data : [];
@@ -41,7 +37,7 @@ export function useTicketDetail(id: string, cardno: string) {
   return useQuery<TicketDetail>({
     queryKey: ticketKeys.detail(id, cardno),
     queryFn: async () => {
-      const res = await apiClient.get<Envelope<TicketDetail>>(`/tickets/${id}`, {
+      const res = await apiClient.get<ApiEnvelope<TicketDetail>>(`/tickets/${id}`, {
         params: { cardno },
       });
       return res.data;
@@ -75,7 +71,7 @@ export function sendTicketMessage(
   cardno: string,
   body: { message?: string; attachments?: AttachmentRef[] }
 ) {
-  return apiClient.post<Envelope<TicketMessage>>(
+  return apiClient.post<ApiEnvelope<TicketMessage>>(
     `/tickets/${id}/messages`,
     { cardno, sender_type: 'user', ...body },
     { allowToast: false }

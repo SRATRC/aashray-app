@@ -4,12 +4,8 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import type { TempWifiCode, PermanentWifiCode } from './types';
 
 import { apiClient } from '@/lib/api/client';
+import type { ApiEnvelope } from '@/lib/api/types';
 import { wifiCache } from '@/lib/wifiCache';
-
-interface WifiEnvelope<T> {
-  message?: string;
-  data: T;
-}
 
 export const wifiKeys = {
   temp: (cardno: string) => ['wifi', cardno],
@@ -22,7 +18,7 @@ export function useTempWifiCodes(cardno: string) {
   return useQuery<TempWifiCode[]>({
     queryKey: wifiKeys.temp(cardno),
     queryFn: async () => {
-      const res = await apiClient.get<WifiEnvelope<TempWifiCode[]>>('/wifi', {
+      const res = await apiClient.get<ApiEnvelope<TempWifiCode[]>>('/wifi', {
         params: { cardno },
         allowToast: false,
       });
@@ -42,7 +38,7 @@ export function usePermanentWifiCode(cardno: string) {
   return useQuery<PermanentWifiCode[]>({
     queryKey: wifiKeys.permanent(cardno),
     queryFn: async () => {
-      const res = await apiClient.get<WifiEnvelope<PermanentWifiCode[]>>('/wifi/permanent', {
+      const res = await apiClient.get<ApiEnvelope<PermanentWifiCode[]>>('/wifi/permanent', {
         params: { cardno },
         allowToast: false,
       });
