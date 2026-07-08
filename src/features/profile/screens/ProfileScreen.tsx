@@ -34,6 +34,8 @@ const ProfileScreen: React.FC = () => {
         await invalidateCachedImage(user.pfp!);
       }
       setUser({ ...user, ...result });
+    } catch {
+      // apiClient already surfaced the error toast/haptic
     } finally {
       setIsRefreshing(false);
     }
