@@ -11,6 +11,18 @@ import { resolveApiBaseUrl } from '@/lib/api/resolveBaseUrl';
 const generateRequestId = () =>
   Array.from({ length: 12 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
 
+// Mask credential-like fields before they reach dev logs or Sentry breadcrumbs.
+const SENSITIVE_KEY = /password|secret/i;
+function redact(value: unknown): unknown {
+  if (!value || typeof value !== 'object') return value;
+  if (Array.isArray(value)) return value.map(redact);
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+    out[k] = SENSITIVE_KEY.test(k) ? '[REDACTED]' : redact(v);
+  }
+  return out;
+}
+
 export type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 export interface RequestConfig {
@@ -27,49 +39,50 @@ async function request<T>(
 ): Promise<T> {
   const { params, headers = {}, allowToast = true } = config;
   const requestId = generateRequestId();
-  const baseUrl = resolveApiBaseUrl();
-
-  if (!baseUrl) {
-    console.error('Base URL is undefined. Check your .env file and constants.');
-    throw new ApiError({
-      message: 'Network configuration error: Base URL is missing.',
-      correlationId: requestId,
-    });
-  }
-
-  let data: unknown = body;
-  const finalHeaders: Record<string, string> = { 'x-request-id': requestId, ...headers };
-
-  // Preserve the legacy pfp multipart special-case (mirrors `body?.image`).
-  const imageUri = (body as { image?: string } | undefined)?.image;
-  if (imageUri) {
-    const form = new FormData();
-    // @ts-expect-error RN FormData file shape
-    form.append('image', {
-      uri: imageUri,
-      name: 'pfp.jpg',
-      type: 'image/jpeg',
-    });
-    data = form;
-    finalHeaders['Content-Type'] = 'multipart/form-data';
-  }
-
-  if (__DEV__) {
-    console.log('------------');
-    console.log('URL: ', `${baseUrl}${endpoint}`);
-    console.log('PARAMS: ', JSON.stringify(params));
-    console.log('BODY: ', JSON.stringify(body));
-    console.log('------------');
-  }
-
-  Sentry.addBreadcrumb({
-    category: 'api.request',
-    message: `${method.toUpperCase()} ${endpoint}`,
-    data: { params, body, requestId },
-    level: 'info',
-  });
 
   try {
+    const baseUrl = resolveApiBaseUrl();
+    if (!baseUrl) {
+      console.error('Base URL is undefined. Check your .env file and constants.');
+      throw new ApiError({
+        message: 'Network configuration error: Base URL is missing.',
+        correlationId: requestId,
+      });
+    }
+
+    let data: unknown = body;
+    const finalHeaders: Record<string, string> = { 'x-request-id': requestId, ...headers };
+
+    // Multipart special-case (pfp upload): a `body.image` URI becomes a file
+    // part, and any other body fields are preserved alongside it.
+    const imageUri = (body as { image?: string } | undefined)?.image;
+    if (imageUri) {
+      const form = new FormData();
+      // @ts-expect-error RN FormData file shape
+      form.append('image', { uri: imageUri, name: 'pfp.jpg', type: 'image/jpeg' });
+      for (const [k, v] of Object.entries(body as Record<string, unknown>)) {
+        if (k === 'image' || v == null) continue;
+        form.append(k, typeof v === 'string' ? v : JSON.stringify(v));
+      }
+      data = form;
+      finalHeaders['Content-Type'] = 'multipart/form-data';
+    }
+
+    if (__DEV__) {
+      console.log('------------');
+      console.log('URL: ', `${baseUrl}${endpoint}`);
+      console.log('PARAMS: ', JSON.stringify(redact(params)));
+      console.log('BODY: ', JSON.stringify(redact(body)));
+      console.log('------------');
+    }
+
+    Sentry.addBreadcrumb({
+      category: 'api.request',
+      message: `${method.toUpperCase()} ${endpoint}`,
+      data: { params: redact(params), body: redact(body), requestId },
+      level: 'info',
+    });
+
     const res = await axios({
       method,
       url: `${baseUrl}${endpoint}`,
@@ -79,7 +92,7 @@ async function request<T>(
       validateStatus: () => true,
     });
 
-    if (res.status === 200 || res.status === 201) {
+    if (res.status >= 200 && res.status < 300) {
       return res.data as T;
     }
 
@@ -105,10 +118,9 @@ async function request<T>(
     Sentry.addBreadcrumb({
       category: 'api.error',
       message: `${endpoint} failed: ${apiError.message}`,
-      data: { status: apiError.status, data: apiError.data, correlationId: apiError.correlationId },
+      data: { status: apiError.status, correlationId: apiError.correlationId },
       level: 'error',
     });
-    Sentry.setTag('correlation_id', apiError.correlationId);
 
     if (allowToast) {
       Toast.show({
