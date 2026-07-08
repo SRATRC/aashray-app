@@ -119,7 +119,7 @@ const ProfileForm = ({
 
   const fieldError = (cond: boolean, fieldName?: string) => {
     // Show error if validation is enabled OR if the field has been touched
-    return (showValidation || (fieldName && touchedFields.has(fieldName))) && cond;
+    return !!((showValidation || (fieldName && touchedFields.has(fieldName))) && cond);
   };
 
   const markFieldTouched = (fieldName: string) => {
@@ -291,9 +291,11 @@ const ProfileForm = ({
         placeholder="Enter Your ID Number"
         containerStyles="bg-gray-100"
         error={fieldError(
-          !form.idNo ||
+          !!(
+            !form.idNo ||
             (form.idNo && form.idType === 'PAN' && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(form.idNo)) ||
-            (form.idNo && form.idType === 'PASSPORT' && !/^[A-Z0-9]{6,12}$/.test(form.idNo)),
+            (form.idNo && form.idType === 'PASSPORT' && !/^[A-Z0-9]{6,12}$/.test(form.idNo))
+          ),
           'idNo'
         )}
         errorMessage="Valid Government ID is required"

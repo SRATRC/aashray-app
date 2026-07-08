@@ -531,7 +531,7 @@ const GuestAddons = () => {
           <Text className="mb-2 font-psemibold text-xl text-secondary">Add Ons</Text>
 
           {/* GUEST ROOM BOOKING COMPONENT */}
-          {![types.ROOM_DETAILS_TYPE, types.FLAT_DETAILS_TYPE].includes(booking) && (
+          {![types.ROOM_DETAILS_TYPE, types.FLAT_DETAILS_TYPE].includes(booking as string) && (
             <GuestRoomAddon
               roomForm={roomForm}
               setRoomForm={setRoomForm}
@@ -561,7 +561,7 @@ const GuestAddons = () => {
           />
 
           {/* GUEST ADHYAYAN BOOKING COMPONENT */}
-          {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking) && (
+          {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking as string) && (
             <GuestAdhyayanAddon
               adhyayanForm={adhyayanForm}
               setAdhyayanForm={setAdhyayanForm}

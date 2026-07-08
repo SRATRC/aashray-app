@@ -17,7 +17,10 @@ export const Shimmer: React.FC<ShimmerProps> = ({
   className = '',
   style,
 }) => (
-  <View className={`bg-gray-200 ${className}`} style={[{ width, height, borderRadius }, style]} />
+  <View
+    className={`bg-gray-200 ${className}`}
+    style={[{ width, height, borderRadius } as ViewStyle, style]}
+  />
 );
 
 // Preset: Single line of text

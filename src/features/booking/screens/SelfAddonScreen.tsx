@@ -224,7 +224,9 @@ const BookingDetails = () => {
     staleTime: 1000 * 10,
   });
 
-  const [cleanupTimeoutId, setCleanupTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const [cleanupTimeoutId, setCleanupTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -283,7 +285,7 @@ const BookingDetails = () => {
   }, [forms.room]);
 
   const validateFoodForm = useCallback(() => {
-    const requiredFields = ['startDay', 'endDay', 'meals'];
+    const requiredFields: (keyof typeof forms.food)[] = ['startDay', 'endDay', 'meals'];
     return requiredFields.every(
       (field) =>
         forms.food[field] &&
@@ -443,7 +445,7 @@ const BookingDetails = () => {
         />
 
         {/* ADHYAYAN BOOKING COMPONENT */}
-        {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking) && (
+        {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking as string) && (
           <AdhyayanAddon
             adhyayanBookingList={forms.adhyayan}
             setAdhyayanBookingList={setAdhyayanBookingList}

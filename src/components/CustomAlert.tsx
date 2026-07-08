@@ -80,7 +80,9 @@ export const CustomAlert = () => {
 
   // Default button if none provided
   const buttons =
-    state.buttons && state.buttons.length > 0 ? state.buttons : [{ text: 'OK', style: 'default' }];
+    state.buttons && state.buttons.length > 0
+      ? state.buttons
+      : [{ text: 'OK', style: 'default' as const }];
 
   return (
     <Modal

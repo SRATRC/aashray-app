@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Animated, ScrollView } from 'react-native
 
 interface ChipData {
   title: string;
-  icon: React.ReactElement;
+  icon: React.ReactElement<{ color?: string }>;
 }
 
 interface AnimatedChipGroupProps {
