@@ -140,40 +140,13 @@ export const prepareGuestRequestBody = (user, input) => {
               date: input[key].date,
               guestGroup: onwardGroup,
             };
-            // A return date turns this into a round trip. The return leg is one group-level
-            // route for everyone travelling back, defaulting to the reverse of the onward
-            // route but editable independently via returnLeg on the travel addon form.
+            // A return date turns this into a round trip. The return is a full set of groups
+            // (same shape as the onward), defaulting to the reversed onward but fully editable
+            // via the return editor. The addon form supplies the resolved returnGuestGroup.
             if (input[key].return_date) {
               travelDetails.return_date = input[key].return_date;
-              const returnLeg = input[key].returnLeg;
-              const firstOnward = onwardGroup[0] || {};
-              if (returnLeg && (returnLeg.pickup || returnLeg.drop)) {
-                const returnGroup = {};
-                if (returnLeg.pickup) returnGroup.pickup_point = returnLeg.pickup;
-                if (returnLeg.drop) returnGroup.drop_point = returnLeg.drop;
-                if (returnLeg.type) returnGroup.type = returnLeg.type;
-                if (returnLeg.luggage) {
-                  returnGroup.luggage =
-                    returnLeg.luggage.length > 0 ? returnLeg.luggage.join(', ') : '';
-                }
-                if (returnLeg.arrival_time) returnGroup.arrival_time = returnLeg.arrival_time;
-                if (firstOnward.comments) returnGroup.comments = firstOnward.comments;
-                if (firstOnward.total_people) returnGroup.total_people = firstOnward.total_people;
-                const allGuests = onwardGroup.reduce(
-                  (acc, g) => (g.mumukshus ? acc.concat(g.mumukshus) : acc),
-                  []
-                );
-                if (allGuests.length > 0) returnGroup.mumukshus = allGuests;
-                travelDetails.returnGuestGroup = [returnGroup];
-              } else {
-                // Defensive fallback (e.g. drafts saved before returnLeg existed): reverse
-                // each onward group as before.
-                travelDetails.returnGuestGroup = onwardGroup.map((g) => ({
-                  ...g,
-                  pickup_point: g.drop_point,
-                  drop_point: g.pickup_point,
-                  arrival_time: undefined,
-                }));
+              if (input[key].returnGuestGroup) {
+                travelDetails.returnGuestGroup = transformGuestGroup(input[key].returnGuestGroup);
               }
             }
             return {
@@ -373,40 +346,15 @@ export const prepareMumukshuRequestBody = (user, input) => {
               date: input[key].date,
               mumukshuGroup: onwardGroup,
             };
-            // A return date turns this into a round trip. The return leg is one group-level
-            // route for everyone travelling back, defaulting to the reverse of the onward
-            // route but editable independently via returnLeg on the travel addon form.
+            // A return date turns this into a round trip. The return is a full set of groups
+            // (same shape as the onward), defaulting to the reversed onward but fully editable
+            // via the return editor. The addon form supplies the resolved returnMumukshuGroup.
             if (input[key].return_date) {
               travelDetails.return_date = input[key].return_date;
-              const returnLeg = input[key].returnLeg;
-              const firstOnward = onwardGroup[0] || {};
-              if (returnLeg && (returnLeg.pickup || returnLeg.drop)) {
-                const returnGroup = {};
-                if (returnLeg.pickup) returnGroup.pickup_point = returnLeg.pickup;
-                if (returnLeg.drop) returnGroup.drop_point = returnLeg.drop;
-                if (returnLeg.type) returnGroup.type = returnLeg.type;
-                if (returnLeg.luggage) {
-                  returnGroup.luggage =
-                    returnLeg.luggage.length > 0 ? returnLeg.luggage.join(', ') : '';
-                }
-                if (returnLeg.arrival_time) returnGroup.arrival_time = returnLeg.arrival_time;
-                if (firstOnward.comments) returnGroup.comments = firstOnward.comments;
-                if (firstOnward.total_people) returnGroup.total_people = firstOnward.total_people;
-                const allMumukshus = onwardGroup.reduce(
-                  (acc, g) => (g.mumukshus ? acc.concat(g.mumukshus) : acc),
-                  []
+              if (input[key].returnMumukshuGroup) {
+                travelDetails.returnMumukshuGroup = transformMumukshuGroup(
+                  input[key].returnMumukshuGroup
                 );
-                if (allMumukshus.length > 0) returnGroup.mumukshus = allMumukshus;
-                travelDetails.returnMumukshuGroup = [returnGroup];
-              } else {
-                // Defensive fallback (e.g. drafts saved before returnLeg existed): reverse
-                // each onward group as before.
-                travelDetails.returnMumukshuGroup = onwardGroup.map((g) => ({
-                  ...g,
-                  pickup_point: g.drop_point,
-                  drop_point: g.pickup_point,
-                  arrival_time: undefined,
-                }));
               }
             }
             return {
