@@ -5,10 +5,9 @@ import { View, Text, Image } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import Toast from 'react-native-toast-message';
 
-import AddonItem from '../AddonItem';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import FormDisplayField from '../FormDisplayField';
-
+import AddonItem from '@/components/AddonItem';
+import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
+import FormDisplayField from '@/components/FormDisplayField';
 import { icons, dropdowns } from '@/constants';
 import { useBookingStore } from '@/stores';
 

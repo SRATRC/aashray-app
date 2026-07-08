@@ -3,13 +3,13 @@ import * as Haptics from 'expo-haptics';
 import moment from 'moment';
 import { View, Text, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 
-import AddonItem from '../AddonItem';
-import CustomEmptyMessage from '../CustomEmptyMessage';
-import HorizontalSeparator from '../HorizontalSeparator';
+import { getAdhyayanRange } from '../api';
 
+import AddonItem from '@/components/AddonItem';
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
+import HorizontalSeparator from '@/components/HorizontalSeparator';
 import { icons, types } from '@/constants';
 import { useAuthStore, useBookingStore } from '@/stores';
-import handleAPICall from '@/utils/HandleApiCall';
 
 interface AdhyayanAddonProps {
   adhyayanBookingList: any;
@@ -38,22 +38,16 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
       throw new Error('Missing required data for fetching adhyayans');
     }
 
-    return new Promise((resolve, reject) => {
-      handleAPICall(
-        'GET',
-        '/adhyayan/getrange',
-        {
-          cardno: user.cardno,
-          start_date: startDate,
-          end_date: endDate || '',
-        },
-        null,
-        (res: any) => {
-          resolve(Array.isArray(res.data) ? res.data : []);
-        },
-        () => reject(new Error('Failed to fetch adhyayans'))
-      );
-    });
+    try {
+      const res = await getAdhyayanRange({
+        cardno: user.cardno,
+        start_date: startDate,
+        end_date: endDate || '',
+      });
+      return Array.isArray(res.data) ? res.data : [];
+    } catch {
+      throw new Error('Failed to fetch adhyayans');
+    }
   };
 
   const {
