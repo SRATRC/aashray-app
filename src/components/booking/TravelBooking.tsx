@@ -1,5 +1,5 @@
 import { View, Text } from 'react-native';
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useRouter } from 'expo-router';
 import { types, dropdowns, status } from '@/src/constants';
@@ -17,6 +17,7 @@ import OtherMumukshuForm from '../OtherMumukshuForm';
 import FormDisplayField from '../FormDisplayField';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import GuestForm from '../GuestForm';
+import TravelReturnDetails, { ReturnLeg } from '../TravelReturnDetails';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import moment from 'moment';
 
@@ -111,8 +112,30 @@ const TravelBooking = () => {
 
   // Round trip = a date RANGE (like room booking): the calendar's start day is the onward
   // date and the end day is the return date. A single date (no end day) is one-way; when an
-  // end day is chosen the return leg is the exact reverse of the onward route on that date.
+  // end day is chosen the return leg defaults to the reverse of the onward route on that date,
+  // and can be edited independently via TravelReturnDetails.
   const [returnDate, setReturnDate] = useState<string>('');
+  const [returnLeg, setReturnLeg] = useState<ReturnLeg>({
+    pickup: '',
+    drop: '',
+    type: '',
+    luggage: [],
+    arrival_time: '',
+  });
+  const [returnEdited, setReturnEdited] = useState(false);
+
+  const reverseLeg = (o: {
+    pickup?: string;
+    drop?: string;
+    type?: string;
+    luggage?: string[];
+  }): ReturnLeg => ({
+    pickup: o.drop || '',
+    drop: o.pickup || '',
+    type: o.type || dropdowns.BOOKING_TYPE_LIST[0].value,
+    luggage: o.luggage || [],
+    arrival_time: '',
+  });
 
   const [travelForm, setTravelForm] = useState({
     date: '',
@@ -349,6 +372,66 @@ const TravelBooking = () => {
     );
   };
 
+  // The active onward leg/date, selected by which chip (Self/Mumukshus/Guest) is active. Used
+  // to default the return leg to the reverse of whichever onward route is currently shown.
+  const activeOnward = useMemo(() => {
+    if (selectedChip === 'Mumukshus') {
+      const m: any = mumukshuForm.mumukshus[0] || {};
+      return {
+        pickup: m.pickup || '',
+        drop: m.drop || '',
+        type: m.type || dropdowns.BOOKING_TYPE_LIST[0].value,
+        luggage: m.luggage || [],
+      };
+    }
+    if (selectedChip === 'Guest') {
+      const g: any = guestTravelForm.guests[0] || {};
+      return {
+        pickup: g.pickup || '',
+        drop: g.drop || '',
+        type: g.travelType || dropdowns.BOOKING_TYPE_LIST[0].value,
+        luggage: g.luggage || [],
+      };
+    }
+    return {
+      pickup: travelForm.pickup,
+      drop: travelForm.drop,
+      type: travelForm.type,
+      luggage: travelForm.luggage,
+    };
+  }, [
+    selectedChip,
+    travelForm.pickup,
+    travelForm.drop,
+    travelForm.type,
+    travelForm.luggage,
+    mumukshuForm.mumukshus,
+    guestTravelForm.guests,
+  ]);
+
+  const activeOnwardDate =
+    selectedChip === 'Mumukshus'
+      ? mumukshuForm.date
+      : selectedChip === 'Guest'
+        ? guestTravelForm.date
+        : travelForm.date;
+
+  // An untouched return leg always mirrors the current onward leg. Once the user edits it via
+  // "Edit return details", it stops auto-syncing until the return date is cleared.
+  useEffect(() => {
+    if (returnDate && !returnEdited) {
+      setReturnLeg(reverseLeg(activeOnward));
+    }
+  }, [
+    returnDate,
+    returnEdited,
+    selectedChip,
+    activeOnward.pickup,
+    activeOnward.drop,
+    activeOnward.type,
+    activeOnward.luggage,
+  ]);
+
   const { isUtsavDate } = useUtsavDate();
 
   const getLocationOptions = useCallback(
@@ -361,10 +444,10 @@ const TravelBooking = () => {
     [isUtsavDate]
   );
 
-  // A round trip books a second leg that is the exact reverse of the onward route
-  // (pickup/drop swapped) on the chosen return date. Return timing is coordinated by staff,
-  // so the return leg carries no arrival_time. Both legs keep the same per-group shape so
-  // preparingRequestBody runs them through the identical transform.
+  // A round trip books a second leg using the (editable) return leg route/type/luggage/time.
+  // An untouched return leg equals the reverse of the onward route, so the default behavior
+  // is unchanged. Both legs keep the same per-group shape so preparingRequestBody runs them
+  // through the identical transform.
   const attachReturnLeg = (temp: any) => {
     if (!returnDate) return temp;
 
@@ -373,13 +456,20 @@ const TravelBooking = () => {
 
     const returnGroup = sourceGroup.map((g: any) => ({
       ...g,
-      pickup: g.drop,
-      drop: g.pickup,
-      arrival_time: '',
-      // Also clear per-person arrival_time; otherwise transformMumukshuGroup's fallback
+      pickup: returnLeg.pickup,
+      drop: returnLeg.drop,
+      type: returnLeg.type,
+      luggage: returnLeg.luggage,
+      arrival_time: returnLeg.arrival_time || '',
+      // Also set per-person arrival_time; otherwise transformMumukshuGroup's fallback
       // resurrects the onward flight/train time onto the return leg.
       ...(g.mumukshus
-        ? { mumukshus: g.mumukshus.map((m: any) => ({ ...m, arrival_time: '' })) }
+        ? {
+            mumukshus: g.mumukshus.map((m: any) => ({
+              ...m,
+              arrival_time: returnLeg.arrival_time || '',
+            })),
+          }
         : {}),
     }));
 
@@ -406,7 +496,7 @@ const TravelBooking = () => {
         keyboardShouldPersistTaps="handled">
         <Callout
           variant="warning"
-          message="For a round trip, add a return date. The same route is booked in reverse."
+          message="For a round trip, add a return date. The return mirrors your route; tap Edit return details to change it."
         />
         <CustomCalender
           type={'period'}
@@ -416,11 +506,13 @@ const TravelBooking = () => {
             setMumukshuForm((prev) => ({ ...prev, date: day }));
             setGuestTravelForm((prev) => ({ ...prev, date: day }));
             setReturnDate('');
+            setReturnEdited(false);
           }}
           endDay={returnDate}
           setEndDay={(day: any) => {
             if (!day) {
               setReturnDate('');
+              setReturnEdited(false);
               return;
             }
             // A tap before the onward date restarts the range at that day (no invalid
@@ -430,6 +522,7 @@ const TravelBooking = () => {
               setMumukshuForm((prev) => ({ ...prev, date: day }));
               setGuestTravelForm((prev) => ({ ...prev, date: day }));
               setReturnDate('');
+              setReturnEdited(false);
               return;
             }
             setReturnDate(day);
@@ -868,6 +961,24 @@ const TravelBooking = () => {
             </GuestForm>
           </View>
         )}
+
+        <TravelReturnDetails
+          showDatePicker={false}
+          returnDate={returnDate}
+          onwardDate={activeOnwardDate}
+          returnLeg={returnLeg}
+          onChangeReturnLeg={(patch) => {
+            setReturnLeg((prev) => ({ ...prev, ...patch }));
+            setReturnEdited(true);
+          }}
+          onClearReturnDate={() => {
+            setReturnDate('');
+            setReturnEdited(false);
+          }}
+          onPickReturnDate={() => {}}
+          locationOptions={getLocationOptions(returnDate || activeOnwardDate)}
+          requiresArrivalTime={requiresArrivalTime}
+        />
 
         <CustomButton
           text="Book Now"
