@@ -6,10 +6,12 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import CustomTag from '../CustomTag';
 import TravelDateDisplay from '../TravelDateDisplay';
+import TravelLegDetails from './TravelLegDetails';
 import moment from 'moment';
 
 const MumukshuTravelBookingDetail: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const mumukshuData = useBookingStore((store) => store.mumukshuData);
+  const isRoundTrip = Boolean(mumukshuData.travel?.return_date);
 
   return (
     <PrimaryAddonBookingCard containerStyles={containerStyles} title={'Raj Pravas Booking'}>
@@ -45,6 +47,15 @@ const MumukshuTravelBookingDetail: React.FC<{ containerStyles: any }> = ({ conta
           mumukshus
         </Text>
       </View>
+
+      {isRoundTrip ? (
+        <>
+          <HorizontalSeparator otherStyles={'mb-4'} />
+          <TravelLegDetails label="Onward" groups={mumukshuData.travel.mumukshuGroup} />
+          <HorizontalSeparator otherStyles={'mb-4'} />
+          <TravelLegDetails label="Return" groups={mumukshuData.travel.returnMumukshuGroup} />
+        </>
+      ) : null}
     </PrimaryAddonBookingCard>
   );
 };

@@ -6,10 +6,12 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import CustomTag from '../CustomTag';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import TravelDateDisplay from '../TravelDateDisplay';
+import TravelLegDetails from './TravelLegDetails';
 import moment from 'moment';
 
 const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerStyles }) => {
   const data = useBookingStore((state) => state.mumukshuData);
+  const isRoundTrip = Boolean(data.travel?.return_date);
 
   return (
     <PrimaryAddonBookingCard containerStyles={containerStyles} title={'Raj Pravas Booking'}>
@@ -34,37 +36,47 @@ const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerSt
 
       <HorizontalSeparator otherStyles={'mb-4'} />
 
-      <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
-        <FontAwesome5 name="car" size={14} color={colors.gray_400} />
-        <Text className="font-pregular text-gray-400">Booking Type:</Text>
-        <Text className="font-pmedium text-black">{data.travel.mumukshuGroup[0].type}</Text>
-      </View>
-      <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
-        <FontAwesome5 name="luggage-cart" size={14} color={colors.gray_400} />
-        <Text className="font-pregular text-gray-400">Luggage:</Text>
-        <Text className="font-pmedium text-black">
-          {data.travel.mumukshuGroup[0].luggage.length > 0
-            ? data.travel.mumukshuGroup[0].luggage.join(', ')
-            : 'No luggage selected'}
-        </Text>
-      </View>
-      <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
-        <FontAwesome name="comment" size={14} color={colors.gray_400} />
-        <Text className="font-pregular text-gray-400">Comments:</Text>
-        <Text className="flex-1 font-pmedium text-black" numberOfLines={1}>
-          {data.travel.mumukshuGroup[0].special_request
-            ? data.travel.mumukshuGroup[0].special_request
-            : 'None'}
-        </Text>
-      </View>
-      {data.travel.mumukshuGroup[0].arrival_time && (
-        <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
-          <Ionicons name="time" size={16} color={colors.gray_400} />
-          <Text className="font-pregular text-gray-400">Arrival Time:</Text>
-          <Text className="font-pmedium text-black">
-            {moment(data.travel.mumukshuGroup[0].arrival_time, 'HH:mm').format('hh:mm A')}
-          </Text>
-        </View>
+      {isRoundTrip ? (
+        <>
+          <TravelLegDetails label="Onward" groups={data.travel.mumukshuGroup} />
+          <HorizontalSeparator otherStyles={'mb-4'} />
+          <TravelLegDetails label="Return" groups={data.travel.returnMumukshuGroup} />
+        </>
+      ) : (
+        <>
+          <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
+            <FontAwesome5 name="car" size={14} color={colors.gray_400} />
+            <Text className="font-pregular text-gray-400">Booking Type:</Text>
+            <Text className="font-pmedium text-black">{data.travel.mumukshuGroup[0].type}</Text>
+          </View>
+          <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
+            <FontAwesome5 name="luggage-cart" size={14} color={colors.gray_400} />
+            <Text className="font-pregular text-gray-400">Luggage:</Text>
+            <Text className="font-pmedium text-black">
+              {data.travel.mumukshuGroup[0].luggage.length > 0
+                ? data.travel.mumukshuGroup[0].luggage.join(', ')
+                : 'No luggage selected'}
+            </Text>
+          </View>
+          <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
+            <FontAwesome name="comment" size={14} color={colors.gray_400} />
+            <Text className="font-pregular text-gray-400">Comments:</Text>
+            <Text className="flex-1 font-pmedium text-black" numberOfLines={1}>
+              {data.travel.mumukshuGroup[0].special_request
+                ? data.travel.mumukshuGroup[0].special_request
+                : 'None'}
+            </Text>
+          </View>
+          {data.travel.mumukshuGroup[0].arrival_time && (
+            <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
+              <Ionicons name="time" size={16} color={colors.gray_400} />
+              <Text className="font-pregular text-gray-400">Arrival Time:</Text>
+              <Text className="font-pmedium text-black">
+                {moment(data.travel.mumukshuGroup[0].arrival_time, 'HH:mm').format('hh:mm A')}
+              </Text>
+            </View>
+          )}
+        </>
       )}
     </PrimaryAddonBookingCard>
   );

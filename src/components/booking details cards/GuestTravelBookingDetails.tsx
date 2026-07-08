@@ -6,10 +6,12 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import CustomTag from '../CustomTag';
 import TravelDateDisplay from '../TravelDateDisplay';
+import TravelLegDetails from './TravelLegDetails';
 import moment from 'moment';
 
 const GuestTravelBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const guestData = useBookingStore((store) => store.guestData);
+  const isRoundTrip = Boolean(guestData.travel?.return_date);
 
   return (
     <PrimaryAddonBookingCard containerStyles={containerStyles} title={'Raj Pravas Booking'}>
@@ -45,6 +47,15 @@ const GuestTravelBookingDetails: React.FC<{ containerStyles: any }> = ({ contain
           guests
         </Text>
       </View>
+
+      {isRoundTrip ? (
+        <>
+          <HorizontalSeparator otherStyles={'mb-4'} />
+          <TravelLegDetails label="Onward" groups={guestData.travel?.guestGroup} />
+          <HorizontalSeparator otherStyles={'mb-4'} />
+          <TravelLegDetails label="Return" groups={guestData.travel?.returnGuestGroup} />
+        </>
+      ) : null}
     </PrimaryAddonBookingCard>
   );
 };
