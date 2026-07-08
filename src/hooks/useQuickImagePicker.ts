@@ -3,8 +3,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { useState, useCallback } from 'react';
 import Toast from 'react-native-toast-message';
 
+import { apiClient } from '@/lib/api/client';
 import { useAuthStore } from '@/stores';
-import handleAPICall from '@/utils/HandleApiCall';
 import { invalidateCachedImage } from '@/utils/imageCache';
 
 interface UploadState {
@@ -71,46 +71,44 @@ export const useQuickImagePicker = () => {
         });
       }, 300);
 
-      await handleAPICall(
-        'POST',
-        '/profile/upload',
-        { cardno: user?.cardno },
-        { image: imageUri },
-        async (data: any) => {
-          clearInterval(progressInterval);
+      try {
+        const res: any = await apiClient.post(
+          '/profile/upload',
+          { image: imageUri },
+          { params: { cardno: user?.cardno } }
+        );
 
-          // Complete progress
-          setUploadState((prev) => ({ ...prev, progress: 100 }));
+        clearInterval(progressInterval);
 
-          // Cache invalidation and user update
-          if (user?.pfp) {
-            await invalidateCachedImage(user.pfp);
-          }
-          const updatedUser = { ...user, pfp: data.data };
-          setUser(updatedUser);
+        // Complete progress
+        setUploadState((prev) => ({ ...prev, progress: 100 }));
 
-          // Success feedback
-          Toast.show({
-            type: 'success',
-            text1: 'Photo Updated!',
-            text2: 'Your profile picture has been updated.',
-          });
-
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-          // Reset state after a short delay
-          setTimeout(resetUploadState, 1000);
-        },
-        () => {},
-        (error) => {
-          clearInterval(progressInterval);
-          setUploadState((prev) => ({
-            ...prev,
-            isUploading: false,
-            error: error.message || 'Upload failed',
-          }));
+        // Cache invalidation and user update
+        if (user?.pfp) {
+          await invalidateCachedImage(user.pfp);
         }
-      );
+        const updatedUser = { ...user, pfp: res.data };
+        setUser(updatedUser);
+
+        // Success feedback
+        Toast.show({
+          type: 'success',
+          text1: 'Photo Updated!',
+          text2: 'Your profile picture has been updated.',
+        });
+
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+        // Reset state after a short delay
+        setTimeout(resetUploadState, 1000);
+      } catch (error: any) {
+        clearInterval(progressInterval);
+        setUploadState((prev) => ({
+          ...prev,
+          isUploading: false,
+          error: error.message || 'Upload failed',
+        }));
+      }
     } catch (err: any) {
       console.error('Image upload failed:', err);
       setUploadState((prev) => ({

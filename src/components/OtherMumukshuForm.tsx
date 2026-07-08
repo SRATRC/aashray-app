@@ -4,8 +4,8 @@ import { View, Text, Image, TouchableOpacity } from 'react-native';
 
 import { colors, icons } from '../constants';
 import FormField from './FormField';
-import handleAPICall from '../utils/HandleApiCall';
 
+import { apiClient } from '@/lib/api/client';
 import { useAuthStore } from '@/stores';
 
 interface OtherMumukshuFormProps {
@@ -28,26 +28,13 @@ const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
   const { user } = useAuthStore();
 
   const verifyMumukshu = async (mobno: any) => {
-    return new Promise((resolve, reject) => {
-      handleAPICall(
-        'GET',
-        '/mumukshu',
-        {
-          cardno: user.cardno,
-          mobno,
-        },
-        null,
-        (res: any) => {
-          if (res.data) {
-            resolve(res.data);
-          } else {
-            reject(new Error('Mumukshu not found'));
-          }
-        },
-        () => {}, // on finally callback
-        (errorDetails: any) => reject(new Error(errorDetails?.message))
-      );
+    const res: any = await apiClient.get('/mumukshu', {
+      params: { cardno: user.cardno, mobno },
     });
+    if (res.data) {
+      return res.data;
+    }
+    throw new Error('Mumukshu not found');
   };
 
   const mumukshuQueries: any = useQueries({

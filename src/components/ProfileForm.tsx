@@ -10,7 +10,7 @@ import ErrorText from '@/components/ErrorText';
 import FormDisplayField from '@/components/FormDisplayField';
 import FormField from '@/components/FormField';
 import { dropdowns } from '@/constants';
-import handleAPICall from '@/utils/HandleApiCall';
+import { apiClient } from '@/lib/api/client';
 
 export interface ProfileFormData {
   issuedto: string;
@@ -37,57 +37,25 @@ interface ProfileFormProps {
 }
 
 // API Functions
-const fetchCountries = () => {
-  return new Promise((resolve, reject) => {
-    handleAPICall(
-      'GET',
-      '/location/countries',
-      null,
-      null,
-      (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
-      () => reject(new Error('Failed to fetch countries'))
-    );
-  });
-};
+const fetchCountries = () =>
+  apiClient
+    .get<{ data: any[] }>('/location/countries')
+    .then((res) => (Array.isArray(res.data) ? res.data : []));
 
-const fetchStates = (country: string) => {
-  return new Promise((resolve, reject) => {
-    handleAPICall(
-      'GET',
-      `/location/states/${country}`,
-      null,
-      null,
-      (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
-      () => reject(new Error('Failed to fetch states'))
-    );
-  });
-};
+const fetchStates = (country: string) =>
+  apiClient
+    .get<{ data: any[] }>(`/location/states/${country}`)
+    .then((res) => (Array.isArray(res.data) ? res.data : []));
 
-const fetchCities = (country: string, state: string) => {
-  return new Promise((resolve, reject) => {
-    handleAPICall(
-      'GET',
-      `/location/cities/${country}/${state}`,
-      null,
-      null,
-      (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
-      () => reject(new Error('Failed to fetch cities'))
-    );
-  });
-};
+const fetchCities = (country: string, state: string) =>
+  apiClient
+    .get<{ data: any[] }>(`/location/cities/${country}/${state}`)
+    .then((res) => (Array.isArray(res.data) ? res.data : []));
 
-const fetchCentres = () => {
-  return new Promise((resolve, reject) => {
-    handleAPICall(
-      'GET',
-      '/location/centres',
-      null,
-      null,
-      (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
-      () => reject(new Error('Failed to fetch centres'))
-    );
-  });
-};
+const fetchCentres = () =>
+  apiClient
+    .get<{ data: any[] }>('/location/centres')
+    .then((res) => (Array.isArray(res.data) ? res.data : []));
 
 // Section Header Component
 const SectionHeader = ({ title }: { title: string }) => (

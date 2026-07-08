@@ -5,8 +5,8 @@ import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { colors, icons, dropdowns } from '../constants';
 import CustomSelectBottomSheet from './CustomSelectBottomSheet';
 import FormField from './FormField';
-import handleAPICall from '../utils/HandleApiCall';
 
+import { apiClient } from '@/lib/api/client';
 import { useAuthStore } from '@/stores';
 
 interface GuestFormProps {
@@ -31,26 +31,14 @@ const GuestForm: React.FC<GuestFormProps> = ({
   const verifyGuest = async (
     mobno: string
   ): Promise<{ data?: any; isNewGuest?: boolean; error?: string }> => {
-    return new Promise((resolve, reject) => {
-      handleAPICall(
-        'GET',
-        `/guest/check/${mobno}`,
-        {
-          cardno: user.cardno,
-        },
-        null,
-        (res: any) => {
-          if (res.data) {
-            resolve({ data: res.data });
-          } else {
-            // Guest not found - this is a valid scenario for creating new guest
-            resolve({ isNewGuest: true });
-          }
-        },
-        () => {}, // on finally callback
-        (errorDetails: any) => reject(new Error(errorDetails?.message))
-      );
+    const res: any = await apiClient.get(`/guest/check/${mobno}`, {
+      params: { cardno: user.cardno },
     });
+    if (res.data) {
+      return { data: res.data };
+    }
+    // Guest not found - this is a valid scenario for creating new guest
+    return { isNewGuest: true };
   };
 
   const guestQueries: any = useQueries({
