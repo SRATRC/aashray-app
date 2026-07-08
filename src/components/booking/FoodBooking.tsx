@@ -213,6 +213,10 @@ const FoodBooking = () => {
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled">
         <BookingNote />
+        <Text className="font-pmedium text-base text-gray-600">Meal Dates</Text>
+        <Text className="mb-1 font-pregular text-sm text-gray-500">
+          Select the first and last day you'd like meals for.
+        </Text>
         <CustomCalender
           type={'period'}
           startDay={foodForm.startDay}
