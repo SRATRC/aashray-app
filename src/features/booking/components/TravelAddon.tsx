@@ -3,7 +3,8 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, Image } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
-import AddonItem from '@/components/AddonItem';
+import AddonItem from './AddonItem';
+
 import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
 import FormDisplayField from '@/components/FormDisplayField';
 import FormField from '@/components/FormField';

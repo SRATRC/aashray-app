@@ -2,9 +2,10 @@ import { FontAwesome5, MaterialIcons, FontAwesome6 } from '@expo/vector-icons';
 import moment from 'moment';
 import { View, Text, Image, ScrollView } from 'react-native';
 
+import PrimaryAddonBookingCard from './PrimaryAddonBookingCard';
+
 import CustomTag from '@/components/CustomTag';
 import HorizontalSeparator from '@/components/HorizontalSeparator';
-import PrimaryAddonBookingCard from '@/components/PrimaryAddonBookingCard';
 import { colors, icons } from '@/constants';
 import { useBookingStore } from '@/stores';
 

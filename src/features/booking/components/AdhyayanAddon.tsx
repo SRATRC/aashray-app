@@ -4,8 +4,8 @@ import moment from 'moment';
 import { View, Text, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 
 import { getAdhyayanRange } from '../api';
+import AddonItem from './AddonItem';
 
-import AddonItem from '@/components/AddonItem';
 import CustomEmptyMessage from '@/components/CustomEmptyMessage';
 import HorizontalSeparator from '@/components/HorizontalSeparator';
 import { icons, types } from '@/constants';

@@ -5,7 +5,8 @@ import { View, Text, Image, TouchableOpacity } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import Toast from 'react-native-toast-message';
 
-import AddonItem from '@/components/AddonItem';
+import AddonItem from './AddonItem';
+
 import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
 import FormDisplayField from '@/components/FormDisplayField';
 import HorizontalSeparator from '@/components/HorizontalSeparator';
