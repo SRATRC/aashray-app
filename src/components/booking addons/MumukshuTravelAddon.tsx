@@ -9,7 +9,7 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import FormDisplayField from '../FormDisplayField';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
-import TravelReturnDateField from '../TravelReturnDateField';
+import TravelReturnDetails, { ReturnLeg } from '../TravelReturnDetails';
 import moment from 'moment';
 
 interface MumukshuTravelAddonProps {
@@ -24,6 +24,14 @@ interface MumukshuTravelAddonProps {
   setDatePickerVisibility: (pickerType: string, isVisible: boolean) => void;
   onToggle?: (isOpen: boolean) => void;
 }
+
+const EMPTY_RETURN_LEG: ReturnLeg = {
+  pickup: '',
+  drop: '',
+  type: '',
+  luggage: [],
+  arrival_time: '',
+};
 
 const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
   travelForm,
@@ -51,6 +59,17 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
     },
     [isUtsavDate]
   );
+
+  const requiresArrivalTime = useCallback((pickup: string, drop: string) => {
+    const isRailwayOrAirport = (loc: string) =>
+      !!loc &&
+      dropdowns.LOCATION_LIST.some(
+        (l) =>
+          l.value === loc &&
+          (l.key.toLowerCase().includes('railway') || l.key.toLowerCase().includes('airport'))
+      );
+    return isRailwayOrAirport(pickup) || isRailwayOrAirport(drop);
+  }, []);
 
   const getAvailableMumukshus = (currentGroupIndex: number) => {
     // Get all selected mumukshu indices from other groups
@@ -111,18 +130,46 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
         onCancel={() => setDatePickerVisibility('travel', false)}
       />
 
-      <TravelReturnDateField
-        travelDate={travelForm.date}
+      <TravelReturnDetails
+        showDatePicker
         returnDate={travelForm.return_date}
-        isVisible={isDatePickerVisible.travel_return}
-        onPress={() => setDatePickerVisibility('travel_return', true)}
-        onConfirm={(date: Date) => {
-          setTravelForm({ ...travelForm, return_date: moment(date).format('YYYY-MM-DD') });
-          setDatePickerVisibility('travel_return', false);
+        onwardDate={travelForm.date}
+        onPickReturnDate={(date: string) => {
+          if (travelForm.returnEdited) {
+            setTravelForm({ ...travelForm, return_date: date });
+          } else {
+            const onward = travelForm.mumukshuGroup[0] || {};
+            setTravelForm({
+              ...travelForm,
+              return_date: date,
+              returnLeg: {
+                pickup: onward.drop || '',
+                drop: onward.pickup || '',
+                type: onward.type || '',
+                luggage: onward.luggage || [],
+                arrival_time: '',
+              },
+            });
+          }
         }}
-        onCancel={() => setDatePickerVisibility('travel_return', false)}
-        onClear={() => setTravelForm({ ...travelForm, return_date: '' })}
-        bannerWrapperClassName="mb-2 mt-2"
+        onClearReturnDate={() => {
+          setTravelForm({
+            ...travelForm,
+            return_date: '',
+            returnLeg: EMPTY_RETURN_LEG,
+            returnEdited: false,
+          });
+        }}
+        onChangeReturnLeg={(patch: Partial<ReturnLeg>) => {
+          setTravelForm({
+            ...travelForm,
+            returnLeg: { ...travelForm.returnLeg, ...patch },
+            returnEdited: true,
+          });
+        }}
+        returnLeg={travelForm.returnLeg}
+        locationOptions={getLocationOptions(travelForm.return_date || travelForm.date)}
+        requiresArrivalTime={requiresArrivalTime}
       />
 
       {travelForm.mumukshuGroup.map((assignment: any, index: any) => (

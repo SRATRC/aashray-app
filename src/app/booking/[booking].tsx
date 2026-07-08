@@ -64,6 +64,7 @@ const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string)
       return {
         date: simpleForm.date,
         return_date: simpleForm.return_date || '',
+        returnLeg: simpleForm.returnLeg,
         mumukshuGroup: [
           {
             pickup: simpleForm.pickup,
@@ -159,6 +160,8 @@ const BookingDetails = () => {
       total_people: null,
       luggage: [],
       special_request: '',
+      returnLeg: { pickup: '', drop: '', type: '', luggage: [], arrival_time: '' },
+      returnEdited: false,
     },
     adhyayan: [],
   }));
@@ -171,7 +174,6 @@ const BookingDetails = () => {
     foodEnd: false,
     travel: false,
     travel_time: false,
-    travel_return: false,
   });
 
   // Memoized handlers to prevent unnecessary re-renders

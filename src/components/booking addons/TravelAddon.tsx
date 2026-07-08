@@ -6,7 +6,7 @@ import { useUtsavDate } from '@/src/hooks/useUtsavDate';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
 import FormDisplayField from '../FormDisplayField';
-import TravelReturnDateField from '../TravelReturnDateField';
+import TravelReturnDetails, { ReturnLeg } from '../TravelReturnDetails';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
@@ -18,6 +18,14 @@ interface TravelAddonProps {
   setDatePickerVisibility: (pickerType: any, isVisible: any) => void;
   onToggle?: (isOpen: boolean) => void;
 }
+
+const EMPTY_RETURN_LEG: ReturnLeg = {
+  pickup: '',
+  drop: '',
+  type: '',
+  luggage: [],
+  arrival_time: '',
+};
 
 const TravelAddon: React.FC<TravelAddonProps> = ({
   travelForm,
@@ -41,6 +49,17 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
     },
     [isUtsavDate]
   );
+
+  const requiresArrivalTime = useCallback((pickup: string, drop: string) => {
+    const isRailwayOrAirport = (loc: string) =>
+      !!loc &&
+      dropdowns.LOCATION_LIST.some(
+        (l) =>
+          l.value === loc &&
+          (l.value.toLowerCase().includes('railway') || l.value.toLowerCase().includes('airport'))
+      );
+    return isRailwayOrAirport(pickup) || isRailwayOrAirport(drop);
+  }, []);
 
   return (
     <AddonItem
@@ -68,6 +87,8 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           type: dropdowns.BOOKING_TYPE_LIST[0].value,
           total_people: null,
           special_request: '',
+          returnLeg: EMPTY_RETURN_LEG,
+          returnEdited: false,
         });
         setMumukshuData((prev: any) => {
           const { travel, ...rest } = prev;
@@ -104,18 +125,45 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         onCancel={() => setDatePickerVisibility('travel', false)}
       />
 
-      <TravelReturnDateField
-        travelDate={travelForm.date}
+      <TravelReturnDetails
+        showDatePicker
         returnDate={travelForm.return_date}
-        isVisible={isDatePickerVisible.travel_return}
-        onPress={() => setDatePickerVisibility('travel_return', true)}
-        onConfirm={(date: Date) => {
-          setTravelForm({ ...travelForm, return_date: moment(date).format('YYYY-MM-DD') });
-          setDatePickerVisibility('travel_return', false);
+        onwardDate={travelForm.date}
+        onPickReturnDate={(date: string) => {
+          if (travelForm.returnEdited) {
+            setTravelForm({ ...travelForm, return_date: date });
+          } else {
+            setTravelForm({
+              ...travelForm,
+              return_date: date,
+              returnLeg: {
+                pickup: travelForm.drop,
+                drop: travelForm.pickup,
+                type: travelForm.type,
+                luggage: travelForm.luggage,
+                arrival_time: '',
+              },
+            });
+          }
         }}
-        onCancel={() => setDatePickerVisibility('travel_return', false)}
-        onClear={() => setTravelForm({ ...travelForm, return_date: '' })}
-        bannerWrapperClassName="mt-2"
+        onClearReturnDate={() => {
+          setTravelForm({
+            ...travelForm,
+            return_date: '',
+            returnLeg: EMPTY_RETURN_LEG,
+            returnEdited: false,
+          });
+        }}
+        onChangeReturnLeg={(patch: Partial<ReturnLeg>) => {
+          setTravelForm({
+            ...travelForm,
+            returnLeg: { ...travelForm.returnLeg, ...patch },
+            returnEdited: true,
+          });
+        }}
+        returnLeg={travelForm.returnLeg}
+        locationOptions={getLocationOptions(travelForm.return_date || travelForm.date)}
+        requiresArrivalTime={requiresArrivalTime}
       />
 
       <CustomSelectBottomSheet

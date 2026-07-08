@@ -158,6 +158,14 @@ const MumukshuAddons = () => {
       : getInitialDates?.endDate && getInitialDates?.endDate !== getInitialDates?.startDate
         ? getInitialDates.endDate
         : '',
+    returnLeg: existingData?.returnLeg || {
+      pickup: '',
+      drop: '',
+      type: '',
+      luggage: [],
+      arrival_time: '',
+    },
+    returnEdited: existingData?.returnEdited || false,
     mumukshuGroup: existingData?.mumukshuGroup || [
       {
         pickup: '',
@@ -261,7 +269,6 @@ const MumukshuAddons = () => {
     foodEnd: false,
     travel: false,
     travel_time: false,
-    travel_return: false,
   });
 
   const toggleAddon = useCallback((addonType: any, isOpen: any) => {
