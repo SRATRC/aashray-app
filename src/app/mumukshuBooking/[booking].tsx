@@ -54,6 +54,7 @@ const MumukshuAddons = () => {
       mumukshuData.room?.endDay ||
       mumukshuData.food?.endDay ||
       mumukshuData.adhyayan?.adhyayan?.end_date ||
+      mumukshuData.travel?.return_date ||
       mumukshuData.utsav?.utsav?.utsav_end ||
       '';
 
@@ -194,7 +195,7 @@ const MumukshuAddons = () => {
       mumukshuData.room?.endDay ||
       mumukshuData.food?.endDay ||
       mumukshuData.adhyayan?.adhyayan?.end_date ||
-      mumukshuData.travel?.date ||
+      mumukshuData.travel?.return_date ||
       mumukshuData.utsav?.utsav_end ||
       '';
 

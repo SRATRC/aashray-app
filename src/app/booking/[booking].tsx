@@ -120,6 +120,7 @@ const BookingDetails = () => {
 
     const endDate =
       mumukshuData.room?.endDay ||
+      mumukshuData.travel?.return_date ||
       (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.end_date) ||
       mumukshuData.flat?.endDay ||
       mumukshuData.utsav?.utsav?.utsav_end ||
