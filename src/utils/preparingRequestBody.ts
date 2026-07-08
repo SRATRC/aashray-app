@@ -1,116 +1,252 @@
-export const prepareSelfRequestBody = (user, data) => {
-  const payload = {
-    cardno: user.cardno,
-  };
+import type { BookingSlice, BookingType } from '@/stores/bookingTypes';
 
-  if (data.primary === 'room') {
-    payload.primary_booking = {
-      booking_type: 'room',
-      details: {
-        checkin_date: data.room?.startDay,
-        checkout_date: data.room?.endDay,
-        room_type: data.room?.roomType,
-        floor_type: data.room?.floorType,
-      },
-    };
-  } else if (data.primary === 'travel') {
-    payload.primary_booking = {
-      booking_type: 'travel',
-      details: {
-        date: data.travel?.date,
-        pickup_point: data.travel?.pickup,
-        drop_point: data.travel?.drop,
-        arrival_time: data.travel?.arrival_time,
-        luggage: data.travel?.luggage.length > 0 ? data.travel?.luggage.join(', ') : '',
-        leaving_post_adhyayan: data.travel?.adhyayan === 'No' ? 0 : 1,
-        type: data.travel?.type,
-        total_people: data.travel?.total_people,
-        comments: data.travel?.special_request,
-      },
-    };
-  } else if (data.primary === 'adhyayan') {
-    payload.primary_booking = {
-      booking_type: 'adhyayan',
-      details: {
-        shibir_ids: data.adhyayan.map((shibir) => shibir.id),
-      },
-    };
-  } else if (data.primary === 'utsav') {
-    payload.primary_booking = {
-      booking_type: 'utsav',
-      details: {
-        utsavid: data.utsav.utsav.utsav_id,
-        packageid: data.utsav.package,
-        arrival: data.utsav.arrival,
-        volunteer: data.utsav.volunteer,
-        carno: data.utsav.carno || '',
-        other: data.utsav.other || '',
-      },
-    };
-  }
+// ---------------------------------------------------------------------------
+// Shared primitives
+// ---------------------------------------------------------------------------
 
-  const addons = [];
-  if (data.primary !== 'room' && data.room) {
-    addons.push({
-      booking_type: 'room',
-      details: {
-        checkin_date: data.room?.startDay,
-        checkout_date: data.room?.endDay,
-        room_type: data.room?.roomType,
-        floor_type: data.room?.floorType,
-      },
-    });
-  }
-  if (data.primary !== 'food' && data.food) {
-    addons.push({
-      booking_type: 'food',
-      details: {
-        start_date: data.food?.startDay,
-        end_date: data.food?.endDay,
-        breakfast: data.food?.meals.includes('breakfast'),
-        lunch: data.food?.meals.includes('lunch'),
-        dinner: data.food?.meals.includes('dinner'),
-        spicy: data.food?.spicy,
-        hightea: data.food?.hightea,
-      },
-    });
-  }
-  if (data.primary !== 'travel' && data.travel) {
-    addons.push({
-      booking_type: 'travel',
-      details: {
-        date: data.travel?.date,
-        pickup_point: data.travel?.pickup,
-        drop_point: data.travel?.drop,
-        arrival_time: data.travel?.arrival_time,
-        luggage: data.travel?.luggage.length > 0 ? data.travel?.luggage.join(', ') : '',
-        leaving_post_adhyayan: data.travel?.adhyayan === 'No' ? 0 : 1,
-        type: data.travel?.type,
-        total_people: data.travel?.total_people,
-        comments: data.travel?.special_request,
-      },
-    });
-  }
-  if (data.primary !== 'adhyayan' && data.adhyayan) {
-    addons.push({
-      booking_type: 'adhyayan',
-      details: {
-        shibir_ids: data.adhyayan.map((shibir) => shibir.id),
-      },
-    });
-  }
+interface RequestUser {
+  cardno: string;
+}
 
-  if (addons.length > 0) {
-    payload.addons = addons;
-  }
+// Some callers build the booking payload ad hoc (e.g. FoodBooking.tsx) rather
+// than pulling it straight from the store, so `primary` may arrive as a
+// plain (widened) string instead of the narrower BookingType literal union.
+// Accept that here to avoid forcing every call site to annotate/cast.
+type BookingSliceInput = Omit<BookingSlice, 'primary'> & { primary?: string };
 
-  return payload;
-};
+// ---------------------------------------------------------------------------
+// Guest booking — input shapes (loose; store payloads are typed `any` in
+// BookingSlice, these describe just the fields this file reads/writes)
+// ---------------------------------------------------------------------------
 
-export const prepareGuestRequestBody = (user, input) => {
-  const transformGuestGroup = (guestGroup) =>
+interface GuestPersonRef {
+  cardno: string;
+}
+
+interface GuestGroupInputItem {
+  roomType?: string;
+  floorType?: string;
+  guests?: GuestPersonRef[];
+  meals?: string[];
+  spicy?: boolean;
+  hightea?: boolean;
+}
+
+interface GuestUtsavPerson {
+  cardno: string;
+  package?: unknown;
+  arrival?: unknown;
+  volunteer?: unknown;
+  carno?: unknown;
+  other?: unknown;
+}
+
+// ---------------------------------------------------------------------------
+// Guest booking — output shapes (must match backend request contract)
+// ---------------------------------------------------------------------------
+
+interface GuestGroupTransformed {
+  roomType?: string;
+  floorType?: string;
+  guests?: string[];
+  meals?: string[];
+  spicy?: boolean;
+  high_tea?: boolean;
+}
+
+interface GuestRoomDetails {
+  checkin_date: string;
+  checkout_date: string;
+  guestGroup: GuestGroupTransformed[];
+}
+
+interface GuestFoodDetails {
+  start_date: string;
+  end_date: string;
+  guestGroup: GuestGroupTransformed[];
+}
+
+interface GuestAdhyayanDetails {
+  shibir_ids: unknown[];
+  guests: string[];
+}
+
+interface GuestFlatDetails {
+  checkin_date: string;
+  checkout_date: string;
+  guests: string[];
+}
+
+interface GuestUtsavDetailsPerson {
+  cardno: string;
+  packageid: unknown;
+  arrival: unknown;
+  volunteer: unknown;
+  carno: unknown;
+  other: unknown;
+}
+
+interface GuestUtsavDetails {
+  utsavid: unknown;
+  guests: GuestUtsavDetailsPerson[];
+}
+
+type GuestBookingDetails =
+  | GuestRoomDetails
+  | GuestFoodDetails
+  | GuestAdhyayanDetails
+  | GuestFlatDetails
+  | GuestUtsavDetails;
+
+interface GuestBookingRequestItem {
+  booking_type: BookingType;
+  details: GuestBookingDetails;
+}
+
+export interface GuestRequestBody {
+  cardno: string;
+  primary_booking: GuestBookingRequestItem;
+  addons: GuestBookingRequestItem[];
+}
+
+// ---------------------------------------------------------------------------
+// Mumukshu booking — input shapes
+// ---------------------------------------------------------------------------
+
+interface MumukshuMember {
+  cardno: string;
+  arrival_time?: string;
+  adhyayan?: string;
+  luggage?: string[];
+  type?: string;
+  special_request?: string;
+  total_people?: number;
+}
+
+interface MumukshuGroupInputItem {
+  cardno?: string;
+  roomType?: string;
+  floorType?: string;
+  mumukshus?: MumukshuMember[];
+  pickup?: string;
+  drop?: string;
+  arrival_time?: string;
+  adhyayan?: string;
+  luggage?: string[];
+  type?: string;
+  special_request?: string;
+  meals?: string[];
+  spicy?: boolean;
+  hightea?: boolean;
+  total_people?: number;
+}
+
+// ---------------------------------------------------------------------------
+// Mumukshu booking — output shapes
+// ---------------------------------------------------------------------------
+
+interface MumukshuGroupTransformed {
+  roomType?: string;
+  floorType?: string;
+  mumukshus?: string[];
+  arrival_time?: string;
+  leaving_post_adhyayan?: 0 | 1;
+  luggage?: string;
+  type?: string;
+  comments?: string;
+  meals?: string[];
+  spicy?: boolean;
+  high_tea?: boolean;
+  total_people?: number;
+  pickup_point?: string;
+  drop_point?: string;
+}
+
+// transformMumukshuGroup returns the bare cardno string when the input item
+// is just a person reference (`{ cardno }`), otherwise the transformed group.
+type MumukshuGroupResultItem = string | MumukshuGroupTransformed;
+
+interface MumukshuRoomDetails {
+  checkin_date: string;
+  checkout_date: string;
+  mumukshuGroup: MumukshuGroupResultItem[];
+}
+
+interface MumukshuFoodDetails {
+  start_date: string;
+  end_date: string;
+  mumukshuGroup: MumukshuGroupResultItem[];
+}
+
+interface MumukshuAdhyayanDetails {
+  shibir_ids: unknown[];
+  mumukshus: MumukshuGroupResultItem[];
+}
+
+interface MumukshuTravelDetails {
+  date: unknown;
+  mumukshuGroup: MumukshuGroupResultItem[];
+}
+
+interface MumukshuFlatDetails {
+  checkin_date: string;
+  checkout_date: string;
+  mumukshus: MumukshuGroupResultItem[];
+}
+
+interface MumukshuUtsavInputPerson {
+  cardno: string;
+  package?: unknown;
+  arrival?: unknown;
+  volunteer?: unknown;
+  carno?: unknown;
+  other?: unknown;
+}
+
+interface MumukshuUtsavDetailsPerson {
+  cardno: string;
+  packageid: unknown;
+  arrival: unknown;
+  volunteer: unknown;
+  carno: unknown;
+  other: unknown;
+}
+
+interface MumukshuUtsavDetails {
+  utsavid: unknown;
+  mumukshus: MumukshuUtsavDetailsPerson[];
+}
+
+type MumukshuBookingDetails =
+  | MumukshuRoomDetails
+  | MumukshuFoodDetails
+  | MumukshuAdhyayanDetails
+  | MumukshuTravelDetails
+  | MumukshuFlatDetails
+  | MumukshuUtsavDetails;
+
+interface MumukshuBookingRequestItem {
+  booking_type: BookingType;
+  details: MumukshuBookingDetails;
+}
+
+export interface MumukshuRequestBody {
+  cardno: string;
+  primary_booking: MumukshuBookingRequestItem;
+  addons: MumukshuBookingRequestItem[];
+}
+
+// ---------------------------------------------------------------------------
+// Guest builder
+// ---------------------------------------------------------------------------
+
+export const prepareGuestRequestBody = (
+  user: RequestUser,
+  guestData: BookingSliceInput
+): GuestRequestBody => {
+  const transformGuestGroup = (guestGroup: GuestGroupInputItem[]): GuestGroupTransformed[] =>
     guestGroup.map((group) => {
-      const transformed = {};
+      const transformed: GuestGroupTransformed = {};
       if (group.roomType) transformed.roomType = group.roomType;
       if (group.floorType && group.floorType !== 'n') transformed.floorType = group.floorType;
       if (group.guests) transformed.guests = group.guests.map((guest) => guest.cardno);
@@ -120,8 +256,10 @@ export const prepareGuestRequestBody = (user, input) => {
       return transformed;
     });
 
-  const primaryBookingDetails = (primaryKey) => {
-    const primaryData = input[primaryKey];
+  const data = guestData as Record<string, any>;
+
+  const primaryBookingDetails = (primaryKey: string): GuestBookingRequestItem => {
+    const primaryData = data[primaryKey];
     switch (primaryKey) {
       case 'room':
         return {
@@ -146,7 +284,7 @@ export const prepareGuestRequestBody = (user, input) => {
           booking_type: 'adhyayan',
           details: {
             shibir_ids: [primaryData.adhyayan.id],
-            guests: primaryData.guestGroup.map((guest) => guest.cardno),
+            guests: primaryData.guestGroup.map((guest: GuestPersonRef) => guest.cardno),
           },
         };
       case 'flat':
@@ -163,7 +301,7 @@ export const prepareGuestRequestBody = (user, input) => {
           booking_type: 'utsav',
           details: {
             utsavid: primaryData.utsav.utsav_id,
-            guests: primaryData.guests.map((guest) => {
+            guests: primaryData.guests.map((guest: GuestUtsavPerson) => {
               return {
                 cardno: guest.cardno,
                 packageid: guest.package,
@@ -180,10 +318,10 @@ export const prepareGuestRequestBody = (user, input) => {
     }
   };
 
-  const transformAddons = (input) =>
+  const transformAddons = (input: Record<string, any>): GuestBookingRequestItem[] =>
     Object.keys(input)
       .filter((key) => key !== input.primary && key !== 'primary')
-      .map((key) => {
+      .map((key): GuestBookingRequestItem | null => {
         switch (key) {
           case 'room':
             return {
@@ -208,7 +346,7 @@ export const prepareGuestRequestBody = (user, input) => {
               booking_type: key,
               details: {
                 shibir_ids: [input[key].adhyayan.id],
-                guests: input[key].guests.map((guest) => guest.cardno),
+                guests: input[key].guests.map((guest: GuestPersonRef) => guest.cardno),
               },
             };
           case 'validationData':
@@ -217,30 +355,39 @@ export const prepareGuestRequestBody = (user, input) => {
             throw new Error(`Unsupported addon type: ${key}`);
         }
       })
-      .filter(Boolean);
+      .filter((item): item is GuestBookingRequestItem => item !== null);
 
   return {
     cardno: user.cardno,
-    primary_booking: primaryBookingDetails(input.primary),
-    addons: transformAddons(input),
+    primary_booking: primaryBookingDetails(data.primary),
+    addons: transformAddons(data),
   };
 };
 
-export const prepareMumukshuRequestBody = (user, input) => {
+// ---------------------------------------------------------------------------
+// Mumukshu builder
+// ---------------------------------------------------------------------------
+
+export const prepareMumukshuRequestBody = (
+  user: RequestUser,
+  mumukshuData: BookingSliceInput
+): MumukshuRequestBody => {
   const metadataFields = [
     'validationData',
     'dismissedValidationError',
     'errorAlreadyShown',
     'errorMessage',
   ];
-  const bookingInput = { ...input };
+  const bookingInput = { ...mumukshuData } as Record<string, any>;
   metadataFields.forEach((field) => {
     if (bookingInput[field]) delete bookingInput[field];
   });
 
-  const transformMumukshuGroup = (mumukshuGroup) =>
-    mumukshuGroup.map((group) => {
-      const transformed = {};
+  const transformMumukshuGroup = (
+    mumukshuGroup: MumukshuGroupInputItem[]
+  ): MumukshuGroupResultItem[] =>
+    mumukshuGroup.map((group): MumukshuGroupResultItem => {
+      const transformed: MumukshuGroupTransformed = {};
       if (group.cardno) return group.cardno;
       if (group.roomType) transformed.roomType = group.roomType;
       if (group.floorType && group.floorType !== 'n') transformed.floorType = group.floorType;
@@ -261,7 +408,9 @@ export const prepareMumukshuRequestBody = (user, input) => {
           const mumukshuWithLuggage = group.mumukshus.find((m) => m.luggage);
           if (mumukshuWithLuggage)
             transformed.luggage =
-              mumukshuWithLuggage.luggage.length > 0 ? mumukshuWithLuggage.luggage.join(', ') : '';
+              mumukshuWithLuggage.luggage!.length > 0
+                ? mumukshuWithLuggage.luggage!.join(', ')
+                : '';
         }
         if (!group.type) {
           const mumukshuWithType = group.mumukshus.find((m) => m.type);
@@ -301,7 +450,7 @@ export const prepareMumukshuRequestBody = (user, input) => {
       return transformed;
     });
 
-  const primaryBookingDetails = (primaryKey) => {
+  const primaryBookingDetails = (primaryKey: string): MumukshuBookingRequestItem => {
     const primaryData = bookingInput[primaryKey];
 
     switch (primaryKey) {
@@ -353,7 +502,7 @@ export const prepareMumukshuRequestBody = (user, input) => {
           booking_type: 'utsav',
           details: {
             utsavid: primaryData.utsav.utsav_id,
-            mumukshus: primaryData.mumukshus.map((mumukshu) => {
+            mumukshus: primaryData.mumukshus.map((mumukshu: MumukshuUtsavInputPerson) => {
               return {
                 cardno: mumukshu.cardno,
                 packageid: mumukshu.package,
@@ -370,10 +519,10 @@ export const prepareMumukshuRequestBody = (user, input) => {
     }
   };
 
-  const transformAddons = (input) =>
+  const transformAddons = (input: Record<string, any>): MumukshuBookingRequestItem[] =>
     Object.keys(input)
       .filter((key) => key !== input.primary && key !== 'primary')
-      .map((key) => {
+      .map((key): MumukshuBookingRequestItem | null => {
         switch (key) {
           case 'room':
             return {
@@ -398,7 +547,7 @@ export const prepareMumukshuRequestBody = (user, input) => {
               booking_type: key,
               details: {
                 shibir_ids: [input[key].adhyayan.id],
-                mumukshus: input[key].mumukshus.map((mumukshu) => mumukshu.cardno),
+                mumukshus: input[key].mumukshus.map((mumukshu: MumukshuMember) => mumukshu.cardno),
               },
             };
           case 'travel':
@@ -415,7 +564,7 @@ export const prepareMumukshuRequestBody = (user, input) => {
               details: {
                 checkin_date: input[key].startDay,
                 checkout_date: input[key].endDay,
-                mumukshus: input[key].mumukshus.map((mumukshu) => mumukshu.cardno),
+                mumukshus: input[key].mumukshus.map((mumukshu: MumukshuMember) => mumukshu.cardno),
               },
             };
           case 'validationData':
@@ -428,7 +577,8 @@ export const prepareMumukshuRequestBody = (user, input) => {
             throw new Error(`Unsupported mumukshu addon type: ${key}`);
         }
       })
-      .filter(Boolean);
+      .filter((item): item is MumukshuBookingRequestItem => item !== null);
+
   return {
     cardno: user.cardno,
     primary_booking: primaryBookingDetails(bookingInput.primary),
