@@ -21,7 +21,6 @@ import Toast from 'react-native-toast-message';
 import moment from 'moment';
 import * as Haptics from 'expo-haptics';
 import CustomAlert from '../CustomAlert';
-import Callout from '../Callout';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
@@ -62,20 +61,6 @@ const FoodBooking = () => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
-
-  const BookingNote = () => (
-    // <View className="mb-2 flex-row items-start gap-x-3 rounded-lg border border-amber-300 bg-amber-50 p-3">
-    //   <FontAwesome name="info-circle" size={16} color="#b45309" style={{ alignSelf: 'center' }} />
-    //   <Text className="flex-1 font-pregular text-sm text-amber-800">
-
-    //   </Text>
-    // </View>
-
-    <Callout
-      variant="warning"
-      message="Bookings must be made before 11 AM of the previous day for upcoming meals."
-    />
-  );
 
   const [selectedChip, setSelectedChip] = useState('Self');
   const handleChipClick = (chip: any) => {
@@ -212,10 +197,9 @@ const FoodBooking = () => {
         showsVerticalScrollIndicator={false}
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled">
-        <BookingNote />
         <Text className="font-pmedium text-base text-gray-600">Meal Dates</Text>
         <Text className="mb-1 font-pregular text-sm text-gray-500">
-          Select the first and last day you'd like meals for.
+          Bookings must be made before 11 AM of the previous day for upcoming meals.
         </Text>
         <CustomCalender
           type={'period'}
