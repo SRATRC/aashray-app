@@ -18,6 +18,7 @@ import GuestTravelBookingDetails from '@/src/components/booking details cards/Gu
 import GuestRoomAddon from '@/src/components/booking addons/GuestRoomAddon';
 import GuestFoodAddon from '@/src/components/booking addons/GuestFoodAddon';
 import GuestAdhyayanAddon from '@/src/components/booking addons/GuestAdhyayanAddon';
+import GuestTravelAddon from '@/src/components/booking addons/GuestTravelAddon';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '@/src/components/CustomModal';
 import GuestEventBookingDetails from '@/src/components/booking details cards/GuestEventBookingDetails';
@@ -58,6 +59,34 @@ const createInitialAdhyayanForm = (existingData: any = null) => ({
   guestIndices: existingData?.guestIndices || [],
 });
 
+const EMPTY_TRAVEL_RETURN_LEG = {
+  pickup: '',
+  drop: '',
+  type: '',
+  luggage: [],
+  arrival_time: '',
+};
+
+const createInitialTravelForm = (existingData: any = null) => ({
+  date: existingData?.date || '',
+  return_date: existingData?.return_date || '',
+  returnLeg: existingData?.returnLeg || EMPTY_TRAVEL_RETURN_LEG,
+  returnEdited: existingData?.returnEdited || false,
+  guestGroup: existingData?.guestGroup || [
+    {
+      pickup: '',
+      drop: '',
+      arrival_time: '',
+      luggage: [],
+      type: dropdowns.BOOKING_TYPE_LIST[0].value,
+      total_people: null,
+      special_request: '',
+      guests: [],
+      guestIndices: [],
+    },
+  ],
+});
+
 const GuestAddons = () => {
   const { booking } = useLocalSearchParams();
 
@@ -72,6 +101,7 @@ const GuestAddons = () => {
   const [addonOpen, setAddonOpen] = useState({
     room: false,
     food: false,
+    travel: false,
   });
 
   // Get all guests from existing data
@@ -133,7 +163,18 @@ const GuestAddons = () => {
     // Create adhyayan form
     const adhyayanFormInitial = createInitialAdhyayanForm(guestData.adhyayan);
 
-    return { roomFormInitial, foodFormInitial, adhyayanFormInitial };
+    // Create travel form with dates from any existing booking
+    const travelFormInitial = {
+      ...createInitialTravelForm(guestData.travel),
+      date: guestData.travel?.date || getInitialDates.startDate,
+      return_date:
+        guestData.travel?.return_date ||
+        (getInitialDates.endDate && getInitialDates.endDate !== getInitialDates.startDate
+          ? getInitialDates.endDate
+          : ''),
+    };
+
+    return { roomFormInitial, foodFormInitial, adhyayanFormInitial, travelFormInitial };
   }, [guestData, getInitialDates]);
 
   // Initialize forms with existing data if available
@@ -142,6 +183,7 @@ const GuestAddons = () => {
   const [roomForm, setRoomForm] = useState(initialForms.roomFormInitial);
   const [foodForm, setFoodForm] = useState(initialForms.foodFormInitial);
   const [adhyayanForm, setAdhyayanForm] = useState(initialForms.adhyayanFormInitial);
+  const [travelForm, setTravelForm] = useState(initialForms.travelFormInitial);
 
   // Update forms when guestData changes (for prefilling)
   useEffect(() => {
@@ -198,6 +240,21 @@ const GuestAddons = () => {
     if (guestData.adhyayan) {
       setAdhyayanForm(createInitialAdhyayanForm(guestData.adhyayan));
     }
+
+    // Update travel form with cross-referenced date
+    if (guestData.travel) {
+      setTravelForm((prev) => ({
+        ...createInitialTravelForm(guestData.travel),
+        date: guestData.travel.date || startDate,
+      }));
+    } else if (startDate) {
+      // If travel data doesn't exist but we have date from other bookings
+      setTravelForm((prev) => ({
+        ...prev,
+        date: prev.date || startDate,
+        return_date: prev.return_date || (endDate && endDate !== startDate ? endDate : ''),
+      }));
+    }
   }, [guestData]);
 
   const toggleAddon = useCallback((addonType: any, isOpen: any) => {
@@ -211,6 +268,7 @@ const GuestAddons = () => {
     foodStart: false,
     foodEnd: false,
     travel: false,
+    travel_time: false,
   });
 
   const toggleDatePicker = useCallback((pickerType: string, isVisible: boolean) => {
@@ -277,6 +335,9 @@ const GuestAddons = () => {
           }
           if (booking !== types.FLAT_DETAILS_TYPE) {
             delete cleanedData.flat;
+          }
+          if (booking !== types.TRAVEL_DETAILS_TYPE) {
+            delete cleanedData.travel;
           }
 
           // Always remove food addon as it's never a main booking type
@@ -417,6 +478,71 @@ const GuestAddons = () => {
     [guests]
   );
 
+  // Travel form handling functions
+  const resetTravelForm = useCallback(() => {
+    setTravelForm(createInitialTravelForm());
+    setGuestData((prev: any) => {
+      const { travel, ...rest } = prev;
+      return rest;
+    });
+  }, [setGuestData]);
+
+  const addTravelForm = useCallback(() => {
+    setTravelForm((prevTravelForm) => ({
+      ...prevTravelForm,
+      guestGroup: [
+        ...prevTravelForm.guestGroup,
+        {
+          pickup: '',
+          drop: '',
+          arrival_time: '',
+          luggage: [],
+          type: dropdowns.BOOKING_TYPE_LIST[0].value,
+          total_people: null,
+          special_request: '',
+          guests: [],
+          guestIndices: [],
+        },
+      ],
+    }));
+  }, []);
+
+  const removeTravelForm = useCallback((indexToRemove: any) => {
+    return () => {
+      setTravelForm((prevTravelForm) => {
+        const updatedGuestGroup = [...prevTravelForm.guestGroup];
+        updatedGuestGroup.splice(indexToRemove, 1);
+        return {
+          ...prevTravelForm,
+          guestGroup: updatedGuestGroup,
+        };
+      });
+    };
+  }, []);
+
+  const updateTravelForm = useCallback(
+    (groupIndex: any, key: any, value: any) => {
+      setTravelForm((prevTravelForm) => {
+        const updatedGuestGroup = [...prevTravelForm.guestGroup];
+
+        if (key === 'guests') {
+          updatedGuestGroup[groupIndex].guestIndices = value;
+          updatedGuestGroup[groupIndex].guests = guests.filter((_: any, i: any) =>
+            value.includes(i)
+          );
+        } else {
+          updatedGuestGroup[groupIndex][key] = value;
+        }
+
+        return {
+          ...prevTravelForm,
+          guestGroup: updatedGuestGroup,
+        };
+      });
+    },
+    [guests]
+  );
+
   // Form validation functions
   const validateRoomForm = useCallback(() => {
     const hasEmptyFields = roomForm.guestGroup.some(
@@ -436,6 +562,23 @@ const GuestAddons = () => {
     return Object.keys(adhyayanForm.adhyayan).length !== 0 && adhyayanForm.guests.length !== 0;
   }, [adhyayanForm]);
 
+  const validateTravelForm = useCallback(() => {
+    const otherLocation = dropdowns.LOCATION_LIST.find((loc) => loc.key === 'other');
+    const hasEmptyFields = travelForm.guestGroup.some(
+      (group: any) =>
+        !group.pickup ||
+        !group.drop ||
+        group.guests.length === 0 ||
+        group.luggage.length === 0 ||
+        (group.pickup === otherLocation?.value && group.special_request.trim() === '') ||
+        (group.drop === otherLocation?.value && group.special_request.trim() === '') ||
+        (group.pickup == 'Research Centre' && group.drop == 'Research Centre') ||
+        (group.pickup != 'Research Centre' && group.drop != 'Research Centre') ||
+        (group.type == dropdowns.BOOKING_TYPE_LIST[1].value && !group.total_people)
+    );
+    return !hasEmptyFields && travelForm.date;
+  }, [travelForm]);
+
   // Check if forms are not empty (have user input)
   const isRoomFormEmpty = useCallback(() => {
     return roomForm.guestGroup.some(
@@ -452,6 +595,16 @@ const GuestAddons = () => {
   const isAdhyayanFormEmpty = useCallback(() => {
     return Object.keys(adhyayanForm.adhyayan).length > 0 || adhyayanForm.guests.length > 0;
   }, [adhyayanForm]);
+
+  const isTravelFormEmpty = useCallback(() => {
+    return travelForm.guestGroup.some(
+      (group: any) =>
+        group.pickup !== '' ||
+        group.drop !== '' ||
+        group.luggage.length == 0 ||
+        group.guests.length > 0
+    );
+  }, [travelForm]);
 
   // Form submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -491,6 +644,16 @@ const GuestAddons = () => {
       setGuestData((prev: any) => ({ ...prev, adhyayan: adhyayanForm }));
     }
 
+    // Validate and set Travel Form data
+    if (booking !== types.TRAVEL_DETAILS_TYPE && addonOpen.travel) {
+      if (!validateTravelForm()) {
+        CustomAlert.alert('Please fill all travel fields');
+        hasValidationError = true;
+        return;
+      }
+      setGuestData((prev: any) => ({ ...prev, travel: travelForm }));
+    }
+
     // If no validation errors, navigate to confirmation page
     if (!hasValidationError) {
       router.push('/guestBooking/bookingReview');
@@ -499,15 +662,19 @@ const GuestAddons = () => {
     setIsSubmitting(false);
   }, [
     booking,
+    addonOpen,
     isRoomFormEmpty,
     isFoodFormEmpty,
     isAdhyayanFormEmpty,
+    isTravelFormEmpty,
     validateRoomForm,
     validateFoodForm,
     validateAdhyayanForm,
+    validateTravelForm,
     roomForm,
     foodForm,
     adhyayanForm,
+    travelForm,
     setGuestData,
     router,
   ]);
@@ -588,6 +755,22 @@ const GuestAddons = () => {
               updateAdhyayanForm={updateAdhyayanForm}
               INITIAL_ADHYAYAN_FORM={createInitialAdhyayanForm()}
               guest_dropdown={guest_dropdown}
+            />
+          )}
+
+          {/* GUEST TRAVEL BOOKING COMPONENT */}
+          {booking !== types.TRAVEL_DETAILS_TYPE && (
+            <GuestTravelAddon
+              travelForm={travelForm}
+              setTravelForm={setTravelForm}
+              addTravelForm={addTravelForm}
+              updateTravelForm={updateTravelForm}
+              resetTravelForm={resetTravelForm}
+              removeTravelForm={removeTravelForm}
+              guest_dropdown={guest_dropdown}
+              isDatePickerVisible={isDatePickerVisible}
+              setDatePickerVisibility={toggleDatePicker}
+              onToggle={(isOpen) => toggleAddon('travel', isOpen)}
             />
           )}
         </View>
