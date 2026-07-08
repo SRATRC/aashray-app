@@ -135,6 +135,6 @@ export const apiClient = {
     request<T>('put', endpoint, body, config),
   patch: <T>(endpoint: string, body?: unknown, config?: RequestConfig) =>
     request<T>('patch', endpoint, body, config),
-  del: <T>(endpoint: string, config?: RequestConfig) =>
-    request<T>('delete', endpoint, undefined, config),
+  del: <T>(endpoint: string, body?: unknown, config?: RequestConfig) =>
+    request<T>('delete', endpoint, body, config),
 };

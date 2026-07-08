@@ -82,12 +82,10 @@ export function getBookedAdhyayan(cardno: string, page: number) {
   return apiClient.get<{ data: unknown[] }>('/adhyayan/getbooked', { params: { cardno, page } });
 }
 
-// DELETE /adhyayan/cancel — NOTE: `apiClient.del` (like the legacy
-// `handleAPICall` DELETE branch it replaces) has no request-body support, so
-// identifiers are sent as query params instead of JSON body. See task report
-// for the discrepancy this surfaces vs. current production traffic.
+// DELETE /adhyayan/cancel — bookingid is sent in the request BODY (the backend
+// reads `req.body.bookingid`), matching the original handleAPICall usage.
 export function cancelAdhyayan(cardno: string, bookingid: string) {
-  return apiClient.del('/adhyayan/cancel', { params: { cardno, bookingid } });
+  return apiClient.del('/adhyayan/cancel', { cardno, bookingid });
 }
 
 // GET /utsav/booking — allowToast:false, matching EventBookingCancellation.tsx
@@ -99,9 +97,9 @@ export function getUtsavBookings(cardno: string | undefined, page: number) {
   });
 }
 
-// DELETE /utsav/booking — allowToast:false; see cancelAdhyayan note re: body.
+// DELETE /utsav/booking — bookingid in the request BODY (backend reads req.body).
 export function cancelUtsavBooking(cardno: string, bookingid: string) {
-  return apiClient.del('/utsav/booking', { params: { cardno, bookingid }, allowToast: false });
+  return apiClient.del('/utsav/booking', { cardno, bookingid }, { allowToast: false });
 }
 
 // GET /travel/booking — allowToast:false, matching TravelBookingCancellation.tsx.
@@ -112,9 +110,9 @@ export function getTravelBookings(cardno: string, page: number) {
   });
 }
 
-// DELETE /travel/booking — allowToast:false; see cancelAdhyayan note re: body.
+// DELETE /travel/booking — bookingid in the request BODY (backend reads req.body).
 export function cancelTravelBooking(cardno: string, bookingid: string) {
-  return apiClient.del('/travel/booking', { params: { cardno, bookingid }, allowToast: false });
+  return apiClient.del('/travel/booking', { cardno, bookingid }, { allowToast: false });
 }
 
 // GET /food/get — response body is `{data: [...]}`.

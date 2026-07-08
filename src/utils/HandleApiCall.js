@@ -20,7 +20,7 @@ const handleAPICall = async (
     if (m === 'get') {
       data = await apiClient.get(endpoint, { params, allowToast });
     } else if (m === 'delete') {
-      data = await apiClient.del(endpoint, { params, allowToast });
+      data = await apiClient.del(endpoint, body, { params, allowToast });
     } else {
       data = await apiClient[m](endpoint, body, { params, allowToast });
     }
