@@ -4,17 +4,17 @@ import React, { useState } from 'react';
 import { View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
-import CustomAlert from '../CustomAlert';
-import CustomButton from '../CustomButton';
-import CustomCalender from '../CustomCalender';
-import CustomChipGroup from '../CustomChipGroup';
-import GuestForm from '../GuestForm';
-import OtherMumukshuForm from '../OtherMumukshuForm';
+import { createGuests } from '../../api';
 
+import CustomAlert from '@/components/CustomAlert';
+import CustomButton from '@/components/CustomButton';
+import CustomCalender from '@/components/CustomCalender';
+import CustomChipGroup from '@/components/CustomChipGroup';
+import GuestForm from '@/components/GuestForm';
+import OtherMumukshuForm from '@/components/OtherMumukshuForm';
 import { types } from '@/constants';
 import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 import { useAuthStore, useBookingStore } from '@/stores';
-import handleAPICall from '@/utils/HandleApiCall';
 
 const CHIPS = ['Mumukshus', 'Guest'];
 const INITIAL_MUMUKSHU_FORM = {
@@ -243,61 +243,52 @@ const FlatBooking = () => {
                 return;
               }
 
-              await handleAPICall(
-                'POST',
-                '/guest',
-                null,
-                {
-                  cardno: user.cardno,
-                  guests: guestForm.guests,
-                },
-                async (res: any) => {
-                  // Store guest information (cardno and name/issuedto) in the store
-                  const guestInfoArray = res.guests.map((apiGuest: any) => ({
-                    cardno: apiGuest.cardno,
-                    name: apiGuest.issuedto || apiGuest.name,
-                  }));
-                  setGuestInfo(guestInfoArray);
+              try {
+                const registeredGuests: any[] = await createGuests(user.cardno, guestForm.guests);
+                // Store guest information (cardno and name/issuedto) in the store
+                const guestInfoArray = registeredGuests.map((apiGuest: any) => ({
+                  cardno: apiGuest.cardno,
+                  name: apiGuest.issuedto || apiGuest.name,
+                }));
+                setGuestInfo(guestInfoArray);
 
-                  const updatedGuests = guestForm.guests.map((formGuest) => {
-                    const matchingApiGuest = res.guests.find(
-                      (apiGuest: any) =>
-                        apiGuest.issuedto === formGuest.name || apiGuest.name === formGuest.name
-                    );
-                    return matchingApiGuest ? matchingApiGuest.cardno : (formGuest as any).cardno;
+                const updatedGuests = guestForm.guests.map((formGuest) => {
+                  const matchingApiGuest = registeredGuests.find(
+                    (apiGuest: any) =>
+                      apiGuest.issuedto === formGuest.name || apiGuest.name === formGuest.name
+                  );
+                  return matchingApiGuest ? matchingApiGuest.cardno : (formGuest as any).cardno;
+                });
+
+                // Create the updated form object directly
+                const updatedGuestForm = {
+                  ...guestForm,
+                  guests: updatedGuests,
+                };
+
+                // Update the state
+                await new Promise((resolve) => {
+                  setGuestForm(() => {
+                    const newForm = updatedGuestForm;
+                    resolve(newForm);
+                    return newForm;
                   });
+                });
 
-                  // Create the updated form object directly
-                  const updatedGuestForm = {
-                    ...guestForm,
-                    guests: updatedGuests,
-                  };
+                // Transform and save guest flat booking data
+                const transformedData = {
+                  startDay: updatedGuestForm.startDay,
+                  endDay: updatedGuestForm.endDay,
+                  guests: updatedGuestForm.guests,
+                };
 
-                  // Update the state
-                  await new Promise((resolve) => {
-                    setGuestForm(() => {
-                      const newForm = updatedGuestForm;
-                      resolve(newForm);
-                      return newForm;
-                    });
-                  });
-
-                  // Transform and save guest flat booking data
-                  const transformedData = {
-                    startDay: updatedGuestForm.startDay,
-                    endDay: updatedGuestForm.endDay,
-                    guests: updatedGuestForm.guests,
-                  };
-
-                  await updateGuestBooking('flat', transformedData);
-                  setGuestForm(INITIAL_GUEST_FORM);
-                  router.push(`/guestBooking/${types.FLAT_DETAILS_TYPE}`);
-                  setIsSubmitting(false);
-                },
-                () => {
-                  setIsSubmitting(false);
-                }
-              );
+                await updateGuestBooking('flat', transformedData);
+                setGuestForm(INITIAL_GUEST_FORM);
+                router.push(`/guestBooking/${types.FLAT_DETAILS_TYPE}`);
+                setIsSubmitting(false);
+              } catch {
+                setIsSubmitting(false);
+              }
             }
           }}
           containerStyles="mt-7 min-h-[62px]"

@@ -3,20 +3,20 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
-import CustomAlert from '../CustomAlert';
-import CustomModal from '../CustomModal';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import GuestForm from '../GuestForm';
-import OtherMumukshuForm from '../OtherMumukshuForm';
+import { createGuests, submitGuestBooking, submitMumukshuBooking } from '../../api';
 
+import CustomAlert from '@/components/CustomAlert';
 import CustomButton from '@/components/CustomButton';
 import CustomCalender from '@/components/CustomCalender';
 import CustomChipGroup from '@/components/CustomChipGroup';
+import CustomModal from '@/components/CustomModal';
+import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
+import GuestForm from '@/components/GuestForm';
+import OtherMumukshuForm from '@/components/OtherMumukshuForm';
 import SegmentedControl from '@/components/SegmentedControl';
 import { types, dropdowns, status } from '@/constants';
 import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 import { useAuthStore, useBookingStore } from '@/stores';
-import handleAPICall from '@/utils/HandleApiCall';
 
 const SWITCH_OPTIONS = ['Select Dates', 'One Day Visit'];
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
@@ -485,57 +485,51 @@ const RoomBooking = () => {
                         setModalMessage('Please fill all fields');
                         setModalVisible(true);
                       } else {
-                        await handleAPICall(
-                          'POST',
-                          '/guest',
-                          null,
-                          {
-                            cardno: user.cardno,
-                            guests: guestForm.guests,
-                          },
-                          async (res: any) => {
-                            const guestInfoArray = res.guests.map((apiGuest: any) => ({
-                              cardno: apiGuest.cardno,
-                              name: apiGuest.issuedto || apiGuest.name,
-                            }));
-                            setGuestInfo(guestInfoArray);
+                        try {
+                          const registeredGuests: any[] = await createGuests(
+                            user.cardno,
+                            guestForm.guests
+                          );
+                          const guestInfoArray = registeredGuests.map((apiGuest: any) => ({
+                            cardno: apiGuest.cardno,
+                            name: apiGuest.issuedto || apiGuest.name,
+                          }));
+                          setGuestInfo(guestInfoArray);
 
-                            const updatedGuests = guestForm.guests.map((formGuest) => {
-                              const matchingApiGuest = res.guests.find(
-                                (apiGuest: any) => apiGuest.issuedto === formGuest.name
-                              );
-                              return matchingApiGuest
-                                ? { ...formGuest, cardno: matchingApiGuest.cardno }
-                                : formGuest;
+                          const updatedGuests = guestForm.guests.map((formGuest) => {
+                            const matchingApiGuest = registeredGuests.find(
+                              (apiGuest: any) => apiGuest.issuedto === formGuest.name
+                            );
+                            return matchingApiGuest
+                              ? { ...formGuest, cardno: matchingApiGuest.cardno }
+                              : formGuest;
+                          });
+
+                          // Create the updated form object directly
+                          const updatedGuestForm = {
+                            ...guestForm,
+                            guests: updatedGuests,
+                          };
+
+                          // Update the state
+                          await new Promise((resolve) => {
+                            setGuestForm((prev) => {
+                              const newForm = updatedGuestForm;
+                              resolve(newForm);
+                              return newForm;
                             });
+                          });
 
-                            // Create the updated form object directly
-                            const updatedGuestForm = {
-                              ...guestForm,
-                              guests: updatedGuests,
-                            };
+                          // Use the updated form object directly, not the state
+                          const temp = transformGuestApiResponse(updatedGuestForm);
 
-                            // Update the state
-                            await new Promise((resolve) => {
-                              setGuestForm((prev) => {
-                                const newForm = updatedGuestForm;
-                                resolve(newForm);
-                                return newForm;
-                              });
-                            });
-
-                            // Use the updated form object directly, not the state
-                            const temp = transformGuestApiResponse(updatedGuestForm);
-
-                            updateGuestBooking('room', temp);
-                            setIsSubmitting(false);
-                            setGuestForm(INITIAL_GUEST_FORM);
-                            router.push(`/guestBooking/${types.ROOM_DETAILS_TYPE}`);
-                          },
-                          () => {
-                            setIsSubmitting(false);
-                          }
-                        );
+                          updateGuestBooking('room', temp);
+                          setIsSubmitting(false);
+                          setGuestForm(INITIAL_GUEST_FORM);
+                          router.push(`/guestBooking/${types.ROOM_DETAILS_TYPE}`);
+                        } catch {
+                          setIsSubmitting(false);
+                        }
                       }
                     }}
                     containerStyles="mt-7 min-h-[62px]"
@@ -660,19 +654,8 @@ const RoomBooking = () => {
                   setIsSubmitting(true);
 
                   if (selectedChip === CHIPS[0]) {
-                    const onSuccess = (_data: any) => {
-                      CustomAlert.alert('Booking Successful');
-                    };
-
-                    const onFinally = () => {
-                      setIsSubmitting(false);
-                    };
-
-                    await handleAPICall(
-                      'POST',
-                      '/mumukshu/booking',
-                      null,
-                      {
+                    try {
+                      await submitMumukshuBooking({
                         cardno: user.cardno,
                         primary_booking: {
                           booking_type: 'room',
@@ -688,11 +671,13 @@ const RoomBooking = () => {
                             ],
                           },
                         },
-                      },
-                      onSuccess,
-                      onFinally,
-                      () => {}
-                    );
+                      });
+                      CustomAlert.alert('Booking Successful');
+                    } catch {
+                      // apiClient already surfaces the error toast/haptic
+                    } finally {
+                      setIsSubmitting(false);
+                    }
                   }
 
                   if (selectedChip === CHIPS[1]) {
@@ -710,66 +695,38 @@ const RoomBooking = () => {
                       mobno: guest.mobno ? guest.mobno : null,
                     }));
 
-                    await handleAPICall(
-                      'POST',
-                      '/guest',
-                      null,
-                      {
-                        cardno: user.cardno,
-                        guests,
-                      },
-                      async (res: any) => {
-                        const updatedGuests = res.guests.map((guest: any) => guest.cardno);
+                    try {
+                      const registeredGuests: any[] = await createGuests(user.cardno, guests);
+                      const updatedGuests = registeredGuests.map((guest: any) => guest.cardno);
 
-                        await handleAPICall(
-                          'POST',
-                          '/guest/booking',
-                          null,
-                          {
-                            cardno: user.cardno,
-                            primary_booking: {
-                              booking_type: 'room',
-                              details: {
-                                checkin_date: selectedDay,
-                                checkout_date: selectedDay,
-                                guestGroup: [
-                                  {
-                                    roomType: 'nac',
-                                    floorType: '',
-                                    guests: updatedGuests,
-                                  },
-                                ],
+                      await submitGuestBooking({
+                        cardno: user.cardno,
+                        primary_booking: {
+                          booking_type: 'room',
+                          details: {
+                            checkin_date: selectedDay,
+                            checkout_date: selectedDay,
+                            guestGroup: [
+                              {
+                                roomType: 'nac',
+                                floorType: '',
+                                guests: updatedGuests,
                               },
-                            },
+                            ],
                           },
-                          (_data: any) => {
-                            CustomAlert.alert('Booking Successful');
-                          },
-                          () => {
-                            setIsSubmitting(false);
-                          }
-                        );
-                      },
-                      () => {
-                        setIsSubmitting(false);
-                      }
-                    );
+                        },
+                      });
+                      CustomAlert.alert('Booking Successful');
+                    } catch {
+                      // apiClient already surfaces the error toast/haptic
+                    } finally {
+                      setIsSubmitting(false);
+                    }
                   }
 
                   if (selectedChip === CHIPS[2]) {
-                    const onSuccess = (_data: any) => {
-                      CustomAlert.alert('Booking Successful');
-                    };
-
-                    const onFinally = () => {
-                      setIsSubmitting(false);
-                    };
-
-                    await handleAPICall(
-                      'POST',
-                      '/mumukshu/booking',
-                      null,
-                      {
+                    try {
+                      await submitMumukshuBooking({
                         cardno: user.cardno,
                         primary_booking: {
                           booking_type: 'room',
@@ -787,10 +744,13 @@ const RoomBooking = () => {
                             ],
                           },
                         },
-                      },
-                      onSuccess,
-                      onFinally
-                    );
+                      });
+                      CustomAlert.alert('Booking Successful');
+                    } catch {
+                      // apiClient already surfaces the error toast/haptic
+                    } finally {
+                      setIsSubmitting(false);
+                    }
                   }
                 }}
                 containerStyles="mt-10 min-h-[62px]"
