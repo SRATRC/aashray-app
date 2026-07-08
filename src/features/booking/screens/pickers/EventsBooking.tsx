@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useInfiniteQuery } from '@tanstack/react-query';
 import { useRouter, useFocusEffect } from 'expo-router';
 import moment from 'moment';
 import { useCallback, useEffect, useState } from 'react';
@@ -17,20 +16,20 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import CustomAlert from '../CustomAlert';
-import CustomButton from '../CustomButton';
-import CustomChipGroup from '../CustomChipGroup';
-import CustomEmptyMessage from '../CustomEmptyMessage';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import FormField from '../FormField';
-import GuestForm from '../GuestForm';
-import OtherMumukshuForm from '../OtherMumukshuForm';
-import { ShadowBox } from '../ShadowBox';
+import { createGuests, useUtsavList } from '../../api';
 
+import CustomAlert from '@/components/CustomAlert';
+import CustomButton from '@/components/CustomButton';
+import CustomChipGroup from '@/components/CustomChipGroup';
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
+import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
+import FormField from '@/components/FormField';
+import GuestForm from '@/components/GuestForm';
+import OtherMumukshuForm from '@/components/OtherMumukshuForm';
+import { ShadowBox } from '@/components/ShadowBox';
 import { status, types } from '@/constants';
 import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 import { useAuthStore, useBookingStore } from '@/stores';
-import handleAPICall from '@/utils/HandleApiCall';
 
 const CHIPS = ['Self', 'Guest', 'Mumukshus'];
 const ARRIVAL = [
@@ -259,40 +258,8 @@ const EventBooking = () => {
     );
   };
 
-  const fetchUtsavs = async ({ pageParam = 1 }) => {
-    const cardno = user?.cardno;
-    if (!cardno) return [];
-    return new Promise((resolve, reject) => {
-      handleAPICall(
-        'GET',
-        '/utsav/upcoming',
-        {
-          cardno,
-          page: pageParam,
-        },
-        null,
-        (res: any) => {
-          resolve(Array.isArray(res.data) ? res.data : []);
-        },
-        undefined,
-        () => reject(new Error('Failed to fetch utsavs'))
-      );
-    });
-  };
-
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch }: any =
-    useInfiniteQuery({
-      queryKey: ['utsavs', user?.cardno],
-      queryFn: fetchUtsavs,
-      initialPageParam: 1,
-      staleTime: 1000 * 60 * 30,
-      getNextPageParam: (lastPage: any, pages: any) => {
-        if (!lastPage || !Array.isArray(lastPage) || lastPage.length === 0) return undefined;
-        return (pages?.length || 0) + 1;
-      },
-      enabled: !!user?.cardno,
-      gcTime: 1000 * 60 * 30,
-    });
+    useUtsavList();
 
   const renderItem = ({ item }: any) => (
     <ShadowBox className="mx-1 mb-2 mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white">
@@ -711,48 +678,40 @@ const EventBooking = () => {
                       }
 
                       if (guestForm.guests.filter((guest: any) => !guest.cardno).length > 0) {
-                        await handleAPICall(
-                          'POST',
-                          '/guest',
-                          null,
-                          {
-                            cardno: user.cardno,
-                            guests: guestForm.guests,
-                          },
-                          async (res: any) => {
-                            const mergedGuests = guestForm.guests.map(
-                              (guest: any, idx: number) => ({
-                                ...guest,
-                                ...(res.guests?.[idx] || {}),
-                              })
-                            );
+                        try {
+                          const registeredGuests: any[] = await createGuests(
+                            user.cardno,
+                            guestForm.guests
+                          );
+                          const mergedGuests = guestForm.guests.map((guest: any, idx: number) => ({
+                            ...guest,
+                            ...(registeredGuests?.[idx] || {}),
+                          }));
 
-                            const guestInfoArray = mergedGuests.map((apiGuest: any) => ({
-                              cardno: apiGuest.cardno,
-                              name: apiGuest.issuedto || apiGuest.name,
-                            }));
-                            setGuestInfo(guestInfoArray);
+                          const guestInfoArray = mergedGuests.map((apiGuest: any) => ({
+                            cardno: apiGuest.cardno,
+                            name: apiGuest.issuedto || apiGuest.name,
+                          }));
+                          setGuestInfo(guestInfoArray);
 
-                            setGuestForm((prev) => ({
-                              ...prev,
-                              guests: mergedGuests,
-                            }));
+                          setGuestForm((prev) => ({
+                            ...prev,
+                            guests: mergedGuests,
+                          }));
 
-                            await updateGuestBooking('utsav', {
-                              ...guestForm,
-                              guests: mergedGuests,
-                            });
+                          await updateGuestBooking('utsav', {
+                            ...guestForm,
+                            guests: mergedGuests,
+                          });
 
-                            setGuestForm(INITIAL_GUEST_FORM);
+                          setGuestForm(INITIAL_GUEST_FORM);
 
-                            if (selectedItem.utsav_location !== 'Research Centre')
-                              router.push('/guestBooking/bookingReview');
-                            else router.push(`/guestBooking/${types.EVENT_DETAILS_TYPE}`);
-                          },
-                          () => {
-                            setIsSubmitting(false);
-                          }
-                        );
+                          if (selectedItem.utsav_location !== 'Research Centre')
+                            router.push('/guestBooking/bookingReview');
+                          else router.push(`/guestBooking/${types.EVENT_DETAILS_TYPE}`);
+                        } catch {
+                          setIsSubmitting(false);
+                        }
                       } else {
                         const guestInfoArray = guestForm.guests.map((guest: any) => ({
                           cardno: guest.cardno,

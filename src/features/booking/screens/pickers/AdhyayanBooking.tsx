@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useInfiniteQuery } from '@tanstack/react-query';
 import { useRouter, useFocusEffect } from 'expo-router';
 import moment from 'moment';
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
@@ -17,19 +16,19 @@ import {
   SectionList,
 } from 'react-native';
 
-import CustomAlert from '../CustomAlert';
-import CustomButton from '../CustomButton';
-import CustomChipGroup from '../CustomChipGroup';
-import CustomEmptyMessage from '../CustomEmptyMessage';
-import GuestForm from '../GuestForm';
-import HorizontalSeparator from '../HorizontalSeparator';
-import OtherMumukshuForm from '../OtherMumukshuForm';
-import { ShadowBox } from '../ShadowBox';
+import { createGuests, useAdhyayanList } from '../../api';
 
+import CustomAlert from '@/components/CustomAlert';
+import CustomButton from '@/components/CustomButton';
+import CustomChipGroup from '@/components/CustomChipGroup';
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
+import GuestForm from '@/components/GuestForm';
+import HorizontalSeparator from '@/components/HorizontalSeparator';
+import OtherMumukshuForm from '@/components/OtherMumukshuForm';
+import { ShadowBox } from '@/components/ShadowBox';
 import { icons, status, types } from '@/constants';
 import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 import { useAuthStore, useBookingStore } from '@/stores';
-import handleAPICall from '@/utils/HandleApiCall';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
@@ -178,38 +177,8 @@ const AdhyayanBooking = () => {
     });
   };
 
-  const fetchAdhyayans: any = async ({ pageParam = 1 }) => {
-    return new Promise((resolve, reject) => {
-      handleAPICall(
-        'GET',
-        '/adhyayan/getall',
-        {
-          cardno: user.cardno,
-          page: pageParam,
-        },
-        null,
-        (res: any) => {
-          resolve(Array.isArray(res.data) ? res.data : []);
-        },
-        undefined,
-        () => reject(new Error('Failed to fetch adhyayans'))
-      );
-    });
-  };
-
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch }: any =
-    useInfiniteQuery({
-      queryKey: ['adhyayans', user?.cardno],
-      queryFn: fetchAdhyayans,
-      staleTime: 1000 * 60 * 5,
-      gcTime: 1000 * 60 * 5,
-      initialPageParam: 1,
-      getNextPageParam: (lastPage: any, pages: any) => {
-        if (!lastPage || !Array.isArray(lastPage) || lastPage.length === 0) return undefined;
-        return (pages?.length || 0) + 1;
-      },
-      enabled: !!user?.cardno,
-    });
+    useAdhyayanList(user?.cardno);
 
   const renderItem = ({ item }: { item: any }) => (
     <ShadowBox className="mb-2 mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white">
@@ -455,35 +424,29 @@ const AdhyayanBooking = () => {
                       }
 
                       if (guestForm.guests.filter((guest: any) => !guest.cardno).length > 0) {
-                        await handleAPICall(
-                          'POST',
-                          '/guest',
-                          null,
-                          {
-                            cardno: user.cardno,
-                            guests: guestForm.guests,
-                          },
-                          async (res: any) => {
-                            const guestInfoArray = res.guests.map((apiGuest: any) => ({
-                              cardno: apiGuest.cardno,
-                              name: apiGuest.issuedto || apiGuest.name,
-                            }));
-                            setGuestInfo(guestInfoArray);
+                        try {
+                          const registeredGuests: any[] = await createGuests(
+                            user.cardno,
+                            guestForm.guests
+                          );
+                          const guestInfoArray = registeredGuests.map((apiGuest: any) => ({
+                            cardno: apiGuest.cardno,
+                            name: apiGuest.issuedto || apiGuest.name,
+                          }));
+                          setGuestInfo(guestInfoArray);
 
-                            guestForm.guests = res.guests;
-                            const transformedData = transformGuestData(guestForm);
+                          guestForm.guests = registeredGuests;
+                          const transformedData = transformGuestData(guestForm);
 
-                            await updateGuestBooking('adhyayan', transformedData);
-                            setGuestForm(INITIAL_GUEST_FORM);
+                          await updateGuestBooking('adhyayan', transformedData);
+                          setGuestForm(INITIAL_GUEST_FORM);
 
-                            if (selectedItem.location !== 'Research Centre')
-                              router.push('/guestBooking/bookingReview');
-                            else router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
-                          },
-                          () => {
-                            setIsSubmitting(false);
-                          }
-                        );
+                          if (selectedItem.location !== 'Research Centre')
+                            router.push('/guestBooking/bookingReview');
+                          else router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
+                        } catch {
+                          setIsSubmitting(false);
+                        }
                       } else {
                         const guestInfoArray = guestForm.guests.map((apiGuest: any) => ({
                           cardno: apiGuest.cardno,
