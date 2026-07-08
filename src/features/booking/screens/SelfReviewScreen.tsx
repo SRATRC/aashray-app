@@ -42,7 +42,7 @@ const BookingReview = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPayLaterModal, setShowPayLaterModal] = useState(false);
 
-  const payload = prepareMumukshuRequestBody(user, mumukshuData);
+  const payload = mumukshuData?.primary ? prepareMumukshuRequestBody(user, mumukshuData) : null;
 
   const fetchValidation = useCallback(async () => {
     try {
@@ -62,16 +62,16 @@ const BookingReview = () => {
     queryKey: ['mumukshuConfirmationValidations', user.cardno, JSON.stringify(mumukshuData)],
     queryFn: fetchValidation,
     retry: false,
-    enabled: !!user.cardno,
+    enabled: !!user.cardno && !!payload,
   });
 
   // Force refetch validation when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      if (user.cardno) {
+      if (user.cardno && payload) {
         refetchValidation();
       }
-    }, [user.cardno, refetchValidation])
+    }, [user.cardno, payload, refetchValidation])
   );
 
   const handleCloseValidationModal = useCallback(() => {
@@ -79,6 +79,7 @@ const BookingReview = () => {
   }, [router]);
 
   const handlePayLater = async () => {
+    if (!payload) return;
     setShowPayLaterModal(false);
     setIsSubmitting(true);
 
@@ -345,6 +346,7 @@ const BookingReview = () => {
             <CustomButton
               text="Pay Now"
               handlePress={async () => {
+                if (!payload) return;
                 setIsSubmitting(true);
 
                 const onSuccess = (data: any) => {
@@ -403,6 +405,7 @@ const BookingReview = () => {
           <CustomButton
             text="Confirm"
             handlePress={async () => {
+              if (!payload) return;
               setIsSubmitting(true);
               try {
                 await submitMumukshuBooking(payload);

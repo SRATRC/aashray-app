@@ -102,7 +102,9 @@ const MumukshuBookingReview = () => {
   const roomChargeBottomSheetRef = useRef<BottomSheetModal>(null);
   const flatChargeBottomSheetRef = useRef<BottomSheetModal>(null);
 
-  const transformedData = prepareMumukshuRequestBody(user, mumukshuData);
+  const transformedData = mumukshuData?.primary
+    ? prepareMumukshuRequestBody(user, mumukshuData)
+    : null;
 
   const enrichRoomDetailsWithNames = (roomDetails: any[]) => {
     return roomDetails.map((item: any) => {
@@ -142,7 +144,7 @@ const MumukshuBookingReview = () => {
     queryKey: ['mumukshuConfirmationValidations', user.cardno, JSON.stringify(mumukshuData)],
     queryFn: fetchValidation,
     retry: false,
-    enabled: !!user.cardno,
+    enabled: !!user.cardno && !!transformedData,
   });
 
   // Enrich validation data with mumukshu names from stored form data (only for room and flat)
@@ -161,10 +163,10 @@ const MumukshuBookingReview = () => {
   // Force refetch validation when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      if (user.cardno) {
+      if (user.cardno && transformedData) {
         refetchValidation();
       }
-    }, [user.cardno, refetchValidation])
+    }, [user.cardno, transformedData, refetchValidation])
   );
 
   const handleCloseValidationModal = useCallback(() => {
@@ -172,6 +174,7 @@ const MumukshuBookingReview = () => {
   }, [router]);
 
   const handlePayLater = async () => {
+    if (!transformedData) return;
     setShowPayLaterModal(false);
     setIsSubmitting(true);
     const payLaterPayload = { ...transformedData, pay_later: true };
@@ -516,6 +519,7 @@ const MumukshuBookingReview = () => {
             <CustomButton
               text="Pay Now"
               handlePress={async () => {
+                if (!transformedData) return;
                 setIsSubmitting(true);
                 const onSuccess = (data: any) => {
                   if (data.order?.amount === 0) router.replace('/bookingConfirmation');
@@ -576,6 +580,7 @@ const MumukshuBookingReview = () => {
           <CustomButton
             text="Confirm Booking"
             handlePress={async () => {
+              if (!transformedData) return;
               setIsSubmitting(true);
               try {
                 await submitMumukshuBooking(transformedData);

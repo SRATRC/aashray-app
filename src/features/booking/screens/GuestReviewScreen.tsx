@@ -42,7 +42,7 @@ const GuestBookingReview = () => {
   const flatChargeBottomSheetRef = useRef<BottomSheetModal>(null);
 
   console.log('CONFIRM GUEST DATA: ', JSON.stringify(guestData));
-  const transformedData = prepareGuestRequestBody(user, guestData);
+  const transformedData = guestData?.primary ? prepareGuestRequestBody(user, guestData) : null;
   console.log('CONFIRM TRANSFORMED DATA: ', JSON.stringify(transformedData));
 
   const enrichRoomDetailsWithNames = (roomDetails: any[]) => {
@@ -85,7 +85,7 @@ const GuestBookingReview = () => {
     queryKey: ['guestConfirmationValidations', user.cardno, JSON.stringify(guestData)],
     queryFn: fetchValidation,
     retry: false,
-    enabled: !!user.cardno,
+    enabled: !!user.cardno && !!transformedData,
   });
 
   // Enrich validation data with guest names from stored form data (for room, adhyayan, and flat)
@@ -106,10 +106,10 @@ const GuestBookingReview = () => {
   // Force refetch validation when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      if (user.cardno) {
+      if (user.cardno && transformedData) {
         refetchValidation();
       }
-    }, [user.cardno, refetchValidation])
+    }, [user.cardno, transformedData, refetchValidation])
   );
 
   const handleCloseValidationModal = useCallback(() => {
@@ -117,6 +117,7 @@ const GuestBookingReview = () => {
   }, [router]);
 
   const handlePayLater = async () => {
+    if (!transformedData) return;
     setShowPayLaterModal(false);
     setIsSubmitting(true);
 
@@ -442,6 +443,7 @@ const GuestBookingReview = () => {
             <CustomButton
               text="Pay Now"
               handlePress={async () => {
+                if (!transformedData) return;
                 setIsSubmitting(true);
                 const onSuccess = (data: any) => {
                   if (data.data?.amount === 0) router.replace('/bookingConfirmation');
@@ -502,6 +504,7 @@ const GuestBookingReview = () => {
           <CustomButton
             text="Confirm Booking"
             handlePress={async () => {
+              if (!transformedData) return;
               setIsSubmitting(true);
               try {
                 await submitGuestBooking(transformedData);

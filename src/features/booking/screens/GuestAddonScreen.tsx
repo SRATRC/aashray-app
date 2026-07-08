@@ -215,11 +215,12 @@ const GuestAddons = () => {
 
   // Prepare API payload
   const transformedData = useMemo(() => {
-    return prepareGuestRequestBody(user, guestData);
+    return guestData?.primary ? prepareGuestRequestBody(user, guestData) : null;
   }, [user, guestData]);
 
   // Validation API call
   const fetchValidation = useCallback(async () => {
+    if (!transformedData) return null;
     try {
       const res = await validateGuestBooking(transformedData);
       setGuestData((prev: any) => ({ ...prev, validationData: res.data }));
@@ -233,7 +234,7 @@ const GuestAddons = () => {
     queryKey: ['guestValidations', user.cardno, JSON.stringify(guestData)],
     queryFn: fetchValidation,
     retry: false,
-    enabled: !!user.cardno && Object.keys(guestData).length > 0,
+    enabled: !!user.cardno && Object.keys(guestData).length > 0 && !!transformedData,
   });
 
   // Force refetch validation when screen comes into focus and clean up addons

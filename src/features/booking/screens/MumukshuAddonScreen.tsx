@@ -267,10 +267,11 @@ const MumukshuAddons = () => {
 
   // API validation state and handler
   const transformedData = useMemo(() => {
-    return prepareMumukshuRequestBody(user, mumukshuData);
+    return mumukshuData?.primary ? prepareMumukshuRequestBody(user, mumukshuData) : null;
   }, [user, mumukshuData]);
 
   const fetchValidation = useCallback(async () => {
+    if (!transformedData) return null;
     try {
       const res = await validateMumukshuBooking(transformedData);
       setMumukshuData((prev: any) => ({ ...prev, validationData: res.data }));
@@ -284,7 +285,7 @@ const MumukshuAddons = () => {
     queryKey: ['mumukshuValidations', user.cardno, JSON.stringify(mumukshuData)],
     queryFn: fetchValidation,
     retry: false,
-    enabled: !!user.cardno && Object.keys(mumukshuData).length > 0,
+    enabled: !!user.cardno && Object.keys(mumukshuData).length > 0 && !!transformedData,
   });
 
   // Force refetch validation when screen comes into focus and clean up addons
