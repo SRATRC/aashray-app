@@ -349,7 +349,7 @@ const UtsavDetailScreen = () => {
 
         // Transform self form to mumukshu format
         const mumukshuFormatData = transformSelfToMumukshu(user, selfForm, utsav);
-        await (updateMumukshuBooking as any)('utsav', mumukshuFormatData);
+        await updateMumukshuBooking('utsav', mumukshuFormatData);
         router.push(`/booking/${types.EVENT_DETAILS_TYPE}`);
       }
       if (selectedChip === CHIPS[1]) {
@@ -377,12 +377,12 @@ const UtsavDetailScreen = () => {
               JSON.stringify({ ...guestForm, guests: mergedGuests })
             );
 
-            await (updateGuestBooking as any)('utsav', {
+            await updateGuestBooking('utsav', {
               ...guestForm,
               guests: mergedGuests,
             });
 
-            await (updateGuestBooking as any)('utsav', guestForm);
+            await updateGuestBooking('utsav', guestForm);
             setGuestForm(INITIAL_GUEST_FORM);
 
             if (utsav.utsav_location !== 'Research Centre')
@@ -395,7 +395,7 @@ const UtsavDetailScreen = () => {
             // close via the fall-through at the end of this function.
           }
         } else {
-          await (updateGuestBooking as any)('utsav', guestForm);
+          await updateGuestBooking('utsav', guestForm);
           setGuestForm(INITIAL_GUEST_FORM);
           if (utsav.utsav_location !== 'Research Centre')
             router.push('/guestBooking/bookingReview');
@@ -415,7 +415,7 @@ const UtsavDetailScreen = () => {
           utsav,
         };
 
-        await (updateMumukshuBooking as any)('utsav', updatedForm);
+        await updateMumukshuBooking('utsav', updatedForm);
         router.push(`/mumukshuBooking/${types.EVENT_DETAILS_TYPE}`);
       }
       setSelectedChip('Self');

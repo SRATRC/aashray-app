@@ -266,7 +266,7 @@ const AdhyayanDetailScreen = () => {
       if (selectedChip === CHIPS[0]) {
         // Transform self booking to mumukshu format
         const mumukshuFormatData = transformSelfAdhyayanToMumukshu(user, adhyayan);
-        await (updateMumukshuBooking as any)('adhyayan', mumukshuFormatData);
+        await updateMumukshuBooking('adhyayan', mumukshuFormatData);
         if (adhyayan.location !== 'Research Centre') router.push('/booking/bookingReview');
         else router.push(`/booking/${types.ADHYAYAN_DETAILS_TYPE}`);
       }
@@ -291,7 +291,7 @@ const AdhyayanDetailScreen = () => {
               adhyayan,
             });
 
-            await (updateGuestBooking as any)('adhyayan', transformedData);
+            await updateGuestBooking('adhyayan', transformedData);
             setGuestForm(INITIAL_GUEST_FORM);
 
             if (adhyayan.location !== 'Research Centre') router.push('/guestBooking/bookingReview');
@@ -307,7 +307,7 @@ const AdhyayanDetailScreen = () => {
             adhyayan,
           });
 
-          await (updateGuestBooking as any)('adhyayan', transformedData);
+          await updateGuestBooking('adhyayan', transformedData);
           setGuestForm(INITIAL_GUEST_FORM);
           if (adhyayan.location !== 'Research Centre') router.push('/guestBooking/bookingReview');
           else router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
@@ -326,7 +326,7 @@ const AdhyayanDetailScreen = () => {
           adhyayan,
         });
 
-        await (updateMumukshuBooking as any)('adhyayan', temp);
+        await updateMumukshuBooking('adhyayan', temp);
         if (adhyayan.location !== 'Research Centre') router.push('/mumukshuBooking/bookingReview');
         else router.push(`/mumukshuBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
       }
