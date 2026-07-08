@@ -24,17 +24,10 @@ const GuestTravelBookingDetails: React.FC<{ containerStyles: any }> = ({ contain
               containerStyles={'bg-red-100'}
             />
           )}
-          {isRoundTrip && (
-            <CustomTag
-              text={'Round trip'}
-              textStyles={'text-orange-600'}
-              containerStyles={'bg-orange-100'}
-            />
-          )}
           <Text className="text-md font-pmedium">
             {moment(guestData.travel?.date).format('Do MMMM, YYYY')}
             {isRoundTrip
-              ? `  →  ${moment(guestData.travel?.return_date).format('Do MMMM, YYYY')}`
+              ? `  ↔  ${moment(guestData.travel?.return_date).format('Do MMMM, YYYY')}`
               : ''}
           </Text>
         </View>
