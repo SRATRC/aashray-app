@@ -24,12 +24,21 @@ const MumukshuTravelBookingDetail: React.FC<{ containerStyles: any }> = ({ conta
               containerStyles={'bg-red-100'}
             />
           )}
-          <Text className="text-md font-pmedium">
-            {moment(mumukshuData.travel.date).format('Do MMMM, YYYY')}
-            {isRoundTrip
-              ? `  ↔  ${moment(mumukshuData.travel.return_date).format('Do MMMM, YYYY')}`
-              : ''}
-          </Text>
+          {isRoundTrip ? (
+            <View className="flex-row flex-wrap items-center gap-x-2">
+              <Text className="text-md font-pmedium">
+                {moment(mumukshuData.travel.date).format('Do MMMM, YYYY')}
+              </Text>
+              <Ionicons name="swap-horizontal" size={18} color={colors.gray_400} />
+              <Text className="text-md font-pmedium">
+                {moment(mumukshuData.travel.return_date).format('Do MMMM, YYYY')}
+              </Text>
+            </View>
+          ) : (
+            <Text className="text-md font-pmedium">
+              {moment(mumukshuData.travel.date).format('Do MMMM, YYYY')}
+            </Text>
+          )}
         </View>
       </View>
 
