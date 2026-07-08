@@ -6,7 +6,8 @@ import { useUtsavDate } from '@/src/hooks/useUtsavDate';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
 import FormDisplayField from '../FormDisplayField';
-import TravelReturnDetails, { ReturnLeg } from '../TravelReturnDetails';
+import TravelReturnDetails from '../TravelReturnDetails';
+import type { ReturnGroup } from '../TravelReturnGroups';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
@@ -18,14 +19,6 @@ interface TravelAddonProps {
   setDatePickerVisibility: (pickerType: any, isVisible: any) => void;
   onToggle?: (isOpen: boolean) => void;
 }
-
-const EMPTY_RETURN_LEG: ReturnLeg = {
-  pickup: '',
-  drop: '',
-  type: '',
-  luggage: [],
-  arrival_time: '',
-};
 
 const TravelAddon: React.FC<TravelAddonProps> = ({
   travelForm,
@@ -61,6 +54,23 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
     return isRailwayOrAirport(pickup) || isRailwayOrAirport(drop);
   }, []);
 
+  // The single self traveler. Return groups reference this by index '0'.
+  const travelers = [{ index: '0', issuedto: user.issuedto || user.name, cardno: user.cardno }];
+
+  // Default return leg: reverse the flat onward route for the same traveler.
+  const reverseGroups = (): ReturnGroup[] => [
+    {
+      pickup: travelForm.drop || '',
+      drop: travelForm.pickup || '',
+      type: travelForm.type || '',
+      luggage: travelForm.luggage || [],
+      arrival_time: '',
+      comments: travelForm.special_request || '',
+      total_people: travelForm.total_people ?? null,
+      travelerIndices: ['0'],
+    },
+  ];
+
   return (
     <AddonItem
       onToggle={onToggle}
@@ -87,7 +97,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           type: dropdowns.BOOKING_TYPE_LIST[0].value,
           total_people: null,
           special_request: '',
-          returnLeg: EMPTY_RETURN_LEG,
+          returnGroups: [],
           returnEdited: false,
         });
         setMumukshuData((prev: any) => {
@@ -129,6 +139,8 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         showDatePicker
         returnDate={travelForm.return_date}
         onwardDate={travelForm.date}
+        travelers={travelers}
+        returnGroups={travelForm.returnGroups || []}
         onPickReturnDate={(date: string) => {
           if (travelForm.returnEdited) {
             setTravelForm({ ...travelForm, return_date: date });
@@ -136,13 +148,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
             setTravelForm({
               ...travelForm,
               return_date: date,
-              returnLeg: {
-                pickup: travelForm.drop,
-                drop: travelForm.pickup,
-                type: travelForm.type,
-                luggage: travelForm.luggage,
-                arrival_time: '',
-              },
+              returnGroups: reverseGroups(),
             });
           }
         }}
@@ -150,18 +156,17 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           setTravelForm({
             ...travelForm,
             return_date: '',
-            returnLeg: EMPTY_RETURN_LEG,
+            returnGroups: [],
             returnEdited: false,
           });
         }}
-        onChangeReturnLeg={(patch: Partial<ReturnLeg>) => {
+        onChangeReturnGroups={(g: ReturnGroup[]) => {
           setTravelForm({
             ...travelForm,
-            returnLeg: { ...travelForm.returnLeg, ...patch },
+            returnGroups: g,
             returnEdited: true,
           });
         }}
-        returnLeg={travelForm.returnLeg}
         locationOptions={getLocationOptions(travelForm.return_date || travelForm.date)}
         requiresArrivalTime={requiresArrivalTime}
       />

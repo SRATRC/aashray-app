@@ -158,13 +158,7 @@ const MumukshuAddons = () => {
       : getInitialDates?.endDate && getInitialDates?.endDate !== getInitialDates?.startDate
         ? getInitialDates.endDate
         : '',
-    returnLeg: existingData?.returnLeg || {
-      pickup: '',
-      drop: '',
-      type: '',
-      luggage: [],
-      arrival_time: '',
-    },
+    returnGroups: existingData?.returnGroups || [],
     returnEdited: existingData?.returnEdited || false,
     mumukshuGroup: existingData?.mumukshuGroup || [
       {
@@ -538,6 +532,41 @@ const MumukshuAddons = () => {
     [mumukshus]
   );
 
+  // Turn the travel form into the request payload. A return date adds returnMumukshuGroup: a
+  // full set of groups shaped like the onward mumukshuGroup (each with a mumukshus array of
+  // traveler objects), which preparingRequestBody maps to cardnos the same way. The default
+  // (unedited) return is the reversed onward for the same travelers, so an untouched round trip
+  // books exactly as before; edited return groups come from the return editor.
+  const buildTravelPayload = useCallback(() => {
+    const payload: any = { ...travelForm };
+    if (travelForm.return_date) {
+      const sourceGroups =
+        travelForm.returnEdited && travelForm.returnGroups?.length
+          ? travelForm.returnGroups
+          : travelForm.mumukshuGroup.map((g: any) => ({
+              pickup: g.drop || '',
+              drop: g.pickup || '',
+              type: g.type || '',
+              luggage: g.luggage || [],
+              arrival_time: '',
+              comments: g.special_request || '',
+              total_people: g.total_people ?? null,
+              travelerIndices: (g.mumukshuIndices || []).map(String),
+            }));
+      payload.returnMumukshuGroup = sourceGroups.map((rg: any) => ({
+        pickup: rg.pickup,
+        drop: rg.drop,
+        type: rg.type,
+        luggage: rg.luggage || [],
+        arrival_time: rg.arrival_time || '',
+        special_request: rg.comments || '',
+        total_people: rg.total_people ?? null,
+        mumukshus: rg.travelerIndices.map((i: string) => mumukshus[Number(i)]).filter(Boolean),
+      }));
+    }
+    return payload;
+  }, [travelForm, mumukshus]);
+
   // Adhyayan form handler
   const updateAdhyayanForm = useCallback(
     (field: any, value: any) => {
@@ -658,7 +687,7 @@ const MumukshuAddons = () => {
           hasValidationError = true;
           return;
         }
-        setMumukshuData((prev: any) => ({ ...prev, travel: travelForm }));
+        setMumukshuData((prev: any) => ({ ...prev, travel: buildTravelPayload() }));
       }
 
       // If no validation errors, navigate to confirmation page
@@ -682,6 +711,7 @@ const MumukshuAddons = () => {
     foodForm,
     adhyayanForm,
     travelForm,
+    buildTravelPayload,
     setMumukshuData,
     router,
   ]);

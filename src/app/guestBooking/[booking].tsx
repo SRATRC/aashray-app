@@ -59,18 +59,10 @@ const createInitialAdhyayanForm = (existingData: any = null) => ({
   guestIndices: existingData?.guestIndices || [],
 });
 
-const EMPTY_TRAVEL_RETURN_LEG = {
-  pickup: '',
-  drop: '',
-  type: '',
-  luggage: [],
-  arrival_time: '',
-};
-
 const createInitialTravelForm = (existingData: any = null) => ({
   date: existingData?.date || '',
   return_date: existingData?.return_date || '',
-  returnLeg: existingData?.returnLeg || EMPTY_TRAVEL_RETURN_LEG,
+  returnGroups: existingData?.returnGroups || [],
   returnEdited: existingData?.returnEdited || false,
   guestGroup: existingData?.guestGroup || [
     {
@@ -543,6 +535,41 @@ const GuestAddons = () => {
     [guests]
   );
 
+  // Turn the travel form into the request payload. A return date adds returnGuestGroup: a full
+  // set of groups shaped like the onward guestGroup (each with a guests array of traveler
+  // objects), which preparingRequestBody maps to cardnos the same way. The default (unedited)
+  // return is the reversed onward for the same travelers, so an untouched round trip books
+  // exactly as before; edited return groups come from the return editor.
+  const buildTravelPayload = useCallback(() => {
+    const payload: any = { ...travelForm };
+    if (travelForm.return_date) {
+      const sourceGroups =
+        travelForm.returnEdited && travelForm.returnGroups?.length
+          ? travelForm.returnGroups
+          : travelForm.guestGroup.map((g: any) => ({
+              pickup: g.drop || '',
+              drop: g.pickup || '',
+              type: g.type || '',
+              luggage: g.luggage || [],
+              arrival_time: '',
+              comments: g.special_request || '',
+              total_people: g.total_people ?? null,
+              travelerIndices: (g.guestIndices || []).map(String),
+            }));
+      payload.returnGuestGroup = sourceGroups.map((rg: any) => ({
+        pickup: rg.pickup,
+        drop: rg.drop,
+        type: rg.type,
+        luggage: rg.luggage || [],
+        arrival_time: rg.arrival_time || '',
+        special_request: rg.comments || '',
+        total_people: rg.total_people ?? null,
+        guests: rg.travelerIndices.map((i: string) => guests[Number(i)]).filter(Boolean),
+      }));
+    }
+    return payload;
+  }, [travelForm, guests]);
+
   // Form validation functions
   const validateRoomForm = useCallback(() => {
     const hasEmptyFields = roomForm.guestGroup.some(
@@ -651,7 +678,7 @@ const GuestAddons = () => {
         hasValidationError = true;
         return;
       }
-      setGuestData((prev: any) => ({ ...prev, travel: travelForm }));
+      setGuestData((prev: any) => ({ ...prev, travel: buildTravelPayload() }));
     }
 
     // If no validation errors, navigate to confirmation page
@@ -675,6 +702,7 @@ const GuestAddons = () => {
     foodForm,
     adhyayanForm,
     travelForm,
+    buildTravelPayload,
     setGuestData,
     router,
   ]);

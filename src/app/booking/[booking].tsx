@@ -60,11 +60,10 @@ const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string)
         ],
       };
 
-    case 'travel':
-      return {
+    case 'travel': {
+      const travelDetails: any = {
         date: simpleForm.date,
         return_date: simpleForm.return_date || '',
-        returnLeg: simpleForm.returnLeg,
         mumukshuGroup: [
           {
             pickup: simpleForm.pickup,
@@ -79,6 +78,40 @@ const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string)
           },
         ],
       };
+      // A return date makes it a round trip. The return is a full set of groups (same shape as
+      // the onward). The default (unedited) is the reversed onward for the same traveler, so an
+      // untouched round trip books exactly as before; edited groups come from the return editor.
+      if (simpleForm.return_date) {
+        const sourceGroups =
+          simpleForm.returnEdited && simpleForm.returnGroups?.length
+            ? simpleForm.returnGroups
+            : [
+                {
+                  pickup: simpleForm.drop,
+                  drop: simpleForm.pickup,
+                  type: simpleForm.type,
+                  luggage: simpleForm.luggage,
+                  arrival_time: '',
+                  comments: simpleForm.special_request,
+                  total_people: simpleForm.total_people,
+                  travelerIndices: ['0'],
+                },
+              ];
+        travelDetails.returnMumukshuGroup = sourceGroups.map((rg: any) => ({
+          pickup: rg.pickup,
+          drop: rg.drop,
+          type: rg.type,
+          luggage: rg.luggage || [],
+          arrival_time: rg.arrival_time || '',
+          special_request: rg.comments || '',
+          total_people: rg.total_people ?? null,
+          mumukshus: rg.travelerIndices
+            .map((i: string) => (i === '0' ? selfMumukshu : null))
+            .filter(Boolean),
+        }));
+      }
+      return travelDetails;
+    }
 
     case 'adhyayan':
       return {
@@ -160,7 +193,7 @@ const BookingDetails = () => {
       total_people: null,
       luggage: [],
       special_request: '',
-      returnLeg: { pickup: '', drop: '', type: '', luggage: [], arrival_time: '' },
+      returnGroups: [],
       returnEdited: false,
     },
     adhyayan: [],

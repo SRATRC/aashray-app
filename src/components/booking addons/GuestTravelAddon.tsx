@@ -8,7 +8,8 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import FormDisplayField from '../FormDisplayField';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
-import TravelReturnDetails, { ReturnLeg } from '../TravelReturnDetails';
+import TravelReturnDetails from '../TravelReturnDetails';
+import type { ReturnGroup } from '../TravelReturnGroups';
 import moment from 'moment';
 
 interface GuestTravelAddonProps {
@@ -23,14 +24,6 @@ interface GuestTravelAddonProps {
   setDatePickerVisibility: (pickerType: string, isVisible: boolean) => void;
   onToggle?: (isOpen: boolean) => void;
 }
-
-const EMPTY_RETURN_LEG: ReturnLeg = {
-  pickup: '',
-  drop: '',
-  type: '',
-  luggage: [],
-  arrival_time: '',
-};
 
 const GuestTravelAddon: React.FC<GuestTravelAddonProps> = ({
   travelForm,
@@ -92,6 +85,27 @@ const GuestTravelAddon: React.FC<GuestTravelAddonProps> = ({
     return guest_dropdown.some((guest: any) => !selectedIndices.includes(guest.value));
   };
 
+  // The return travelers are the same people as the onward roster (no new travelers on the
+  // return). guestIndices reference this list; cardno is resolved at request time in the screen.
+  const travelers = guest_dropdown.map((g: any) => ({
+    index: String(g.key),
+    issuedto: g.value,
+  }));
+
+  // Default return legs: reverse each onward group (swap pickup/drop), keep type/luggage/people,
+  // clear arrival time, carry the same travelers by index.
+  const reverseGroups = (): ReturnGroup[] =>
+    travelForm.guestGroup.map((g: any) => ({
+      pickup: g.drop || '',
+      drop: g.pickup || '',
+      type: g.type || '',
+      luggage: g.luggage || [],
+      arrival_time: '',
+      comments: g.special_request || '',
+      total_people: g.total_people ?? null,
+      travelerIndices: (g.guestIndices || []).map(String),
+    }));
+
   return (
     <AddonItem
       onCollapse={() => {
@@ -132,21 +146,16 @@ const GuestTravelAddon: React.FC<GuestTravelAddonProps> = ({
         showDatePicker
         returnDate={travelForm.return_date}
         onwardDate={travelForm.date}
+        travelers={travelers}
+        returnGroups={travelForm.returnGroups || []}
         onPickReturnDate={(date: string) => {
           if (travelForm.returnEdited) {
             setTravelForm({ ...travelForm, return_date: date });
           } else {
-            const onward = travelForm.guestGroup[0] || {};
             setTravelForm({
               ...travelForm,
               return_date: date,
-              returnLeg: {
-                pickup: onward.drop || '',
-                drop: onward.pickup || '',
-                type: onward.type || '',
-                luggage: onward.luggage || [],
-                arrival_time: '',
-              },
+              returnGroups: reverseGroups(),
             });
           }
         }}
@@ -154,18 +163,17 @@ const GuestTravelAddon: React.FC<GuestTravelAddonProps> = ({
           setTravelForm({
             ...travelForm,
             return_date: '',
-            returnLeg: EMPTY_RETURN_LEG,
+            returnGroups: [],
             returnEdited: false,
           });
         }}
-        onChangeReturnLeg={(patch: Partial<ReturnLeg>) => {
+        onChangeReturnGroups={(g: ReturnGroup[]) => {
           setTravelForm({
             ...travelForm,
-            returnLeg: { ...travelForm.returnLeg, ...patch },
+            returnGroups: g,
             returnEdited: true,
           });
         }}
-        returnLeg={travelForm.returnLeg}
         locationOptions={getLocationOptions(travelForm.return_date || travelForm.date)}
         requiresArrivalTime={requiresArrivalTime}
       />

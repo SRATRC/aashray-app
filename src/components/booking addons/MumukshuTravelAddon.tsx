@@ -9,7 +9,8 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import FormDisplayField from '../FormDisplayField';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
-import TravelReturnDetails, { ReturnLeg } from '../TravelReturnDetails';
+import TravelReturnDetails from '../TravelReturnDetails';
+import type { ReturnGroup } from '../TravelReturnGroups';
 import moment from 'moment';
 
 interface MumukshuTravelAddonProps {
@@ -24,14 +25,6 @@ interface MumukshuTravelAddonProps {
   setDatePickerVisibility: (pickerType: string, isVisible: boolean) => void;
   onToggle?: (isOpen: boolean) => void;
 }
-
-const EMPTY_RETURN_LEG: ReturnLeg = {
-  pickup: '',
-  drop: '',
-  type: '',
-  luggage: [],
-  arrival_time: '',
-};
 
 const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
   travelForm,
@@ -94,6 +87,27 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
     return mumukshu_dropdown.some((mumukshu: any) => !selectedIndices.includes(mumukshu.value));
   };
 
+  // The return travelers are the same people as the onward roster (no new travelers on the
+  // return). mumukshuIndices reference this list; cardno is resolved at request time in the screen.
+  const travelers = mumukshu_dropdown.map((m: any) => ({
+    index: String(m.key),
+    issuedto: m.value,
+  }));
+
+  // Default return legs: reverse each onward group (swap pickup/drop), keep type/luggage/people,
+  // clear arrival time, carry the same travelers by index.
+  const reverseGroups = (): ReturnGroup[] =>
+    travelForm.mumukshuGroup.map((g: any) => ({
+      pickup: g.drop || '',
+      drop: g.pickup || '',
+      type: g.type || '',
+      luggage: g.luggage || [],
+      arrival_time: '',
+      comments: g.special_request || '',
+      total_people: g.total_people ?? null,
+      travelerIndices: (g.mumukshuIndices || []).map(String),
+    }));
+
   return (
     <AddonItem
       onCollapse={() => {
@@ -134,21 +148,16 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
         showDatePicker
         returnDate={travelForm.return_date}
         onwardDate={travelForm.date}
+        travelers={travelers}
+        returnGroups={travelForm.returnGroups || []}
         onPickReturnDate={(date: string) => {
           if (travelForm.returnEdited) {
             setTravelForm({ ...travelForm, return_date: date });
           } else {
-            const onward = travelForm.mumukshuGroup[0] || {};
             setTravelForm({
               ...travelForm,
               return_date: date,
-              returnLeg: {
-                pickup: onward.drop || '',
-                drop: onward.pickup || '',
-                type: onward.type || '',
-                luggage: onward.luggage || [],
-                arrival_time: '',
-              },
+              returnGroups: reverseGroups(),
             });
           }
         }}
@@ -156,18 +165,17 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
           setTravelForm({
             ...travelForm,
             return_date: '',
-            returnLeg: EMPTY_RETURN_LEG,
+            returnGroups: [],
             returnEdited: false,
           });
         }}
-        onChangeReturnLeg={(patch: Partial<ReturnLeg>) => {
+        onChangeReturnGroups={(g: ReturnGroup[]) => {
           setTravelForm({
             ...travelForm,
-            returnLeg: { ...travelForm.returnLeg, ...patch },
+            returnGroups: g,
             returnEdited: true,
           });
         }}
-        returnLeg={travelForm.returnLeg}
         locationOptions={getLocationOptions(travelForm.return_date || travelForm.date)}
         requiresArrivalTime={requiresArrivalTime}
       />
