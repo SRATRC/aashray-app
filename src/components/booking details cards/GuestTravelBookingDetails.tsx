@@ -5,12 +5,11 @@ import { Ionicons } from '@expo/vector-icons';
 import HorizontalSeparator from '../HorizontalSeparator';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import CustomTag from '../CustomTag';
+import TravelDateDisplay from '../TravelDateDisplay';
 import moment from 'moment';
 
 const GuestTravelBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const guestData = useBookingStore((store) => store.guestData);
-
-  const isRoundTrip = !!guestData.travel?.return_date;
 
   return (
     <PrimaryAddonBookingCard containerStyles={containerStyles} title={'Raj Pravas Booking'}>
@@ -24,21 +23,10 @@ const GuestTravelBookingDetails: React.FC<{ containerStyles: any }> = ({ contain
               containerStyles={'bg-red-100'}
             />
           )}
-          {isRoundTrip ? (
-            <View className="flex-row flex-wrap items-center gap-x-2">
-              <Text className="text-md font-pmedium">
-                {moment(guestData.travel?.date).format('Do MMMM, YYYY')}
-              </Text>
-              <Ionicons name="swap-horizontal" size={18} color={colors.gray_400} />
-              <Text className="text-md font-pmedium">
-                {moment(guestData.travel?.return_date).format('Do MMMM, YYYY')}
-              </Text>
-            </View>
-          ) : (
-            <Text className="text-md font-pmedium">
-              {moment(guestData.travel?.date).format('Do MMMM, YYYY')}
-            </Text>
-          )}
+          <TravelDateDisplay
+            date={guestData.travel?.date}
+            returnDate={guestData.travel?.return_date}
+          />
         </View>
       </View>
 

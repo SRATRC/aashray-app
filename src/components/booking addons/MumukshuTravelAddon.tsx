@@ -9,6 +9,7 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import FormDisplayField from '../FormDisplayField';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
+import TravelReturnDateField from '../TravelReturnDateField';
 import moment from 'moment';
 
 interface MumukshuTravelAddonProps {
@@ -110,44 +111,19 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
         onCancel={() => setDatePickerVisibility('travel', false)}
       />
 
-      <FormDisplayField
-        text="Return Date (optional)"
-        value={travelForm.return_date ? moment(travelForm.return_date).format('Do MMMM YYYY') : ''}
-        placeholder="Add a return date for a round trip"
-        otherStyles="mt-5"
-        backgroundColor="bg-gray-100"
-        onPress={() => setDatePickerVisibility('travel_return', true)}
-      />
-      <DateTimePickerModal
+      <TravelReturnDateField
+        travelDate={travelForm.date}
+        returnDate={travelForm.return_date}
         isVisible={isDatePickerVisible.travel_return}
-        mode="date"
-        date={
-          travelForm.return_date
-            ? moment(travelForm.return_date).toDate()
-            : travelForm.date
-              ? moment(travelForm.date).toDate()
-              : moment().add(1, 'days').toDate()
-        }
-        minimumDate={travelForm.date ? moment(travelForm.date).toDate() : moment().toDate()}
+        onPress={() => setDatePickerVisibility('travel_return', true)}
         onConfirm={(date: Date) => {
           setTravelForm({ ...travelForm, return_date: moment(date).format('YYYY-MM-DD') });
           setDatePickerVisibility('travel_return', false);
         }}
         onCancel={() => setDatePickerVisibility('travel_return', false)}
+        onClear={() => setTravelForm({ ...travelForm, return_date: '' })}
+        bannerWrapperClassName="mb-2 mt-2"
       />
-      {travelForm.return_date ? (
-        <View className="mb-2 mt-2 flex-row items-center justify-between">
-          <Text className="flex-1 font-pregular text-sm text-gray-500">
-            Round trip — return (reverse route) on{' '}
-            {moment(travelForm.return_date).format('DD MMM YYYY')}.
-          </Text>
-          <TouchableOpacity
-            onPress={() => setTravelForm({ ...travelForm, return_date: '' })}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Text className="font-pmedium text-sm text-orange-600">Clear</Text>
-          </TouchableOpacity>
-        </View>
-      ) : null}
 
       {travelForm.mumukshuGroup.map((assignment: any, index: any) => (
         <View key={index} style={{ marginBottom: 15 }}>

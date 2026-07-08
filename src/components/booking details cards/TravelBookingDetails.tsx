@@ -5,12 +5,11 @@ import { useBookingStore } from '@/src/stores';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomTag from '../CustomTag';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
+import TravelDateDisplay from '../TravelDateDisplay';
 import moment from 'moment';
 
 const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerStyles }) => {
   const data = useBookingStore((state) => state.mumukshuData);
-
-  const isRoundTrip = !!data.travel?.return_date;
 
   return (
     <PrimaryAddonBookingCard containerStyles={containerStyles} title={'Raj Pravas Booking'}>
@@ -24,21 +23,7 @@ const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerSt
               containerStyles={'bg-red-100'}
             />
           )}
-          {isRoundTrip ? (
-            <View className="flex-row flex-wrap items-center gap-x-2">
-              <Text className="text-md font-pmedium">
-                {moment(data.travel.date).format('Do MMMM, YYYY')}
-              </Text>
-              <Ionicons name="swap-horizontal" size={18} color={colors.gray_400} />
-              <Text className="text-md font-pmedium">
-                {moment(data.travel.return_date).format('Do MMMM, YYYY')}
-              </Text>
-            </View>
-          ) : (
-            <Text className="text-md font-pmedium">
-              {moment(data.travel.date).format('Do MMMM, YYYY')}
-            </Text>
-          )}
+          <TravelDateDisplay date={data.travel.date} returnDate={data.travel.return_date} />
         </View>
       </View>
 
