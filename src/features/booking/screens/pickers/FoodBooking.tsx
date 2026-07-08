@@ -7,20 +7,20 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
 
-import Callout from '../Callout';
-import CustomAlert from '../CustomAlert';
-import CustomButton from '../CustomButton';
-import CustomCalender from '../CustomCalender';
-import CustomChipGroup from '../CustomChipGroup';
-import CustomModal from '../CustomModal';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import GuestForm from '../GuestForm';
-import OtherMumukshuForm from '../OtherMumukshuForm';
+import { createGuests, submitGuestBooking, submitMumukshuBooking } from '../../api';
 
+import Callout from '@/components/Callout';
+import CustomAlert from '@/components/CustomAlert';
+import CustomButton from '@/components/CustomButton';
+import CustomCalender from '@/components/CustomCalender';
+import CustomChipGroup from '@/components/CustomChipGroup';
+import CustomModal from '@/components/CustomModal';
+import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
+import GuestForm from '@/components/GuestForm';
+import OtherMumukshuForm from '@/components/OtherMumukshuForm';
 import { colors, dropdowns, status } from '@/constants';
 import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 import { useAuthStore } from '@/stores';
-import handleAPICall from '@/utils/HandleApiCall';
 import { prepareMumukshuRequestBody } from '@/utils/preparingRequestBody';
 
 // @ts-ignore
@@ -295,25 +295,8 @@ const FoodBooking = () => {
                   setModalVisible(true);
                 }
 
-                const onSuccess = (_data: any) => {
-                  CustomAlert.alert('Booking Successful');
-                };
-
-                const onError = (errorDetails: any) => {
-                  setIsSubmitting(false);
-                  setModalMessage(errorDetails.message);
-                  setModalVisible(true);
-                };
-
-                const onFinally = () => {
-                  setIsSubmitting(false);
-                };
-
-                await handleAPICall(
-                  'POST',
-                  '/mumukshu/booking',
-                  null,
-                  {
+                try {
+                  await submitMumukshuBooking({
                     cardno: user.cardno,
                     primary_booking: {
                       booking_type: 'food',
@@ -330,11 +313,13 @@ const FoodBooking = () => {
                         ],
                       },
                     },
-                  },
-                  onSuccess,
-                  onFinally,
-                  onError
-                );
+                  });
+                  CustomAlert.alert('Booking Successful');
+                } catch {
+                  // apiClient already surfaces the error toast/haptic
+                } finally {
+                  setIsSubmitting(false);
+                }
               }}
               containerStyles="mt-7 w-full px-1 min-h-[62px]"
               isLoading={isSubmitting}
@@ -404,86 +389,71 @@ const FoodBooking = () => {
                   mobno: guest.mobno ? guest.mobno : null,
                 }));
 
-                await handleAPICall(
-                  'POST',
-                  '/guest',
-                  null,
-                  {
-                    cardno: user.cardno,
-                    guests,
-                  },
-                  async (res: any) => {
-                    const updatedGuests = guestForm.guests.map((formGuest) => {
-                      const matchingApiGuest = res.guests.find(
-                        (apiGuest: any) => apiGuest.name === formGuest.name
-                      );
-                      return matchingApiGuest
-                        ? { ...formGuest, cardno: matchingApiGuest.cardno }
-                        : formGuest;
-                    });
+                try {
+                  const registeredGuests: any[] = await createGuests(user.cardno, guests);
 
-                    const transformedData = transformGuestData({
-                      ...guestForm,
-                      guests: updatedGuests,
-                    });
-
-                    await handleAPICall(
-                      'POST',
-                      '/guest/booking',
-                      null,
-                      {
-                        cardno: user.cardno,
-                        primary_booking: {
-                          booking_type: 'food',
-                          details: transformedData,
-                        },
-                      },
-                      (data: any) => {
-                        if (data.data.amount === 0) {
-                          router.replace('/bookingConfirmation');
-                        } else {
-                          const options = {
-                            key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
-                            name: 'Vitraag Vigyaan',
-                            image: 'https://vitraagvigyaan.org/img/logo.png',
-                            description: 'Payment for Vitraag Vigyaan',
-                            amount: `${data.data.amount}`,
-                            currency: 'INR',
-                            order_id: `${data.data.id}`,
-                            prefill: {
-                              email: `${user.email}`,
-                              contact: `${user.mobno}`,
-                              name: `${user.issuedto}`,
-                            },
-                            theme: { color: colors.orange },
-                          };
-                          RazorpayCheckout.open(options)
-                            .then((_rzrpayData: any) => {
-                              setIsSubmitting(false);
-                              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                              Toast.show({
-                                type: 'success',
-                                text1: 'Payment successful',
-                                swipeable: false,
-                              });
-                              router.replace('/paymentConfirmation');
-                            })
-                            .catch((_error: any) => {
-                              setIsSubmitting(false);
-                              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-                              router.replace('/paymentFailed');
-                            });
-                        }
-                      },
-                      () => {
-                        setIsSubmitting(false);
-                      }
+                  const updatedGuests = guestForm.guests.map((formGuest) => {
+                    const matchingApiGuest = registeredGuests.find(
+                      (apiGuest: any) => apiGuest.name === formGuest.name
                     );
-                  },
-                  () => {
-                    setIsSubmitting(false);
+                    return matchingApiGuest
+                      ? { ...formGuest, cardno: matchingApiGuest.cardno }
+                      : formGuest;
+                  });
+
+                  const transformedData = transformGuestData({
+                    ...guestForm,
+                    guests: updatedGuests,
+                  });
+
+                  const data: any = await submitGuestBooking({
+                    cardno: user.cardno,
+                    primary_booking: {
+                      booking_type: 'food',
+                      details: transformedData,
+                    },
+                  });
+
+                  if (data.data.amount === 0) {
+                    router.replace('/bookingConfirmation');
+                  } else {
+                    const options = {
+                      key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
+                      name: 'Vitraag Vigyaan',
+                      image: 'https://vitraagvigyaan.org/img/logo.png',
+                      description: 'Payment for Vitraag Vigyaan',
+                      amount: `${data.data.amount}`,
+                      currency: 'INR',
+                      order_id: `${data.data.id}`,
+                      prefill: {
+                        email: `${user.email}`,
+                        contact: `${user.mobno}`,
+                        name: `${user.issuedto}`,
+                      },
+                      theme: { color: colors.orange },
+                    };
+                    RazorpayCheckout.open(options)
+                      .then((_rzrpayData: any) => {
+                        setIsSubmitting(false);
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        Toast.show({
+                          type: 'success',
+                          text1: 'Payment successful',
+                          swipeable: false,
+                        });
+                        router.replace('/paymentConfirmation');
+                      })
+                      .catch((_error: any) => {
+                        setIsSubmitting(false);
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                        router.replace('/paymentFailed');
+                      });
                   }
-                );
+                } catch {
+                  // apiClient already surfaces the error toast/haptic
+                } finally {
+                  setIsSubmitting(false);
+                }
               }}
               containerStyles="mt-7 w-full px-1 min-h-[62px]"
               isLoading={isSubmitting}
@@ -556,23 +526,14 @@ const FoodBooking = () => {
 
                 const requestBody = prepareMumukshuRequestBody(user, transformedMumukshuData);
 
-                await handleAPICall(
-                  'POST',
-                  '/mumukshu/booking',
-                  null,
-                  requestBody,
-                  (_data: any) => {
-                    CustomAlert.alert('Booking Successful');
-                  },
-                  () => {
-                    setIsSubmitting(false);
-                  },
-                  (errorDetails: any) => {
-                    setIsSubmitting(false);
-                    setModalMessage(errorDetails.message);
-                    setModalVisible(true);
-                  }
-                );
+                try {
+                  await submitMumukshuBooking(requestBody);
+                  CustomAlert.alert('Booking Successful');
+                } catch {
+                  // apiClient already surfaces the error toast/haptic
+                } finally {
+                  setIsSubmitting(false);
+                }
               }}
               containerStyles="mt-7 w-full px-1 min-h-[62px]"
               isLoading={isSubmitting}

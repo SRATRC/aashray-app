@@ -5,15 +5,14 @@ import { View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
-import CustomButton from '../CustomButton';
-import CustomCalender from '../CustomCalender';
-import CustomChipGroup from '../CustomChipGroup';
-import CustomModal from '../CustomModal';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import FormDisplayField from '../FormDisplayField';
-import FormField from '../FormField';
-import OtherMumukshuForm from '../OtherMumukshuForm';
-
+import CustomButton from '@/components/CustomButton';
+import CustomCalender from '@/components/CustomCalender';
+import CustomChipGroup from '@/components/CustomChipGroup';
+import CustomModal from '@/components/CustomModal';
+import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
+import FormDisplayField from '@/components/FormDisplayField';
+import FormField from '@/components/FormField';
+import OtherMumukshuForm from '@/components/OtherMumukshuForm';
 import { types, dropdowns, status } from '@/constants';
 import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 import { useUtsavDate } from '@/hooks/useUtsavDate';

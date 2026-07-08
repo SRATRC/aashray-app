@@ -5,10 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomChipGroup from '@/components/CustomChipGroup';
 import AdhyayanBooking from '@/components/booking/AdhyayanBooking';
 import EventsBooking from '@/components/booking/EventsBooking';
-import FoodBooking from '@/components/booking/FoodBooking';
-import TravelBooking from '@/components/booking/TravelBooking';
 import { types } from '@/constants';
-import { FlatBooking, RoomBooking } from '@/features/booking';
+import { FlatBooking, FoodBooking, RoomBooking, TravelBooking } from '@/features/booking';
 import { useAuthStore } from '@/stores';
 
 const BookingCategories = () => {
