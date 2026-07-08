@@ -99,6 +99,7 @@ const GuestAddons = () => {
       guestData.room?.startDay ||
       guestData.food?.startDay ||
       guestData.adhyayan?.adhyayan?.start_date ||
+      guestData.travel?.date ||
       guestData.utsav?.utsav?.utsav_start ||
       '';
 
@@ -106,6 +107,7 @@ const GuestAddons = () => {
       guestData.room?.endDay ||
       guestData.food?.endDay ||
       guestData.adhyayan?.adhyayan?.end_date ||
+      guestData.travel?.return_date ||
       guestData.utsav?.utsav?.utsav_end ||
       '';
 
@@ -148,6 +150,7 @@ const GuestAddons = () => {
       guestData.room?.startDay ||
       guestData.food?.startDay ||
       guestData.adhyayan?.adhyayan?.start_date ||
+      guestData.travel?.date ||
       guestData.utsav?.utsav?.start_date ||
       '';
 
@@ -155,6 +158,7 @@ const GuestAddons = () => {
       guestData.room?.endDay ||
       guestData.food?.endDay ||
       guestData.adhyayan?.adhyayan?.end_date ||
+      guestData.travel?.return_date ||
       guestData.utsav?.utsav?.end_date ||
       '';
 

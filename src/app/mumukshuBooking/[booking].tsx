@@ -151,12 +151,13 @@ const MumukshuAddons = () => {
 
   const createInitialTravelForm = (existingData: any = null) => ({
     date: getInitialDates?.startDate || '',
-    // Inherit the primary booking's range: multi-day primary => round trip default, else one-way.
-    return_date:
-      existingData?.return_date ||
-      (getInitialDates?.endDate && getInitialDates?.endDate !== getInitialDates?.startDate
+    // Inherit the primary range only on first creation; once travel exists, respect its
+    // return_date exactly (including an explicit '' one-way clear) so re-syncs don't undo it.
+    return_date: existingData
+      ? existingData.return_date || ''
+      : getInitialDates?.endDate && getInitialDates?.endDate !== getInitialDates?.startDate
         ? getInitialDates.endDate
-        : ''),
+        : '',
     mumukshuGroup: existingData?.mumukshuGroup || [
       {
         pickup: '',

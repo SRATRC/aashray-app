@@ -375,6 +375,11 @@ const TravelBooking = () => {
       pickup: g.drop,
       drop: g.pickup,
       arrival_time: '',
+      // Also clear per-person arrival_time; otherwise transformMumukshuGroup's fallback
+      // resurrects the onward flight/train time onto the return leg.
+      ...(g.mumukshus
+        ? { mumukshus: g.mumukshus.map((m: any) => ({ ...m, arrival_time: '' })) }
+        : {}),
     }));
 
     const result = { ...temp, return_date: returnDate };
