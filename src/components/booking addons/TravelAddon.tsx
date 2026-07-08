@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, Image } from 'react-native';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { icons, dropdowns } from '@/src/constants';
 import { useAuthStore, useBookingStore } from '@/src/stores';
 import { useUtsavDate } from '@/src/hooks/useUtsavDate';
@@ -129,10 +129,17 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         onCancel={() => setDatePickerVisibility('travel_return', false)}
       />
       {travelForm.return_date ? (
-        <Text className="mt-2 font-pregular text-sm text-gray-500">
-          Round trip — return (reverse route) on{' '}
-          {moment(travelForm.return_date).format('DD MMM YYYY')}.
-        </Text>
+        <View className="mt-2 flex-row items-center justify-between">
+          <Text className="flex-1 font-pregular text-sm text-gray-500">
+            Round trip — return (reverse route) on{' '}
+            {moment(travelForm.return_date).format('DD MMM YYYY')}.
+          </Text>
+          <TouchableOpacity
+            onPress={() => setTravelForm({ ...travelForm, return_date: '' })}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Text className="font-pmedium text-sm text-orange-600">Clear</Text>
+          </TouchableOpacity>
+        </View>
       ) : null}
 
       <CustomSelectBottomSheet

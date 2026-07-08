@@ -47,6 +47,7 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
           endDay:
             mumukshuData.room?.endDay ||
             (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.end_date) ||
+            mumukshuData.travel?.return_date ||
             mumukshuData.flat?.endDay ||
             mumukshuData.utsav?.utsav?.utsav_end ||
             '',
