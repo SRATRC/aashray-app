@@ -4,12 +4,14 @@ import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import CustomChipGroup from '@/components/CustomChipGroup';
-import AdhyayanBookingCancellation from '@/components/cancel booking/AdhyayanBookingCancellation';
-import EventBookingCancellation from '@/components/cancel booking/EventBookingCancellation';
-import FoodBookingCancellation from '@/components/cancel booking/FoodBookingCancellation';
-import RoomBookingCancellation from '@/components/cancel booking/RoomBookingCancellation';
-import TravelBookingCancellation from '@/components/cancel booking/TravelBookingCancellation';
 import { types } from '@/constants';
+import {
+  AdhyayanBookingCancellation,
+  EventBookingCancellation,
+  FoodBookingCancellation,
+  RoomBookingCancellation,
+  TravelBookingCancellation,
+} from '@/features/booking';
 
 const BookingCategories = () => {
   const queryClient = useQueryClient();

@@ -1,4 +1,7 @@
-export const countStatusesForField = (apiResponse, fieldName) => {
+export const countStatusesForField = (
+  apiResponse: Record<string, unknown>,
+  fieldName: string
+): Record<string, number> | { error: string } => {
   if (!apiResponse[fieldName]) {
     return {
       error: `Field "${fieldName}" not found in the response`,
@@ -12,7 +15,7 @@ export const countStatusesForField = (apiResponse, fieldName) => {
     };
   }
 
-  return fieldData.reduce((acc, item) => {
+  return fieldData.reduce((acc: Record<string, number>, item: { status?: string }) => {
     if (item.status) {
       acc[item.status] = (acc[item.status] || 0) + 1;
     }

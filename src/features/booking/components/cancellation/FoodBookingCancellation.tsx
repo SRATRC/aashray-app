@@ -17,15 +17,15 @@ import {
 } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
-import BottomSheetFilter from '../BottomSheetFilter';
-import CustomEmptyMessage from '../CustomEmptyMessage';
-import { ShadowBox } from '../ShadowBox';
-import { useBottomTabOverflow } from '../TabBarBackground';
+import { cancelFood, getFoodBookings, getFoodGuestsForFilter } from '../../api';
 
+import BottomSheetFilter from '@/components/BottomSheetFilter';
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
+import { ShadowBox } from '@/components/ShadowBox';
+import { useBottomTabOverflow } from '@/components/TabBarBackground';
 import { icons } from '@/constants';
 import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 import { useAuthStore } from '@/stores';
-import handleAPICall from '@/utils/HandleApiCall';
 
 const FOOD_TYPE_LIST = [
   { key: 'breakfast', value: 'Breakfast' },
@@ -100,25 +100,15 @@ export default function FoodBookingCancellation() {
   const [datePickerVisibility, setDatePickerVisibility] = useState(false);
 
   const fetchFoods = async ({ pageParam = 1 }) => {
-    return new Promise((resolve, reject) => {
-      handleAPICall(
-        'GET',
-        '/food/get',
-        {
-          cardno: user.cardno,
-          page: pageParam,
-          date: filter.date,
-          meal: filter.meal?.key,
-          spice: filter.spice?.key,
-          bookedFor: filter.bookedFor?.key,
-        },
-        null,
-        (res: any) => {
-          resolve(Array.isArray(res.data) ? res.data : []);
-        },
-        () => reject(new Error('Failed to fetch foods'))
-      );
+    const res = await getFoodBookings({
+      cardno: user.cardno,
+      page: pageParam,
+      date: filter.date,
+      meal: filter.meal?.key,
+      spice: filter.spice?.key,
+      bookedFor: filter.bookedFor?.key,
     });
+    return Array.isArray(res.data) ? res.data : [];
   };
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch }: any =
@@ -139,16 +129,8 @@ export default function FoodBookingCancellation() {
     });
 
   const fetchGuests = async () => {
-    return new Promise((resolve, reject) => {
-      handleAPICall(
-        'GET',
-        '/food/getGuestsForFilter',
-        { cardno: user.cardno },
-        null,
-        (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
-        () => reject(new Error('Failed to fetch guests'))
-      );
-    });
+    const res = await getFoodGuestsForFilter(user.cardno);
+    return Array.isArray(res.data) ? res.data : [];
   };
 
   const { data: guestList } = useQuery({
@@ -158,18 +140,7 @@ export default function FoodBookingCancellation() {
   });
 
   const cancelBookingMutation = useMutation({
-    mutationFn: () => {
-      return new Promise((resolve, reject) => {
-        handleAPICall(
-          'PATCH',
-          '/food/cancel',
-          null,
-          { cardno: user.cardno, food_data: selectedItems },
-          resolve,
-          () => reject(new Error('Failed to cancel booking'))
-        );
-      });
-    },
+    mutationFn: () => cancelFood(user.cardno, selectedItems),
     onSuccess: () => {
       setSelectedItems([]);
       queryClient.invalidateQueries({

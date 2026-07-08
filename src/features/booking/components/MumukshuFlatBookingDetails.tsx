@@ -2,12 +2,13 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import moment from 'moment';
 import { View, Text, Image, ScrollView } from 'react-native';
 
+import { countStatusesForField } from '../BookingValidationStatusCounter';
+
 import CustomTag from '@/components/CustomTag';
 import HorizontalSeparator from '@/components/HorizontalSeparator';
 import PrimaryAddonBookingCard from '@/components/PrimaryAddonBookingCard';
 import { colors, icons, status } from '@/constants';
 import { useBookingStore } from '@/stores';
-import { countStatusesForField } from '@/utils/BookingValidationStatusCounter';
 
 const MumukshuFlatBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const data = useBookingStore((state) => state.mumukshuData);

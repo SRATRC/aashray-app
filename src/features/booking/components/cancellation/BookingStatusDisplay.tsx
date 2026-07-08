@@ -1,8 +1,8 @@
 import React from 'react';
 import { View } from 'react-native';
 
-import CustomTag from './CustomTag';
-import { status } from '../constants';
+import CustomTag from '@/components/CustomTag';
+import { status } from '@/constants';
 
 interface BookingStatusDisplayProps {
   bookingStatus: string;

@@ -12,19 +12,19 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-import BookingStatusDisplay from '../BookingStatusDisplay';
-import CustomButton from '../CustomButton';
-import CustomEmptyMessage from '../CustomEmptyMessage';
-import CustomModal from '../CustomModal';
-import ExpandableItem from '../ExpandableItem';
-import HorizontalSeparator from '../HorizontalSeparator';
-import OldBookingsTrigger from '../OldBookingsTrigger';
+import BookingStatusDisplay from './BookingStatusDisplay';
+import OldBookingsTrigger from './OldBookingsTrigger';
+import { cancelAdhyayan, getBookedAdhyayan } from '../../api';
+import { splitActiveAndPastBookings } from '../../bookingHistoryFilter';
 
+import CustomButton from '@/components/CustomButton';
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
+import CustomModal from '@/components/CustomModal';
+import ExpandableItem from '@/components/ExpandableItem';
+import HorizontalSeparator from '@/components/HorizontalSeparator';
 import { icons, status } from '@/constants';
 import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 import { useAuthStore } from '@/stores';
-import handleAPICall from '@/utils/HandleApiCall';
-import { splitActiveAndPastBookings } from '@/utils/bookingHistoryFilter';
 
 const AdhyayanBookingCancellation = () => {
   const { user } = useAuthStore();
@@ -37,21 +37,8 @@ const AdhyayanBookingCancellation = () => {
   const tabBarPadding = useTabBarPadding();
 
   const fetchAdhyayans = async ({ pageParam = 1 }) => {
-    return new Promise((resolve, reject) => {
-      handleAPICall(
-        'GET',
-        '/adhyayan/getbooked',
-        {
-          cardno: user.cardno,
-          page: pageParam,
-        },
-        null,
-        (res: any) => {
-          resolve(Array.isArray(res.data) ? res.data : []);
-        },
-        () => reject(new Error('Failed to fetch adhyayans'))
-      );
-    });
+    const res = await getBookedAdhyayan(user.cardno, pageParam);
+    return Array.isArray(res.data) ? res.data : [];
   };
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch }: any =
@@ -67,21 +54,7 @@ const AdhyayanBookingCancellation = () => {
     });
 
   const cancelBookingMutation = useMutation<any, any, any>({
-    mutationFn: ({ cardno, bookingid }) => {
-      return new Promise((resolve, reject) => {
-        handleAPICall(
-          'DELETE',
-          '/adhyayan/cancel',
-          null,
-          {
-            cardno,
-            bookingid,
-          },
-          (res: any) => resolve(res),
-          () => reject(new Error('Failed to cancel booking'))
-        );
-      });
-    },
+    mutationFn: ({ cardno, bookingid }) => cancelAdhyayan(cardno, bookingid),
     onSuccess: (_, { bookingid }) => {
       queryClient.setQueryData(['adhyayanBooking', user.cardno], (oldData: any) => {
         if (!oldData || !oldData.pages) return oldData;

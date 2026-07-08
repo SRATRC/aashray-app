@@ -1,8 +1,7 @@
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
 import moment from 'moment';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -12,21 +11,21 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-import BookingStatusDisplay from '../BookingStatusDisplay';
-import CustomButton from '../CustomButton';
-import CustomEmptyMessage from '../CustomEmptyMessage';
-import CustomModal from '../CustomModal';
-import ExpandableItem from '../ExpandableItem';
-import HorizontalSeparator from '../HorizontalSeparator';
-import OldBookingsTrigger from '../OldBookingsTrigger';
+import BookingStatusDisplay from './BookingStatusDisplay';
+import OldBookingsTrigger from './OldBookingsTrigger';
+import { cancelStay, getStayBookings } from '../../api';
+import { splitActiveAndPastBookings } from '../../bookingHistoryFilter';
 
+import CustomButton from '@/components/CustomButton';
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
+import CustomModal from '@/components/CustomModal';
+import ExpandableItem from '@/components/ExpandableItem';
+import HorizontalSeparator from '@/components/HorizontalSeparator';
 import { icons, status } from '@/constants';
 import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 import { useAuthStore } from '@/stores';
-import handleAPICall from '@/utils/HandleApiCall';
-import { splitActiveAndPastBookings } from '@/utils/bookingHistoryFilter';
 
-const EventBookingCancellation = () => {
+const RoomBookingCancellation: React.FC = () => {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -34,70 +33,40 @@ const EventBookingCancellation = () => {
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [showOldBookings, setShowOldBookings] = useState(false);
   const tabBarPadding = useTabBarPadding();
-  const router = useRouter();
 
-  const fetchUtsavs = async ({ pageParam = 1 }) => {
-    return new Promise((resolve, reject) => {
-      handleAPICall(
-        'GET',
-        '/utsav/booking',
-        {
-          cardno: user?.cardno,
-          page: pageParam,
-        },
-        null,
-        (res: any) => {
-          resolve(Array.isArray(res.data) ? res.data : []);
-        },
-        () => {},
-        () => reject(new Error('Failed to fetch utsavs')),
-        false
-      );
-    });
+  const fetchRooms = async ({ pageParam = 1 }: { pageParam?: number }) => {
+    const res = await getStayBookings(user.cardno, pageParam);
+    return Array.isArray(res) ? res : [];
   };
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch }: any =
     useInfiniteQuery({
-      queryKey: ['utsavBooking', user?.cardno],
-      queryFn: fetchUtsavs,
+      queryKey: ['roomBooking', user.cardno],
+      queryFn: fetchRooms,
       initialPageParam: 1,
       staleTime: 1000 * 60 * 5,
       getNextPageParam: (lastPage: any, pages: any) => {
         if (!lastPage || !Array.isArray(lastPage) || lastPage.length === 0) return undefined;
         return (pages?.length || 0) + 1;
       },
-      enabled: !!user?.cardno,
     });
 
   const cancelBookingMutation = useMutation<any, any, any>({
-    mutationFn: ({ cardno, bookingid }) => {
-      return new Promise((resolve, reject) => {
-        handleAPICall(
-          'DELETE',
-          '/utsav/booking',
-          null,
-          {
-            cardno,
-            bookingid,
-          },
-          (res: any) => resolve(res),
-          () => {},
-          () => reject(new Error('Failed to cancel booking')),
-          false
-        );
-      });
+    mutationFn: async ({ bookingid, bookedFor }) => {
+      await cancelStay(user.cardno, bookingid, bookedFor);
     },
-    onSuccess: (_, { bookingid }) => {
-      queryClient.setQueryData(['utsavBooking', user?.cardno], (oldData: any) => {
-        if (!oldData || !oldData.pages) return oldData;
+    onSuccess: (_, { bookingid, bookedFor }) => {
+      queryClient.setQueryData(['roomBooking', user.cardno], (oldData: any) => {
+        if (!oldData) return oldData;
 
         return {
           ...oldData,
           pages: oldData.pages.map((page: any) =>
             page.map((booking: any) => {
-              const isMatchingBooking = booking.bookingid === bookingid;
-
-              if (!isMatchingBooking) {
+              if (
+                booking.bookingid !== bookingid ||
+                (booking.bookedFor !== null && booking.bookedFor !== bookedFor)
+              ) {
                 return booking;
               }
 
@@ -105,9 +74,15 @@ const EventBookingCancellation = () => {
                 booking.transaction_status === status.STATUS_PAYMENT_PENDING ||
                 booking.transaction_status === status.STATUS_CASH_PENDING;
 
+              const isCompleted =
+                booking.transaction_status === status.STATUS_PAYMENT_COMPLETED ||
+                booking.transaction_status === status.STATUS_CASH_COMPLETED;
+
               const newTransactionStatus = isPending
                 ? status.STATUS_CANCELLED
-                : booking.transaction_status;
+                : isCompleted
+                  ? status.STATUS_CREDITED
+                  : booking.transaction_status;
 
               return {
                 ...booking,
@@ -124,7 +99,7 @@ const EventBookingCancellation = () => {
   const allItems = data?.pages?.flatMap((page: any) => page) || [];
   const { activeItems, pastItems } = splitActiveAndPastBookings(
     allItems,
-    (item: any) => item.package_end || item.package_start
+    (item: any) => item.checkout
   );
 
   const renderOldBookingsSection = (compact = false) => (
@@ -167,97 +142,97 @@ const EventBookingCancellation = () => {
     }
   };
 
-  const renderItem = ({ item }: any) => {
-    const bookedForSomeone = item.bookedBy && user?.cardno === item.bookedBy;
-    const canCancel =
-      moment(item.utsav_start_date).isAfter(moment(), 'day') &&
-      ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status);
-    return (
-      <ExpandableItem
-        visibleContent={
-          <View className="flex-1 flex-shrink flex-row items-center gap-x-4">
-            <Image source={icons.events} className="h-10 w-10 items-center" resizeMode="contain" />
-            <View className="flex-col gap-y-2">
-              <BookingStatusDisplay
-                bookingStatus={item.status}
-                transactionStatus={item.transaction_status}
-              />
-              <View className="flex-col">
-                <Text className="font-pmedium text-gray-700">{item.utsav_name}</Text>
-                {item.package_start && item.package_end && (
-                  <Text className="font-pmedium text-secondary-100">
-                    {moment(item.package_start).format('Do MMMM')} -{' '}
-                    {moment(item.package_end).format('Do MMMM, YYYY')}
-                  </Text>
-                )}
-                {bookedForSomeone && (
-                  <View className="flex-row items-center gap-x-2">
-                    <Text className="font-pmedium">Booked For:</Text>
-                    <Text className="font-pmedium text-secondary-100">{item.user_name}</Text>
-                  </View>
-                )}
-              </View>
-            </View>
+  const renderItem: ListRenderItem<any> = ({ item }) => (
+    <ExpandableItem
+      visibleContent={
+        <View className="flex flex-row items-center gap-x-4">
+          <Image source={icons.room} className="h-10 w-10" resizeMode="contain" />
+          <View className="flex-col gap-y-2">
+            <BookingStatusDisplay
+              bookingStatus={item.status}
+              transactionStatus={item.transaction_status}
+            />
+            <Text className="font-pmedium">
+              {moment(item.checkin).format('Do MMMM')} -{' '}
+              {moment(item.checkout).format('Do MMMM, YYYY')}
+            </Text>
+            {item.bookedBy && user.cardno === item.bookedBy && (
+              <Text className="font-pmedium">
+                Booked For: <Text className="text-secondary">{item.name}</Text>
+              </Text>
+            )}
           </View>
-        }
-        containerStyles="mt-3">
-        <HorizontalSeparator />
-        <View className="mt-3">
-          <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
-            <Image source={icons.luggage} className="h-4 w-4" resizeMode="contain" />
-            <Text className="font-pregular text-gray-400">Package: </Text>
-            <Text className="flex-1 flex-shrink font-pmedium text-black">{item.package_name}</Text>
-          </View>
-          {item.stay && (
-            <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
-              <Image source={icons.roomNumber} className="h-4 w-4" resizeMode="contain" />
-              <Text className="font-pregular text-gray-400">Room Number: </Text>
-              <Text className="font-pmedium text-black">{item.stay}</Text>
-            </View>
-          )}
-          {item.amount > 0 && (
-            <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
-              <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
-              <Text className="font-pregular text-gray-400">Charge: </Text>
-              <Text className="font-pmedium text-black">₹ {item.amount}</Text>
-            </View>
-          )}
-          {/* Actions Row */}
-          {(canCancel ||
-            (item?.showFeedback && !item?.hasSubmittedFeedback && !bookedForSomeone)) && (
-            <View className="mt-5 flex-row gap-x-3 px-1">
-              {/* Cancel Booking — only BEFORE event */}
-              {canCancel && (
-                <CustomButton
-                  text="Cancel Booking"
-                  containerStyles="py-3 flex-1"
-                  textStyles="text-sm text-white"
-                  handlePress={() => {
-                    setSelectedBooking(item);
-                    setShowCancelModal(true);
-                  }}
-                />
-              )}
-
-              {/* Give Feedback */}
-              {item?.showFeedback && !item?.hasSubmittedFeedback && !bookedForSomeone && (
-                <CustomButton
-                  text="Give Feedback"
-                  containerStyles="py-3 flex-1"
-                  textStyles="text-sm text-white"
-                  bgcolor="bg-secondary"
-                  handlePress={() => {
-                    const utsavId = item.utsavid ?? item.id;
-                    router.push(`/utsav/feedback/${utsavId}`);
-                  }}
-                />
-              )}
-            </View>
-          )}
         </View>
-      </ExpandableItem>
-    );
-  };
+      }
+      containerStyles="mt-3">
+      <HorizontalSeparator />
+      <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
+        <Image source={icons.ac} className="h-4 w-4" resizeMode="contain" />
+        <Text className="font-pregular text-gray-400">Room Type:</Text>
+        <Text className="font-pmedium text-black">
+          {item.roomtype === 'ac'
+            ? 'AC Room'
+            : item.roomtype === 'nac'
+              ? 'Non AC Room'
+              : item.roomtype === 'NA'
+                ? 'Single Day'
+                : 'Flat'}
+        </Text>
+      </View>
+      {item.gender && (
+        <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
+          <Image source={icons.elder} className="h-4 w-4" resizeMode="contain" />
+          <Text className="font-pregular text-gray-400">Ground Floor Booking:</Text>
+          <Text className="font-pmedium text-black">
+            {item.gender.includes('SC') ? 'Yes' : 'No'}
+          </Text>
+        </View>
+      )}
+
+      <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
+        <Image source={icons.roomNumber} className="h-4 w-4" resizeMode="contain" />
+
+        <Text className="font-pregular text-gray-400">
+          {item.roomtype === 'flat' ? 'Flat Number:' : 'Room Number:'}
+        </Text>
+
+        <Text className="font-pmedium text-black">
+          {item.roomtype === 'flat' ||
+          ([status.STATUS_CASH_COMPLETED, status.STATUS_PAYMENT_COMPLETED].includes(
+            item.transaction_status
+          ) &&
+            (moment().isAfter(moment(item.checkin)) ||
+              moment().isBetween(
+                moment(item.checkin).subtract(24, 'hours'),
+                moment(item.checkin),
+                null,
+                '[]'
+              )))
+            ? item.roomno
+            : '24h before check-in'}
+        </Text>
+      </View>
+
+      {/* <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
+        <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
+        <Text className="font-pregular text-gray-400">Charge:</Text>
+        <Text className="font-pmedium text-black">₹ {item.amount}</Text>
+      </View> */}
+
+      {moment(item.checkin).diff(moment().format('YYYY-MM-DD')) > 0 &&
+        ![status.STATUS_CANCELLED, status.STATUS_ADMIN_CANCELLED].includes(item.status) && (
+          <CustomButton
+            text="Cancel Booking"
+            containerStyles="mt-5 py-3 mx-1 flex-1"
+            textStyles="text-sm text-white"
+            handlePress={() => {
+              setSelectedBooking(item);
+              setShowCancelModal(true);
+            }}
+          />
+        )}
+    </ExpandableItem>
+  );
 
   const renderFooter = () => (
     <View className="items-center">
@@ -289,7 +264,7 @@ const EventBookingCancellation = () => {
                   Oops! Something went wrong
                 </Text>
                 <Text className="mb-6 text-center text-gray-600">
-                  Unable to load Event Bookings. Please check your connection and try again.
+                  Unable to load Room Bookings. Please check your connection and try again.
                 </Text>
                 <TouchableOpacity
                   onPress={() => refetch()}
@@ -303,7 +278,7 @@ const EventBookingCancellation = () => {
             return <View className="w-full">{renderOldBookingsSection()}</View>;
           return (
             <View className="h-full flex-1 items-center justify-center pt-40">
-              <CustomEmptyMessage message="No spiritual gatherings? Your soul's RSVP is missing." />
+              <CustomEmptyMessage message="Your room bookings are currently in a state of nirvana...empty" />
             </View>
           );
         }}
@@ -341,14 +316,14 @@ const EventBookingCancellation = () => {
           setSelectedBooking(null);
         }}
         title="Cancel Booking"
-        message="Are you sure you want to cancel this event booking?"
+        message="Are you sure you want to cancel this room booking?"
         btnText="Yes, Cancel"
         showActionButton
         btnOnPress={() => {
           if (selectedBooking) {
             cancelBookingMutation.mutate({
-              cardno: selectedBooking.cardno,
               bookingid: selectedBooking.bookingid,
+              bookedFor: selectedBooking.bookedFor,
             });
             setShowCancelModal(false);
             setSelectedBooking(null);
@@ -359,4 +334,4 @@ const EventBookingCancellation = () => {
   );
 };
 
-export default EventBookingCancellation;
+export default RoomBookingCancellation;

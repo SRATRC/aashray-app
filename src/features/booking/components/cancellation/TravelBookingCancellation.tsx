@@ -13,19 +13,19 @@ import {
   Linking,
 } from 'react-native';
 
-import BookingStatusDisplay from '../BookingStatusDisplay';
-import CustomButton from '../CustomButton';
-import CustomEmptyMessage from '../CustomEmptyMessage';
-import CustomModal from '../CustomModal';
-import ExpandableItem from '../ExpandableItem';
-import HorizontalSeparator from '../HorizontalSeparator';
-import OldBookingsTrigger from '../OldBookingsTrigger';
+import BookingStatusDisplay from './BookingStatusDisplay';
+import OldBookingsTrigger from './OldBookingsTrigger';
+import { cancelTravelBooking, getTravelBookings } from '../../api';
+import { splitActiveAndPastBookings } from '../../bookingHistoryFilter';
 
+import CustomButton from '@/components/CustomButton';
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
+import CustomModal from '@/components/CustomModal';
+import ExpandableItem from '@/components/ExpandableItem';
+import HorizontalSeparator from '@/components/HorizontalSeparator';
 import { colors, icons, status } from '@/constants';
 import { useTabBarPadding } from '@/hooks/useTabBarPadding';
 import { useAuthStore } from '@/stores';
-import handleAPICall from '@/utils/HandleApiCall';
-import { splitActiveAndPastBookings } from '@/utils/bookingHistoryFilter';
 
 const TravelBookingCancellation = () => {
   const { user } = useAuthStore();
@@ -39,23 +39,8 @@ const TravelBookingCancellation = () => {
   const tabBarPadding = useTabBarPadding();
 
   const fetchTravels = async ({ pageParam = 1 }) => {
-    return new Promise((resolve, reject) => {
-      handleAPICall(
-        'GET',
-        '/travel/booking',
-        {
-          cardno: user.cardno,
-          page: pageParam,
-        },
-        null,
-        (res: any) => {
-          resolve(Array.isArray(res.data) ? res.data : []);
-        },
-        () => {},
-        () => reject(new Error('Failed to fetch travels')),
-        false
-      );
-    });
+    const res = await getTravelBookings(user.cardno, pageParam);
+    return Array.isArray(res.data) ? res.data : [];
   };
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch }: any =
@@ -71,23 +56,7 @@ const TravelBookingCancellation = () => {
     });
 
   const cancelBookingMutation = useMutation({
-    mutationFn: (bookingid) => {
-      return new Promise((resolve, reject) => {
-        handleAPICall(
-          'DELETE',
-          '/travel/booking',
-          null,
-          {
-            cardno: user.cardno,
-            bookingid,
-          },
-          (res: any) => resolve(res),
-          () => {},
-          () => reject(new Error('Failed to cancel booking')),
-          false
-        );
-      });
-    },
+    mutationFn: (bookingid: string) => cancelTravelBooking(user.cardno, bookingid),
     onSuccess: (_, bookingid) => {
       queryClient.setQueryData(['travelBooking', user.cardno], (oldData: any) => {
         if (!oldData || !oldData.pages) return oldData;
