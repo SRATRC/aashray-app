@@ -26,6 +26,8 @@ const GuestTravelBookingDetails: React.FC<{ containerStyles: any }> = ({ contain
           <TravelDateDisplay
             date={guestData.travel?.date}
             returnDate={guestData.travel?.return_date}
+            pickup={guestData.travel?.guestGroup?.[0]?.pickup}
+            drop={guestData.travel?.guestGroup?.[0]?.drop}
           />
         </View>
       </View>

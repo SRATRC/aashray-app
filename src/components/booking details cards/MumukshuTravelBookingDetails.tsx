@@ -26,6 +26,8 @@ const MumukshuTravelBookingDetail: React.FC<{ containerStyles: any }> = ({ conta
           <TravelDateDisplay
             date={mumukshuData.travel.date}
             returnDate={mumukshuData.travel.return_date}
+            pickup={mumukshuData.travel.mumukshuGroup?.[0]?.pickup}
+            drop={mumukshuData.travel.mumukshuGroup?.[0]?.drop}
           />
         </View>
       </View>

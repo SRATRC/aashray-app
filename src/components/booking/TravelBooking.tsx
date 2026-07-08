@@ -9,6 +9,7 @@ import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomButton from '../CustomButton';
 import CustomCalender from '../CustomCalender';
+import Callout from '../Callout';
 import FormField from '../FormField';
 import CustomModal from '../CustomModal';
 import CustomChipGroup from '../CustomChipGroup';
@@ -403,10 +404,10 @@ const TravelBooking = () => {
         showsVerticalScrollIndicator={false}
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled">
-        <Text className="font-pmedium text-base text-gray-600">Travel Date</Text>
-        <Text className="mb-1 font-pregular text-sm text-gray-500">
-          Pick one date for a one-way trip, or select a return date too for a round trip.
-        </Text>
+        <Callout
+          variant="default"
+          message="For a round trip, pick your travel date and a return date. Your pickup and drop-off stay the same — we simply reverse them for the return journey."
+        />
         <CustomCalender
           type={'period'}
           startDay={travelForm.date}

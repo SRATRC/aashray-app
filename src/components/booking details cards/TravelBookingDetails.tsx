@@ -1,5 +1,5 @@
 import { View, Text, Image } from 'react-native';
-import { FontAwesome, FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { FontAwesome, FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { colors, icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
 import HorizontalSeparator from '../HorizontalSeparator';
@@ -23,7 +23,12 @@ const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerSt
               containerStyles={'bg-red-100'}
             />
           )}
-          <TravelDateDisplay date={data.travel.date} returnDate={data.travel.return_date} />
+          <TravelDateDisplay
+            date={data.travel.date}
+            returnDate={data.travel.return_date}
+            pickup={data.travel.mumukshuGroup[0].pickup}
+            drop={data.travel.mumukshuGroup[0].drop}
+          />
         </View>
       </View>
 
@@ -33,17 +38,6 @@ const TravelBookingDetails: React.FC<{ containerStyles?: any }> = ({ containerSt
         <FontAwesome5 name="car" size={14} color={colors.gray_400} />
         <Text className="font-pregular text-gray-400">Booking Type:</Text>
         <Text className="font-pmedium text-black">{data.travel.mumukshuGroup[0].type}</Text>
-      </View>
-      <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
-        <MaterialIcons name="location-on" size={14} color={colors.gray_400} />
-        <Text className="font-pregular text-gray-400">
-          {data.travel.mumukshuGroup[0].pickup == 'Research Centre' ? 'Drop Point' : 'Pickup Point'}
-        </Text>
-        <Text className="flex-1 font-pmedium text-black" numberOfLines={1}>
-          {data.travel.mumukshuGroup[0].pickup == 'Research Centre'
-            ? `${data.travel.mumukshuGroup[0].drop}`
-            : `${data.travel.mumukshuGroup[0].pickup}`}
-        </Text>
       </View>
       <View className="mb-4 flex flex-row items-center gap-x-2 px-6">
         <FontAwesome5 name="luggage-cart" size={14} color={colors.gray_400} />
