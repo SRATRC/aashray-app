@@ -7,7 +7,7 @@ import {
 import React, { forwardRef, ReactNode } from 'react';
 import { View, Text } from 'react-native';
 
-import CustomButton from './CustomButton';
+import CustomButton from '@/components/CustomButton';
 
 export interface ChargeBreakdownItem {
   charge: number;

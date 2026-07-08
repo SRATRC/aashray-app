@@ -8,152 +8,87 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import RazorpayCheckout from 'react-native-razorpay';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { submitGuestBooking, validateGuestBooking } from '../api';
+import ChargeBreakdownBottomSheet from '../components/ChargeBreakdownBottomSheet';
+import GuestAdhyayanBookingDetails from '../components/GuestAdhyayanBookingDetails';
+import GuestEventBookingDetails from '../components/GuestEventBookingDetails';
+import GuestFlatBookingDetails from '../components/GuestFlatBookingDetails';
+import GuestFoodBookingDetails from '../components/GuestFoodBookingDetails';
+import GuestRoomBookingDetails from '../components/GuestRoomBookingDetails';
+
 import CustomButton from '@/components/CustomButton';
 import CustomModal from '@/components/CustomModal';
 import PageHeader from '@/components/PageHeader';
 import { ShadowBox } from '@/components/ShadowBox';
-import MumukshuAdhyayanBookingDetails from '@/components/booking details cards/MumukshuAdhyayanBookingDetails';
-import MumukshuEventBookingDetails from '@/components/booking details cards/MumukshuEventBookingDetails';
-import MumukshuFlatBookingDetails from '@/components/booking details cards/MumukshuFlatBookingDetails';
-import MumukshuFoodBookingDetails from '@/components/booking details cards/MumukshuFoodBookingDetails';
-import MumukshuRoomBookingDetails from '@/components/booking details cards/MumukshuRoomBookingDetails';
-import MumukshuTravelBookingDetails from '@/components/booking details cards/MumukshuTravelBookingDetails';
 import { colors } from '@/constants';
-import { ChargeBreakdownBottomSheet } from '@/features/booking';
 import { useAuthStore, useBookingStore } from '@/stores';
-import handleAPICall from '@/utils/HandleApiCall';
-import { prepareMumukshuRequestBody } from '@/utils/preparingRequestBody';
+import { prepareGuestRequestBody } from '@/utils/preparingRequestBody';
 
 // @ts-ignore
 
-// Define validation data type
-interface ValidationData {
-  roomDetails?: {
-    mumukshu?: string;
-    roomno?: number;
-    nights?: number;
-    charge: number;
-    availableCredits?: number;
-    issuedto?: string;
-    [key: string]: any;
-  }[];
-  foodDetails?: {
-    mumukshu?: string;
-    mealTypes?: string;
-    dates?: string;
-    charge: number;
-    availableCredits?: number;
-    issuedto?: string;
-    [key: string]: any;
-  }[];
-  travelDetails?: {
-    mumukshu?: string;
-    pickup?: string;
-    drop?: string;
-    date?: string;
-    charge: number;
-    availableCredits?: number;
-    issuedto?: string;
-    [key: string]: any;
-  };
-  adhyayanDetails?: {
-    mumukshu?: string;
-    shibirName?: string;
-    dates?: string;
-    charge: number;
-    availableCredits?: number;
-    issuedto?: string;
-    [key: string]: any;
-  }[];
-  utsavDetails?: {
-    mumukshu?: string;
-    eventName?: string;
-    dates?: string;
-    charge: number;
-    availableCredits?: number;
-    issuedto?: string;
-    [key: string]: any;
-  }[];
-  flatDetails?: {
-    mumukshu: string;
-    flatno: number;
-    nights: number;
-    charge: number;
-    availableCredits?: number;
-    status: string;
-    issuedto?: string;
-  }[];
-  totalCharge: number;
-}
-
-const MumukshuBookingReview = () => {
+const GuestBookingReview = () => {
   const router = useRouter();
 
   const user = useAuthStore((state) => state.user);
-  const mumukshuData = useBookingStore((state) => state.mumukshuData);
-  const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
-  const mumukshuInfo = useBookingStore((state) => state.mumukshuInfo);
+  const guestData = useBookingStore((state) => state.guestData);
+  const setGuestData = useBookingStore((state) => state.setGuestData);
+  const guestInfo = useBookingStore((state) => state.guestInfo);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPayLaterModal, setShowPayLaterModal] = useState(false);
 
-  // Bottom sheet refs for room and flat charges
+  // Bottom sheet refs for room and adhyayan charges
   const roomChargeBottomSheetRef = useRef<BottomSheetModal>(null);
   const flatChargeBottomSheetRef = useRef<BottomSheetModal>(null);
 
-  const transformedData = prepareMumukshuRequestBody(user, mumukshuData);
+  console.log('CONFIRM GUEST DATA: ', JSON.stringify(guestData));
+  const transformedData = prepareGuestRequestBody(user, guestData);
+  console.log('CONFIRM TRANSFORMED DATA: ', JSON.stringify(transformedData));
 
   const enrichRoomDetailsWithNames = (roomDetails: any[]) => {
+    // Use guestInfo from store to map cardno to name/issuedto
     return roomDetails.map((item: any) => {
-      const matchingMumukshu = mumukshuInfo.find((g: any) => g.cardno === item.mumukshu);
+      const matchingGuest = guestInfo.find((g: any) => g.cardno === item.mumukshu);
       return {
         ...item,
-        name: matchingMumukshu?.name || null,
+        name: matchingGuest?.name || null,
       };
     });
   };
 
   const enrichFlatDetailsWithNames = (flatDetails: any[]) => {
+    // Use guestInfo from store to map cardno to name/issuedto
     return flatDetails.map((item: any) => {
-      const matchingMumukshu = mumukshuInfo.find((g: any) => g.cardno === item.mumukshu);
+      const matchingGuest = guestInfo.find((g: any) => g.cardno === item.guest);
       return {
         ...item,
-        name: matchingMumukshu?.name || null,
+        name: matchingGuest?.name || null,
       };
     });
   };
 
   const fetchValidation = useCallback(async () => {
-    return new Promise<ValidationData>((resolve, reject) => {
-      handleAPICall(
-        'POST',
-        '/mumukshu/validate',
-        null,
-        transformedData,
-        (res: any) => {
-          setMumukshuData((prev: any) => ({ ...prev, validationData: res.data }));
-          resolve(res.data);
-        },
-        () => {},
-        (errorDetails: any) => {
-          reject(new Error(errorDetails.message || 'Validation failed'));
-        }
-      );
-    });
-  }, [transformedData, setMumukshuData]);
+    try {
+      const res = await validateGuestBooking(transformedData);
+      setGuestData((prev: any) => ({ ...prev, validationData: res.data }));
+      return res.data;
+    } catch (error: any) {
+      throw new Error(error.message);
+    }
+  }, [transformedData, setGuestData]);
 
   const {
     error: validationDataError,
     data: validationData,
     refetch: refetchValidation,
-  } = useQuery<ValidationData, Error>({
-    queryKey: ['mumukshuConfirmationValidations', user.cardno, JSON.stringify(mumukshuData)],
+  }: any = useQuery({
+    queryKey: ['guestConfirmationValidations', user.cardno, JSON.stringify(guestData)],
     queryFn: fetchValidation,
     retry: false,
     enabled: !!user.cardno,
   });
 
-  // Enrich validation data with mumukshu names from stored form data (only for room and flat)
+  // Enrich validation data with guest names from stored form data (for room, adhyayan, and flat)
   const enrichedValidationData = validationData
     ? {
         ...validationData,
@@ -165,6 +100,8 @@ const MumukshuBookingReview = () => {
           : validationData.flatDetails,
       }
     : validationData;
+
+  console.log('ENRICHED VALIDATION DATA: ', JSON.stringify(enrichedValidationData));
 
   // Force refetch validation when screen comes into focus
   useFocusEffect(
@@ -182,70 +119,47 @@ const MumukshuBookingReview = () => {
   const handlePayLater = async () => {
     setShowPayLaterModal(false);
     setIsSubmitting(true);
+
+    const payLaterPayload = { ...transformedData, pay_later: true };
     try {
-      const onSuccess = () => {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        router.replace('/bookingConfirmation');
-      };
-
-      const onFinally = () => {
-        setIsSubmitting(false);
-      };
-
-      const payLaterPayload = { ...transformedData, pay_later: true };
-      await handleAPICall('POST', '/mumukshu/booking', null, payLaterPayload, onSuccess, onFinally);
+      await submitGuestBooking(payLaterPayload);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.replace('/bookingConfirmation');
     } catch {
+      // apiClient already surfaces the error toast/haptic
+    } finally {
       setIsSubmitting(false);
     }
   };
 
   const totalCredits =
-    (Array.isArray(enrichedValidationData?.roomDetails)
-      ? enrichedValidationData?.roomDetails.reduce(
-          (sum: number, item: { availableCredits?: number }) => sum + (item.availableCredits || 0),
-          0
-        )
-      : 0) +
-    (Array.isArray(validationData?.foodDetails)
-      ? validationData?.foodDetails.reduce(
-          (sum: number, item: { availableCredits?: number }) => sum + (item.availableCredits || 0),
-          0
-        )
-      : 0) +
-    (validationData?.travelDetails?.availableCredits || 0) +
-    (Array.isArray(validationData?.adhyayanDetails)
-      ? validationData?.adhyayanDetails.reduce(
-          (sum: number, item: { availableCredits?: number }) => sum + (item.availableCredits || 0),
-          0
-        )
-      : 0) +
-    (Array.isArray(validationData?.utsavDetails)
-      ? validationData?.utsavDetails.reduce(
-          (sum: number, item: { availableCredits?: number }) => sum + (item.availableCredits || 0),
-          0
-        )
-      : 0) +
-    (Array.isArray(enrichedValidationData?.flatDetails)
-      ? enrichedValidationData?.flatDetails.reduce(
-          (sum: number, item: { availableCredits?: number }) => sum + (item.availableCredits || 0),
-          0
-        )
-      : 0);
+    (enrichedValidationData?.roomDetails?.reduce(
+      (sum: any, item: any) => sum + (item.availableCredits || 0),
+      0
+    ) || 0) +
+    (validationData?.foodDetails?.availableCredits || 0) +
+    (enrichedValidationData?.adhyayanDetails?.reduce(
+      (sum: any, item: any) => sum + (item.availableCredits || 0),
+      0
+    ) || 0) +
+    (validationData?.utsavDetails?.reduce(
+      (sum: any, item: any) => sum + (item.availableCredits || 0),
+      0
+    ) || 0);
 
   return (
-    <SafeAreaView className="h-full bg-white" edges={['top', 'left', 'right']}>
+    <SafeAreaView className="h-full bg-white" edges={['top', 'right', 'left']}>
       <ScrollView
         alwaysBounceVertical={false}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 20 }}>
         <PageHeader title="Review Booking" />
 
-        {mumukshuData.room && <MumukshuRoomBookingDetails containerStyles="mt-2" />}
-        {mumukshuData.adhyayan && <MumukshuAdhyayanBookingDetails containerStyles="mt-2" />}
-        {mumukshuData.food && <MumukshuFoodBookingDetails containerStyles="mt-2" />}
-        {mumukshuData.travel && <MumukshuTravelBookingDetails containerStyles="mt-2" />}
-        {mumukshuData.utsav && <MumukshuEventBookingDetails containerStyles="mt-2" />}
-        {mumukshuData.flat && <MumukshuFlatBookingDetails containerStyles="mt-2" />}
+        {guestData.room && <GuestRoomBookingDetails containerStyles="mt-2" />}
+        {guestData.utsav && <GuestEventBookingDetails containerStyles="mt-2" />}
+        {guestData.flat && <GuestFlatBookingDetails containerStyles="mt-2" />}
+        {guestData.adhyayan && <GuestAdhyayanBookingDetails containerStyles="mt-2" />}
+        {guestData.food && <GuestFoodBookingDetails containerStyles="mt-2" />}
 
         {validationData && validationData.totalCharge > 0 && (
           <View className="mt-4 w-full px-4">
@@ -303,21 +217,21 @@ const MumukshuBookingReview = () => {
                       return null;
                     })()}
 
-                  {validationData.travelDetails && validationData.travelDetails.charge > 0 && (
-                    <View className="border-b border-gray-200 pb-3">
-                      <View className="flex-row items-center justify-between">
-                        <Text className="font-pregular text-base text-gray-700">Travel Charge</Text>
-                        <View className="items-end">
-                          <Text
-                            className={`font-${validationData.travelDetails.availableCredits ? 'pregular' : 'pregular'} text-base text-${validationData.travelDetails.availableCredits ? 'gray-400 line-through' : 'black'}`}>
-                            ₹{validationData.travelDetails.charge.toLocaleString('en-IN')}
-                          </Text>
-                          {validationData.travelDetails.availableCredits &&
-                            validationData.travelDetails.availableCredits > 0 && (
+                  {validationData.foodDetails?.charge !== undefined &&
+                    validationData.foodDetails.charge > 0 && (
+                      <View className="border-b border-gray-200 pb-3">
+                        <View className="flex-row items-center justify-between">
+                          <Text className="font-pregular text-base text-gray-700">Food Charge</Text>
+                          <View className="items-end">
+                            <Text
+                              className={`font-${validationData.foodDetails.availableCredits > 0 ? 'pregular' : 'pregular'} text-base text-${validationData.foodDetails.availableCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
+                              ₹{validationData.foodDetails.charge.toLocaleString('en-IN')}
+                            </Text>
+                            {validationData.foodDetails.availableCredits > 0 && (
                               <>
                                 <Text className="font-pregular text-xs text-green-600">
                                   −₹
-                                  {validationData.travelDetails.availableCredits.toLocaleString(
+                                  {validationData.foodDetails.availableCredits.toLocaleString(
                                     'en-IN'
                                   )}{' '}
                                   credit
@@ -326,27 +240,26 @@ const MumukshuBookingReview = () => {
                                   ₹
                                   {Math.max(
                                     0,
-                                    validationData.travelDetails.charge -
-                                      validationData.travelDetails.availableCredits
+                                    validationData.foodDetails.charge -
+                                      validationData.foodDetails.availableCredits
                                   ).toLocaleString('en-IN')}
                                 </Text>
                               </>
                             )}
+                          </View>
                         </View>
                       </View>
-                    </View>
-                  )}
+                    )}
 
-                  {validationData.adhyayanDetails &&
-                    validationData.adhyayanDetails.length > 0 &&
+                  {enrichedValidationData?.adhyayanDetails &&
+                    enrichedValidationData.adhyayanDetails.length > 0 &&
                     (() => {
-                      const totalCharge = validationData.adhyayanDetails.reduce(
-                        (total: number, shibir: { charge: number }) => total + shibir.charge,
+                      const totalCharge = enrichedValidationData.adhyayanDetails.reduce(
+                        (total: any, shibir: any) => total + shibir.charge,
                         0
                       );
-                      const totalCredits = validationData.adhyayanDetails.reduce(
-                        (total: number, shibir: { charge: number; availableCredits?: number }) =>
-                          total + (shibir.availableCredits || 0),
+                      const totalCredits = enrichedValidationData.adhyayanDetails.reduce(
+                        (total: any, shibir: any) => total + (shibir.availableCredits || 0),
                         0
                       );
 
@@ -354,7 +267,13 @@ const MumukshuBookingReview = () => {
                         return (
                           <View className="border-b border-gray-200 pb-3">
                             <View className="flex-row items-center justify-between">
-                              <Text className="font-pregular text-base text-gray-700">
+                              <Text
+                                className="font-pregular text-base text-gray-700"
+                                style={{
+                                  borderBottomWidth: 1,
+                                  borderBottomColor: '#6B7280',
+                                  borderStyle: 'dashed',
+                                }}>
                                 Adhyayan Charge
                               </Text>
                               <View className="items-end">
@@ -387,49 +306,43 @@ const MumukshuBookingReview = () => {
                     validationData.utsavDetails.length > 0 &&
                     (() => {
                       const totalCharge = validationData.utsavDetails.reduce(
-                        (total: number, utsav: { charge: number }) => total + utsav.charge,
+                        (total: any, utsav: any) => total + utsav.charge,
                         0
                       );
                       const totalCredits = validationData.utsavDetails.reduce(
-                        (total: number, utsav: { charge: number; availableCredits?: number }) =>
-                          total + (utsav.availableCredits || 0),
+                        (total: any, utsav: any) => total + (utsav.availableCredits || 0),
                         0
                       );
-
-                      if (totalCharge > 0) {
-                        return (
-                          <View className="border-b border-gray-200 pb-3">
-                            <View className="flex-row items-center justify-between">
-                              <Text className="font-pregular text-base text-gray-700">
-                                Utsav Charge
+                      return (
+                        <View className="border-b border-gray-200 pb-3">
+                          <View className="flex-row items-center justify-between">
+                            <Text className="font-pregular text-base text-gray-700">
+                              Utsav Charge
+                            </Text>
+                            <View className="items-end">
+                              <Text
+                                className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
+                                ₹{totalCharge.toLocaleString('en-IN')}
                               </Text>
-                              <View className="items-end">
-                                <Text
-                                  className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
-                                  ₹{totalCharge.toLocaleString('en-IN')}
-                                </Text>
-                                {totalCredits > 0 && (
-                                  <>
-                                    <Text className="font-pregular text-xs text-green-600">
-                                      −₹{totalCredits.toLocaleString('en-IN')} credit
-                                    </Text>
-                                    <Text className="mt-0.5 font-pmedium text-base text-black">
-                                      ₹
-                                      {Math.max(0, totalCharge - totalCredits).toLocaleString(
-                                        'en-IN'
-                                      )}
-                                    </Text>
-                                  </>
-                                )}
-                              </View>
+                              {totalCredits > 0 && (
+                                <>
+                                  <Text className="font-pregular text-xs text-green-600">
+                                    −₹{totalCredits.toLocaleString('en-IN')} credit
+                                  </Text>
+                                  <Text className="mt-0.5 font-pmedium text-base text-black">
+                                    ₹
+                                    {Math.max(0, totalCharge - totalCredits).toLocaleString(
+                                      'en-IN'
+                                    )}
+                                  </Text>
+                                </>
+                              )}
                             </View>
                           </View>
-                        );
-                      }
-                      return null;
+                        </View>
+                      );
                     })()}
 
-                  {/* Flat Charge Section */}
                   {enrichedValidationData?.flatDetails &&
                     enrichedValidationData.flatDetails.length > 0 &&
                     (() => {
@@ -530,52 +443,44 @@ const MumukshuBookingReview = () => {
               text="Pay Now"
               handlePress={async () => {
                 setIsSubmitting(true);
+                const onSuccess = (data: any) => {
+                  if (data.data?.amount === 0) router.replace('/bookingConfirmation');
+                  else {
+                    const options = {
+                      key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
+                      name: 'Vitraag Vigyaan Aashray',
+                      image: 'https://vitraagvigyaan.org/img/logo.png',
+                      description: 'Payment for Vitraag Vigyaan Aashray',
+                      amount: `${data.data.amount}`,
+                      currency: 'INR',
+                      order_id: `${data.data.id}`,
+                      prefill: {
+                        email: `${user.email}`,
+                        contact: `${user.mobno}`,
+                        name: `${user.issuedto}`,
+                      },
+                      theme: { color: colors.orange },
+                    };
+                    RazorpayCheckout.open(options)
+                      .then((_rzrpayData: any) => {
+                        setIsSubmitting(false);
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        router.replace('/paymentConfirmation');
+                      })
+                      .catch((_error: any) => {
+                        setIsSubmitting(false);
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                        router.replace('/paymentFailed');
+                      });
+                  }
+                };
+
                 try {
-                  const onSuccess = (data: any) => {
-                    if (data.order?.amount === 0) router.replace('/bookingConfirmation');
-                    else {
-                      const options = {
-                        key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
-                        name: 'Vitraag Vigyaan Aashray',
-                        image: 'https://vitraagvigyaan.org/img/logo.png',
-                        description: 'Payment for Vitraag Vigyaan Aashray',
-                        amount: `${data.order.amount}`,
-                        currency: 'INR',
-                        order_id: `${data.order.id}`,
-                        prefill: {
-                          email: `${user.email}`,
-                          contact: `${user.mobno}`,
-                          name: `${user.issuedto}`,
-                        },
-                        theme: { color: colors.orange },
-                      };
-                      RazorpayCheckout.open(options)
-                        .then((_rzrpayData: any) => {
-                          setIsSubmitting(false);
-                          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                          router.replace('/paymentConfirmation');
-                        })
-                        .catch((_error: any) => {
-                          setIsSubmitting(false);
-                          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-                          router.replace('/paymentFailed');
-                        });
-                    }
-                  };
-
-                  const onFinally = () => {
-                    setIsSubmitting(false);
-                  };
-
-                  await handleAPICall(
-                    'POST',
-                    '/mumukshu/booking',
-                    null,
-                    transformedData,
-                    onSuccess,
-                    onFinally
-                  );
+                  const data = await submitGuestBooking(transformedData);
+                  onSuccess(data);
                 } catch {
+                  // apiClient already surfaces the error toast/haptic
+                } finally {
                   setIsSubmitting(false);
                 }
               }}
@@ -599,23 +504,11 @@ const MumukshuBookingReview = () => {
             handlePress={async () => {
               setIsSubmitting(true);
               try {
-                const onSuccess = () => {
-                  router.replace('/bookingConfirmation');
-                };
-
-                const onFinally = () => {
-                  setIsSubmitting(false);
-                };
-
-                await handleAPICall(
-                  'POST',
-                  '/mumukshu/booking',
-                  null,
-                  transformedData,
-                  onSuccess,
-                  onFinally
-                );
+                await submitGuestBooking(transformedData);
+                router.replace('/bookingConfirmation');
               } catch {
+                // apiClient already surfaces the error toast/haptic
+              } finally {
                 setIsSubmitting(false);
               }
             }}
@@ -630,7 +523,7 @@ const MumukshuBookingReview = () => {
         <CustomModal
           visible
           onClose={handleCloseValidationModal}
-          message={validationDataError.message || 'An error occurred'}
+          message={validationDataError.message}
           btnText="Okay"
         />
       )}
@@ -681,7 +574,7 @@ const MumukshuBookingReview = () => {
         <ChargeBreakdownBottomSheet
           ref={roomChargeBottomSheetRef}
           title="Room Charge Breakdown"
-          subtitle="Charges per Mumukshu:"
+          subtitle="Charges per Guest:"
           items={enrichedValidationData.roomDetails}
           itemRenderer={(item, index) => (
             <View
@@ -693,7 +586,7 @@ const MumukshuBookingReview = () => {
               }`}>
               <View className="flex-1">
                 <Text className="font-pmedium text-sm text-gray-900">
-                  {item.name || `Card: ${item.mumukshu}`}
+                  {item.name || `Guest: ${item.guest}`}
                 </Text>
                 {item.nights && (
                   <Text className="mt-1 font-pregular text-xs text-gray-600">
@@ -715,7 +608,7 @@ const MumukshuBookingReview = () => {
         <ChargeBreakdownBottomSheet
           ref={flatChargeBottomSheetRef}
           title="Flat Charge Breakdown"
-          subtitle="Charges per Mumukshu:"
+          subtitle="Charges per Guest:"
           items={enrichedValidationData.flatDetails}
           itemRenderer={(item, index) => (
             <View
@@ -727,13 +620,11 @@ const MumukshuBookingReview = () => {
               }`}>
               <View className="flex-1">
                 <Text className="font-pmedium text-sm text-gray-900">
-                  {item.name || `Card: ${item.mumukshu}`}
+                  {item.name || `Card: ${item.guest}`}
                 </Text>
-                {item.nights && (
-                  <Text className="mt-1 font-pregular text-xs text-gray-600">
-                    {`${item.nights} ${item.nights === 1 ? 'night' : 'nights'}`}
-                  </Text>
-                )}
+                <Text className="mt-1 font-pregular text-xs text-gray-600">
+                  {item.nights} {item.nights === 1 ? 'night' : 'nights'}
+                </Text>
               </View>
               <View className="items-end">
                 <Text className="font-psemibold text-base text-gray-900">₹{item.charge}</Text>
@@ -747,4 +638,4 @@ const MumukshuBookingReview = () => {
   );
 };
 
-export default MumukshuBookingReview;
+export default GuestBookingReview;

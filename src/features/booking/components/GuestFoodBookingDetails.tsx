@@ -2,9 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import moment from 'moment';
 import { View, Text, Image } from 'react-native';
 
-import HorizontalSeparator from '../HorizontalSeparator';
-import { ShadowBox } from '../ShadowBox';
-
+import HorizontalSeparator from '@/components/HorizontalSeparator';
+import { ShadowBox } from '@/components/ShadowBox';
 import { colors, icons } from '@/constants';
 import { useBookingStore } from '@/stores';
 

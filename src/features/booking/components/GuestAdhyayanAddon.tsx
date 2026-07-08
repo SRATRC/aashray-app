@@ -3,14 +3,14 @@ import * as Haptics from 'expo-haptics';
 import moment from 'moment';
 import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 
-import AddonItem from '../AddonItem';
-import CustomEmptyMessage from '../CustomEmptyMessage';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import HorizontalSeparator from '../HorizontalSeparator';
+import { getAdhyayanRange } from '../api';
 
+import AddonItem from '@/components/AddonItem';
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
+import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
+import HorizontalSeparator from '@/components/HorizontalSeparator';
 import { icons } from '@/constants';
 import { useAuthStore, useBookingStore } from '@/stores';
-import handleAPICall from '@/utils/HandleApiCall';
 
 interface GuestAdhyayanAddonProps {
   adhyayanForm: any;
@@ -32,22 +32,16 @@ const GuestAdhyayanAddon: React.FC<GuestAdhyayanAddonProps> = ({
   const setGuestData = useBookingStore((store) => store.setGuestData);
 
   const fetchAdhyayans = async () => {
-    return new Promise((resolve, reject) => {
-      handleAPICall(
-        'GET',
-        '/adhyayan/getrange',
-        {
-          cardno: user.cardno,
-          start_date: guestData.room?.startDay || guestData.flat?.startDay,
-          end_date: guestData.room?.endDay || guestData.flat?.endDay,
-        },
-        null,
-        (res: any) => {
-          resolve(Array.isArray(res.data) ? res.data : []);
-        },
-        () => reject(new Error('Failed to fetch rooms'))
-      );
-    });
+    try {
+      const res = await getAdhyayanRange({
+        cardno: user.cardno,
+        start_date: guestData.room?.startDay || guestData.flat?.startDay,
+        end_date: guestData.room?.endDay || guestData.flat?.endDay,
+      });
+      return Array.isArray(res.data) ? res.data : [];
+    } catch {
+      throw new Error('Failed to fetch rooms');
+    }
   };
 
   const {
