@@ -405,8 +405,8 @@ const TravelBooking = () => {
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled">
         <Callout
-          variant="default"
-          message="For a round trip, pick your travel date and a return date. Your pickup and drop-off stay the same — we simply reverse them for the return journey."
+          variant="warning"
+          message="For a round trip, add a return date — the same route is booked in reverse."
         />
         <CustomCalender
           type={'period'}
