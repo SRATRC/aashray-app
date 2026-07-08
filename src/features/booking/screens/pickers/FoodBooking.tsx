@@ -315,8 +315,9 @@ const FoodBooking = () => {
                     },
                   });
                   CustomAlert.alert('Booking Successful');
-                } catch {
-                  // apiClient already surfaces the error toast/haptic
+                } catch (error: any) {
+                  setModalMessage(error.message);
+                  setModalVisible(true);
                 } finally {
                   setIsSubmitting(false);
                 }
@@ -529,8 +530,9 @@ const FoodBooking = () => {
                 try {
                   await submitMumukshuBooking(requestBody);
                   CustomAlert.alert('Booking Successful');
-                } catch {
-                  // apiClient already surfaces the error toast/haptic
+                } catch (error: any) {
+                  setModalMessage(error.message);
+                  setModalVisible(true);
                 } finally {
                   setIsSubmitting(false);
                 }
