@@ -1,4 +1,4 @@
-// src/features/events/screens/AdhyayanDetailScreen.tsx
+// src/features/events/screens/UtsavDetailScreen.tsx
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import moment from 'moment';
@@ -18,13 +18,14 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { createGuests, useAdhyayanDetail } from '../api';
+import { createGuests, useUtsavDetail } from '../api';
 import EventDetailHeader from '../components/EventDetailHeader';
 import EventHeroInfo from '../components/EventHeroInfo';
 import EventKeyDetails from '../components/EventKeyDetails';
 import type { AvailabilityInfo } from '../components/EventKeyDetails';
+import EventPackageSelector from '../components/EventPackageSelector';
 import EventThingsToKnow from '../components/EventThingsToKnow';
-import type { Adhyayan } from '../types';
+import type { Utsav } from '../types';
 
 import CustomAlert from '@/components/CustomAlert';
 import CustomButton from '@/components/CustomButton';
@@ -37,45 +38,70 @@ import { useAuthStore, useBookingStore } from '@/stores';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
+const INITIAL_SELF_FORM = {
+  package: null,
+  package_name: '',
+  arrival: null,
+  carno: '',
+  volunteer: null,
+  other: null,
+};
+
 const INITIAL_GUEST_FORM = {
-  adhyayan: null,
+  utsav: null,
   guests: [
     {
       name: '',
       gender: '',
       mobno: '',
       type: '',
+      package: null,
+      package_name: '',
+      arrival: null,
+      carno: '',
+      volunteer: null,
+      other: null,
     },
   ],
 };
 
 const INITIAL_MUMUKSHU_FORM = {
-  adhyayan: null,
+  utsav: null,
   mumukshus: [
     {
       cardno: '',
       mobno: '',
+      package: null,
+      package_name: '',
+      arrival: null,
+      carno: '',
+      volunteer: null,
+      other: null,
     },
   ],
 };
 
-// Transform self adhyayan booking to mumukshu format
-const transformSelfAdhyayanToMumukshu = (user: any, adhyayan: any) => {
+// Transform self form to mumukshu format
+const transformSelfToMumukshu = (user: any, selfForm: any, utsav: any) => {
   const selfMumukshu = {
     cardno: user.cardno,
-    mobno: user.mobno,
-    issuedto: user.name,
-    gender: user.gender,
-    res_status: user.res_status,
+    issuedto: user.name || `${user.firstname} ${user.lastname}`.trim(),
+    mobno: user.mobno || '',
+    package: selfForm.package,
+    package_name: selfForm.package_name,
+    arrival: selfForm.arrival,
+    carno: selfForm.carno,
+    volunteer: selfForm.volunteer,
+    other: selfForm.other,
   };
 
   return {
-    adhyayan,
-    mumukshuGroup: [selfMumukshu],
+    utsav,
+    mumukshus: [selfMumukshu],
   };
 };
 
-const AdhyayanDetailScreen = () => {
+const UtsavDetailScreen = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const user = useAuthStore((state) => state.user);
@@ -90,8 +116,10 @@ const AdhyayanDetailScreen = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedChip, setSelectedChip] = useState('Self');
+  const [selfForm, setSelfForm] = useState(INITIAL_SELF_FORM);
   const [guestForm, setGuestForm] = useState(INITIAL_GUEST_FORM);
   const [mumukshuForm, setMumukshuForm] = useState(INITIAL_MUMUKSHU_FORM);
+  const [packages, setPackages] = useState<{ key: any; value: string }[]>([]);
 
   if (user?.res_status === status.STATUS_GUEST) {
     CHIPS = ['Self'];
@@ -114,12 +142,12 @@ const AdhyayanDetailScreen = () => {
   }, []);
 
   const {
-    data: adhyayan,
+    data: utsav,
     isLoading,
     isError,
     refetch,
-  } = useAdhyayanDetail(id, user?.cardno) as {
-    data: Adhyayan | undefined;
+  } = useUtsavDetail(id, user?.cardno) as {
+    data: Utsav | undefined;
     isLoading: boolean;
     isError: boolean;
     refetch: () => Promise<unknown>;
@@ -127,14 +155,14 @@ const AdhyayanDetailScreen = () => {
 
   // Share functionality
   const handleShare = async () => {
-    if (!adhyayan) return;
+    if (!utsav) return;
 
     try {
       const shareContent = {
-        title: adhyayan.name,
-        message: `Join us for ${adhyayan.name} from ${moment(adhyayan.start_date).format(
+        title: utsav.utsav_name,
+        message: `Join us for ${utsav.utsav_name} from ${moment(utsav.utsav_start).format(
           'MMM D'
-        )} to ${moment(adhyayan.end_date).format('MMM D, YYYY')} at ${adhyayan.location}.\n\nhttps://aashray.vitraagvigyaan.org/adhyayan/${adhyayan.id}`,
+        )} to ${moment(utsav.utsav_end).format('MMM D, YYYY')} at ${utsav.utsav_location}.\n\nhttps://aashray.vitraagvigyaan.org/utsav/${utsav.utsav_id}`,
       };
 
       await Share.share(shareContent);
@@ -149,6 +177,7 @@ const AdhyayanDetailScreen = () => {
     setIsModalVisible(!isModalVisible);
     if (isModalVisible) {
       // Only reset when closing the modal
+      setSelfForm(INITIAL_SELF_FORM);
       setGuestForm(INITIAL_GUEST_FORM);
       setMumukshuForm(INITIAL_MUMUKSHU_FORM);
     }
@@ -168,6 +197,14 @@ const AdhyayanDetailScreen = () => {
     setSelectedChip(chip);
   };
 
+  const isSelfFormValid = () => {
+    return (
+      selfForm.package &&
+      selfForm.arrival &&
+      !(selfForm.arrival === 'yes' && (!selfForm.carno || selfForm.carno.length !== 10))
+    );
+  };
+
   // Guest form handlers
   const addGuestForm = () => {
     setGuestForm((prev) => ({
@@ -179,16 +216,22 @@ const AdhyayanDetailScreen = () => {
           gender: '',
           mobno: '',
           type: '',
+          package: null,
+          package_name: '',
+          arrival: null,
+          carno: '',
+          volunteer: null,
+          other: null,
         },
       ],
     }));
   };
 
-  const handleGuestFormChange = (index: any, field: any, value: any) => {
-    const updatedForms = guestForm.guests.map((guest, i) =>
-      i === index ? { ...guest, [field]: value } : guest
-    );
-    setGuestForm((prev) => ({ ...prev, guests: updatedForms }));
+  const handleGuestFormChange = (index: any, key: any, value: any) => {
+    setGuestForm((prev) => ({
+      ...prev,
+      guests: prev.guests.map((guest, i) => (i === index ? { ...guest, [key]: value } : guest)),
+    }));
   };
 
   const removeGuestForm = (indexToRemove: any) => {
@@ -200,10 +243,24 @@ const AdhyayanDetailScreen = () => {
 
   const isGuestFormValid = () => {
     return guestForm.guests.every((guest: any) => {
-      if (guest.cardno) return guest.mobno && guest.mobno?.length === 10;
+      if (guest.cardno)
+        return (
+          guest.mobno &&
+          guest.mobno?.length === 10 &&
+          guest.package &&
+          guest.arrival &&
+          !(guest.arrival === 'yes' && (!guest.carno || guest.carno.length !== 10))
+        );
       else
         return (
-          guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length === 10
+          guest.name &&
+          guest.gender &&
+          guest.type &&
+          guest.mobno &&
+          guest.mobno?.length === 10 &&
+          guest.package &&
+          guest.arrival &&
+          !(guest.arrival === 'yes' && (!guest.carno || guest.carno.length !== 10))
         );
     });
   };
@@ -217,6 +274,12 @@ const AdhyayanDetailScreen = () => {
         {
           cardno: '',
           mobno: '',
+          package: null,
+          package_name: '',
+          arrival: null,
+          carno: '',
+          volunteer: null,
+          other: null,
         },
       ],
     }));
@@ -239,96 +302,121 @@ const AdhyayanDetailScreen = () => {
   };
 
   const isMumukshuFormValid = () => {
-    return mumukshuForm.mumukshus.every((mumukshu) => {
-      return mumukshu.mobno && mumukshu.mobno?.length === 10 && mumukshu.cardno;
-    });
+    return mumukshuForm.mumukshus.every(
+      (mumukshu: any) =>
+        mumukshu.mobno?.length === 10 &&
+        mumukshu.cardno &&
+        mumukshu.package &&
+        mumukshu.arrival &&
+        !(mumukshu.arrival === 'yes' && (!mumukshu.carno || mumukshu.carno.length !== 10))
+    );
   };
 
-  // Set adhyayan in forms when data is loaded
+  // Set utsav in forms when data is loaded
   useEffect(() => {
-    if (adhyayan) {
+    if (utsav) {
       setGuestForm((prev: any) => ({
         ...prev,
-        adhyayan,
+        utsav,
       }));
       setMumukshuForm((prev: any) => ({
         ...prev,
-        adhyayan,
+        utsav,
       }));
+
+      // Set package options
+      if (utsav.packages) {
+        const packageOptions = utsav.packages.map((packageItem) => ({
+          key: packageItem.package_id,
+          value: packageItem.package_name,
+        }));
+        setPackages(packageOptions);
+      }
     }
-  }, [adhyayan]);
+  }, [utsav]);
 
   const handleBookingConfirm = async () => {
-    if (!adhyayan) return;
+    if (!utsav) return;
 
     setIsSubmitting(true);
     try {
       if (selectedChip === CHIPS[0]) {
-        // Transform self booking to mumukshu format
-        const mumukshuFormatData = transformSelfAdhyayanToMumukshu(user, adhyayan);
-        await (updateMumukshuBooking as any)('adhyayan', mumukshuFormatData);
-        if (adhyayan.location !== 'Research Centre') router.push('/booking/bookingReview');
-        else router.push(`/booking/${types.ADHYAYAN_DETAILS_TYPE}`);
-      }
-      if (selectedChip === CHIPS[1]) {
-        if (!isGuestFormValid()) {
-          CustomAlert.alert('Fill all Fields');
+        if (!isSelfFormValid()) {
+          CustomAlert.alert('Validation Error', 'Please fill all required fields');
           setIsSubmitting(false);
           return;
         }
 
-        setGuestForm((prev: any) => ({
-          ...prev,
-          adhyayan,
-        }));
+        // Transform self form to mumukshu format
+        const mumukshuFormatData = transformSelfToMumukshu(user, selfForm, utsav);
+        await (updateMumukshuBooking as any)('utsav', mumukshuFormatData);
+        router.push(`/booking/${types.EVENT_DETAILS_TYPE}`);
+      }
+      if (selectedChip === CHIPS[1]) {
+        if (!isGuestFormValid()) {
+          CustomAlert.alert('Validation Error', 'Please fill all required fields');
+          setIsSubmitting(false);
+          return;
+        }
 
         if (guestForm.guests.filter((guest: any) => !guest.cardno).length > 0) {
           try {
             const createdGuests = await createGuests(user.cardno, guestForm.guests);
-            const transformedData = transformData({
+            const mergedGuests = guestForm.guests.map((guest: any, idx: number) => ({
+              ...guest,
+              ...((createdGuests as any)?.[idx] || {}),
+            }));
+
+            setGuestForm((prev) => ({
+              ...prev,
+              guests: mergedGuests,
+            }));
+
+            console.log(
+              'SETTING Guest Form Data: ',
+              JSON.stringify({ ...guestForm, guests: mergedGuests })
+            );
+
+            await (updateGuestBooking as any)('utsav', {
               ...guestForm,
-              guests: createdGuests,
-              adhyayan,
+              guests: mergedGuests,
             });
 
-            await (updateGuestBooking as any)('adhyayan', transformedData);
+            await (updateGuestBooking as any)('utsav', guestForm);
             setGuestForm(INITIAL_GUEST_FORM);
 
-            if (adhyayan.location !== 'Research Centre') router.push('/guestBooking/bookingReview');
-            else router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
+            if (utsav.utsav_location !== 'Research Centre')
+              router.push('/guestBooking/bookingReview');
+            else router.push(`/guestBooking/${types.EVENT_DETAILS_TYPE}`);
           } catch {
             // Match legacy handleAPICall behavior: the create-guest error
-            // callback was a no-op (apiClient already surfaces the toast),
-            // so swallow here and let isSubmitting reset in `finally` below.
+            // callback only reset isSubmitting (handled by the outer
+            // `finally` below), so swallow here and let the modal still
+            // close via the fall-through at the end of this function.
           }
         } else {
-          const transformedData = transformData({
-            ...guestForm,
-            adhyayan,
-          });
-
-          await (updateGuestBooking as any)('adhyayan', transformedData);
+          await (updateGuestBooking as any)('utsav', guestForm);
           setGuestForm(INITIAL_GUEST_FORM);
-          if (adhyayan.location !== 'Research Centre') router.push('/guestBooking/bookingReview');
-          else router.push(`/guestBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
+          if (utsav.utsav_location !== 'Research Centre')
+            router.push('/guestBooking/bookingReview');
+          else router.push(`/guestBooking/${types.EVENT_DETAILS_TYPE}`);
           setIsSubmitting(false);
         }
       }
       if (selectedChip === CHIPS[2]) {
         if (!isMumukshuFormValid()) {
-          CustomAlert.alert('Fill all Fields');
+          CustomAlert.alert('Validation Error', 'Please fill all required fields');
           setIsSubmitting(false);
           return;
         }
 
-        const temp = transformMumukshuData({
+        const updatedForm = {
           ...mumukshuForm,
-          adhyayan,
-        });
+          utsav,
+        };
 
-        await (updateMumukshuBooking as any)('adhyayan', temp);
-        if (adhyayan.location !== 'Research Centre') router.push('/mumukshuBooking/bookingReview');
-        else router.push(`/mumukshuBooking/${types.ADHYAYAN_DETAILS_TYPE}`);
+        await (updateMumukshuBooking as any)('utsav', updatedForm);
+        router.push(`/mumukshuBooking/${types.EVENT_DETAILS_TYPE}`);
       }
       setSelectedChip('Self');
       toggleModal();
@@ -348,7 +436,7 @@ const AdhyayanDetailScreen = () => {
 
   // Get availability status
   const getAvailabilityInfo = (): AvailabilityInfo => {
-    if (adhyayan?.status === status.STATUS_CLOSED || adhyayan?.available_seats === 0) {
+    if (utsav?.utsav_status === status.STATUS_CLOSED || utsav?.available_seats === 0) {
       return {
         text: 'Waitlist only',
         shortText: 'Waitlist',
@@ -356,10 +444,10 @@ const AdhyayanDetailScreen = () => {
         isWaitlist: true,
       };
     }
-    if (adhyayan?.available_seats && adhyayan.available_seats <= 10) {
+    if (utsav?.available_seats && utsav.available_seats <= 10) {
       return {
-        text: `Only ${adhyayan.available_seats} spots left`,
-        shortText: `${adhyayan.available_seats} left`,
+        text: `Only ${utsav.available_seats} spots left`,
+        shortText: `${utsav.available_seats} left`,
         color: '#DC2626',
         isWaitlist: false,
       };
@@ -410,7 +498,7 @@ const AdhyayanDetailScreen = () => {
     );
   }
 
-  if (isError || !adhyayan) {
+  if (isError || !utsav) {
     return (
       <View className="flex-1 bg-white">
         <EventDetailHeader insetsTop={insets.top} onBack={goBack}>
@@ -424,7 +512,7 @@ const AdhyayanDetailScreen = () => {
             Something went wrong
           </Text>
           <Text className="mb-6 text-center text-base text-gray-600">
-            We couldn't load this adhyayan. Please try again.
+            We couldn't load this utsav. Please try again.
           </Text>
           <TouchableOpacity onPress={() => refetch()} className="rounded-lg bg-gray-900 px-6 py-3">
             <Text className="font-pmedium text-white">Try again</Text>
@@ -447,11 +535,10 @@ const AdhyayanDetailScreen = () => {
             alignItems: 'center',
           }}>
           <Text className="font-psemibold text-lg text-gray-900" numberOfLines={1}>
-            {adhyayan.name}
+            {utsav.utsav_name}
           </Text>
           <Text className="font-pregular text-sm text-gray-500" numberOfLines={1}>
-            {moment(adhyayan.start_date).format('MMM D')} -{' '}
-            {moment(adhyayan.end_date).format('MMM D')}
+            {moment(utsav.utsav_start).format('MMM D')} - {moment(utsav.utsav_end).format('MMM D')}
           </Text>
         </Animated.View>
       </EventDetailHeader>
@@ -466,9 +553,10 @@ const AdhyayanDetailScreen = () => {
         {/* Header Content */}
         <Animated.View style={{ opacity: fadeAnim }}>
           <EventHeroInfo
-            name={adhyayan.name}
-            location={adhyayan.location}
-            speaker={adhyayan.speaker}
+            name={utsav.utsav_name}
+            location={utsav.utsav_location}
+            icon="bonfire-outline"
+            categoryLabel="Utsav"
           />
 
           {/* Divider */}
@@ -476,18 +564,17 @@ const AdhyayanDetailScreen = () => {
 
           {/* Key Details Section */}
           <EventKeyDetails
-            title="Adhyayan details"
-            startDate={adhyayan.start_date}
-            endDate={adhyayan.end_date}
-            location={adhyayan.location}
-            status={adhyayan.status}
-            availableSeats={adhyayan.available_seats}
-            foodAllowed={adhyayan.food_allowed}
+            title="Utsav details"
+            startDate={utsav.utsav_start}
+            endDate={utsav.utsav_end}
+            location={utsav.utsav_location}
+            status={utsav.utsav_status}
+            availableSeats={utsav.available_seats}
             availabilityInfo={availabilityInfo}
           />
 
           {/* Comments Section if available */}
-          {adhyayan.comments && adhyayan.comments.trim() !== '' && (
+          {utsav.comments && utsav.comments.trim() !== '' && (
             <>
               <View className="mx-6 mb-6 h-[1px] bg-gray-200" />
               <View className="px-6 pb-6">
@@ -498,7 +585,7 @@ const AdhyayanDetailScreen = () => {
                   <View className="flex-row items-start">
                     <Ionicons name="information-circle" size={20} color="#D97706" />
                     <Text className="ml-2 flex-1 font-pregular text-sm text-gray-700">
-                      {adhyayan.comments}
+                      {utsav.comments}
                     </Text>
                   </View>
                 </View>
@@ -511,39 +598,28 @@ const AdhyayanDetailScreen = () => {
 
           {/* Pricing Section */}
           <View className="px-6 pb-6">
-            <Text className="mb-4 font-psemibold text-xl text-gray-900">Registration details</Text>
-            <View className="rounded-xl border border-gray-200 p-4">
-              <View className="flex-row items-center justify-between">
-                <View>
-                  <Text className="font-pbold text-2xl text-gray-900">₹{adhyayan.amount}</Text>
-                  <Text className="mt-1 font-pregular text-sm text-gray-600">per person</Text>
-                </View>
-                <View className="rounded-lg bg-gray-100 px-3 py-2">
-                  <Text className="font-pmedium text-xs text-gray-700">Registration fee</Text>
-                </View>
-              </View>
-              <View className="mt-4 gap-2">
-                <View className="flex-row items-center">
-                  <Ionicons name="checkmark-circle" size={16} color="#059669" />
-                  <Text className="ml-2 font-pregular text-sm text-gray-600">
-                    All sessions included
-                  </Text>
-                </View>
-                <View className="flex-row items-center">
-                  <Ionicons name="checkmark-circle" size={16} color="#059669" />
-                  <Text className="ml-2 font-pregular text-sm text-gray-600">
-                    Study materials provided
-                  </Text>
-                </View>
-                {adhyayan.food_allowed && (
-                  <View className="flex-row items-center">
-                    <Ionicons name="checkmark-circle" size={16} color="#059669" />
-                    <Text className="ml-2 font-pregular text-sm text-gray-600">
-                      Food arrangements available
+            <Text className="mb-4 font-psemibold text-xl text-gray-900">Package Details</Text>
+            <View className="mb-3 flex-1 gap-y-3">
+              {utsav.packages?.map((packageItem) => (
+                <View
+                  key={packageItem.package_id}
+                  className="rounded-xl border border-gray-200 bg-white p-4">
+                  <View className="flex-row items-center justify-between">
+                    <View className="flex-1">
+                      <Text className="font-psemibold text-base text-gray-800">
+                        {packageItem.package_name}
+                      </Text>
+                      <Text className="mt-1 font-pregular text-sm text-gray-500">
+                        {moment(packageItem.package_start).format('MMM D')} -{' '}
+                        {moment(packageItem.package_end).format('MMM D, YYYY')}
+                      </Text>
+                    </View>
+                    <Text className="font-pbold text-xl text-secondary">
+                      ₹{packageItem.package_amount}
                     </Text>
                   </View>
-                )}
-              </View>
+                </View>
+              ))}
             </View>
           </View>
 
@@ -551,7 +627,13 @@ const AdhyayanDetailScreen = () => {
           <View className="mx-6 mb-6 h-[1px] bg-gray-200" />
 
           {/* Things to Know */}
-          <EventThingsToKnow onContactPress={() => router.push('/contactInfo')} />
+          <EventThingsToKnow
+            entityLabel="utsav"
+            guidelinesLabel="Utsav guidelines"
+            onSchedulePress={() => router.push('/utsav/dailySchedule')}
+            onGuidelinesPress={() => router.push('/utsav/utsavGuidelines')}
+            onContactPress={() => router.push('/contactInfo')}
+          />
         </Animated.View>
       </Animated.ScrollView>
 
@@ -562,13 +644,19 @@ const AdhyayanDetailScreen = () => {
         <View className="flex-row items-center justify-between px-6 py-3">
           <View>
             <View className="flex-row items-baseline">
-              <Text className="font-pbold text-lg text-gray-900">₹{adhyayan.amount}</Text>
-              <Text className="ml-1 font-pregular text-sm text-gray-600">per person</Text>
+              <Text className="font-pregular text-sm text-gray-600">Starting from </Text>
+              <Text className="font-pbold text-lg text-gray-900">
+                {utsav.packages?.length
+                  ? `₹${utsav.packages.reduce(
+                      (min, pkg) => (pkg.package_amount < min ? pkg.package_amount : min),
+                      utsav.packages[0]?.package_amount || 0
+                    )}`
+                  : 'N/A'}
+              </Text>
             </View>
             <TouchableOpacity>
               <Text className="font-pregular text-sm text-gray-900 underline">
-                {moment(adhyayan.start_date).format('MMM D')} -{' '}
-                {moment(adhyayan.end_date).format('D')}
+                {moment(utsav.utsav_start).format('MMM D')} - {moment(utsav.utsav_end).format('D')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -602,13 +690,13 @@ const AdhyayanDetailScreen = () => {
                     className="font-pmedium text-sm text-black"
                     numberOfLines={2}
                     ellipsizeMode="tail">
-                    {adhyayan?.name}
+                    {utsav?.utsav_name}
                   </Text>
                   <View className="flex-row gap-x-1">
                     <Text className="font-pregular text-xs text-gray-500">Date:</Text>
                     <Text className="font-pregular text-xs text-secondary">
-                      {moment(adhyayan?.start_date).format('Do MMMM')} -{' '}
-                      {moment(adhyayan?.end_date).format('Do MMMM')}
+                      {moment(utsav?.utsav_start).format('Do MMMM')} -{' '}
+                      {moment(utsav?.utsav_end).format('Do MMMM')}
                     </Text>
                   </View>
                 </View>
@@ -641,7 +729,30 @@ const AdhyayanDetailScreen = () => {
                   />
                 </View>
 
-                {/* Guest Form Section */}
+                {/* Self Form */}
+                {selectedChip === CHIPS[0] && (
+                  <EventPackageSelector
+                    packages={packages}
+                    packageValue={selfForm.package}
+                    onPackageChange={(val, packageName) =>
+                      setSelfForm({
+                        ...selfForm,
+                        package: val,
+                        package_name: packageName as string,
+                      })
+                    }
+                    arrivalValue={selfForm.arrival}
+                    onArrivalChange={(val) => setSelfForm({ ...selfForm, arrival: val })}
+                    carno={selfForm.carno}
+                    onCarnoChange={(e) => setSelfForm({ ...selfForm, carno: e })}
+                    volunteerValue={selfForm.volunteer}
+                    onVolunteerChange={(val) => setSelfForm({ ...selfForm, volunteer: val })}
+                    otherValue={selfForm.other}
+                    onOtherChange={(e) => setSelfForm({ ...selfForm, other: e })}
+                  />
+                )}
+
+                {/* Guest Form */}
                 {selectedChip === CHIPS[1] && (
                   <View>
                     <GuestForm
@@ -649,22 +760,61 @@ const AdhyayanDetailScreen = () => {
                       setGuestForm={setGuestForm}
                       handleGuestFormChange={handleGuestFormChange}
                       addGuestForm={addGuestForm}
-                      removeGuestForm={removeGuestForm}
-                    />
+                      removeGuestForm={removeGuestForm}>
+                      {(index: any) => (
+                        <EventPackageSelector
+                          packages={packages}
+                          packageValue={guestForm.guests[index].package}
+                          onPackageChange={(val, packageName) => {
+                            handleGuestFormChange(index, 'package', val);
+                            handleGuestFormChange(index, 'package_name', packageName);
+                          }}
+                          arrivalValue={guestForm.guests[index].arrival}
+                          onArrivalChange={(val) => handleGuestFormChange(index, 'arrival', val)}
+                          carno={guestForm.guests[index].carno}
+                          onCarnoChange={(e) => handleGuestFormChange(index, 'carno', e)}
+                          volunteerValue={guestForm.guests[index].volunteer}
+                          onVolunteerChange={(val) =>
+                            handleGuestFormChange(index, 'volunteer', val)
+                          }
+                          otherValue={guestForm.guests[index].other}
+                          onOtherChange={(e) => handleGuestFormChange(index, 'other', e)}
+                          otherInputStyles="font-pmedium text-bases"
+                        />
+                      )}
+                    </GuestForm>
                   </View>
                 )}
 
-                {/* Mumukshu Form Section */}
+                {/* Mumukshu Form */}
                 {selectedChip === CHIPS[2] && (
-                  <View>
-                    <OtherMumukshuForm
-                      mumukshuForm={mumukshuForm}
-                      setMumukshuForm={setMumukshuForm}
-                      handleMumukshuFormChange={handleMumukshuFormChange}
-                      addMumukshuForm={addMumukshuForm}
-                      removeMumukshuForm={removeMumukshuForm}
-                    />
-                  </View>
+                  <OtherMumukshuForm
+                    mumukshuForm={mumukshuForm}
+                    setMumukshuForm={setMumukshuForm}
+                    handleMumukshuFormChange={handleMumukshuFormChange}
+                    addMumukshuForm={addMumukshuForm}
+                    removeMumukshuForm={removeMumukshuForm}>
+                    {(index: any) => (
+                      <EventPackageSelector
+                        packages={packages}
+                        packageValue={mumukshuForm.mumukshus[index].package}
+                        onPackageChange={(val, packageName) => {
+                          handleMumukshuFormChange(index, 'package', val);
+                          handleMumukshuFormChange(index, 'package_name', packageName);
+                        }}
+                        arrivalValue={mumukshuForm.mumukshus[index].arrival}
+                        onArrivalChange={(val) => handleMumukshuFormChange(index, 'arrival', val)}
+                        carno={mumukshuForm.mumukshus[index].carno}
+                        onCarnoChange={(e) => handleMumukshuFormChange(index, 'carno', e)}
+                        volunteerValue={mumukshuForm.mumukshus[index].volunteer}
+                        onVolunteerChange={(val) =>
+                          handleMumukshuFormChange(index, 'volunteer', val)
+                        }
+                        otherValue={mumukshuForm.mumukshus[index].other}
+                        onOtherChange={(e) => handleMumukshuFormChange(index, 'other', e)}
+                      />
+                    )}
+                  </OtherMumukshuForm>
                 )}
 
                 {/* Confirm Button Section */}
@@ -675,11 +825,13 @@ const AdhyayanDetailScreen = () => {
                   containerStyles="mt-4 p-2"
                   textStyles="text-sm text-white"
                   isDisabled={
-                    selectedChip === CHIPS[1]
-                      ? !isGuestFormValid()
-                      : selectedChip === CHIPS[2]
-                        ? !isMumukshuFormValid()
-                        : false
+                    selectedChip === CHIPS[0]
+                      ? !isSelfFormValid()
+                      : selectedChip === CHIPS[1]
+                        ? !isGuestFormValid()
+                        : selectedChip === CHIPS[2]
+                          ? !isMumukshuFormValid()
+                          : false
                   }
                   isLoading={isSubmitting}
                 />
@@ -692,26 +844,4 @@ const AdhyayanDetailScreen = () => {
   );
 };
 
-// Helper functions
-function transformData(inputData: any) {
-  const { adhyayan, guests } = inputData;
-
-  return {
-    adhyayan,
-    guestGroup: guests.map((guest: any) => ({
-      cardno: guest.cardno,
-      issuedto: guest.issuedto || guest.name,
-    })),
-  };
-}
-
-function transformMumukshuData(inputData: any) {
-  const { adhyayan, mumukshus } = inputData;
-
-  return {
-    adhyayan,
-    mumukshuGroup: mumukshus.map((mumukshu: any) => mumukshu),
-  };
-}
-
-export default AdhyayanDetailScreen;
+export default UtsavDetailScreen;
