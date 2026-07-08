@@ -189,9 +189,15 @@ const TravelBookingCancellation = () => {
               transactionStatus={item.transaction_status}
             />
             <Text className="font-pmedium">{moment(item.date).format('Do MMMM, YYYY')}</Text>
-            <Text className="font-pmedium text-secondary" numberOfLines={1}>
-              {item.pickup_point} to {item.drop_point}
-            </Text>
+            <View className="flex-row flex-wrap items-center gap-x-1.5">
+              <Text className="font-pmedium text-secondary" numberOfLines={1}>
+                {item.pickup_point}
+              </Text>
+              <Ionicons name="arrow-forward" size={14} color={colors.gray_400} />
+              <Text className="flex-shrink font-pmedium text-secondary" numberOfLines={1}>
+                {item.drop_point}
+              </Text>
+            </View>
             {item.bookedBy && user.cardno == item.bookedBy && (
               <Text className="font-pmedium">
                 Booked For: <Text className="text-secondary">{item.user_name}</Text>
