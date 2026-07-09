@@ -8,6 +8,7 @@ import { dropdowns, types } from '@/src/constants';
 import { FontAwesome } from '@expo/vector-icons';
 import { ShadowBox } from '@/src/components/ShadowBox';
 import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
+import { requiresArrivalTime } from '@/src/utils/travel';
 import { useAuthStore, useBookingStore } from '@/src/stores';
 import PageHeader from '@/src/components/PageHeader';
 import CustomButton from '@/src/components/CustomButton';
@@ -612,9 +613,23 @@ const MumukshuAddons = () => {
         (group.drop === otherLocation?.value && group.special_request.trim() === '') ||
         (group.pickup == 'Research Centre' && group.drop == 'Research Centre') ||
         (group.pickup != 'Research Centre' && group.drop != 'Research Centre') ||
-        (group.type == dropdowns.BOOKING_TYPE_LIST[1].value && !group.total_people)
+        (group.type == dropdowns.BOOKING_TYPE_LIST[1].value && !group.total_people) ||
+        (requiresArrivalTime(group.pickup, group.drop) && !group.arrival_time)
     );
-    return !hasEmptyFields && travelForm.date;
+    // Return leg follows the same flight/train time rule: validate edited return groups, else
+    // the reversed-onward default (which starts without a time, so it must be entered on Edit).
+    const returnGroups =
+      travelForm.returnEdited && travelForm.returnGroups?.length
+        ? travelForm.returnGroups
+        : travelForm.mumukshuGroup.map((g: any) => ({
+            pickup: g.drop,
+            drop: g.pickup,
+            arrival_time: '',
+          }));
+    const returnTimeMissing =
+      !!travelForm.return_date &&
+      returnGroups.some((g: any) => requiresArrivalTime(g.pickup, g.drop) && !g.arrival_time);
+    return !hasEmptyFields && !returnTimeMissing && travelForm.date;
   }, [travelForm]);
 
   // Form content check handlers (to see if user has started filling them)

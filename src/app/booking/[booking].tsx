@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
 import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
+import { requiresArrivalTime } from '@/src/utils/travel';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { ShadowBox } from '@/src/components/ShadowBox';
@@ -351,6 +352,17 @@ const BookingDetails = () => {
     if (pickup === 'Research Centre' && drop === 'Research Centre') return false;
     if (pickup !== 'Research Centre' && drop !== 'Research Centre') return false;
     if (type === dropdowns.BOOKING_TYPE_LIST[1]?.value && !total_people) return false;
+    // Onward flight/train time is required when the route touches an airport/railway.
+    if (requiresArrivalTime(pickup, drop) && !forms.travel.arrival_time) return false;
+    // Same rule for the return leg: edited groups, else the reversed-onward default.
+    if (forms.travel.return_date) {
+      const returnGroups =
+        forms.travel.returnEdited && forms.travel.returnGroups?.length
+          ? forms.travel.returnGroups
+          : [{ pickup: drop, drop: pickup, arrival_time: '' }];
+      if (returnGroups.some((g: any) => requiresArrivalTime(g.pickup, g.drop) && !g.arrival_time))
+        return false;
+    }
 
     return true;
   }, [forms.travel]);

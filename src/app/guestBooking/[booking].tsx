@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
 import { prepareGuestRequestBody } from '@/src/utils/preparingRequestBody';
+import { requiresArrivalTime } from '@/src/utils/travel';
 import { FontAwesome } from '@expo/vector-icons';
 import { ShadowBox } from '@/src/components/ShadowBox';
 import CustomButton from '@/src/components/CustomButton';
@@ -601,9 +602,23 @@ const GuestAddons = () => {
         (group.drop === otherLocation?.value && group.special_request.trim() === '') ||
         (group.pickup == 'Research Centre' && group.drop == 'Research Centre') ||
         (group.pickup != 'Research Centre' && group.drop != 'Research Centre') ||
-        (group.type == dropdowns.BOOKING_TYPE_LIST[1].value && !group.total_people)
+        (group.type == dropdowns.BOOKING_TYPE_LIST[1].value && !group.total_people) ||
+        (requiresArrivalTime(group.pickup, group.drop) && !group.arrival_time)
     );
-    return !hasEmptyFields && travelForm.date;
+    // Return leg follows the same flight/train time rule: validate edited return groups, else
+    // the reversed-onward default (which starts without a time, so it must be entered on Edit).
+    const returnGroups =
+      travelForm.returnEdited && travelForm.returnGroups?.length
+        ? travelForm.returnGroups
+        : travelForm.guestGroup.map((g: any) => ({
+            pickup: g.drop,
+            drop: g.pickup,
+            arrival_time: '',
+          }));
+    const returnTimeMissing =
+      !!travelForm.return_date &&
+      returnGroups.some((g: any) => requiresArrivalTime(g.pickup, g.drop) && !g.arrival_time);
+    return !hasEmptyFields && !returnTimeMissing && travelForm.date;
   }, [travelForm]);
 
   // Check if forms are not empty (have user input)
