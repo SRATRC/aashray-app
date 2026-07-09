@@ -137,6 +137,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
 
       <TravelReturnDetails
         showDatePicker
+        variant="flat"
         returnDate={travelForm.return_date}
         onwardDate={travelForm.date}
         travelers={travelers}

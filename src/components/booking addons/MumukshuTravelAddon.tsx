@@ -146,6 +146,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
 
       <TravelReturnDetails
         showDatePicker
+        variant="grouped"
         returnDate={travelForm.return_date}
         onwardDate={travelForm.date}
         travelers={travelers}

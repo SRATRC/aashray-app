@@ -1041,6 +1041,7 @@ const TravelBooking = () => {
 
         <TravelReturnDetails
           showDatePicker={false}
+          variant={selectedChip === 'Self' ? 'flat' : 'grouped'}
           returnDate={returnDate}
           onwardDate={activeOnwardDate}
           travelers={activeTravelers}
