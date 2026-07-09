@@ -11,6 +11,7 @@ import FormField from '../FormField';
 import AddonItem from '../AddonItem';
 import TravelReturnDetails from '../TravelReturnDetails';
 import type { ReturnGroup } from '../TravelReturnGroups';
+import { requiresArrivalTime } from '@/src/utils/travel';
 import moment from 'moment';
 
 interface MumukshuTravelAddonProps {
@@ -52,17 +53,6 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
     },
     [isUtsavDate]
   );
-
-  const requiresArrivalTime = useCallback((pickup: string, drop: string) => {
-    const isRailwayOrAirport = (loc: string) =>
-      !!loc &&
-      dropdowns.LOCATION_LIST.some(
-        (l) =>
-          l.value === loc &&
-          (l.key.toLowerCase().includes('railway') || l.key.toLowerCase().includes('airport'))
-      );
-    return isRailwayOrAirport(pickup) || isRailwayOrAirport(drop);
-  }, []);
 
   const getAvailableMumukshus = (currentGroupIndex: number) => {
     // Get all selected mumukshu indices from other groups
@@ -248,20 +238,10 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             saveKeyInsteadOfValue={false}
           />
 
-          {(travelForm.mumukshuGroup[index].pickup &&
-            dropdowns.LOCATION_LIST.find(
-              (loc) =>
-                loc.value === travelForm.mumukshuGroup[index].pickup &&
-                (loc.key.toLowerCase().includes('railway') ||
-                  loc.key.toLowerCase().includes('airport'))
-            )) ||
-          (travelForm.mumukshuGroup[index].drop &&
-            dropdowns.LOCATION_LIST.find(
-              (loc) =>
-                loc.value === travelForm.mumukshuGroup[index].drop &&
-                (loc.key.toLowerCase().includes('railway') ||
-                  loc.key.toLowerCase().includes('airport'))
-            )) ? (
+          {requiresArrivalTime(
+            travelForm.mumukshuGroup[index].pickup,
+            travelForm.mumukshuGroup[index].drop
+          ) ? (
             <>
               <FormDisplayField
                 text="Flight/Train Time"

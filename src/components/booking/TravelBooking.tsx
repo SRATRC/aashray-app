@@ -21,6 +21,7 @@ import GuestForm from '../GuestForm';
 import TravelReturnDetails from '../TravelReturnDetails';
 import type { ReturnGroup } from '../TravelReturnGroups';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import { requiresArrivalTime } from '@/src/utils/travel';
 import moment from 'moment';
 
 let CHIPS = ['Self', 'Mumukshus', 'Guest'];
@@ -91,25 +92,6 @@ const TravelBooking = () => {
 
   const otherLocation = dropdowns.LOCATION_LIST.find((loc) => loc.key === 'other');
 
-  // Helper function to check if pickup or drop location requires arrival time
-  const requiresArrivalTime = (pickup: string, drop: string) => {
-    return Boolean(
-      (pickup &&
-        dropdowns.LOCATION_LIST.find(
-          (loc) =>
-            loc.value === pickup &&
-            (loc.key.toLowerCase().includes('railway') || loc.key.toLowerCase().includes('airport'))
-        )) ||
-        (drop &&
-          dropdowns.LOCATION_LIST.find(
-            (loc) =>
-              loc.value === drop &&
-              (loc.key.toLowerCase().includes('railway') ||
-                loc.key.toLowerCase().includes('airport'))
-          ))
-    );
-  };
-
   if (user.res_status == status.STATUS_GUEST) {
     CHIPS = ['Self'];
   }
@@ -123,6 +105,11 @@ const TravelBooking = () => {
   const [selectedChip, setSelectedChip] = useState('Self');
   const handleChipClick = (chip: any) => {
     setSelectedChip(chip);
+    // Return groups reference travelers by index into the active chip's roster; switching chips
+    // invalidates those indices, so drop any manual return edits and let the return re-mirror
+    // the new chip's onward.
+    setReturnGroups([]);
+    setReturnEdited(false);
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -173,7 +160,16 @@ const TravelBooking = () => {
   const isReturnLegValid = () => {
     if (!returnDate) return true;
     if (moment(returnDate).isBefore(moment(travelForm.date), 'day')) return false;
-    return returnGroups.every((g) => !requiresArrivalTime(g.pickup, g.drop) || !!g.arrival_time);
+    if (!returnGroups.every((g) => !requiresArrivalTime(g.pickup, g.drop) || !!g.arrival_time))
+      return false;
+    // When the return has been split into groups, every traveler must be assigned to exactly one
+    // group and no group may be empty, else a traveler would be silently dropped from the return.
+    if (returnGroups.length > 0) {
+      if (returnGroups.some((g) => g.travelerIndices.length === 0)) return false;
+      const assigned = new Set(returnGroups.flatMap((g) => g.travelerIndices));
+      if (activeTravelers.some((t) => !assigned.has(t.index))) return false;
+    }
+    return true;
   };
 
   const isSelfFormValid = () => {
@@ -230,6 +226,9 @@ const TravelBooking = () => {
         ],
       };
     });
+    // Re-mirror the return so the newly added traveler is included in it.
+    setReturnGroups([]);
+    setReturnEdited(false);
   };
 
   const removeMumukshuForm = (indexToRemove: any) => {
@@ -237,6 +236,10 @@ const TravelBooking = () => {
       ...prev,
       mumukshus: prev.mumukshus.filter((_, index) => index !== indexToRemove),
     }));
+    // Traveler positions shift, invalidating any manually edited return travelerIndices; reset
+    // so the return re-mirrors the new onward roster.
+    setReturnGroups([]);
+    setReturnEdited(false);
   };
 
   const handleMumukshuFormChange = (index: any, key: any, value: any) => {
@@ -328,6 +331,9 @@ const TravelBooking = () => {
         ],
       };
     });
+    // Re-mirror the return so the newly added guest is included in it.
+    setReturnGroups([]);
+    setReturnEdited(false);
   };
 
   const removeGuestTravelForm = (indexToRemove: any) => {
@@ -335,6 +341,10 @@ const TravelBooking = () => {
       ...prev,
       guests: prev.guests.filter((_, index) => index !== indexToRemove),
     }));
+    // Traveler positions shift, invalidating any manually edited return travelerIndices; reset
+    // so the return re-mirrors the new onward roster.
+    setReturnGroups([]);
+    setReturnEdited(false);
   };
 
   const handleGuestTravelFormChange = (index: any, field: any, value: any) => {
@@ -442,6 +452,13 @@ const TravelBooking = () => {
       return 'The return date must be on or after the onward date';
     if (returnGroups.some((g) => requiresArrivalTime(g.pickup, g.drop) && !g.arrival_time))
       return 'Add the return flight/train time. Tap Edit on the return card.';
+    if (returnGroups.length > 0) {
+      if (returnGroups.some((g) => g.travelerIndices.length === 0))
+        return 'Every return group needs at least one traveler. Tap Edit on the return card.';
+      const assigned = new Set(returnGroups.flatMap((g) => g.travelerIndices));
+      if (activeTravelers.some((t) => !assigned.has(t.index)))
+        return 'Assign every traveler to a return group. Tap Edit on the return card.';
+    }
     return null;
   };
 
@@ -594,7 +611,9 @@ const TravelBooking = () => {
   // onward groups, so the default behavior is unchanged. Return groups carry travelers via the
   // same key the onward groups use (mumukshus/guests) so preparingRequestBody's existing
   // transformMumukshuGroup/transformGuestGroup map them to cardnos identically.
-  const attachReturnLeg = (temp: any) => {
+  // resolvedTravelers lets a caller pass a traveler list whose cardnos are already resolved
+  // (e.g. new guests get their cardno only after the /guest POST); defaults to activeTravelers.
+  const attachReturnLeg = (temp: any, resolvedTravelers: Traveler[] = activeTravelers) => {
     if (!returnDate) return temp;
 
     const isMumukshuPath = Boolean(temp.mumukshuGroup);
@@ -603,7 +622,7 @@ const TravelBooking = () => {
 
     const returnGroupPayload = returnGroups.map((rg) => {
       const groupTravelers = rg.travelerIndices
-        .map((i) => activeTravelers[Number(i)])
+        .map((i) => resolvedTravelers[Number(i)])
         .filter(Boolean);
 
       const base = {
@@ -1232,7 +1251,14 @@ const TravelBooking = () => {
                     guests: updatedGuests,
                   });
 
-                  updateGuestBooking('travel', attachReturnLeg(temp));
+                  // Resolve the return leg from the cardno-merged guests (activeTravelers is
+                  // still the pre-POST state, so new guests would otherwise lose their cardno).
+                  const resolvedGuestTravelers = updatedGuests.map((g: any, i: number) => ({
+                    index: String(i),
+                    issuedto: g.issuedto || g.name || '',
+                    cardno: g.cardno,
+                  }));
+                  updateGuestBooking('travel', attachReturnLeg(temp, resolvedGuestTravelers));
                   setIsSubmitting(false);
                   setGuestTravelForm(INITIAL_GUEST_TRAVEL_FORM);
                   router.push(`/guestBooking/${types.TRAVEL_DETAILS_TYPE}`);

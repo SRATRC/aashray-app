@@ -8,6 +8,7 @@ import AddonItem from '../AddonItem';
 import FormDisplayField from '../FormDisplayField';
 import TravelReturnDetails from '../TravelReturnDetails';
 import type { ReturnGroup } from '../TravelReturnGroups';
+import { requiresArrivalTime } from '@/src/utils/travel';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
@@ -42,17 +43,6 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
     },
     [isUtsavDate]
   );
-
-  const requiresArrivalTime = useCallback((pickup: string, drop: string) => {
-    const isRailwayOrAirport = (loc: string) =>
-      !!loc &&
-      dropdowns.LOCATION_LIST.some(
-        (l) =>
-          l.value === loc &&
-          (l.value.toLowerCase().includes('railway') || l.value.toLowerCase().includes('airport'))
-      );
-    return isRailwayOrAirport(pickup) || isRailwayOrAirport(drop);
-  }, []);
 
   // The single self traveler. Return groups reference this by index '0'.
   const travelers = [{ index: '0', issuedto: user.issuedto || user.name, cardno: user.cardno }];
@@ -217,20 +207,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         saveKeyInsteadOfValue={false}
       />
 
-      {(travelForm.pickup &&
-        dropdowns.LOCATION_LIST.find(
-          (loc) =>
-            loc.value === travelForm.pickup &&
-            (loc.value.toLowerCase().includes('railway') ||
-              loc.value.toLowerCase().includes('airport'))
-        )) ||
-      (travelForm.drop &&
-        dropdowns.LOCATION_LIST.find(
-          (loc) =>
-            loc.value === travelForm.drop &&
-            (loc.value.toLowerCase().includes('railway') ||
-              loc.value.toLowerCase().includes('airport'))
-        )) ? (
+      {requiresArrivalTime(travelForm.pickup, travelForm.drop) ? (
         <>
           <FormDisplayField
             text="Flight/Train Time"

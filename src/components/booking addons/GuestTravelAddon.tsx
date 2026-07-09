@@ -10,6 +10,7 @@ import FormField from '../FormField';
 import AddonItem from '../AddonItem';
 import TravelReturnDetails from '../TravelReturnDetails';
 import type { ReturnGroup } from '../TravelReturnGroups';
+import { requiresArrivalTime } from '@/src/utils/travel';
 import moment from 'moment';
 
 interface GuestTravelAddonProps {
@@ -50,17 +51,6 @@ const GuestTravelAddon: React.FC<GuestTravelAddonProps> = ({
     },
     [isUtsavDate]
   );
-
-  const requiresArrivalTime = useCallback((pickup: string, drop: string) => {
-    const isRailwayOrAirport = (loc: string) =>
-      !!loc &&
-      dropdowns.LOCATION_LIST.some(
-        (l) =>
-          l.value === loc &&
-          (l.key.toLowerCase().includes('railway') || l.key.toLowerCase().includes('airport'))
-      );
-    return isRailwayOrAirport(pickup) || isRailwayOrAirport(drop);
-  }, []);
 
   const getAvailableGuests = (currentGroupIndex: number) => {
     // Get all selected guest indices from other groups
@@ -246,20 +236,10 @@ const GuestTravelAddon: React.FC<GuestTravelAddonProps> = ({
             saveKeyInsteadOfValue={false}
           />
 
-          {(travelForm.guestGroup[index].pickup &&
-            dropdowns.LOCATION_LIST.find(
-              (loc) =>
-                loc.value === travelForm.guestGroup[index].pickup &&
-                (loc.key.toLowerCase().includes('railway') ||
-                  loc.key.toLowerCase().includes('airport'))
-            )) ||
-          (travelForm.guestGroup[index].drop &&
-            dropdowns.LOCATION_LIST.find(
-              (loc) =>
-                loc.value === travelForm.guestGroup[index].drop &&
-                (loc.key.toLowerCase().includes('railway') ||
-                  loc.key.toLowerCase().includes('airport'))
-            )) ? (
+          {requiresArrivalTime(
+            travelForm.guestGroup[index].pickup,
+            travelForm.guestGroup[index].drop
+          ) ? (
             <>
               <FormDisplayField
                 text="Flight/Train Time"
