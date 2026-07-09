@@ -167,9 +167,12 @@ const TravelBooking = () => {
   });
 
   // One-way (no return date) is always valid; a chosen return date must be on/after onward.
+  // Any return group whose route touches an airport/railway must also carry a flight/train
+  // time before the round trip can be booked, same rule as the onward leg.
   const isReturnLegValid = () => {
     if (!returnDate) return true;
-    return !moment(returnDate).isBefore(moment(travelForm.date), 'day');
+    if (moment(returnDate).isBefore(moment(travelForm.date), 'day')) return false;
+    return returnGroups.every((g) => !requiresArrivalTime(g.pickup, g.drop) || !!g.arrival_time);
   };
 
   const isSelfFormValid = () => {
@@ -573,7 +576,7 @@ const TravelBooking = () => {
         keyboardShouldPersistTaps="handled">
         <Callout
           variant="warning"
-          message="For a round trip, add a return date. The return mirrors your route; tap Edit return details to change it."
+          message="For a round trip, add a return date. The return copies your onward trip reversed; tap Edit on the return card to change it."
         />
         <CustomCalender
           type={'period'}
