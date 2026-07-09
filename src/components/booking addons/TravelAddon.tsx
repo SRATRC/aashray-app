@@ -71,6 +71,13 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
     },
   ];
 
+  // Until the return is edited, mirror the onward live so it always reflects the latest onward
+  // details (autofill); once edited, keep the user's own return group.
+  const effectiveReturnGroups: ReturnGroup[] =
+    travelForm.returnEdited && travelForm.returnGroups?.length
+      ? travelForm.returnGroups
+      : reverseGroups();
+
   return (
     <AddonItem
       onToggle={onToggle}
@@ -133,43 +140,6 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           setDatePickerVisibility('travel', false);
         }}
         onCancel={() => setDatePickerVisibility('travel', false)}
-      />
-
-      <TravelReturnDetails
-        showDatePicker
-        variant="flat"
-        returnDate={travelForm.return_date}
-        onwardDate={travelForm.date}
-        travelers={travelers}
-        returnGroups={travelForm.returnGroups || []}
-        onPickReturnDate={(date: string) => {
-          if (travelForm.returnEdited) {
-            setTravelForm({ ...travelForm, return_date: date });
-          } else {
-            setTravelForm({
-              ...travelForm,
-              return_date: date,
-              returnGroups: reverseGroups(),
-            });
-          }
-        }}
-        onClearReturnDate={() => {
-          setTravelForm({
-            ...travelForm,
-            return_date: '',
-            returnGroups: [],
-            returnEdited: false,
-          });
-        }}
-        onChangeReturnGroups={(g: ReturnGroup[]) => {
-          setTravelForm({
-            ...travelForm,
-            returnGroups: g,
-            returnEdited: true,
-          });
-        }}
-        locationOptions={getLocationOptions(travelForm.return_date || travelForm.date)}
-        requiresArrivalTime={requiresArrivalTime}
       />
 
       <CustomSelectBottomSheet
@@ -325,6 +295,35 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         multiline={true}
         numberOfLines={2}
         inputStyles={'font-pmedium text-black text-lg'}
+      />
+
+      <View className="mt-5 h-px w-full bg-gray-200" />
+
+      <TravelReturnDetails
+        showDatePicker
+        variant="flat"
+        returnDate={travelForm.return_date}
+        onwardDate={travelForm.date}
+        travelers={travelers}
+        returnGroups={effectiveReturnGroups}
+        onPickReturnDate={(date: string) => setTravelForm({ ...travelForm, return_date: date })}
+        onClearReturnDate={() => {
+          setTravelForm({
+            ...travelForm,
+            return_date: '',
+            returnGroups: [],
+            returnEdited: false,
+          });
+        }}
+        onChangeReturnGroups={(g: ReturnGroup[]) => {
+          setTravelForm({
+            ...travelForm,
+            returnGroups: g,
+            returnEdited: true,
+          });
+        }}
+        locationOptions={getLocationOptions(travelForm.return_date || travelForm.date)}
+        requiresArrivalTime={requiresArrivalTime}
       />
     </AddonItem>
   );

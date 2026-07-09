@@ -94,8 +94,8 @@ const GuestTravelAddon: React.FC<GuestTravelAddonProps> = ({
 
   // Default return legs: reverse each onward group (swap pickup/drop), keep type/luggage/people,
   // clear arrival time, carry the same travelers by index.
-  const reverseGroups = (): ReturnGroup[] =>
-    travelForm.guestGroup.map((g: any) => ({
+  const reverseGroups = (groups: any[]): ReturnGroup[] =>
+    (groups || []).map((g: any) => ({
       pickup: g.drop || '',
       drop: g.pickup || '',
       type: g.type || '',
@@ -105,6 +105,13 @@ const GuestTravelAddon: React.FC<GuestTravelAddonProps> = ({
       total_people: g.total_people ?? null,
       travelerIndices: (g.guestIndices || []).map(String),
     }));
+
+  // Until the return is edited, mirror the onward live so it always reflects the latest onward
+  // details (autofill); once edited, keep the user's own return groups.
+  const effectiveReturnGroups: ReturnGroup[] =
+    travelForm.returnEdited && travelForm.returnGroups?.length
+      ? travelForm.returnGroups
+      : reverseGroups(travelForm.guestGroup);
 
   return (
     <AddonItem
@@ -140,43 +147,6 @@ const GuestTravelAddon: React.FC<GuestTravelAddonProps> = ({
           setDatePickerVisibility('travel', false);
         }}
         onCancel={() => setDatePickerVisibility('travel', false)}
-      />
-
-      <TravelReturnDetails
-        showDatePicker
-        variant="grouped"
-        returnDate={travelForm.return_date}
-        onwardDate={travelForm.date}
-        travelers={travelers}
-        returnGroups={travelForm.returnGroups || []}
-        onPickReturnDate={(date: string) => {
-          if (travelForm.returnEdited) {
-            setTravelForm({ ...travelForm, return_date: date });
-          } else {
-            setTravelForm({
-              ...travelForm,
-              return_date: date,
-              returnGroups: reverseGroups(),
-            });
-          }
-        }}
-        onClearReturnDate={() => {
-          setTravelForm({
-            ...travelForm,
-            return_date: '',
-            returnGroups: [],
-            returnEdited: false,
-          });
-        }}
-        onChangeReturnGroups={(g: ReturnGroup[]) => {
-          setTravelForm({
-            ...travelForm,
-            returnGroups: g,
-            returnEdited: true,
-          });
-        }}
-        locationOptions={getLocationOptions(travelForm.return_date || travelForm.date)}
-        requiresArrivalTime={requiresArrivalTime}
       />
 
       {travelForm.guestGroup.map((assignment: any, index: any) => (
@@ -367,6 +337,35 @@ const GuestTravelAddon: React.FC<GuestTravelAddonProps> = ({
         />
         <Text className="text-base text-black underline">Add More Guests</Text>
       </TouchableOpacity>
+
+      <HorizontalSeparator otherStyles={'w-full mt-5'} />
+
+      <TravelReturnDetails
+        showDatePicker
+        variant="grouped"
+        returnDate={travelForm.return_date}
+        onwardDate={travelForm.date}
+        travelers={travelers}
+        returnGroups={effectiveReturnGroups}
+        onPickReturnDate={(date: string) => setTravelForm({ ...travelForm, return_date: date })}
+        onClearReturnDate={() => {
+          setTravelForm({
+            ...travelForm,
+            return_date: '',
+            returnGroups: [],
+            returnEdited: false,
+          });
+        }}
+        onChangeReturnGroups={(g: ReturnGroup[]) => {
+          setTravelForm({
+            ...travelForm,
+            returnGroups: g,
+            returnEdited: true,
+          });
+        }}
+        locationOptions={getLocationOptions(travelForm.return_date || travelForm.date)}
+        requiresArrivalTime={requiresArrivalTime}
+      />
     </AddonItem>
   );
 };

@@ -481,23 +481,28 @@ const GuestAddons = () => {
   }, [setGuestData]);
 
   const addTravelForm = useCallback(() => {
-    setTravelForm((prevTravelForm) => ({
-      ...prevTravelForm,
-      guestGroup: [
-        ...prevTravelForm.guestGroup,
-        {
-          pickup: '',
-          drop: '',
-          arrival_time: '',
-          luggage: [],
-          type: dropdowns.BOOKING_TYPE_LIST[0].value,
-          total_people: null,
-          special_request: '',
-          guests: [],
-          guestIndices: [],
-        },
-      ],
-    }));
+    setTravelForm((prevTravelForm) => {
+      // Prefill the new group's route/vehicle/luggage from the last group so repeat trips do
+      // not require re-selecting the same dropdowns; guests and comments start empty.
+      const last = prevTravelForm.guestGroup[prevTravelForm.guestGroup.length - 1] || {};
+      return {
+        ...prevTravelForm,
+        guestGroup: [
+          ...prevTravelForm.guestGroup,
+          {
+            pickup: last.pickup || '',
+            drop: last.drop || '',
+            arrival_time: '',
+            luggage: last.luggage || [],
+            type: last.type || dropdowns.BOOKING_TYPE_LIST[0].value,
+            total_people: last.total_people ?? null,
+            special_request: '',
+            guests: [],
+            guestIndices: [],
+          },
+        ],
+      };
+    });
   }, []);
 
   const removeTravelForm = useCallback((indexToRemove: any) => {

@@ -208,23 +208,28 @@ const TravelBooking = () => {
   const [mumukshuForm, setMumukshuForm] = useState(INITIAL_MUMUKSHU_FORM);
 
   const addMumukshuForm = () => {
-    setMumukshuForm((prev) => ({
-      ...prev,
-      mumukshus: [
-        ...prev.mumukshus,
-        {
-          cardno: '',
-          mobno: '',
-          pickup: '',
-          drop: '',
-          luggage: [],
-          type: dropdowns.BOOKING_TYPE_LIST[0].value,
-          total_people: null,
-          special_request: '',
-          arrival_time: '',
-        },
-      ],
-    }));
+    setMumukshuForm((prev) => {
+      // Prefill route/vehicle/luggage from the last traveler so repeat trips do not require
+      // re-selecting the same dropdowns; identity and comments start empty.
+      const last = prev.mumukshus[prev.mumukshus.length - 1] || ({} as any);
+      return {
+        ...prev,
+        mumukshus: [
+          ...prev.mumukshus,
+          {
+            cardno: '',
+            mobno: '',
+            pickup: last.pickup || '',
+            drop: last.drop || '',
+            luggage: last.luggage || [],
+            type: last.type || dropdowns.BOOKING_TYPE_LIST[0].value,
+            total_people: last.total_people ?? null,
+            special_request: '',
+            arrival_time: '',
+          },
+        ],
+      };
+    });
   };
 
   const removeMumukshuForm = (indexToRemove: any) => {
@@ -299,25 +304,30 @@ const TravelBooking = () => {
   const [guestTravelForm, setGuestTravelForm] = useState(INITIAL_GUEST_TRAVEL_FORM);
 
   const addGuestTravelForm = () => {
-    setGuestTravelForm((prev) => ({
-      ...prev,
-      guests: [
-        ...prev.guests,
-        {
-          name: '',
-          gender: '',
-          mobno: '',
-          type: '',
-          pickup: '',
-          drop: '',
-          luggage: [],
-          travelType: dropdowns.BOOKING_TYPE_LIST[0].value,
-          arrival_time: '',
-          special_request: '',
-          total_people: null,
-        },
-      ],
-    }));
+    setGuestTravelForm((prev) => {
+      // Prefill route/vehicle/luggage from the last guest so repeat trips do not require
+      // re-selecting the same dropdowns; identity and comments start empty.
+      const last = prev.guests[prev.guests.length - 1] || ({} as any);
+      return {
+        ...prev,
+        guests: [
+          ...prev.guests,
+          {
+            name: '',
+            gender: '',
+            mobno: '',
+            type: '',
+            pickup: last.pickup || '',
+            drop: last.drop || '',
+            luggage: last.luggage || [],
+            travelType: last.travelType || dropdowns.BOOKING_TYPE_LIST[0].value,
+            arrival_time: '',
+            special_request: '',
+            total_people: last.total_people ?? null,
+          },
+        ],
+      };
+    });
   };
 
   const removeGuestTravelForm = (indexToRemove: any) => {

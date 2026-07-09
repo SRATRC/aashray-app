@@ -478,23 +478,28 @@ const MumukshuAddons = () => {
   }, [setMumukshuData]);
 
   const addTravelForm = useCallback(() => {
-    setTravelForm((prevTravelForm) => ({
-      ...prevTravelForm,
-      mumukshuGroup: [
-        ...prevTravelForm.mumukshuGroup,
-        {
-          pickup: '',
-          drop: '',
-          arrival_time: '',
-          luggage: [],
-          type: dropdowns.BOOKING_TYPE_LIST[0].value,
-          total_people: null,
-          special_request: '',
-          mumukshus: [],
-          mumukshuIndices: [],
-        },
-      ],
-    }));
+    setTravelForm((prevTravelForm) => {
+      // Prefill the new group's route/vehicle/luggage from the last group so repeat trips do
+      // not require re-selecting the same dropdowns; travelers and comments start empty.
+      const last = prevTravelForm.mumukshuGroup[prevTravelForm.mumukshuGroup.length - 1] || {};
+      return {
+        ...prevTravelForm,
+        mumukshuGroup: [
+          ...prevTravelForm.mumukshuGroup,
+          {
+            pickup: last.pickup || '',
+            drop: last.drop || '',
+            arrival_time: '',
+            luggage: last.luggage || [],
+            type: last.type || dropdowns.BOOKING_TYPE_LIST[0].value,
+            total_people: last.total_people ?? null,
+            special_request: '',
+            mumukshus: [],
+            mumukshuIndices: [],
+          },
+        ],
+      };
+    });
   }, []);
 
   const removeTravelForm = useCallback((indexToRemove: any) => {
