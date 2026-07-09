@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, dropdowns } from '@/src/constants';
+import { dropdowns } from '@/src/constants';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FormDisplayField from './FormDisplayField';
 import FormField from './FormField';

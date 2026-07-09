@@ -10,7 +10,7 @@ import FormField from '../FormField';
 import AddonItem from '../AddonItem';
 import TravelReturnDetails from '../TravelReturnDetails';
 import type { ReturnGroup } from '../TravelReturnGroups';
-import { requiresArrivalTime } from '@/src/utils/travel';
+import { requiresArrivalTime, reverseOnwardGroups } from '@/src/utils/travel';
 import moment from 'moment';
 
 interface GuestTravelAddonProps {
@@ -82,26 +82,12 @@ const GuestTravelAddon: React.FC<GuestTravelAddonProps> = ({
     issuedto: g.value,
   }));
 
-  // Default return legs: reverse each onward group (swap pickup/drop), keep type/luggage/people,
-  // clear arrival time, carry the same travelers by index.
-  const reverseGroups = (groups: any[]): ReturnGroup[] =>
-    (groups || []).map((g: any) => ({
-      pickup: g.drop || '',
-      drop: g.pickup || '',
-      type: g.type || '',
-      luggage: g.luggage || [],
-      arrival_time: '',
-      comments: g.special_request || '',
-      total_people: g.total_people ?? null,
-      travelerIndices: (g.guestIndices || []).map(String),
-    }));
-
   // Until the return is edited, mirror the onward live so it always reflects the latest onward
   // details (autofill); once edited, keep the user's own return groups.
   const effectiveReturnGroups: ReturnGroup[] =
     travelForm.returnEdited && travelForm.returnGroups?.length
       ? travelForm.returnGroups
-      : reverseGroups(travelForm.guestGroup);
+      : reverseOnwardGroups(travelForm.guestGroup, 'guestIndices');
 
   return (
     <AddonItem
