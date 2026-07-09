@@ -1,4 +1,5 @@
 import { View, Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useRouter } from 'expo-router';
@@ -391,6 +392,70 @@ const TravelBooking = () => {
       }) &&
       isReturnLegValid()
     );
+  };
+
+  // The first human-readable reason the active form can't be submitted, or null when it is
+  // ready. Shown inline by the Book Now button so a disabled button always explains itself.
+  const legBlockingReason = (leg: any, isGuest = false): string | null => {
+    if (isGuest) {
+      const hasIdentity = leg.cardno
+        ? leg.mobno?.length === 10
+        : leg.name && leg.gender && leg.type && leg.mobno?.length === 10;
+      if (!hasIdentity)
+        return "Complete each guest's name, gender, type and a 10 digit mobile number";
+    } else if (leg.mobno !== undefined) {
+      if (leg.mobno?.length !== 10 || !leg.cardno)
+        return "Complete each traveler's details";
+    }
+    if (!leg.pickup || !leg.drop) return 'Select a pickup and drop location';
+    const bothRC = leg.pickup === 'Research Centre' && leg.drop === 'Research Centre';
+    const neitherRC = leg.pickup !== 'Research Centre' && leg.drop !== 'Research Centre';
+    if (bothRC || neitherRC) return 'One of pickup or drop must be the Research Centre';
+    if (
+      (leg.pickup === otherLocation?.value || leg.drop === otherLocation?.value) &&
+      !(leg.special_request || '').trim()
+    )
+      return "Add a comment describing the 'Other' location";
+    if (!leg.luggage || leg.luggage.length === 0) return 'Select luggage';
+    const type = isGuest ? leg.travelType : leg.type;
+    if (!type) return 'Select a booking type';
+    if (type === dropdowns.BOOKING_TYPE_LIST[1].value && !leg.total_people)
+      return 'Enter the total number of people for the full car';
+    if (requiresArrivalTime(leg.pickup, leg.drop) && !leg.arrival_time)
+      return 'Add the onward flight/train time';
+    return null;
+  };
+
+  const returnBlockingReason = (): string | null => {
+    if (!returnDate) return null;
+    if (moment(returnDate).isBefore(moment(travelForm.date), 'day'))
+      return 'The return date must be on or after the onward date';
+    if (returnGroups.some((g) => requiresArrivalTime(g.pickup, g.drop) && !g.arrival_time))
+      return 'Add the return flight/train time. Tap Edit on the return card.';
+    return null;
+  };
+
+  const getBlockingReason = (): string | null => {
+    if (selectedChip === CHIPS[0]) {
+      if (!travelForm.date) return 'Select a travel date';
+      return legBlockingReason(travelForm) || returnBlockingReason();
+    }
+    if (selectedChip === CHIPS[1]) {
+      if (!mumukshuForm.date) return 'Select a travel date';
+      if (mumukshuForm.mumukshus.length === 0) return 'Add at least one traveler';
+      for (const m of mumukshuForm.mumukshus) {
+        const r = legBlockingReason(m);
+        if (r) return r;
+      }
+      return returnBlockingReason();
+    }
+    if (!guestTravelForm.date) return 'Select a travel date';
+    if (guestTravelForm.guests.length === 0) return 'Add at least one guest';
+    for (const g of guestTravelForm.guests) {
+      const r = legBlockingReason(g, true);
+      if (r) return r;
+    }
+    return returnBlockingReason();
   };
 
   // The active onward travelers, selected by which chip (Self/Mumukshus/Guest) is active.
@@ -1061,6 +1126,16 @@ const TravelBooking = () => {
           locationOptions={getLocationOptions(returnDate || activeOnwardDate)}
           requiresArrivalTime={requiresArrivalTime}
         />
+
+        {(() => {
+          const reason = getBlockingReason();
+          return reason ? (
+            <View className="mt-7 flex-row items-start gap-x-2 rounded-lg bg-orange-50 px-3 py-2.5">
+              <Ionicons name="alert-circle" size={16} color="#EA580C" style={{ marginTop: 1 }} />
+              <Text className="flex-1 font-pregular text-sm text-orange-700">{reason}</Text>
+            </View>
+          ) : null;
+        })()}
 
         <CustomButton
           text="Book Now"

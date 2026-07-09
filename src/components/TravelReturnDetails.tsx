@@ -56,6 +56,12 @@ const TravelReturnDetails = ({
 
   const firstGroup = returnGroups[0];
 
+  // A return group whose route touches an airport/railway but has no flight/train time blocks
+  // submission; surface it prominently on the card so the user knows what to fix.
+  const needsArrivalTime = returnGroups.some(
+    (g) => requiresArrivalTime(g.pickup, g.drop) && !g.arrival_time
+  );
+
   // Flat variant edits the single return group directly (self flow: exactly one traveler).
   const updateFlat = (patch: Partial<ReturnGroup>) => {
     const base = firstGroup ?? { ...EMPTY_RETURN_GROUP, travelerIndices: ['0'] };
@@ -91,10 +97,18 @@ const TravelReturnDetails = ({
         {g.comments ? `  |  ${g.comments}` : ''}
       </Text>
       {requiresArrivalTime(g.pickup, g.drop) ? (
-        <Text className="mt-0.5 font-pregular text-sm text-gray-500">
-          Flight/Train Time:{' '}
-          {g.arrival_time ? moment(g.arrival_time, 'HH:mm').format('h:mm a') : 'not set'}
-        </Text>
+        g.arrival_time ? (
+          <Text className="mt-0.5 font-pregular text-sm text-gray-500">
+            Flight/Train Time: {moment(g.arrival_time, 'HH:mm').format('h:mm a')}
+          </Text>
+        ) : (
+          <View className="mt-1 flex-row items-center gap-x-1">
+            <Ionicons name="alert-circle" size={13} color="#EA580C" />
+            <Text className="font-pmedium text-sm text-orange-700">
+              Flight/Train Time required. Tap Edit to add it.
+            </Text>
+          </View>
+        )
       ) : null}
     </View>
   );
@@ -133,7 +147,10 @@ const TravelReturnDetails = ({
       ) : null}
 
       {returnDate ? (
-        <View className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+        <View
+          className={`mt-4 rounded-xl border p-4 ${
+            needsArrivalTime ? 'border-orange-300 bg-orange-50' : 'border-gray-200 bg-gray-50'
+          }`}>
           <View className="flex-row items-center justify-between">
             <View>
               <Text className="font-psemibold text-black">Return trip</Text>
