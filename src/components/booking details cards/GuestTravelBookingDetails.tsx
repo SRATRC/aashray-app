@@ -7,33 +7,33 @@ import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import CustomTag from '../CustomTag';
 import TravelItinerary, { ItineraryLeg } from './TravelItinerary';
 
-const MumukshuTravelBookingDetail: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
-  const mumukshuData = useBookingStore((store) => store.mumukshuData);
-  const isRoundTrip = Boolean(mumukshuData.travel?.return_date);
+const GuestTravelBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
+  const guestData = useBookingStore((store) => store.guestData);
+  const isRoundTrip = Boolean(guestData.travel?.return_date);
 
   const count =
-    mumukshuData?.travel?.mumukshuGroup?.reduce(
-      (acc: any, group: any) => acc + group.mumukshus.length,
+    guestData?.travel?.guestGroup?.reduce(
+      (acc: any, group: any) => acc + (group.guests?.length || 0),
       0
     ) || 0;
 
   const legs: ItineraryLeg[] = isRoundTrip
     ? [
-        { label: 'Onward', date: mumukshuData.travel.date, groups: mumukshuData.travel.mumukshuGroup },
+        { label: 'Onward', date: guestData.travel?.date, groups: guestData.travel?.guestGroup },
         {
           label: 'Return',
-          date: mumukshuData.travel.return_date,
-          groups: mumukshuData.travel.returnMumukshuGroup,
+          date: guestData.travel?.return_date,
+          groups: guestData.travel?.returnGuestGroup,
         },
       ]
-    : [{ date: mumukshuData.travel.date, groups: mumukshuData.travel.mumukshuGroup }];
+    : [{ date: guestData.travel?.date, groups: guestData.travel?.guestGroup }];
 
   return (
     <PrimaryAddonBookingCard containerStyles={containerStyles} title={'Raj Pravas Booking'}>
       <View className="p-4">
-        {mumukshuData.validationData?.travelDetails && (
+        {guestData.validationData?.travelDetails && (
           <CustomTag
-            text={mumukshuData.validationData.travelDetails.status}
+            text={guestData.validationData.travelDetails.status}
             textStyles={'text-red-200'}
             containerStyles={'bg-red-100 mb-3'}
           />
@@ -46,11 +46,11 @@ const MumukshuTravelBookingDetail: React.FC<{ containerStyles: any }> = ({ conta
         <Ionicons name="people" size={15} color={colors.gray_400} />
         <Text className="font-pregular text-sm text-gray-500">Booked for</Text>
         <Text className="font-pmedium text-sm text-black">
-          {count} {count === 1 ? 'mumukshu' : 'mumukshus'}
+          {count} {count === 1 ? 'guest' : 'guests'}
         </Text>
       </View>
     </PrimaryAddonBookingCard>
   );
 };
 
-export default MumukshuTravelBookingDetail;
+export default GuestTravelBookingDetails;

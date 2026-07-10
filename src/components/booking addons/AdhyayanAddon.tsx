@@ -28,7 +28,10 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
   const startDate =
     booking === types.ROOM_DETAILS_TYPE ? mumukshuData.room?.startDay : mumukshuData.travel?.date;
 
-  const endDate = booking === types.ROOM_DETAILS_TYPE ? mumukshuData.room?.endDay : '';
+  const endDate =
+    booking === types.ROOM_DETAILS_TYPE
+      ? mumukshuData.room?.endDay
+      : mumukshuData.travel?.return_date || '';
 
   const fetchAdhyayans = async () => {
     // Add validation to prevent API calls with invalid data

@@ -75,14 +75,10 @@ const BOOKING_TYPE_LIST = [
   { key: 'full', value: 'Full Car' },
 ];
 
-const TRAVEL_ADHYAYAN_ASK_LIST = [
-  { key: 1, value: 'Yes' },
-  { key: 0, value: 'No' },
-];
-
 const GUEST_TYPE_LIST = [
   { key: 'driver', value: 'Driver' },
   { key: 'vip', value: 'VIP' },
+  { key: 'vendor', value: 'Vendor' },
   { key: 'friend', value: 'Friend' },
   { key: 'family', value: 'Family' },
 ];
@@ -103,7 +99,6 @@ export default {
   EVENT_LOCATION_LIST,
   LUGGAGE_LIST,
   BOOKING_TYPE_LIST,
-  TRAVEL_ADHYAYAN_ASK_LIST,
   GUEST_TYPE_LIST,
   ID_TYPE_LIST,
 };

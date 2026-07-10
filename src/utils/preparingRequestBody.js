@@ -1,116 +1,25 @@
-export const prepareSelfRequestBody = (user, data) => {
-  const payload = {
-    cardno: user.cardno,
-  };
-
-  if (data.primary === 'room') {
-    payload.primary_booking = {
-      booking_type: 'room',
-      details: {
-        checkin_date: data.room?.startDay,
-        checkout_date: data.room?.endDay,
-        room_type: data.room?.roomType,
-        floor_type: data.room?.floorType,
-      },
-    };
-  } else if (data.primary === 'travel') {
-    payload.primary_booking = {
-      booking_type: 'travel',
-      details: {
-        date: data.travel?.date,
-        pickup_point: data.travel?.pickup,
-        drop_point: data.travel?.drop,
-        arrival_time: data.travel?.arrival_time,
-        luggage: data.travel?.luggage.length > 0 ? data.travel?.luggage.join(', ') : '',
-        leaving_post_adhyayan: data.travel?.adhyayan == 'No' ? 0 : 1,
-        type: data.travel?.type,
-        total_people: data.travel?.total_people,
-        comments: data.travel?.special_request,
-      },
-    };
-  } else if (data.primary === 'adhyayan') {
-    payload.primary_booking = {
-      booking_type: 'adhyayan',
-      details: {
-        shibir_ids: data.adhyayan.map((shibir) => shibir.id),
-      },
-    };
-  } else if (data.primary === 'utsav') {
-    payload.primary_booking = {
-      booking_type: 'utsav',
-      details: {
-        utsavid: data.utsav.utsav.utsav_id,
-        packageid: data.utsav.package,
-        arrival: data.utsav.arrival,
-        volunteer: data.utsav.volunteer,
-        carno: data.utsav.carno || '',
-        other: data.utsav.other || '',
-      },
-    };
-  }
-
-  const addons = [];
-  if (data.primary !== 'room' && data.room) {
-    addons.push({
-      booking_type: 'room',
-      details: {
-        checkin_date: data.room?.startDay,
-        checkout_date: data.room?.endDay,
-        room_type: data.room?.roomType,
-        floor_type: data.room?.floorType,
-      },
-    });
-  }
-  if (data.primary !== 'food' && data.food) {
-    addons.push({
-      booking_type: 'food',
-      details: {
-        start_date: data.food?.startDay,
-        end_date: data.food?.endDay,
-        breakfast: data.food?.meals.includes('breakfast'),
-        lunch: data.food?.meals.includes('lunch'),
-        dinner: data.food?.meals.includes('dinner'),
-        spicy: data.food?.spicy,
-        hightea: data.food?.hightea,
-      },
-    });
-  }
-  if (data.primary !== 'travel' && data.travel) {
-    addons.push({
-      booking_type: 'travel',
-      details: {
-        date: data.travel?.date,
-        pickup_point: data.travel?.pickup,
-        drop_point: data.travel?.drop,
-        arrival_time: data.travel?.arrival_time,
-        luggage: data.travel?.luggage.length > 0 ? data.travel?.luggage.join(', ') : '',
-        leaving_post_adhyayan: data.travel?.adhyayan == 'No' ? 0 : 1,
-        type: data.travel?.type,
-        total_people: data.travel?.total_people,
-        comments: data.travel?.special_request,
-      },
-    });
-  }
-  if (data.primary !== 'adhyayan' && data.adhyayan) {
-    addons.push({
-      booking_type: 'adhyayan',
-      details: {
-        shibir_ids: data.adhyayan.map((shibir) => shibir.id),
-      },
-    });
-  }
-
-  if (addons.length > 0) {
-    payload.addons = addons;
-  }
-
-  return payload;
-};
-
 export const prepareGuestRequestBody = (user, input) => {
   const transformGuestGroup = (guestGroup) =>
     guestGroup.map((group) => {
       const transformed = {};
+
+      // Travel groups carry pickup/drop and map to a distinct wire shape (mirrors
+      // mumukshu travel groups so normalizeGuestTravelDetails on the backend can
+      // treat guest and mumukshu travel groups uniformly).
+      if (group.pickup !== undefined || group.drop !== undefined) {
+        if (group.pickup) transformed.pickup_point = group.pickup;
+        if (group.drop) transformed.drop_point = group.drop;
+        if (group.arrival_time) transformed.arrival_time = group.arrival_time;
+        if (group.luggage) {
+          transformed.luggage = group.luggage.length > 0 ? group.luggage.join(', ') : '';
+        }
+        if (group.type) transformed.type = group.type;
+        if (group.special_request) transformed.comments = group.special_request;
+        if (group.total_people) transformed.total_people = group.total_people;
+        if (group.guests) transformed.mumukshus = group.guests.map((guest) => guest.cardno);
+        return transformed;
+      }
+
       if (group.roomType) transformed.roomType = group.roomType;
       if (group.floorType && group.floorType !== 'n') transformed.floorType = group.floorType;
       if (group.guests) transformed.guests = group.guests.map((guest) => guest.cardno);
@@ -175,6 +84,20 @@ export const prepareGuestRequestBody = (user, input) => {
             }),
           },
         };
+      case 'travel': {
+        const details = {
+          date: primaryData.date,
+          guestGroup: transformGuestGroup(primaryData.guestGroup),
+        };
+        if (primaryData.return_date && primaryData.returnGuestGroup) {
+          details.return_date = primaryData.return_date;
+          details.returnGuestGroup = transformGuestGroup(primaryData.returnGuestGroup);
+        }
+        return {
+          booking_type: 'travel',
+          details,
+        };
+      }
       default:
         throw new Error(`Unsupported primary booking type: ${primaryKey}`);
     }
@@ -211,6 +134,26 @@ export const prepareGuestRequestBody = (user, input) => {
                 guests: input[key].guests.map((guest) => guest.cardno),
               },
             };
+          case 'travel': {
+            const onwardGroup = transformGuestGroup(input[key].guestGroup);
+            const travelDetails = {
+              date: input[key].date,
+              guestGroup: onwardGroup,
+            };
+            // A return date turns this into a round trip. The return is a full set of groups
+            // (same shape as the onward), defaulting to the reversed onward but fully editable
+            // via the return editor. The addon form supplies the resolved returnGuestGroup.
+            if (input[key].return_date) {
+              travelDetails.return_date = input[key].return_date;
+              if (input[key].returnGuestGroup) {
+                travelDetails.returnGuestGroup = transformGuestGroup(input[key].returnGuestGroup);
+              }
+            }
+            return {
+              booking_type: key,
+              details: travelDetails,
+            };
+          }
           case 'validationData':
             return null;
           default:
@@ -252,11 +195,6 @@ export const prepareMumukshuRequestBody = (user, input) => {
           if (mumukshuWithArrivalTime)
             transformed.arrival_time = mumukshuWithArrivalTime.arrival_time;
         }
-        if (!group.adhyayan) {
-          const mumukshuWithAdhyayan = group.mumukshus.find((m) => m.adhyayan);
-          if (mumukshuWithAdhyayan)
-            transformed.leaving_post_adhyayan = mumukshuWithAdhyayan.adhyayan == 'No' ? 0 : 1;
-        }
         if (!group.luggage) {
           const mumukshuWithLuggage = group.mumukshus.find((m) => m.luggage);
           if (mumukshuWithLuggage)
@@ -281,10 +219,6 @@ export const prepareMumukshuRequestBody = (user, input) => {
       if (group.pickup) transformed.pickup_point = group.pickup;
       if (group.drop) transformed.drop_point = group.drop;
       if (group.arrival_time) transformed.arrival_time = group.arrival_time;
-      if (group.adhyayan)
-        group.adhyayan == 'No'
-          ? (transformed.leaving_post_adhyayan = 0)
-          : (transformed.leaving_post_adhyayan = 1);
       if (group.luggage) {
         transformed.luggage = group.luggage.length > 0 ? group.luggage.join(', ') : '';
       }
@@ -328,14 +262,22 @@ export const prepareMumukshuRequestBody = (user, input) => {
             mumukshus: transformMumukshuGroup(primaryData.mumukshuGroup),
           },
         };
-      case 'travel':
+      case 'travel': {
+        const travelDetails = {
+          date: primaryData.date,
+          mumukshuGroup: transformMumukshuGroup(primaryData.mumukshuGroup),
+        };
+        if (primaryData.return_date && primaryData.returnMumukshuGroup) {
+          travelDetails.return_date = primaryData.return_date;
+          travelDetails.returnMumukshuGroup = transformMumukshuGroup(
+            primaryData.returnMumukshuGroup
+          );
+        }
         return {
           booking_type: 'travel',
-          details: {
-            date: primaryData.date,
-            mumukshuGroup: transformMumukshuGroup(primaryData.mumukshuGroup),
-          },
+          details: travelDetails,
         };
+      }
       case 'flat':
         return {
           booking_type: 'flat',
@@ -398,14 +340,28 @@ export const prepareMumukshuRequestBody = (user, input) => {
                 mumukshus: input[key].mumukshus.map((mumukshu) => mumukshu.cardno),
               },
             };
-          case 'travel':
+          case 'travel': {
+            const onwardGroup = transformMumukshuGroup(input[key].mumukshuGroup);
+            const travelDetails = {
+              date: input[key].date,
+              mumukshuGroup: onwardGroup,
+            };
+            // A return date turns this into a round trip. The return is a full set of groups
+            // (same shape as the onward), defaulting to the reversed onward but fully editable
+            // via the return editor. The addon form supplies the resolved returnMumukshuGroup.
+            if (input[key].return_date) {
+              travelDetails.return_date = input[key].return_date;
+              if (input[key].returnMumukshuGroup) {
+                travelDetails.returnMumukshuGroup = transformMumukshuGroup(
+                  input[key].returnMumukshuGroup
+                );
+              }
+            }
             return {
               booking_type: key,
-              details: {
-                date: input[key].date,
-                mumukshuGroup: transformMumukshuGroup(input[key].mumukshuGroup),
-              },
+              details: travelDetails,
             };
+          }
           case 'flat':
             return {
               booking_type: key,

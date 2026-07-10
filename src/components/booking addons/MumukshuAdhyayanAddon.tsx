@@ -38,7 +38,10 @@ const MumukshuAdhyayanAddon: React.FC<MumukshuAdhyayanAddonProps> = ({
           cardno: user.cardno,
           start_date:
             mumukshuData.room?.startDay || mumukshuData.travel?.date || mumukshuData.flat?.startDay,
-          end_date: mumukshuData.room?.endDay || mumukshuData.flat?.endDay,
+          end_date:
+            mumukshuData.room?.endDay ||
+            mumukshuData.travel?.return_date ||
+            mumukshuData.flat?.endDay,
         },
         null,
         (res: any) => {

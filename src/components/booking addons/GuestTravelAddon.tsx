@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { icons, colors, dropdowns } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
 import { useUtsavDate } from '@/src/hooks/useUtsavDate';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
@@ -14,33 +13,32 @@ import type { ReturnGroup } from '../TravelReturnGroups';
 import { requiresArrivalTime, reverseOnwardGroups } from '@/src/utils/travel';
 import moment from 'moment';
 
-interface MumukshuTravelAddonProps {
+interface GuestTravelAddonProps {
   travelForm: any;
   setTravelForm: any;
   addTravelForm: any;
   updateTravelForm: any;
   resetTravelForm: any;
   removeTravelForm: any;
-  mumukshu_dropdown: any;
+  guest_dropdown: any;
   isDatePickerVisible: any;
   setDatePickerVisibility: (pickerType: string, isVisible: boolean) => void;
   onToggle?: (isOpen: boolean) => void;
 }
 
-const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
+const GuestTravelAddon: React.FC<GuestTravelAddonProps> = ({
   travelForm,
   setTravelForm,
   addTravelForm,
   updateTravelForm,
   resetTravelForm,
   removeTravelForm,
-  mumukshu_dropdown,
+  guest_dropdown,
   isDatePickerVisible,
   setDatePickerVisibility,
   onToggle,
 }) => {
-  const { user } = useAuthStore();
-  const [activeMumukshuIndex, setActiveMumukshuIndex] = useState(null);
+  const [activeGuestIndex, setActiveGuestIndex] = useState(null);
 
   const { isUtsavDate } = useUtsavDate();
 
@@ -54,34 +52,34 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
     [isUtsavDate]
   );
 
-  const getAvailableMumukshus = (currentGroupIndex: number) => {
-    // Get all selected mumukshu indices from other groups
-    const selectedIndices = travelForm.mumukshuGroup.reduce(
-      (acc: string[], group: any, idx: number) => {
+  const getAvailableGuests = (currentGroupIndex: number) => {
+    // Get all selected guest indices from other groups
+    const selectedIndices = travelForm.guestGroup.reduce(
+      (acc: number[], group: any, idx: number) => {
         if (idx !== currentGroupIndex) {
-          return [...acc, ...group.mumukshuIndices];
+          return [...acc, ...group.guestIndices];
         }
         return acc;
       },
       []
     );
 
-    // Filter out mumukshus that are already selected in other groups
-    return mumukshu_dropdown.filter((mumukshu: any) => !selectedIndices.includes(mumukshu.value));
+    // Filter out guests that are already selected in other groups
+    return guest_dropdown.filter((guest: any) => !selectedIndices.includes(guest.value));
   };
 
-  const hasAvailableMumukshus = () => {
-    // Get all selected mumukshu indices from all groups
-    const selectedIndices = travelForm.mumukshuGroup.flatMap((group: any) => group.mumukshuIndices);
-    // Check if there are any unselected mumukshus
-    return mumukshu_dropdown.some((mumukshu: any) => !selectedIndices.includes(mumukshu.value));
+  const hasAvailableGuests = () => {
+    // Get all selected guest indices from all groups
+    const selectedIndices = travelForm.guestGroup.flatMap((group: any) => group.guestIndices);
+    // Check if there are any unselected guests
+    return guest_dropdown.some((guest: any) => !selectedIndices.includes(guest.value));
   };
 
   // The return travelers are the same people as the onward roster (no new travelers on the
-  // return). mumukshuIndices reference this list; cardno is resolved at request time in the screen.
-  const travelers = mumukshu_dropdown.map((m: any) => ({
-    index: String(m.key),
-    issuedto: m.value,
+  // return). guestIndices reference this list; cardno is resolved at request time in the screen.
+  const travelers = guest_dropdown.map((g: any) => ({
+    index: String(g.key),
+    issuedto: g.value,
   }));
 
   // Until the return is edited, mirror the onward live so it always reflects the latest onward
@@ -89,7 +87,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
   const effectiveReturnGroups: ReturnGroup[] =
     travelForm.returnEdited && travelForm.returnGroups?.length
       ? travelForm.returnGroups
-      : reverseOnwardGroups(travelForm.mumukshuGroup, 'mumukshuIndices');
+      : reverseOnwardGroups(travelForm.guestGroup, 'guestIndices');
 
   return (
     <AddonItem
@@ -127,7 +125,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
         onCancel={() => setDatePickerVisibility('travel', false)}
       />
 
-      {travelForm.mumukshuGroup.map((assignment: any, index: any) => (
+      {travelForm.guestGroup.map((assignment: any, index: any) => (
         <View key={index} style={{ marginBottom: 15 }}>
           {index > 0 && (
             <View>
@@ -148,11 +146,11 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
 
           <CustomSelectBottomSheet
             className="mt-5"
-            label={`Mumukshu group - ${index + 1}`}
-            placeholder="Select Mumukshus"
-            options={getAvailableMumukshus(index)}
-            selectedValues={assignment.mumukshuIndices}
-            onValuesChange={(val) => updateTravelForm(index, 'mumukshus', val)}
+            label={`Guests group - ${index + 1}`}
+            placeholder="Select Guests"
+            options={getAvailableGuests(index)}
+            selectedValues={assignment.guestIndices}
+            onValuesChange={(val) => updateTravelForm(index, 'guests', val)}
             multiSelect={true}
             confirmButtonText="Select"
           />
@@ -225,15 +223,15 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
           />
 
           {requiresArrivalTime(
-            travelForm.mumukshuGroup[index].pickup,
-            travelForm.mumukshuGroup[index].drop
+            travelForm.guestGroup[index].pickup,
+            travelForm.guestGroup[index].drop
           ) ? (
             <>
               <FormDisplayField
                 text="Flight/Train Time"
                 value={
-                  travelForm.mumukshuGroup[index].arrival_time
-                    ? moment(travelForm.mumukshuGroup[index].arrival_time, 'HH:mm').format('h:mm a')
+                  travelForm.guestGroup[index].arrival_time
+                    ? moment(travelForm.guestGroup[index].arrival_time, 'HH:mm').format('h:mm a')
                     : ''
                 }
                 placeholder="Flight/Train Time"
@@ -242,15 +240,15 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
                 backgroundColor="bg-gray-100"
                 onPress={() => {
                   setDatePickerVisibility('travel_time', true);
-                  setActiveMumukshuIndex(index);
+                  setActiveGuestIndex(index);
                 }}
               />
               <DateTimePickerModal
-                isVisible={isDatePickerVisible.travel_time && activeMumukshuIndex === index}
+                isVisible={isDatePickerVisible.travel_time && activeGuestIndex === index}
                 mode="time"
                 date={
-                  travelForm.mumukshuGroup[index].arrival_time
-                    ? moment(travelForm.mumukshuGroup[index].arrival_time, 'HH:mm').toDate()
+                  travelForm.guestGroup[index].arrival_time
+                    ? moment(travelForm.guestGroup[index].arrival_time, 'HH:mm').toDate()
                     : new Date()
                 }
                 onConfirm={(date: Date) => {
@@ -293,17 +291,17 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
 
       <TouchableOpacity
         className={`mt-4 w-full flex-row items-center justify-start gap-x-1 ${
-          !hasAvailableMumukshus() ? 'opacity-50' : ''
+          !hasAvailableGuests() ? 'opacity-50' : ''
         }`}
-        onPress={hasAvailableMumukshus() ? addTravelForm : undefined}
-        disabled={!hasAvailableMumukshus()}>
+        onPress={hasAvailableGuests() ? addTravelForm : undefined}
+        disabled={!hasAvailableGuests()}>
         <Image
           source={icons.addon}
           tintColor={colors.black}
           className="h-4 w-4"
           resizeMode="contain"
         />
-        <Text className="text-base text-black underline">Add More Mumukshus</Text>
+        <Text className="text-base text-black underline">Add More Guests</Text>
       </TouchableOpacity>
 
       <HorizontalSeparator otherStyles={'w-full mt-5'} />
@@ -338,4 +336,4 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
   );
 };
 
-export default MumukshuTravelAddon;
+export default GuestTravelAddon;

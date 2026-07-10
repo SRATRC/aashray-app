@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
 import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
+import { requiresArrivalTime } from '@/src/utils/travel';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { ShadowBox } from '@/src/components/ShadowBox';
@@ -60,16 +61,16 @@ const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string)
         ],
       };
 
-    case 'travel':
-      return {
+    case 'travel': {
+      const travelDetails: any = {
         date: simpleForm.date,
+        return_date: simpleForm.return_date || '',
         mumukshuGroup: [
           {
             pickup: simpleForm.pickup,
             drop: simpleForm.drop,
             luggage: simpleForm.luggage,
             type: simpleForm.type,
-            adhyayan: simpleForm.adhyayan,
             arrival_time: simpleForm.arrival_time,
             total_people: simpleForm.total_people,
             special_request: simpleForm.special_request,
@@ -78,6 +79,40 @@ const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string)
           },
         ],
       };
+      // A return date makes it a round trip. The return is a full set of groups (same shape as
+      // the onward). The default (unedited) is the reversed onward for the same traveler, so an
+      // untouched round trip books exactly as before; edited groups come from the return editor.
+      if (simpleForm.return_date) {
+        const sourceGroups =
+          simpleForm.returnEdited && simpleForm.returnGroups?.length
+            ? simpleForm.returnGroups
+            : [
+                {
+                  pickup: simpleForm.drop,
+                  drop: simpleForm.pickup,
+                  type: simpleForm.type,
+                  luggage: simpleForm.luggage,
+                  arrival_time: '',
+                  comments: simpleForm.special_request,
+                  total_people: simpleForm.total_people,
+                  travelerIndices: ['0'],
+                },
+              ];
+        travelDetails.returnMumukshuGroup = sourceGroups.map((rg: any) => ({
+          pickup: rg.pickup,
+          drop: rg.drop,
+          type: rg.type,
+          luggage: rg.luggage || [],
+          arrival_time: rg.arrival_time || '',
+          special_request: rg.comments || '',
+          total_people: rg.total_people ?? null,
+          mumukshus: rg.travelerIndices
+            .map((i: string) => (i === '0' ? selfMumukshu : null))
+            .filter(Boolean),
+        }));
+      }
+      return travelDetails;
+    }
 
     case 'adhyayan':
       return {
@@ -120,6 +155,7 @@ const BookingDetails = () => {
 
     const endDate =
       mumukshuData.room?.endDay ||
+      mumukshuData.travel?.return_date ||
       (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.end_date) ||
       mumukshuData.flat?.endDay ||
       mumukshuData.utsav?.utsav?.utsav_end ||
@@ -145,14 +181,21 @@ const BookingDetails = () => {
     },
     travel: {
       date: initialDates.startDate,
+      // Inherit the primary booking's date range: a multi-day primary (e.g. a room stay)
+      // defaults travel to a round trip (arrive on start, depart on end); single-day stays one-way.
+      return_date:
+        initialDates.endDate && initialDates.endDate !== initialDates.startDate
+          ? initialDates.endDate
+          : '',
       pickup: '',
       drop: '',
-      adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1]?.value || '',
       type: dropdowns.BOOKING_TYPE_LIST[0]?.value || '',
       arrival_time: '',
       total_people: null,
       luggage: [],
       special_request: '',
+      returnGroups: [],
+      returnEdited: false,
     },
     adhyayan: [],
   }));
@@ -309,6 +352,17 @@ const BookingDetails = () => {
     if (pickup === 'Research Centre' && drop === 'Research Centre') return false;
     if (pickup !== 'Research Centre' && drop !== 'Research Centre') return false;
     if (type === dropdowns.BOOKING_TYPE_LIST[1]?.value && !total_people) return false;
+    // Onward flight/train time is required when the route touches an airport/railway.
+    if (requiresArrivalTime(pickup, drop) && !forms.travel.arrival_time) return false;
+    // Same rule for the return leg: edited groups, else the reversed-onward default.
+    if (forms.travel.return_date) {
+      const returnGroups =
+        forms.travel.returnEdited && forms.travel.returnGroups?.length
+          ? forms.travel.returnGroups
+          : [{ pickup: drop, drop: pickup, arrival_time: '' }];
+      if (returnGroups.some((g: any) => requiresArrivalTime(g.pickup, g.drop) && !g.arrival_time))
+        return false;
+    }
 
     return true;
   }, [forms.travel]);

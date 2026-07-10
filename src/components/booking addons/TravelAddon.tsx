@@ -6,6 +6,9 @@ import { useUtsavDate } from '@/src/hooks/useUtsavDate';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
 import FormDisplayField from '../FormDisplayField';
+import TravelReturnDetails from '../TravelReturnDetails';
+import type { ReturnGroup } from '../TravelReturnGroups';
+import { requiresArrivalTime } from '@/src/utils/travel';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
@@ -29,10 +32,6 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
   const mumukshuData = useBookingStore((state) => state.mumukshuData);
   const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
-  const [tempTravelDate, setTempTravelDate] = useState(
-    travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()
-  );
-
   const { isUtsavDate } = useUtsavDate();
 
   const getLocationOptions = useCallback(
@@ -45,25 +44,58 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
     [isUtsavDate]
   );
 
+  // The single self traveler. Return groups reference this by index '0'.
+  const travelers = [{ index: '0', issuedto: user.issuedto || user.name, cardno: user.cardno }];
+
+  // Default return leg: reverse the flat onward route for the same traveler.
+  const reverseGroups = (): ReturnGroup[] => [
+    {
+      pickup: travelForm.drop || '',
+      drop: travelForm.pickup || '',
+      type: travelForm.type || '',
+      luggage: travelForm.luggage || [],
+      arrival_time: '',
+      comments: travelForm.special_request || '',
+      total_people: travelForm.total_people ?? null,
+      travelerIndices: ['0'],
+    },
+  ];
+
+  // Until the return is edited, mirror the onward live so it always reflects the latest onward
+  // details (autofill); once edited, keep the user's own return group.
+  const effectiveReturnGroups: ReturnGroup[] =
+    travelForm.returnEdited && travelForm.returnGroups?.length
+      ? travelForm.returnGroups
+      : reverseGroups();
+
   return (
     <AddonItem
       onToggle={onToggle}
       onCollapse={() => {
+        const primaryStart =
+          mumukshuData.room?.startDay ||
+          (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.start_date) ||
+          mumukshuData.flat?.startDay ||
+          mumukshuData.utsav?.utsav?.utsav_start ||
+          '';
+        const primaryEnd =
+          mumukshuData.room?.endDay ||
+          (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.end_date) ||
+          mumukshuData.flat?.endDay ||
+          mumukshuData.utsav?.utsav?.utsav_end ||
+          '';
         setTravelForm({
-          date:
-            mumukshuData.room?.startDay ||
-            (mumukshuData.adhyayan && mumukshuData.adhyayan.adhyayan?.start_date) ||
-            mumukshuData.flat?.startDay ||
-            mumukshuData.utsav?.utsav?.utsav_start ||
-            '',
+          date: primaryStart,
+          return_date: primaryEnd && primaryEnd !== primaryStart ? primaryEnd : '',
           pickup: '',
           drop: '',
           arrival_time: '',
           luggage: [],
-          adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
           type: dropdowns.BOOKING_TYPE_LIST[0].value,
           total_people: null,
           special_request: '',
+          returnGroups: [],
+          returnEdited: false,
         });
         setMumukshuData((prev: any) => {
           const { travel, ...rest } = prev;
@@ -78,9 +110,9 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
       }
       containerStyles={'mt-3'}>
       <FormDisplayField
-        text="Date"
+        text="Travel Date"
         value={travelForm.date ? moment(travelForm.date).format('Do MMMM YYYY') : ''}
-        placeholder="Date"
+        placeholder="Travel Date"
         otherStyles="mt-7"
         backgroundColor="bg-gray-100"
         onPress={() => setDatePickerVisibility('travel', true)}
@@ -88,23 +120,16 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
       <DateTimePickerModal
         isVisible={isDatePickerVisible.travel}
         mode="date"
-        date={tempTravelDate}
+        date={travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()}
+        minimumDate={moment().toDate()}
         onConfirm={(date: Date) => {
-          // Ensure the selected date isn't before tomorrow
-          const selectedMoment = moment(date);
+          const selected = moment(date);
           const today = moment().format('YYYY-MM-DD');
-          const validDate = selectedMoment.isBefore(today)
-            ? today
-            : selectedMoment.format('YYYY-MM-DD');
-
-          setTravelForm({
-            ...travelForm,
-            date: validDate,
-          });
+          const validDate = selected.isBefore(today) ? today : selected.format('YYYY-MM-DD');
+          setTravelForm({ ...travelForm, date: validDate });
           setDatePickerVisibility('travel', false);
         }}
         onCancel={() => setDatePickerVisibility('travel', false)}
-        minimumDate={moment().toDate()}
       />
 
       <CustomSelectBottomSheet
@@ -182,20 +207,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         saveKeyInsteadOfValue={false}
       />
 
-      {(travelForm.pickup &&
-        dropdowns.LOCATION_LIST.find(
-          (loc) =>
-            loc.value === travelForm.pickup &&
-            (loc.value.toLowerCase().includes('railway') ||
-              loc.value.toLowerCase().includes('airport'))
-        )) ||
-      (travelForm.drop &&
-        dropdowns.LOCATION_LIST.find(
-          (loc) =>
-            loc.value === travelForm.drop &&
-            (loc.value.toLowerCase().includes('railway') ||
-              loc.value.toLowerCase().includes('airport'))
-        )) ? (
+      {requiresArrivalTime(travelForm.pickup, travelForm.drop) ? (
         <>
           <FormDisplayField
             text="Flight/Train Time"
@@ -244,18 +256,6 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         maxSelectedDisplay={3}
       />
 
-      {travelForm.pickup == dropdowns.LOCATION_LIST[0].value && (
-        <CustomSelectBottomSheet
-          className="mt-7"
-          label="Leaving post adhyayan?"
-          placeholder="Leaving post adhyayan?"
-          options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
-          selectedValue={travelForm.adhyayan}
-          onValueChange={(val: any) => setTravelForm({ ...travelForm, adhyayan: val })}
-          saveKeyInsteadOfValue={false}
-        />
-      )}
-
       <FormField
         text="Comments"
         value={travelForm.special_request}
@@ -272,6 +272,35 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         multiline={true}
         numberOfLines={2}
         inputStyles={'font-pmedium text-black text-lg'}
+      />
+
+      <View className="mt-5 h-px w-full bg-gray-200" />
+
+      <TravelReturnDetails
+        showDatePicker
+        variant="flat"
+        returnDate={travelForm.return_date}
+        onwardDate={travelForm.date}
+        travelers={travelers}
+        returnGroups={effectiveReturnGroups}
+        onPickReturnDate={(date: string) => setTravelForm({ ...travelForm, return_date: date })}
+        onClearReturnDate={() => {
+          setTravelForm({
+            ...travelForm,
+            return_date: '',
+            returnGroups: [],
+            returnEdited: false,
+          });
+        }}
+        onChangeReturnGroups={(g: ReturnGroup[]) => {
+          setTravelForm({
+            ...travelForm,
+            returnGroups: g,
+            returnEdited: true,
+          });
+        }}
+        locationOptions={getLocationOptions(travelForm.return_date || travelForm.date)}
+        requiresArrivalTime={requiresArrivalTime}
       />
     </AddonItem>
   );

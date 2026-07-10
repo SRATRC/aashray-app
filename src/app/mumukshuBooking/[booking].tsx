@@ -8,6 +8,7 @@ import { dropdowns, types } from '@/src/constants';
 import { FontAwesome } from '@expo/vector-icons';
 import { ShadowBox } from '@/src/components/ShadowBox';
 import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
+import { requiresArrivalTime } from '@/src/utils/travel';
 import { useAuthStore, useBookingStore } from '@/src/stores';
 import PageHeader from '@/src/components/PageHeader';
 import CustomButton from '@/src/components/CustomButton';
@@ -54,6 +55,7 @@ const MumukshuAddons = () => {
       mumukshuData.room?.endDay ||
       mumukshuData.food?.endDay ||
       mumukshuData.adhyayan?.adhyayan?.end_date ||
+      mumukshuData.travel?.return_date ||
       mumukshuData.utsav?.utsav?.utsav_end ||
       '';
 
@@ -150,13 +152,21 @@ const MumukshuAddons = () => {
 
   const createInitialTravelForm = (existingData: any = null) => ({
     date: getInitialDates?.startDate || '',
+    // Inherit the primary range only on first creation; once travel exists, respect its
+    // return_date exactly (including an explicit '' one-way clear) so re-syncs don't undo it.
+    return_date: existingData
+      ? existingData.return_date || ''
+      : getInitialDates?.endDate && getInitialDates?.endDate !== getInitialDates?.startDate
+        ? getInitialDates.endDate
+        : '',
+    returnGroups: existingData?.returnGroups || [],
+    returnEdited: existingData?.returnEdited || false,
     mumukshuGroup: existingData?.mumukshuGroup || [
       {
         pickup: '',
         drop: '',
         luggage: [],
         type: dropdowns.BOOKING_TYPE_LIST[0].value,
-        adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
         arrival_time: '',
         special_request: '',
         total_people: null,
@@ -189,7 +199,7 @@ const MumukshuAddons = () => {
       mumukshuData.room?.endDay ||
       mumukshuData.food?.endDay ||
       mumukshuData.adhyayan?.adhyayan?.end_date ||
-      mumukshuData.travel?.date ||
+      mumukshuData.travel?.return_date ||
       mumukshuData.utsav?.utsav_end ||
       '';
 
@@ -241,6 +251,7 @@ const MumukshuAddons = () => {
       setTravelForm((prev) => ({
         ...prev,
         date: prev.date || startDate,
+        return_date: prev.return_date || (endDate && endDate !== startDate ? endDate : ''),
       }));
     }
   }, [mumukshuData]);
@@ -467,24 +478,28 @@ const MumukshuAddons = () => {
   }, [setMumukshuData]);
 
   const addTravelForm = useCallback(() => {
-    setTravelForm((prevTravelForm) => ({
-      ...prevTravelForm,
-      mumukshuGroup: [
-        ...prevTravelForm.mumukshuGroup,
-        {
-          pickup: '',
-          drop: '',
-          arrival_time: '',
-          luggage: [],
-          adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
-          type: dropdowns.BOOKING_TYPE_LIST[0].value,
-          total_people: null,
-          special_request: '',
-          mumukshus: [],
-          mumukshuIndices: [],
-        },
-      ],
-    }));
+    setTravelForm((prevTravelForm) => {
+      // Prefill the new group's route/vehicle/luggage from the last group so repeat trips do
+      // not require re-selecting the same dropdowns; travelers and comments start empty.
+      const last = prevTravelForm.mumukshuGroup[prevTravelForm.mumukshuGroup.length - 1] || {};
+      return {
+        ...prevTravelForm,
+        mumukshuGroup: [
+          ...prevTravelForm.mumukshuGroup,
+          {
+            pickup: last.pickup || '',
+            drop: last.drop || '',
+            arrival_time: '',
+            luggage: last.luggage || [],
+            type: last.type || dropdowns.BOOKING_TYPE_LIST[0].value,
+            total_people: last.total_people ?? null,
+            special_request: '',
+            mumukshus: [],
+            mumukshuIndices: [],
+          },
+        ],
+      };
+    });
   }, []);
 
   const removeTravelForm = useCallback((indexToRemove: any) => {
@@ -522,6 +537,41 @@ const MumukshuAddons = () => {
     },
     [mumukshus]
   );
+
+  // Turn the travel form into the request payload. A return date adds returnMumukshuGroup: a
+  // full set of groups shaped like the onward mumukshuGroup (each with a mumukshus array of
+  // traveler objects), which preparingRequestBody maps to cardnos the same way. The default
+  // (unedited) return is the reversed onward for the same travelers, so an untouched round trip
+  // books exactly as before; edited return groups come from the return editor.
+  const buildTravelPayload = useCallback(() => {
+    const payload: any = { ...travelForm };
+    if (travelForm.return_date) {
+      const sourceGroups =
+        travelForm.returnEdited && travelForm.returnGroups?.length
+          ? travelForm.returnGroups
+          : travelForm.mumukshuGroup.map((g: any) => ({
+              pickup: g.drop || '',
+              drop: g.pickup || '',
+              type: g.type || '',
+              luggage: g.luggage || [],
+              arrival_time: '',
+              comments: g.special_request || '',
+              total_people: g.total_people ?? null,
+              travelerIndices: (g.mumukshuIndices || []).map(String),
+            }));
+      payload.returnMumukshuGroup = sourceGroups.map((rg: any) => ({
+        pickup: rg.pickup,
+        drop: rg.drop,
+        type: rg.type,
+        luggage: rg.luggage || [],
+        arrival_time: rg.arrival_time || '',
+        special_request: rg.comments || '',
+        total_people: rg.total_people ?? null,
+        mumukshus: rg.travelerIndices.map((i: string) => mumukshus[Number(i)]).filter(Boolean),
+      }));
+    }
+    return payload;
+  }, [travelForm, mumukshus]);
 
   // Adhyayan form handler
   const updateAdhyayanForm = useCallback(
@@ -568,9 +618,23 @@ const MumukshuAddons = () => {
         (group.drop === otherLocation?.value && group.special_request.trim() === '') ||
         (group.pickup == 'Research Centre' && group.drop == 'Research Centre') ||
         (group.pickup != 'Research Centre' && group.drop != 'Research Centre') ||
-        (group.type == dropdowns.BOOKING_TYPE_LIST[1].value && !group.total_people)
+        (group.type == dropdowns.BOOKING_TYPE_LIST[1].value && !group.total_people) ||
+        (requiresArrivalTime(group.pickup, group.drop) && !group.arrival_time)
     );
-    return !hasEmptyFields && travelForm.date;
+    // Return leg follows the same flight/train time rule: validate edited return groups, else
+    // the reversed-onward default (which starts without a time, so it must be entered on Edit).
+    const returnGroups =
+      travelForm.returnEdited && travelForm.returnGroups?.length
+        ? travelForm.returnGroups
+        : travelForm.mumukshuGroup.map((g: any) => ({
+            pickup: g.drop,
+            drop: g.pickup,
+            arrival_time: '',
+          }));
+    const returnTimeMissing =
+      !!travelForm.return_date &&
+      returnGroups.some((g: any) => requiresArrivalTime(g.pickup, g.drop) && !g.arrival_time);
+    return !hasEmptyFields && !returnTimeMissing && travelForm.date;
   }, [travelForm]);
 
   // Form content check handlers (to see if user has started filling them)
@@ -643,7 +707,7 @@ const MumukshuAddons = () => {
           hasValidationError = true;
           return;
         }
-        setMumukshuData((prev: any) => ({ ...prev, travel: travelForm }));
+        setMumukshuData((prev: any) => ({ ...prev, travel: buildTravelPayload() }));
       }
 
       // If no validation errors, navigate to confirmation page
@@ -667,6 +731,7 @@ const MumukshuAddons = () => {
     foodForm,
     adhyayanForm,
     travelForm,
+    buildTravelPayload,
     setMumukshuData,
     router,
   ]);
