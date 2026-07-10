@@ -78,6 +78,7 @@ const BOOKING_TYPE_LIST = [
 const GUEST_TYPE_LIST = [
   { key: 'driver', value: 'Driver' },
   { key: 'vip', value: 'VIP' },
+  { key: 'vendor', value: 'Vendor' },
   { key: 'friend', value: 'Friend' },
   { key: 'family', value: 'Family' },
 ];
