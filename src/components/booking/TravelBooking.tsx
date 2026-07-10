@@ -24,7 +24,7 @@ import handleAPICall from '@/src/utils/HandleApiCall';
 import { requiresArrivalTime } from '@/src/utils/travel';
 import moment from 'moment';
 
-let CHIPS = ['Self', 'Mumukshus', 'Guest'];
+let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
 interface Traveler {
   index: string;
@@ -463,11 +463,11 @@ const TravelBooking = () => {
   };
 
   const getBlockingReason = (): string | null => {
-    if (selectedChip === CHIPS[0]) {
+    if (selectedChip === 'Self') {
       if (!travelForm.date) return 'Select a travel date';
       return legBlockingReason(travelForm) || returnBlockingReason();
     }
-    if (selectedChip === CHIPS[1]) {
+    if (selectedChip === 'Mumukshus') {
       if (!mumukshuForm.date) return 'Select a travel date';
       if (mumukshuForm.mumukshus.length === 0) return 'Add at least one traveler';
       for (const m of mumukshuForm.mumukshus) {
@@ -716,7 +716,7 @@ const TravelBooking = () => {
           />
         </View>
 
-        {selectedChip == CHIPS[0] && (
+        {selectedChip == 'Self' && (
           <View>
             <CustomSelectBottomSheet
               className="mt-7"
@@ -859,7 +859,7 @@ const TravelBooking = () => {
           </View>
         )}
 
-        {selectedChip == CHIPS[1] && (
+        {selectedChip == 'Mumukshus' && (
           <View>
             <OtherMumukshuForm
               mumukshuForm={mumukshuForm}
@@ -1170,7 +1170,7 @@ const TravelBooking = () => {
           text="Book Now"
           handlePress={async () => {
             setIsSubmitting(true);
-            if (selectedChip == CHIPS[0]) {
+            if (selectedChip == 'Self') {
               if (!isSelfFormValid()) {
                 setModalVisible(true);
                 setModalMessage('Please fill all fields');
@@ -1198,7 +1198,7 @@ const TravelBooking = () => {
               await updateMumukshuBooking('travel', attachReturnLeg(temp));
               router.push(`/booking/${types.TRAVEL_DETAILS_TYPE}`);
             }
-            if (selectedChip == CHIPS[1]) {
+            if (selectedChip == 'Mumukshus') {
               if (!isMumukshuFormValid()) {
                 setModalVisible(true);
                 setModalMessage('Please fill all fields');
@@ -1272,7 +1272,7 @@ const TravelBooking = () => {
           containerStyles="mt-7 w-full px-1 min-h-[62px]"
           isLoading={isSubmitting}
           isDisabled={
-            selectedChip == CHIPS[0]
+            selectedChip == 'Self'
               ? !isSelfFormValid()
               : selectedChip == 'Guest'
                 ? !isGuestTravelFormValid()
