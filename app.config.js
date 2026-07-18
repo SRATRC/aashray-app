@@ -154,6 +154,7 @@ export default {
           ios: {
             useFrameworks: 'static',
             buildReactNativeFromSource: true,
+            extraPods: [{ name: 'razorpay-pod', version: '1.5.3' }],
           },
         },
       ],
