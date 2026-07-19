@@ -125,18 +125,14 @@ const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
               text="Phone Number"
               value={mumukshu.mobno}
               handleChangeText={(e: any) => {
-                // const cleaned = cleanPhoneNumber(e);
-                // if (cleaned.length <= 10) {
-                //   handleMumukshuFormChange(index, 'mobno', cleaned);
-                // }
-                handleMumukshuFormChange(index, 'mobno', e);
+                const cleaned = cleanPhoneNumber(e);
+                handleMumukshuFormChange(index, 'mobno', cleaned);
               }}
               otherStyles="mt-7"
               inputStyles="font-pmedium text-base"
               keyboardType="number-pad"
               placeholder="Enter Mumukshu's Phone Number"
-              // maxLength={20}
-              maxLength={10}
+              maxLength={25}
               containerStyles="bg-gray-100"
               additionalText={data?.issuedto}
               error={shouldShowError}

@@ -10,6 +10,7 @@ import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomAlert from '@/src/components/CustomAlert';
 import FormField from '@/src/components/FormField';
 import CustomButton from '@/src/components/CustomButton';
+import { cleanPhoneNumber } from '@/src/utils/phoneUtils';
 
 const PasswordResetModal = ({ visible, onClose, email }: any) => (
   <Modal
@@ -119,10 +120,13 @@ const SignIn = () => {
         <FormField
           text="Phone Number"
           value={form.phone}
-          handleChangeText={(e: any) => setForm({ ...form, phone: e })}
+          handleChangeText={(e: any) => {
+            const cleaned = cleanPhoneNumber(e);
+            setForm({ ...form, phone: cleaned });
+          }}
           placeholder="10-digit phone number"
           keyboardType="number-pad"
-          maxLength={10}
+          maxLength={25}
           otherStyles="mb-3"
           variant="clean"
         />

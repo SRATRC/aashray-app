@@ -10,6 +10,7 @@ import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import ErrorText from '@/src/components/ErrorText';
 import moment from 'moment';
+import { cleanPhoneNumber } from '@/src/utils/phoneUtils';
 
 export interface ProfileFormData {
   issuedto: string;
@@ -262,14 +263,15 @@ const ProfileForm = ({
         text="Phone Number"
         value={form.mobno?.toString() || ''}
         handleChangeText={(e: string) => {
-          setForm({ ...form, mobno: Number(e) });
+          const cleaned = cleanPhoneNumber(e);
+          setForm({ ...form, mobno: cleaned ? Number(cleaned) : undefined });
           markFieldTouched('mobno');
         }}
         otherStyles={showSectionHeaders ? 'mt-2' : 'mt-5'}
         inputStyles="font-pmedium text-base"
         keyboardType="number-pad"
         placeholder="Enter Your Phone Number"
-        maxLength={10}
+        maxLength={25}
         containerStyles="bg-gray-100"
         error={fieldError(!form.mobno || form.mobno.toString().length !== 10, 'mobno')}
         errorMessage="Mobile Number is required"
@@ -323,8 +325,8 @@ const ProfileForm = ({
         containerStyles="bg-gray-100"
         error={fieldError(
           !form.idNo ||
-            (form.idNo && form.idType == 'PAN' && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(form.idNo)) ||
-            (form.idNo && form.idType == 'PASSPORT' && !/^[A-Z0-9]{6,12}$/.test(form.idNo)),
+          (form.idNo && form.idType == 'PAN' && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(form.idNo)) ||
+          (form.idNo && form.idType == 'PASSPORT' && !/^[A-Z0-9]{6,12}$/.test(form.idNo)),
           'idNo'
         )}
         errorMessage="Valid Government ID is required"

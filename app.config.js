@@ -154,7 +154,11 @@ export default {
           ios: {
             useFrameworks: 'static',
             buildReactNativeFromSource: true,
-            extraPods: [{ name: 'razorpay-pod', version: '1.5.3' }],
+            extraPods: [
+              { name: 'razorpay-pod', version: '1.5.3' },
+              { name: 'FirebaseCoreInternal', modular_headers: true },
+              { name: 'GoogleUtilities', modular_headers: true }
+            ],
           },
         },
       ],

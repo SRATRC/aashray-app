@@ -6,6 +6,7 @@ import { useAuthStore } from '@/src/stores';
 import FormField from './FormField';
 import handleAPICall from '../utils/HandleApiCall';
 import CustomSelectBottomSheet from './CustomSelectBottomSheet';
+import { cleanPhoneNumber } from '../utils/phoneUtils';
 
 interface GuestFormProps {
   guestForm: any;
@@ -130,12 +131,15 @@ const GuestForm: React.FC<GuestFormProps> = ({
             <FormField
               text="Phone Number"
               value={guest.mobno}
-              handleChangeText={(e: string) => handleGuestFormChange(index, 'mobno', e)}
+              handleChangeText={(e: string) => {
+                const cleaned = cleanPhoneNumber(e);
+                handleGuestFormChange(index, 'mobno', cleaned);
+              }}
               otherStyles="mt-7"
               inputStyles="font-pmedium text-base"
               keyboardType="number-pad"
               placeholder="Enter Guest Phone Number"
-              maxLength={10}
+              maxLength={25}
               containerStyles="bg-gray-100"
               additionalText={guestData?.issuedto}
               error={shouldShowError}

@@ -5,6 +5,7 @@ import { useAuthStore } from '@/src/stores';
 import React from 'react';
 import FormField from './FormField';
 import handleAPICall from '../utils/HandleApiCall';
+import { cleanPhoneNumber } from '../utils/phoneUtils';
 
 interface OtherUsersFormProps {
   userForm: any;
@@ -93,12 +94,15 @@ const OtherUsersForm: React.FC<OtherUsersFormProps> = ({
             <FormField
               text="Phone Number"
               value={user.mobno}
-              handleChangeText={(e: string) => handleUserFormChange(index, 'mobno', e)}
+              handleChangeText={(e: string) => {
+                const cleaned = cleanPhoneNumber(e);
+                handleUserFormChange(index, 'mobno', cleaned);
+              }}
               otherStyles="mt-7"
               inputStyles="font-pmedium text-base text-gray-400"
               keyboardType="number-pad"
               placeholder="Enter Phone Number of user"
-              maxLength={10}
+              maxLength={25}
               containerStyles="bg-gray-100"
               additionalText={data?.issuedto}
             />
