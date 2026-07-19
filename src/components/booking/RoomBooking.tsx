@@ -426,24 +426,65 @@ const RoomBooking = () => {
                         setIsSubmitting(false);
                         return;
                       }
-                      const temp = transformMumukshuResponse({
-                        startDay: multiDayForm.startDay,
-                        endDay: multiDayForm.endDay,
-                        mumukshus: [
-                          {
-                            cardno: user.cardno,
-                            mobno: user.mobno,
-                            issuedto: user.name,
-                            gender: user.gender,
-                            res_status: user.res_status,
-                            roomType: multiDayForm.roomType,
-                            floorType: multiDayForm.floorType,
-                          },
-                        ],
-                      });
+                      const proceedBooking = async () => {
+                        const temp = transformMumukshuResponse({
+                          startDay: multiDayForm.startDay,
+                          endDay: multiDayForm.endDay,
+                          mumukshus: [
+                            {
+                              cardno: user.cardno,
+                              mobno: user.mobno,
+                              issuedto: user.name,
+                              gender: user.gender,
+                              res_status: user.res_status,
+                              roomType: multiDayForm.roomType,
+                              floorType: multiDayForm.floorType,
+                            },
+                          ],
+                        });
 
-                      await updateMumukshuBooking('room', temp);
-                      router.push(`/booking/${types.ROOM_DETAILS_TYPE}`);
+                        await updateMumukshuBooking('room', temp);
+                        setIsSubmitting(false);
+                        router.push(`/booking/${types.ROOM_DETAILS_TYPE}`);
+                      };
+
+                      await handleAPICall(
+                        'POST',
+                        '/stay/check-blocked-dates',
+                        null,
+                        {
+                          cardno: user.cardno,
+                          checkin: multiDayForm.startDay,
+                          checkout: multiDayForm.endDay
+                        },
+                        async (res: any) => {
+                          if (res.isBlocked) {
+                            const periodsInfo = res.blockedPeriods ? res.blockedPeriods.join('\n') : '';
+                            CustomAlert.alert(
+                              'Research Centre Blocked',
+                              `Research Centre is blocked during the following periods:\n${periodsInfo}\n\nSo this room booking will be placed in the waiting list. For more info contact Research Centre office. Are you ok to proceed with the booking?`,
+                              [
+                                {
+                                  text: 'Cancel',
+                                  style: 'cancel',
+                                  onPress: () => {
+                                    setIsSubmitting(false);
+                                  }
+                                },
+                                {
+                                  text: 'Proceed',
+                                  onPress: proceedBooking
+                                }
+                              ]
+                            );
+                          } else {
+                            await proceedBooking();
+                          }
+                        },
+                        () => {
+                          setIsSubmitting(false);
+                        }
+                      );
                     }}
                     containerStyles="mt-7 min-h-[62px]"
                     isLoading={isSubmitting}
@@ -506,52 +547,92 @@ const RoomBooking = () => {
                         setModalVisible(true);
                         return;
                       } else {
+                        const proceedBooking = async () => {
+                          await handleAPICall(
+                            'POST',
+                            '/guest',
+                            null,
+                            {
+                              cardno: user.cardno,
+                              guests: guestForm.guests,
+                            },
+                            async (res: any) => {
+                              const guestInfoArray = res.guests.map((apiGuest: any) => ({
+                                cardno: apiGuest.cardno,
+                                name: apiGuest.issuedto || apiGuest.name,
+                              }));
+                              setGuestInfo(guestInfoArray);
+
+                              const updatedGuests = guestForm.guests.map((formGuest) => {
+                                const matchingApiGuest = res.guests.find(
+                                  (apiGuest: any) => apiGuest.issuedto === formGuest.name
+                                );
+                                return matchingApiGuest
+                                  ? { ...formGuest, cardno: matchingApiGuest.cardno }
+                                  : formGuest;
+                              });
+
+                              // Create the updated form object directly
+                              const updatedGuestForm = {
+                                ...guestForm,
+                                guests: updatedGuests,
+                              };
+
+                              // Update the state
+                              await new Promise((resolve) => {
+                                setGuestForm((prev) => {
+                                  const newForm = updatedGuestForm;
+                                  resolve(newForm);
+                                  return newForm;
+                                });
+                              });
+
+                              // Use the updated form object directly, not the state
+                              const temp = transformGuestApiResponse(updatedGuestForm);
+
+                              updateGuestBooking('room', temp);
+                              setIsSubmitting(false);
+                              setGuestForm(INITIAL_GUEST_FORM);
+                              router.push(`/guestBooking/${types.ROOM_DETAILS_TYPE}`);
+                            },
+                            () => {
+                              setIsSubmitting(false);
+                            }
+                          );
+                        };
+
                         await handleAPICall(
                           'POST',
-                          '/guest',
+                          '/stay/check-blocked-dates',
                           null,
                           {
                             cardno: user.cardno,
-                            guests: guestForm.guests,
+                            checkin: guestForm.startDay,
+                            checkout: guestForm.endDay
                           },
                           async (res: any) => {
-                            const guestInfoArray = res.guests.map((apiGuest: any) => ({
-                              cardno: apiGuest.cardno,
-                              name: apiGuest.issuedto || apiGuest.name,
-                            }));
-                            setGuestInfo(guestInfoArray);
-
-                            const updatedGuests = guestForm.guests.map((formGuest) => {
-                              const matchingApiGuest = res.guests.find(
-                                (apiGuest: any) => apiGuest.issuedto === formGuest.name
+                            if (res.isBlocked) {
+                              const periodsInfo = res.blockedPeriods ? res.blockedPeriods.join('\n') : '';
+                              CustomAlert.alert(
+                                'Research Centre Blocked',
+                                `Research Centre is blocked during the following periods:\n${periodsInfo}\n\nSo this room booking will be placed in the waiting list. For more info contact Research Centre office. Are you ok to proceed with the booking?`,
+                                [
+                                  {
+                                    text: 'Cancel',
+                                    style: 'cancel',
+                                    onPress: () => {
+                                      setIsSubmitting(false);
+                                    }
+                                  },
+                                  {
+                                    text: 'Proceed',
+                                    onPress: proceedBooking
+                                  }
+                                ]
                               );
-                              return matchingApiGuest
-                                ? { ...formGuest, cardno: matchingApiGuest.cardno }
-                                : formGuest;
-                            });
-
-                            // Create the updated form object directly
-                            const updatedGuestForm = {
-                              ...guestForm,
-                              guests: updatedGuests,
-                            };
-
-                            // Update the state
-                            await new Promise((resolve) => {
-                              setGuestForm((prev) => {
-                                const newForm = updatedGuestForm;
-                                resolve(newForm);
-                                return newForm;
-                              });
-                            });
-
-                            // Use the updated form object directly, not the state
-                            const temp = transformGuestApiResponse(updatedGuestForm);
-
-                            updateGuestBooking('room', temp);
-                            setIsSubmitting(false);
-                            setGuestForm(INITIAL_GUEST_FORM);
-                            router.push(`/guestBooking/${types.ROOM_DETAILS_TYPE}`);
+                            } else {
+                              await proceedBooking();
+                            }
                           },
                           () => {
                             setIsSubmitting(false);
@@ -603,7 +684,7 @@ const RoomBooking = () => {
 
                   <CustomButton
                     text="Book Now"
-                    handlePress={() => {
+                    handlePress={async () => {
                       setIsSubmitting(true);
                       if (!isMumukshuFormValid()) {
                         setIsSubmitting(false);
@@ -621,16 +702,58 @@ const RoomBooking = () => {
                         setModalVisible(true);
                         return;
                       }
-                      const mumukshuInfoArray = mumukshuForm.mumukshus.map((mumukshu: any) => ({
-                        cardno: mumukshu.cardno,
-                        name: mumukshu.issuedto,
-                      }));
-                      setMumukshuInfo(mumukshuInfoArray);
 
-                      const temp = transformMumukshuResponse(mumukshuForm);
+                      const proceedBooking = () => {
+                        const mumukshuInfoArray = mumukshuForm.mumukshus.map((mumukshu: any) => ({
+                          cardno: mumukshu.cardno,
+                          name: mumukshu.issuedto,
+                        }));
+                        setMumukshuInfo(mumukshuInfoArray);
 
-                      updateMumukshuBooking('room', temp);
-                      router.push(`/mumukshuBooking/${types.ROOM_DETAILS_TYPE}`);
+                        const temp = transformMumukshuResponse(mumukshuForm);
+
+                        updateMumukshuBooking('room', temp);
+                        setIsSubmitting(false);
+                        router.push(`/mumukshuBooking/${types.ROOM_DETAILS_TYPE}`);
+                      };
+
+                      await handleAPICall(
+                        'POST',
+                        '/stay/check-blocked-dates',
+                        null,
+                        {
+                          cardno: user.cardno,
+                          checkin: mumukshuForm.startDay,
+                          checkout: mumukshuForm.endDay
+                        },
+                        async (res: any) => {
+                          if (res.isBlocked) {
+                            const periodsInfo = res.blockedPeriods ? res.blockedPeriods.join('\n') : '';
+                            CustomAlert.alert(
+                              'Research Centre Blocked',
+                              `Research Centre is blocked during the following periods:\n${periodsInfo}\n\nSo this room booking will be placed in the waiting list. For more info contact Research Centre office. Are you ok to proceed with the booking?`,
+                              [
+                                {
+                                  text: 'Cancel',
+                                  style: 'cancel',
+                                  onPress: () => {
+                                    setIsSubmitting(false);
+                                  }
+                                },
+                                {
+                                  text: 'Proceed',
+                                  onPress: proceedBooking
+                                }
+                              ]
+                            );
+                          } else {
+                            proceedBooking();
+                          }
+                        },
+                        () => {
+                          setIsSubmitting(false);
+                        }
+                      );
                     }}
                     containerStyles="mt-7 min-h-[62px]"
                     isDisabled={!isMumukshuFormValid()}
