@@ -220,6 +220,13 @@ const FlatBooking = () => {
                 return;
               }
 
+              const nights = moment(mumukshuForm.endDay).diff(moment(mumukshuForm.startDay), 'days');
+              if (nights > 9) {
+                CustomAlert.alert('Validation Error', 'Flat bookings are limited to a maximum of 9 nights.');
+                setIsSubmitting(false);
+                return;
+              }
+
               // Transform and save flat booking data
               const mumukshuInfoArray = mumukshuForm.mumukshus.map((mumukshu: any) => ({
                 cardno: mumukshu.cardno,
@@ -235,6 +242,13 @@ const FlatBooking = () => {
             if (selectedChip == CHIPS[1]) {
               if (!isGuestFormValid()) {
                 CustomAlert.alert('Validation Error', 'Please fill all required fields');
+                setIsSubmitting(false);
+                return;
+              }
+
+              const nights = moment(guestForm.endDay).diff(moment(guestForm.startDay), 'days');
+              if (nights > 9) {
+                CustomAlert.alert('Validation Error', 'Flat bookings are limited to a maximum of 9 nights.');
                 setIsSubmitting(false);
                 return;
               }
