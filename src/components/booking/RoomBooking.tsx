@@ -16,6 +16,7 @@ import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import CustomAlert from '../CustomAlert';
+import moment from 'moment';
 
 const SWITCH_OPTIONS = ['Select Dates', 'One Day Visit'];
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
@@ -415,6 +416,16 @@ const RoomBooking = () => {
                         setIsSubmitting(false);
                         return;
                       }
+                      const nights = moment(multiDayForm.endDay).diff(
+                        moment(multiDayForm.startDay),
+                        'days'
+                      );
+                      if (nights > 9) {
+                        setModalVisible(true);
+                        setModalMessage('Room bookings are limited to a maximum of 9 nights.');
+                        setIsSubmitting(false);
+                        return;
+                      }
                       const temp = transformMumukshuResponse({
                         startDay: multiDayForm.startDay,
                         endDay: multiDayForm.endDay,
@@ -482,6 +493,16 @@ const RoomBooking = () => {
                       if (!isGuestFormValid()) {
                         setIsSubmitting(false);
                         setModalMessage('Please fill all fields');
+                        setModalVisible(true);
+                        return;
+                      }
+                      const nights = moment(guestForm.endDay).diff(
+                        moment(guestForm.startDay),
+                        'days'
+                      );
+                      if (nights > 9) {
+                        setIsSubmitting(false);
+                        setModalMessage('Room bookings are limited to a maximum of 9 nights.');
                         setModalVisible(true);
                         return;
                       } else {
@@ -587,6 +608,16 @@ const RoomBooking = () => {
                       if (!isMumukshuFormValid()) {
                         setIsSubmitting(false);
                         setModalMessage('Please fill all fields');
+                        setModalVisible(true);
+                        return;
+                      }
+                      const nights = moment(mumukshuForm.endDay).diff(
+                        moment(mumukshuForm.startDay),
+                        'days'
+                      );
+                      if (nights > 9) {
+                        setIsSubmitting(false);
+                        setModalMessage('Room bookings are limited to a maximum of 9 nights.');
                         setModalVisible(true);
                         return;
                       }
