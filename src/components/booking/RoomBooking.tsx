@@ -949,25 +949,65 @@ const RoomBooking = () => {
 
                   if (selectedChip == CHIPS[0]) {
                     if (selfOneDayNeedRoom) {
-                      const temp = transformMumukshuResponse({
-                        startDay: selectedDay,
-                        endDay: selectedDay,
-                        mumukshus: [
-                          {
-                            cardno: user.cardno,
-                            mobno: user.mobno,
-                            issuedto: user.name,
-                            gender: user.gender,
-                            res_status: user.res_status,
-                            roomType: selfOneDayRoomType,
-                            floorType: selfOneDayFloorType,
-                          },
-                        ],
-                      });
+                      const proceedBooking = async () => {
+                        const temp = transformMumukshuResponse({
+                          startDay: selectedDay,
+                          endDay: selectedDay,
+                          mumukshus: [
+                            {
+                              cardno: user.cardno,
+                              mobno: user.mobno,
+                              issuedto: user.name,
+                              gender: user.gender,
+                              res_status: user.res_status,
+                              roomType: selfOneDayRoomType,
+                              floorType: selfOneDayFloorType,
+                            },
+                          ],
+                        });
 
-                      await updateMumukshuBooking('room', temp);
-                      setIsSubmitting(false);
-                      router.push(`/booking/${types.ROOM_DETAILS_TYPE}`);
+                        await updateMumukshuBooking('room', temp);
+                        setIsSubmitting(false);
+                        router.push(`/booking/${types.ROOM_DETAILS_TYPE}`);
+                      };
+
+                      await handleAPICall(
+                        'POST',
+                        '/stay/check-blocked-dates',
+                        null,
+                        {
+                          cardno: user.cardno,
+                          checkin: selectedDay,
+                          checkout: selectedDay,
+                        },
+                        async (res: any) => {
+                          if (res.isBlocked) {
+                            const periodsInfo = res.blockedPeriods ? res.blockedPeriods.join('\n') : '';
+                            CustomAlert.alert(
+                              'Research Centre Blocked',
+                              `The Research Centre is blocked during the following periods:\n${periodsInfo}\n\nTherefore, this room booking will be placed on the waiting list, and confirmation will be at the office's discretion. For more information, please contact the Research Centre office. Would you like to proceed with the booking?`,
+                              [
+                                {
+                                  text: 'Cancel',
+                                  style: 'cancel',
+                                  onPress: () => {
+                                    setIsSubmitting(false);
+                                  }
+                                },
+                                {
+                                  text: 'Proceed',
+                                  onPress: proceedBooking
+                                }
+                              ]
+                            );
+                          } else {
+                            await proceedBooking();
+                          }
+                        },
+                        () => {
+                          setIsSubmitting(false);
+                        }
+                      );
                     } else {
                       const onSuccess = (_data: any) => {
                         CustomAlert.alert('Booking Successful');
@@ -1022,161 +1062,249 @@ const RoomBooking = () => {
 
                     const needsRoom = singleDayGuestForm.guests.some((guest: any) => guest.needRoom);
 
-                    await handleAPICall(
-                      'POST',
-                      '/guest',
-                      null,
-                      {
-                        cardno: user.cardno,
-                        guests: guests,
-                      },
-                      async (res: any) => {
-                        const updatedGuests = res.guests.map((guest: any) => guest.cardno);
+                    const proceedBooking = async () => {
+                      await handleAPICall(
+                        'POST',
+                        '/guest',
+                        null,
+                        {
+                          cardno: user.cardno,
+                          guests: guests,
+                        },
+                        async (res: any) => {
+                          const updatedGuests = res.guests.map((guest: any) => guest.cardno);
 
-                        if (needsRoom) {
-                          const guestInfoArray = res.guests.map((apiGuest: any) => ({
-                            cardno: apiGuest.cardno,
-                            name: apiGuest.issuedto || apiGuest.name,
-                          }));
-                          setGuestInfo(guestInfoArray);
+                          if (needsRoom) {
+                            const guestInfoArray = res.guests.map((apiGuest: any) => ({
+                              cardno: apiGuest.cardno,
+                              name: apiGuest.issuedto || apiGuest.name,
+                            }));
+                            setGuestInfo(guestInfoArray);
 
-                          const updatedGuestsWithDetails = singleDayGuestForm.guests.map((formGuest: any, idx: number) => {
-                            return {
-                              ...formGuest,
-                              cardno: updatedGuests[idx],
-                              roomType: formGuest.needRoom ? (formGuest.roomType || 'nac') : 'NA',
-                              floorType: formGuest.needRoom ? (formGuest.floorType || '') : '',
-                            };
-                          });
-
-                          const updatedGuestForm = {
-                            startDay: selectedDay,
-                            endDay: selectedDay,
-                            guests: updatedGuestsWithDetails,
-                          };
-
-                          const temp = transformGuestApiResponse(updatedGuestForm);
-                          updateGuestBooking('room', temp);
-                          setIsSubmitting(false);
-                          setSingleDayGuestForm(INITIAL_SIGNLE_DAY_GUEST_FORM);
-                          router.push(`/guestBooking/${types.ROOM_DETAILS_TYPE}`);
-                        } else {
-                          const groupedGuests: any = {};
-                          singleDayGuestForm.guests.forEach((guest: any, idx: number) => {
-                            const apiCardNo = updatedGuests[idx];
-                            const rType = 'NA';
-                            const fType = '';
-                            const key = `${rType}_${fType}`;
-                            if (!groupedGuests[key]) {
-                              groupedGuests[key] = {
-                                roomType: rType,
-                                floorType: fType,
-                                guests: [],
+                            const updatedGuestsWithDetails = singleDayGuestForm.guests.map((formGuest: any, idx: number) => {
+                              return {
+                                ...formGuest,
+                                cardno: updatedGuests[idx],
+                                roomType: formGuest.needRoom ? (formGuest.roomType || 'nac') : 'NA',
+                                floorType: formGuest.needRoom ? (formGuest.floorType || '') : '',
                               };
-                            }
-                            groupedGuests[key].guests.push(apiCardNo);
-                          });
-                          const guestGroup = Object.values(groupedGuests);
+                            });
 
-                          await handleAPICall(
-                            'POST',
-                            '/guest/booking',
-                            null,
-                            {
-                              cardno: user.cardno,
-                              primary_booking: {
-                                booking_type: 'room',
-                                details: {
-                                  checkin_date: selectedDay,
-                                  checkout_date: selectedDay,
-                                  guestGroup: guestGroup,
+                            const updatedGuestForm = {
+                              startDay: selectedDay,
+                              endDay: selectedDay,
+                              guests: updatedGuestsWithDetails,
+                            };
+
+                            const temp = transformGuestApiResponse(updatedGuestForm);
+                            updateGuestBooking('room', temp);
+                            setIsSubmitting(false);
+                            setSingleDayGuestForm(INITIAL_SIGNLE_DAY_GUEST_FORM);
+                            router.push(`/guestBooking/${types.ROOM_DETAILS_TYPE}`);
+                          } else {
+                            const groupedGuests: any = {};
+                            singleDayGuestForm.guests.forEach((guest: any, idx: number) => {
+                              const apiCardNo = updatedGuests[idx];
+                              const rType = 'NA';
+                              const fType = '';
+                              const key = `${rType}_${fType}`;
+                              if (!groupedGuests[key]) {
+                                groupedGuests[key] = {
+                                  roomType: rType,
+                                  floorType: fType,
+                                  guests: [],
+                                };
+                              }
+                              groupedGuests[key].guests.push(apiCardNo);
+                            });
+                            const guestGroup = Object.values(groupedGuests);
+
+                            await handleAPICall(
+                              'POST',
+                              '/guest/booking',
+                              null,
+                              {
+                                cardno: user.cardno,
+                                primary_booking: {
+                                  booking_type: 'room',
+                                  details: {
+                                    checkin_date: selectedDay,
+                                    checkout_date: selectedDay,
+                                    guestGroup: guestGroup,
+                                  },
                                 },
                               },
-                            },
-                            (_data: any) => {
-                              CustomAlert.alert('Booking Successful');
-                            },
-                            () => {
-                              setIsSubmitting(false);
-                            }
-                          );
+                              (_data: any) => {
+                                CustomAlert.alert('Booking Successful');
+                              },
+                              () => {
+                                setIsSubmitting(false);
+                              }
+                            );
+                          }
+                        },
+                        () => {
+                          setIsSubmitting(false);
                         }
-                      },
-                      () => {
-                        setIsSubmitting(false);
-                      }
-                    );
+                      );
+                    };
+
+                    if (needsRoom) {
+                      await handleAPICall(
+                        'POST',
+                        '/stay/check-blocked-dates',
+                        null,
+                        {
+                          cardno: user.cardno,
+                          checkin: selectedDay,
+                          checkout: selectedDay,
+                        },
+                        async (res: any) => {
+                          if (res.isBlocked) {
+                            const periodsInfo = res.blockedPeriods ? res.blockedPeriods.join('\n') : '';
+                            CustomAlert.alert(
+                              'Research Centre Blocked',
+                              `The Research Centre is blocked during the following periods:\n${periodsInfo}\n\nTherefore, this room booking will be placed on the waiting list, and confirmation will be at the office's discretion. For more information, please contact the Research Centre office. Would you like to proceed with the booking?`,
+                              [
+                                {
+                                  text: 'Cancel',
+                                  style: 'cancel',
+                                  onPress: () => {
+                                    setIsSubmitting(false);
+                                  }
+                                },
+                                {
+                                  text: 'Proceed',
+                                  onPress: proceedBooking
+                                }
+                              ]
+                            );
+                          } else {
+                            await proceedBooking();
+                          }
+                        },
+                        () => {
+                          setIsSubmitting(false);
+                        }
+                      );
+                    } else {
+                      await proceedBooking();
+                    }
                   }
 
                   if (selectedChip == CHIPS[2]) {
                     const needsRoom = singleDayMumukshuForm.mumukshus.some((m: any) => m.needRoom);
 
-                    if (needsRoom) {
-                      const mumukshuInfoArray = singleDayMumukshuForm.mumukshus.map((m: any) => ({
-                        cardno: m.cardno,
-                        name: m.issuedto || `${m.firstname} ${m.lastname}`.trim(),
-                      }));
-                      setMumukshuInfo(mumukshuInfoArray);
+                    const proceedBooking = async () => {
+                      if (needsRoom) {
+                        const mumukshuInfoArray = singleDayMumukshuForm.mumukshus.map((m: any) => ({
+                          cardno: m.cardno,
+                          name: m.issuedto || `${m.firstname} ${m.lastname}`.trim(),
+                        }));
+                        setMumukshuInfo(mumukshuInfoArray);
 
-                      const updatedMumukshus = singleDayMumukshuForm.mumukshus.map((m: any) => ({
-                        ...m,
-                        roomType: m.needRoom ? (m.roomType || 'nac') : 'NA',
-                        floorType: m.needRoom ? (m.floorType || '') : '',
-                      }));
+                        const updatedMumukshus = singleDayMumukshuForm.mumukshus.map((m: any) => ({
+                          ...m,
+                          roomType: m.needRoom ? (m.roomType || 'nac') : 'NA',
+                          floorType: m.needRoom ? (m.floorType || '') : '',
+                        }));
 
-                      const temp = transformMumukshuResponse({
-                        startDay: selectedDay,
-                        endDay: selectedDay,
-                        mumukshus: updatedMumukshus,
-                      });
+                        const temp = transformMumukshuResponse({
+                          startDay: selectedDay,
+                          endDay: selectedDay,
+                          mumukshus: updatedMumukshus,
+                        });
 
-                      updateMumukshuBooking('room', temp);
-                      setIsSubmitting(false);
-                      setSingleDayMumukshuForm(INITIAL_SINGLE_DAY_MUMUKSHU_FORM);
-                      router.push(`/mumukshuBooking/${types.ROOM_DETAILS_TYPE}`);
-                    } else {
-                      const onSuccess = (_data: any) => {
-                        CustomAlert.alert('Booking Successful');
-                      };
-
-                      const onFinally = () => {
+                        updateMumukshuBooking('room', temp);
                         setIsSubmitting(false);
-                      };
+                        setSingleDayMumukshuForm(INITIAL_SINGLE_DAY_MUMUKSHU_FORM);
+                        router.push(`/mumukshuBooking/${types.ROOM_DETAILS_TYPE}`);
+                      } else {
+                        const onSuccess = (_data: any) => {
+                          CustomAlert.alert('Booking Successful');
+                        };
 
-                      const groupedMumukshus: any = {};
-                      singleDayMumukshuForm.mumukshus.forEach((m: any) => {
-                        const rType = 'NA';
-                        const fType = '';
-                        const key = `${rType}_${fType}`;
-                        if (!groupedMumukshus[key]) {
-                          groupedMumukshus[key] = {
-                            roomType: rType,
-                            floorType: fType,
-                            mumukshus: [],
-                          };
-                        }
-                        groupedMumukshus[key].mumukshus.push(m.cardno);
-                      });
-                      const mumukshuGroup = Object.values(groupedMumukshus);
+                        const onFinally = () => {
+                          setIsSubmitting(false);
+                        };
 
+                        const groupedMumukshus: any = {};
+                        singleDayMumukshuForm.mumukshus.forEach((m: any) => {
+                          const rType = 'NA';
+                          const fType = '';
+                          const key = `${rType}_${fType}`;
+                          if (!groupedMumukshus[key]) {
+                            groupedMumukshus[key] = {
+                              roomType: rType,
+                              floorType: fType,
+                              mumukshus: [],
+                            };
+                          }
+                          groupedMumukshus[key].mumukshus.push(m.cardno);
+                        });
+                        const mumukshuGroup = Object.values(groupedMumukshus);
+
+                        await handleAPICall(
+                          'POST',
+                          '/mumukshu/booking',
+                          null,
+                          {
+                            cardno: user.cardno,
+                            primary_booking: {
+                              booking_type: 'room',
+                              details: {
+                                checkin_date: selectedDay,
+                                checkout_date: selectedDay,
+                                mumukshuGroup: mumukshuGroup,
+                              },
+                            },
+                          },
+                          onSuccess,
+                          onFinally
+                        );
+                      }
+                    };
+
+                    if (needsRoom) {
                       await handleAPICall(
                         'POST',
-                        '/mumukshu/booking',
+                        '/stay/check-blocked-dates',
                         null,
                         {
                           cardno: user.cardno,
-                          primary_booking: {
-                            booking_type: 'room',
-                            details: {
-                              checkin_date: selectedDay,
-                              checkout_date: selectedDay,
-                              mumukshuGroup: mumukshuGroup,
-                            },
-                          },
+                          checkin: selectedDay,
+                          checkout: selectedDay,
                         },
-                        onSuccess,
-                        onFinally
+                        async (res: any) => {
+                          if (res.isBlocked) {
+                            const periodsInfo = res.blockedPeriods ? res.blockedPeriods.join('\n') : '';
+                            CustomAlert.alert(
+                              'Research Centre Blocked',
+                              `The Research Centre is blocked during the following periods:\n${periodsInfo}\n\nTherefore, this room booking will be placed on the waiting list, and confirmation will be at the office's discretion. For more information, please contact the Research Centre office. Would you like to proceed with the booking?`,
+                              [
+                                {
+                                  text: 'Cancel',
+                                  style: 'cancel',
+                                  onPress: () => {
+                                    setIsSubmitting(false);
+                                  }
+                                },
+                                {
+                                  text: 'Proceed',
+                                  onPress: proceedBooking
+                                }
+                              ]
+                            );
+                          } else {
+                            await proceedBooking();
+                          }
+                        },
+                        () => {
+                          setIsSubmitting(false);
+                        }
                       );
+                    } else {
+                      await proceedBooking();
                     }
                   }
                 }}

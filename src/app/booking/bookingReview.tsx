@@ -20,7 +20,6 @@ import CustomModal from '@/src/components/CustomModal';
 import EventBookingDetails from '@/src/components/booking details cards/EventBookingDetails';
 import * as Haptics from 'expo-haptics';
 import { ShadowBox } from '@/src/components/ShadowBox';
-import CustomAlert from '@/src/components/CustomAlert';
 
 // Define validation data type
 interface ValidationData {
@@ -381,6 +380,10 @@ const bookingReview = () => {
                       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
                       router.replace('/paymentFailed');
                     });
+                };
+
+                const onFinally = () => {
+                  setIsSubmitting(false);
                 };
 
                 await handleAPICall(

@@ -22,7 +22,6 @@ import ChargeBreakdownBottomSheet from '@/src/components/ChargeBreakdownBottomSh
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import * as Haptics from 'expo-haptics';
-import CustomAlert from '@/src/components/CustomAlert';
 
 const guestBookingReview = () => {
   const router = useRouter();
@@ -480,6 +479,10 @@ const guestBookingReview = () => {
                         router.replace('/paymentFailed');
                       });
                   }
+                };
+
+                const onFinally = () => {
+                  setIsSubmitting(false);
                 };
 
                 await handleAPICall(

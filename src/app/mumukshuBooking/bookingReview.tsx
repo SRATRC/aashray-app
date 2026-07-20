@@ -23,7 +23,6 @@ import ChargeBreakdownBottomSheet from '@/src/components/ChargeBreakdownBottomSh
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import * as Haptics from 'expo-haptics';
-import CustomAlert from '@/src/components/CustomAlert';
 
 // Define validation data type
 interface ValidationData {
