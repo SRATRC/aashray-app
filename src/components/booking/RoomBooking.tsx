@@ -28,6 +28,9 @@ const INITIAL_SIGNLE_DAY_GUEST_FORM = {
       gender: '',
       mobno: '',
       type: '',
+      needRoom: false,
+      roomType: dropdowns.ROOM_TYPE_LIST[0].key,
+      floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
     },
   ],
 };
@@ -37,6 +40,9 @@ const INITIAL_SINGLE_DAY_MUMUKSHU_FORM = {
     {
       cardno: '',
       mobno: '',
+      needRoom: false,
+      roomType: dropdowns.ROOM_TYPE_LIST[0].key,
+      floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
     },
   ],
 };
@@ -118,6 +124,10 @@ const RoomBooking = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [selfOneDayNeedRoom, setSelfOneDayNeedRoom] = useState(false);
+  const [selfOneDayRoomType, setSelfOneDayRoomType] = useState(dropdowns.ROOM_TYPE_LIST[0].key);
+  const [selfOneDayFloorType, setSelfOneDayFloorType] = useState(dropdowns.FLOOR_TYPE_LIST[0].key);
+
   const [value, setValue] = useState(SWITCH_OPTIONS[0]);
   const [selectedDay, setSelectedDay] = useState();
   const [singleDayGuestForm, setSingleDayGuestForm] = useState(INITIAL_SIGNLE_DAY_GUEST_FORM);
@@ -132,6 +142,9 @@ const RoomBooking = () => {
           gender: '',
           mobno: '',
           type: '',
+          needRoom: false,
+          roomType: dropdowns.ROOM_TYPE_LIST[0].key,
+          floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
         },
       ],
     }));
@@ -176,6 +189,9 @@ const RoomBooking = () => {
         {
           cardno: '',
           mobno: '',
+          needRoom: false,
+          roomType: dropdowns.ROOM_TYPE_LIST[0].key,
+          floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
         },
       ],
     }));
@@ -462,7 +478,7 @@ const RoomBooking = () => {
                             const periodsInfo = res.blockedPeriods ? res.blockedPeriods.join('\n') : '';
                             CustomAlert.alert(
                               'Research Centre Blocked',
-                              `Research Centre is blocked during the following periods:\n${periodsInfo}\n\nSo this room booking will be placed in the waiting list. For more info contact Research Centre office. Are you ok to proceed with the booking?`,
+                              `The Research Centre is blocked during the following periods:\n${periodsInfo}\n\nTherefore, this room booking will be placed on the waiting list, and confirmation will be at the office's discretion. For more information, please contact the Research Centre office. Would you like to proceed with the booking?`,
                               [
                                 {
                                   text: 'Cancel',
@@ -783,14 +799,91 @@ const RoomBooking = () => {
                 />
               </View>
 
+              {selectedChip === CHIPS[0] && (
+                <View>
+                  <CustomSelectBottomSheet
+                    className="mt-7"
+                    label="Need Room?"
+                    placeholder="Select Need Room"
+                    options={[
+                      { key: 'no', value: 'No' },
+                      { key: 'yes', value: 'Yes' },
+                    ]}
+                    selectedValue={selfOneDayNeedRoom ? 'yes' : 'no'}
+                    onValueChange={(val: any) => setSelfOneDayNeedRoom(val === 'yes')}
+                  />
+                  {selfOneDayNeedRoom && (
+                    <View>
+                      <CustomSelectBottomSheet
+                        className="mt-7"
+                        label="Room Type"
+                        placeholder="Select Room Type"
+                        options={dropdowns.ROOM_TYPE_LIST}
+                        selectedValue={selfOneDayRoomType}
+                        onValueChange={(val: any) => setSelfOneDayRoomType(val)}
+                      />
+                      <CustomSelectBottomSheet
+                        className="mt-7"
+                        label="Select Floor Type"
+                        placeholder="Select Floor Type"
+                        options={dropdowns.FLOOR_TYPE_LIST}
+                        selectedValue={selfOneDayFloorType}
+                        onValueChange={(val: any) => setSelfOneDayFloorType(val)}
+                      />
+                    </View>
+                  )}
+                </View>
+              )}
+
               {selectedChip === CHIPS[1] && (
                 <GuestForm
                   guestForm={singleDayGuestForm}
                   setGuestForm={setSingleDayGuestForm}
                   handleGuestFormChange={handleSingleDayGuestFormChange}
                   addGuestForm={addSingleDayGuestForm}
-                  removeGuestForm={removeSingleDayGuestForm}
-                />
+                  removeGuestForm={removeSingleDayGuestForm}>
+                  {(index: any) => (
+                    <View>
+                      <CustomSelectBottomSheet
+                        className="mt-7"
+                        label="Need Room?"
+                        placeholder="Select Need Room"
+                        options={[
+                          { key: 'no', value: 'No' },
+                          { key: 'yes', value: 'Yes' },
+                        ]}
+                        selectedValue={singleDayGuestForm.guests[index].needRoom ? 'yes' : 'no'}
+                        onValueChange={(val: any) =>
+                          handleSingleDayGuestFormChange(index, 'needRoom', val === 'yes')
+                        }
+                      />
+                      {singleDayGuestForm.guests[index].needRoom && (
+                        <View>
+                          <CustomSelectBottomSheet
+                            className="mt-7"
+                            label="Room Type"
+                            placeholder="Select Room Type"
+                            options={dropdowns.ROOM_TYPE_LIST}
+                            selectedValue={singleDayGuestForm.guests[index].roomType || 'nac'}
+                            onValueChange={(val: any) =>
+                              handleSingleDayGuestFormChange(index, 'roomType', val)
+                            }
+                          />
+                          <CustomSelectBottomSheet
+                            className="mt-7"
+                            label="Floor Type"
+                            placeholder="Select Floor Type"
+                            options={dropdowns.FLOOR_TYPE_LIST}
+                            selectedValue={singleDayGuestForm.guests[index].floorType || ''}
+                            onValueChange={(val: any) =>
+                              handleSingleDayGuestFormChange(index, 'floorType', val)
+                            }
+                          />
+                        </View>
+                      )}
+                    </View>
+                  )}
+                </GuestForm>
               )}
 
               {selectedChip === CHIPS[2] && (
@@ -799,8 +892,49 @@ const RoomBooking = () => {
                   setMumukshuForm={setSingleDayMumukshuForm}
                   handleMumukshuFormChange={handleSingleDayMumukshuFormChange}
                   addMumukshuForm={addSingleDayMumukshuForm}
-                  removeMumukshuForm={removeSingleDayMumukshuForm}
-                />
+                  removeMumukshuForm={removeSingleDayMumukshuForm}>
+                  {(index: any) => (
+                    <View>
+                      <CustomSelectBottomSheet
+                        className="mt-7"
+                        label="Need Room?"
+                        placeholder="Select Need Room"
+                        options={[
+                          { key: 'no', value: 'No' },
+                          { key: 'yes', value: 'Yes' },
+                        ]}
+                        selectedValue={singleDayMumukshuForm.mumukshus[index].needRoom ? 'yes' : 'no'}
+                        onValueChange={(val: any) =>
+                          handleSingleDayMumukshuFormChange(index, 'needRoom', val === 'yes')
+                        }
+                      />
+                      {singleDayMumukshuForm.mumukshus[index].needRoom && (
+                        <View>
+                          <CustomSelectBottomSheet
+                            className="mt-7"
+                            label="Room Type"
+                            placeholder="Select Room Type"
+                            options={dropdowns.ROOM_TYPE_LIST}
+                            selectedValue={singleDayMumukshuForm.mumukshus[index].roomType || 'nac'}
+                            onValueChange={(val: any) =>
+                              handleSingleDayMumukshuFormChange(index, 'roomType', val)
+                            }
+                          />
+                          <CustomSelectBottomSheet
+                            className="mt-7"
+                            label="Floor Type"
+                            placeholder="Select Floor Type"
+                            options={dropdowns.FLOOR_TYPE_LIST}
+                            selectedValue={singleDayMumukshuForm.mumukshus[index].floorType || ''}
+                            onValueChange={(val: any) =>
+                              handleSingleDayMumukshuFormChange(index, 'floorType', val)
+                            }
+                          />
+                        </View>
+                      )}
+                    </View>
+                  )}
+                </OtherMumukshuForm>
               )}
 
               <CustomButton
@@ -814,39 +948,61 @@ const RoomBooking = () => {
                   setIsSubmitting(true);
 
                   if (selectedChip == CHIPS[0]) {
-                    const onSuccess = (_data: any) => {
-                      CustomAlert.alert('Booking Successful');
-                    };
+                    if (selfOneDayNeedRoom) {
+                      const temp = transformMumukshuResponse({
+                        startDay: selectedDay,
+                        endDay: selectedDay,
+                        mumukshus: [
+                          {
+                            cardno: user.cardno,
+                            mobno: user.mobno,
+                            issuedto: user.name,
+                            gender: user.gender,
+                            res_status: user.res_status,
+                            roomType: selfOneDayRoomType,
+                            floorType: selfOneDayFloorType,
+                          },
+                        ],
+                      });
 
-                    const onFinally = () => {
+                      await updateMumukshuBooking('room', temp);
                       setIsSubmitting(false);
-                    };
+                      router.push(`/booking/${types.ROOM_DETAILS_TYPE}`);
+                    } else {
+                      const onSuccess = (_data: any) => {
+                        CustomAlert.alert('Booking Successful');
+                      };
 
-                    await handleAPICall(
-                      'POST',
-                      '/mumukshu/booking',
-                      null,
-                      {
-                        cardno: user.cardno,
-                        primary_booking: {
-                          booking_type: 'room',
-                          details: {
-                            checkin_date: selectedDay,
-                            checkout_date: selectedDay,
-                            mumukshuGroup: [
-                              {
-                                roomType: 'nac',
-                                floorType: '',
-                                mumukshus: [user.cardno],
-                              },
-                            ],
+                      const onFinally = () => {
+                        setIsSubmitting(false);
+                      };
+
+                      await handleAPICall(
+                        'POST',
+                        '/mumukshu/booking',
+                        null,
+                        {
+                          cardno: user.cardno,
+                          primary_booking: {
+                            booking_type: 'room',
+                            details: {
+                              checkin_date: selectedDay,
+                              checkout_date: selectedDay,
+                              mumukshuGroup: [
+                                {
+                                  roomType: 'NA',
+                                  floorType: '',
+                                  mumukshus: [user.cardno],
+                                },
+                              ],
+                            },
                           },
                         },
-                      },
-                      onSuccess,
-                      onFinally,
-                      () => {}
-                    );
+                        onSuccess,
+                        onFinally,
+                        () => { }
+                      );
+                    }
                   }
 
                   if (selectedChip == CHIPS[1]) {
@@ -864,6 +1020,8 @@ const RoomBooking = () => {
                       mobno: guest.mobno ? guest.mobno : null,
                     }));
 
+                    const needsRoom = singleDayGuestForm.guests.some((guest: any) => guest.needRoom);
+
                     await handleAPICall(
                       'POST',
                       '/guest',
@@ -875,34 +1033,74 @@ const RoomBooking = () => {
                       async (res: any) => {
                         const updatedGuests = res.guests.map((guest: any) => guest.cardno);
 
-                        await handleAPICall(
-                          'POST',
-                          '/guest/booking',
-                          null,
-                          {
-                            cardno: user.cardno,
-                            primary_booking: {
-                              booking_type: 'room',
-                              details: {
-                                checkin_date: selectedDay,
-                                checkout_date: selectedDay,
-                                guestGroup: [
-                                  {
-                                    roomType: 'nac',
-                                    floorType: '',
-                                    guests: updatedGuests,
-                                  },
-                                ],
+                        if (needsRoom) {
+                          const guestInfoArray = res.guests.map((apiGuest: any) => ({
+                            cardno: apiGuest.cardno,
+                            name: apiGuest.issuedto || apiGuest.name,
+                          }));
+                          setGuestInfo(guestInfoArray);
+
+                          const updatedGuestsWithDetails = singleDayGuestForm.guests.map((formGuest: any, idx: number) => {
+                            return {
+                              ...formGuest,
+                              cardno: updatedGuests[idx],
+                              roomType: formGuest.needRoom ? (formGuest.roomType || 'nac') : 'NA',
+                              floorType: formGuest.needRoom ? (formGuest.floorType || '') : '',
+                            };
+                          });
+
+                          const updatedGuestForm = {
+                            startDay: selectedDay,
+                            endDay: selectedDay,
+                            guests: updatedGuestsWithDetails,
+                          };
+
+                          const temp = transformGuestApiResponse(updatedGuestForm);
+                          updateGuestBooking('room', temp);
+                          setIsSubmitting(false);
+                          setSingleDayGuestForm(INITIAL_SIGNLE_DAY_GUEST_FORM);
+                          router.push(`/guestBooking/${types.ROOM_DETAILS_TYPE}`);
+                        } else {
+                          const groupedGuests: any = {};
+                          singleDayGuestForm.guests.forEach((guest: any, idx: number) => {
+                            const apiCardNo = updatedGuests[idx];
+                            const rType = 'NA';
+                            const fType = '';
+                            const key = `${rType}_${fType}`;
+                            if (!groupedGuests[key]) {
+                              groupedGuests[key] = {
+                                roomType: rType,
+                                floorType: fType,
+                                guests: [],
+                              };
+                            }
+                            groupedGuests[key].guests.push(apiCardNo);
+                          });
+                          const guestGroup = Object.values(groupedGuests);
+
+                          await handleAPICall(
+                            'POST',
+                            '/guest/booking',
+                            null,
+                            {
+                              cardno: user.cardno,
+                              primary_booking: {
+                                booking_type: 'room',
+                                details: {
+                                  checkin_date: selectedDay,
+                                  checkout_date: selectedDay,
+                                  guestGroup: guestGroup,
+                                },
                               },
                             },
-                          },
-                          (_data: any) => {
-                            CustomAlert.alert('Booking Successful');
-                          },
-                          () => {
-                            setIsSubmitting(false);
-                          }
-                        );
+                            (_data: any) => {
+                              CustomAlert.alert('Booking Successful');
+                            },
+                            () => {
+                              setIsSubmitting(false);
+                            }
+                          );
+                        }
                       },
                       () => {
                         setIsSubmitting(false);
@@ -911,40 +1109,75 @@ const RoomBooking = () => {
                   }
 
                   if (selectedChip == CHIPS[2]) {
-                    const onSuccess = (_data: any) => {
-                      CustomAlert.alert('Booking Successful');
-                    };
+                    const needsRoom = singleDayMumukshuForm.mumukshus.some((m: any) => m.needRoom);
 
-                    const onFinally = () => {
+                    if (needsRoom) {
+                      const mumukshuInfoArray = singleDayMumukshuForm.mumukshus.map((m: any) => ({
+                        cardno: m.cardno,
+                        name: m.issuedto || `${m.firstname} ${m.lastname}`.trim(),
+                      }));
+                      setMumukshuInfo(mumukshuInfoArray);
+
+                      const updatedMumukshus = singleDayMumukshuForm.mumukshus.map((m: any) => ({
+                        ...m,
+                        roomType: m.needRoom ? (m.roomType || 'nac') : 'NA',
+                        floorType: m.needRoom ? (m.floorType || '') : '',
+                      }));
+
+                      const temp = transformMumukshuResponse({
+                        startDay: selectedDay,
+                        endDay: selectedDay,
+                        mumukshus: updatedMumukshus,
+                      });
+
+                      updateMumukshuBooking('room', temp);
                       setIsSubmitting(false);
-                    };
+                      setSingleDayMumukshuForm(INITIAL_SINGLE_DAY_MUMUKSHU_FORM);
+                      router.push(`/mumukshuBooking/${types.ROOM_DETAILS_TYPE}`);
+                    } else {
+                      const onSuccess = (_data: any) => {
+                        CustomAlert.alert('Booking Successful');
+                      };
 
-                    await handleAPICall(
-                      'POST',
-                      '/mumukshu/booking',
-                      null,
-                      {
-                        cardno: user.cardno,
-                        primary_booking: {
-                          booking_type: 'room',
-                          details: {
-                            checkin_date: selectedDay,
-                            checkout_date: selectedDay,
-                            mumukshuGroup: [
-                              {
-                                roomType: 'nac',
-                                floorType: '',
-                                mumukshus: singleDayMumukshuForm.mumukshus.map(
-                                  (mumukshu) => mumukshu.cardno
-                                ),
-                              },
-                            ],
+                      const onFinally = () => {
+                        setIsSubmitting(false);
+                      };
+
+                      const groupedMumukshus: any = {};
+                      singleDayMumukshuForm.mumukshus.forEach((m: any) => {
+                        const rType = 'NA';
+                        const fType = '';
+                        const key = `${rType}_${fType}`;
+                        if (!groupedMumukshus[key]) {
+                          groupedMumukshus[key] = {
+                            roomType: rType,
+                            floorType: fType,
+                            mumukshus: [],
+                          };
+                        }
+                        groupedMumukshus[key].mumukshus.push(m.cardno);
+                      });
+                      const mumukshuGroup = Object.values(groupedMumukshus);
+
+                      await handleAPICall(
+                        'POST',
+                        '/mumukshu/booking',
+                        null,
+                        {
+                          cardno: user.cardno,
+                          primary_booking: {
+                            booking_type: 'room',
+                            details: {
+                              checkin_date: selectedDay,
+                              checkout_date: selectedDay,
+                              mumukshuGroup: mumukshuGroup,
+                            },
                           },
                         },
-                      },
-                      onSuccess,
-                      onFinally
-                    );
+                        onSuccess,
+                        onFinally
+                      );
+                    }
                   }
                 }}
                 containerStyles="mt-10 min-h-[62px]"
