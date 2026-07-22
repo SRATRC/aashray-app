@@ -1,7 +1,8 @@
-import { View, Text, TouchableOpacity, Image, Platform } from 'react-native';
-import { useState } from 'react';
-import { icons } from '../constants';
 import * as Haptics from 'expo-haptics';
+import { useState } from 'react';
+import { View, TouchableOpacity, Image, Platform } from 'react-native';
+
+import { icons } from '../constants';
 
 interface ExpandableItemProps {
   children: any;
@@ -36,7 +37,7 @@ const ExpandableItem: React.FC<ExpandableItemProps> = ({
   return (
     <View
       className={`${rootClassName} rounded-2xl p-3 ${
-        shadowShown == false
+        shadowShown === false
           ? ''
           : Platform.OS === 'ios'
             ? 'shadow-lg shadow-gray-200'

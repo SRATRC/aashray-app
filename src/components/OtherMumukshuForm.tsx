@@ -1,11 +1,12 @@
+import { useQueries } from '@tanstack/react-query';
 import React, { useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
+
 import { colors, icons } from '../constants';
-import { useQueries } from '@tanstack/react-query';
-import { useAuthStore } from '@/src/stores';
 import FormField from './FormField';
-import handleAPICall from '../utils/HandleApiCall';
-import { cleanPhoneNumber } from '../utils/phoneUtils';
+
+import { apiClient } from '@/lib/api/client';
+import { useAuthStore } from '@/stores';
 
 interface OtherMumukshuFormProps {
   mumukshuForm: any;
@@ -27,26 +28,13 @@ const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
   const { user } = useAuthStore();
 
   const verifyMumukshu = async (mobno: any) => {
-    return new Promise((resolve, reject) => {
-      handleAPICall(
-        'GET',
-        '/mumukshu',
-        {
-          cardno: user.cardno,
-          mobno: mobno,
-        },
-        null,
-        (res: any) => {
-          if (res.data) {
-            resolve(res.data);
-          } else {
-            reject(new Error('Mumukshu not found'));
-          }
-        },
-        () => {}, // on finally callback
-        (errorDetails: any) => reject(new Error(errorDetails?.message))
-      );
+    const res: any = await apiClient.get('/mumukshu', {
+      params: { cardno: user.cardno, mobno },
     });
+    if (res.data) {
+      return res.data;
+    }
+    throw new Error('Mumukshu not found');
   };
 
   const mumukshuQueries: any = useQueries({

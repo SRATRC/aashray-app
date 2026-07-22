@@ -1,3 +1,6 @@
+import { Ionicons, AntDesign } from '@expo/vector-icons';
+import { FlashList } from '@shopify/flash-list';
+import debounce from 'lodash/debounce';
 import React, {
   useState,
   useRef,
@@ -21,7 +24,6 @@ import {
   TextInput,
   Platform,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
 import {
   KeyboardProvider,
   KeyboardAvoidingView,
@@ -29,10 +31,10 @@ import {
   useKeyboardAnimation,
   useKeyboardController,
 } from 'react-native-keyboard-controller';
+
 import { colors } from '../constants';
-import { Ionicons, AntDesign } from '@expo/vector-icons';
+
 // @ts-ignore
-import debounce from 'lodash/debounce';
 
 // Define types
 interface Option {
@@ -52,9 +54,9 @@ interface SearchInputComponentProps {
 interface CustomSelectBottomSheetProps {
   options: Option[] | null | undefined;
   selectedValue?: string | number | null;
-  selectedValues?: Array<string | number>;
+  selectedValues?: (string | number)[];
   onValueChange?: (value: string | number) => void;
-  onValuesChange?: (values: Array<string | number>) => void;
+  onValuesChange?: (values: (string | number)[]) => void;
   placeholder?: string;
   label?: string;
   multiSelect?: boolean;
@@ -231,7 +233,7 @@ const CustomSelectBottomSheet = forwardRef<
     const [modalVisible, setModalVisible] = useState<boolean>(false);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [filteredOptions, setFilteredOptions] = useState<Option[]>([]);
-    const [tempSelectedValues, setTempSelectedValues] = useState<Array<string | number>>([]);
+    const [tempSelectedValues, setTempSelectedValues] = useState<(string | number)[]>([]);
     const [isSearching, setIsSearching] = useState<boolean>(false);
     const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
     const slideAnim = useRef(new Animated.Value(height)).current;
@@ -240,7 +242,7 @@ const CustomSelectBottomSheet = forwardRef<
 
     // Use keyboard controller hooks
     const { setEnabled } = useKeyboardController();
-    const { height: keyboardHeight, progress } = useKeyboardAnimation();
+    const { progress } = useKeyboardAnimation();
 
     // Track keyboard visibility
     useEffect(() => {
@@ -661,7 +663,7 @@ const CustomSelectBottomSheet = forwardRef<
               />
             )}
             <Text
-              className={`flex-1 font-pmedium text-base`}
+              className="flex-1 font-pmedium text-base"
               style={{
                 color: hasInvalidSelection()
                   ? '#EF4444'
@@ -687,9 +689,9 @@ const CustomSelectBottomSheet = forwardRef<
 
         <Modal
           visible={modalVisible}
-          transparent={true}
+          transparent
           animationType="none"
-          statusBarTranslucent={true}
+          statusBarTranslucent
           onRequestClose={closeBottomSheet}>
           <KeyboardProvider>
             <KeyboardAvoidingView
@@ -784,7 +786,7 @@ const CustomSelectBottomSheet = forwardRef<
                           keyboardDismissMode="on-drag"
                           initialScrollIndex={0}
                           onEndReachedThreshold={0.5}
-                          removeClippedSubviews={true}
+                          removeClippedSubviews
                           extraData={[tempSelectedValues, selectedValue]} // Add this to ensure list updates when selection changes
                         />
                       </View>

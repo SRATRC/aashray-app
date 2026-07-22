@@ -1,3 +1,4 @@
+import { AntDesign } from '@expo/vector-icons';
 import React from 'react';
 import {
   Modal,
@@ -9,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
-import { AntDesign } from '@expo/vector-icons';
+
 import CustomButton from './CustomButton';
 
 interface CustomModalProps {
@@ -78,7 +79,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
       animationType="fade"
       visible={visible}
       onRequestClose={onClose}
-      statusBarTranslucent={true}>
+      statusBarTranslucent>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         enabled={avoidKeyboard}

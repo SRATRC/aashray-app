@@ -1,34 +1,24 @@
 import '../../global.css';
-import { useEffect, useState } from 'react';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { SystemBars } from 'react-native-edge-to-edge';
-import { KeyboardProvider } from 'react-native-keyboard-controller';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { NotificationProvider } from '@/src/context/NotificationContext';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useAuthStore } from '@/src/stores';
-import { useDeepLinkHandler } from '@/src/hooks/useDeepLinkHandler';
-import { ParsedDeepLink } from '@/src/types/deeplink';
-import Toast from 'react-native-toast-message';
-import UpdateManager from '@/src/utils/updateManager';
 import * as Sentry from '@sentry/react-native';
-import * as SplashScreen from 'expo-splash-screen';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
-import { CustomAlert } from '@/src/components/CustomAlert';
+import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect, useState } from 'react';
+import { SystemBars } from 'react-native-edge-to-edge';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
+import Toast from 'react-native-toast-message';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
-    },
-  },
-});
+import { CustomAlert } from '@/components/CustomAlert';
+import { NotificationProvider } from '@/context/NotificationContext';
+import { useDeepLinkHandler } from '@/hooks/useDeepLinkHandler';
+import { queryClient } from '@/lib/queryClient';
+import { useAuthStore } from '@/stores';
+import { ParsedDeepLink } from '@/types/deeplink';
+import UpdateManager from '@/utils/updateManager';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -130,6 +120,7 @@ const AppNavigator = () => {
         <Stack.Screen name="mumukshuBooking" />
         <Stack.Screen name="adhyayan" />
         <Stack.Screen name="utsav" />
+        <Stack.Screen name="support" />
 
         <Stack.Screen name="+not-found" />
       </Stack.Protected>
@@ -139,19 +130,19 @@ const AppNavigator = () => {
 
 const RootLayout = () => {
   const [fontsLoaded, fontError] = useFonts({
-    'Poppins-Black': require('@/src/assets/fonts/Poppins-Black.ttf'),
-    'Poppins-Bold': require('@/src/assets/fonts/Poppins-Bold.ttf'),
-    'Poppins-ExtraBold': require('@/src/assets/fonts/Poppins-ExtraBold.ttf'),
-    'Poppins-ExtraLight': require('@/src/assets/fonts/Poppins-ExtraLight.ttf'),
-    'Poppins-Light': require('@/src/assets/fonts/Poppins-Light.ttf'),
-    'Poppins-Medium': require('@/src/assets/fonts/Poppins-Medium.ttf'),
-    'Poppins-Regular': require('@/src/assets/fonts/Poppins-Regular.ttf'),
-    'Poppins-SemiBold': require('@/src/assets/fonts/Poppins-SemiBold.ttf'),
-    'Poppins-Thin': require('@/src/assets/fonts/Poppins-Thin.ttf'),
-    'DMSerifDisplay-Regular': require('@/src/assets/fonts/DMSerifDisplay-Regular.ttf'),
-    'DMSans-Regular': require('@/src/assets/fonts/DMSans-Regular.ttf'),
-    'DMSans-Medium': require('@/src/assets/fonts/DMSans-Medium.ttf'),
-    'DMSans-Light': require('@/src/assets/fonts/DMSans-Light.ttf'),
+    'Poppins-Black': require('@/assets/fonts/Poppins-Black.ttf'),
+    'Poppins-Bold': require('@/assets/fonts/Poppins-Bold.ttf'),
+    'Poppins-ExtraBold': require('@/assets/fonts/Poppins-ExtraBold.ttf'),
+    'Poppins-ExtraLight': require('@/assets/fonts/Poppins-ExtraLight.ttf'),
+    'Poppins-Light': require('@/assets/fonts/Poppins-Light.ttf'),
+    'Poppins-Medium': require('@/assets/fonts/Poppins-Medium.ttf'),
+    'Poppins-Regular': require('@/assets/fonts/Poppins-Regular.ttf'),
+    'Poppins-SemiBold': require('@/assets/fonts/Poppins-SemiBold.ttf'),
+    'Poppins-Thin': require('@/assets/fonts/Poppins-Thin.ttf'),
+    'DMSerifDisplay-Regular': require('@/assets/fonts/DMSerifDisplay-Regular.ttf'),
+    'DMSans-Regular': require('@/assets/fonts/DMSans-Regular.ttf'),
+    'DMSans-Medium': require('@/assets/fonts/DMSans-Medium.ttf'),
+    'DMSans-Light': require('@/assets/fonts/DMSans-Light.ttf'),
   });
 
   const [isAuthReady, setIsAuthReady] = useState(false);

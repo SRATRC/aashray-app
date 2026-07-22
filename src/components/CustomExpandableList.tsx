@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, FlatList } from 'react-native';
+
 import { icons } from '../constants';
-import { ShadowBox } from './ShadowBox';
 import CustomButton from './CustomButton';
+import { ShadowBox } from './ShadowBox';
 
 const renderItem = ({ item }: any) => <ExpandableListItem item={item} />;
 const CustomExpandableList: React.FC<{ data: any }> = ({ data }) => (
@@ -16,7 +17,7 @@ const CustomExpandableList: React.FC<{ data: any }> = ({ data }) => (
 
 const ExpandableListItem: React.FC<{ item: any }> = ({ item }) => {
   const [expanded, setExpanded] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting] = useState(false);
 
   const toggleExpand = () => {
     setExpanded(!expanded);
@@ -47,7 +48,7 @@ const ExpandableListItem: React.FC<{ item: any }> = ({ item }) => {
             <Text className="font-psemibold text-gray-400">Charges:</Text>
             <Text className="font-pregular">{item.amount}</Text>
           </View>
-          {item.status == 'closed' ? (
+          {item.status === 'closed' ? (
             <CustomButton
               text="Add to waitlist"
               handlePress={() => {}}

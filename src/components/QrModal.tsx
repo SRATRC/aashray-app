@@ -1,3 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Modal,
@@ -9,13 +12,12 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { BlurView } from 'expo-blur';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuthStore } from '@/src/stores';
-// @ts-ignore
 import QRCodeStyled from 'react-native-qrcode-styled';
-import * as Haptics from 'expo-haptics';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { useAuthStore } from '@/stores';
+
+// @ts-ignore
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -80,9 +82,9 @@ export const QrModal = () => {
       </View>
 
       <Modal
-        transparent={true}
+        transparent
         visible={modalVisible}
-        statusBarTranslucent={true}
+        statusBarTranslucent
         onRequestClose={closeModal}
         presentationStyle="overFullScreen" // Add this to prevent interference
         animationType="none" // We handle our own animations
@@ -112,7 +114,7 @@ export const QrModal = () => {
                     }}
                     padding={20}
                     pieceSize={pieceSize}
-                    color={'#111'}
+                    color="#111"
                     errorCorrectionLevel="H"
                     pieceBorderRadius={4}
                     isPiecesGlued

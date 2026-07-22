@@ -1,0 +1,238 @@
+// src/features/menu/screens/MenuScreen.tsx
+import { useRouter } from 'expo-router';
+import React from 'react';
+import { View, Text, ScrollView, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { useMenu } from '../api';
+
+import CustomEmptyMessage from '@/components/CustomEmptyMessage';
+import PageHeader from '@/components/PageHeader';
+import Shimmer from '@/components/Shimmer';
+import { useAuthStore } from '@/stores';
+
+const MenuScreen = () => {
+  const { user } = useAuthStore();
+  const router = useRouter();
+
+  const { isLoading, isError, data: menuData, refetch, isRefetching } = useMenu(user.cardno);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const isToday = date.toDateString() === today.toDateString();
+    const isTomorrow = date.toDateString() === tomorrow.toDateString();
+
+    if (isToday) return { display: 'Today', isToday: true };
+    if (isTomorrow) return { display: 'Tomorrow', isToday: false };
+
+    const options = { weekday: 'long', month: 'short', day: 'numeric' } as const;
+    return { display: date.toLocaleDateString('en-US', options), isToday: false };
+  };
+
+  const getMealAccent = (mealType: string) => {
+    switch (mealType.toLowerCase()) {
+      case 'breakfast':
+        return '#F59E0B';
+      case 'lunch':
+        return '#10B981';
+      case 'dinner':
+        return '#6366F1';
+      default:
+        return '#6B7280';
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#000000" />
+        }>
+        <PageHeader title="Menu" onPress={() => router.back()} />
+
+        {isLoading && (
+          <View>
+            <Shimmer.Container className="px-6 py-5">
+              {/* Day Section 1 */}
+              <View className="mb-10">
+                <Shimmer.Line width={120} height={32} className="mb-5" />
+                <View className="gap-y-4">
+                  <Shimmer.Box height={120} borderRadius={16} />
+                  <Shimmer.Box height={120} borderRadius={16} />
+                  <Shimmer.Box height={120} borderRadius={16} />
+                </View>
+              </View>
+
+              {/* Day Section 2 */}
+              <View className="mb-10">
+                <Shimmer.Line width={120} height={32} className="mb-5" />
+                <View className="gap-y-4">
+                  <Shimmer.Box height={120} borderRadius={16} />
+                  <Shimmer.Box height={120} borderRadius={16} />
+                </View>
+              </View>
+            </Shimmer.Container>
+          </View>
+        )}
+
+        {isError && (
+          <View style={styles.centerContainer}>
+            <Text style={styles.errorText}>Unable to load menu</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+              <Text style={styles.retryButtonText}>Try Again</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {(!menuData || Object.keys(menuData).length === 0) && !isLoading && !isError && (
+          <CustomEmptyMessage message="No menu available" />
+        )}
+
+        {!isLoading && !isError && menuData && Object.keys(menuData).length > 0 && (
+          <View className="px-6">
+            {Object.entries(menuData).map(([date, meals]) => {
+              const dateInfo = formatDate(date);
+
+              return (
+                <View key={date} className="mb-10">
+                  {/* Date Header */}
+                  <View style={styles.dateHeader}>
+                    <Text style={[styles.dateText, dateInfo.isToday && styles.todayText]}>
+                      {dateInfo.display}
+                    </Text>
+                    {dateInfo.isToday && <View style={styles.todayIndicator} />}
+                  </View>
+
+                  {/* Meals */}
+                  {meals.map((meal, index) => {
+                    const accentColor = getMealAccent(meal.meal);
+
+                    return (
+                      <View key={index} style={styles.mealCard}>
+                        <View style={[styles.mealAccent, { backgroundColor: accentColor }]} />
+
+                        <View style={styles.mealContent}>
+                          <View style={styles.mealHeader}>
+                            <Text style={styles.mealType}>{meal.meal}</Text>
+                            <Text style={styles.mealTime}>{meal.time}</Text>
+                          </View>
+
+                          <Text style={styles.menuItems}>{meal.name}</Text>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              );
+            })}
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  dateHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  dateText: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#000000',
+    letterSpacing: -0.5,
+  },
+  todayText: {
+    color: '#000000',
+  },
+  todayIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+    marginLeft: 12,
+  },
+  mealCard: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  mealAccent: {
+    width: 4,
+  },
+  mealContent: {
+    flex: 1,
+    padding: 20,
+  },
+  mealHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 12,
+  },
+  mealType: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000000',
+    textTransform: 'capitalize',
+    letterSpacing: -0.3,
+  },
+  mealTime: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  menuItems: {
+    fontSize: 16,
+    fontWeight: '400',
+    color: '#374151',
+    lineHeight: 24,
+    letterSpacing: -0.2,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  retryButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    backgroundColor: '#000000',
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+});
+
+export default MenuScreen;

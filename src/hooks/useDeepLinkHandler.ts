@@ -1,8 +1,9 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { useRouter, useSegments } from 'expo-router';
 import * as Linking from 'expo-linking';
-import { parseDeepLink, buildRoute } from '@/src/utils/deeplinkParser';
-import { ParsedDeepLink, DeepLinkType } from '@/src/types/deeplink';
+import { useRouter, useSegments } from 'expo-router';
+import { useEffect, useRef, useCallback } from 'react';
+
+import { ParsedDeepLink, DeepLinkType } from '@/types/deeplink';
+import { parseDeepLink, buildRoute } from '@/utils/deeplinkParser';
 
 interface UseDeepLinkHandlerProps {
   isAuthenticated: boolean;
@@ -26,8 +27,8 @@ export const useDeepLinkHandler = ({
   // Refs for state management without re-renders
   const isProcessingRef = useRef(false);
   const lastProcessedUrlRef = useRef<string | null>(null);
-  const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const navigationLockTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const processingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navigationLockTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialUrlHandledRef = useRef(false); // 👈 NEW: Track if initial URL was handled
 
   /**

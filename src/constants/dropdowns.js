@@ -59,6 +59,7 @@ const EVENT_LOCATION_LIST = [
   { key: 'kurla railway station', value: 'Railway Station (Kurla Terminus)' },
   { key: 'csmt railway station', value: 'Railway Station (CSMT)' },
   { key: 'mumbai central rrailway station', value: 'Railway Station (Mumbai Central)' },
+  { key: 'navi mumbai airport', value: 'Navi Mumbai Airport' },
   { key: 'other', value: 'Other (enter location in comments)' },
 ];
 

@@ -1,15 +1,16 @@
+import RNDateTimePicker from '@react-native-community/datetimepicker';
+import { useQuery } from '@tanstack/react-query';
+import moment from 'moment';
 import { useState } from 'react';
 import { View, Platform, Text } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
-import { dropdowns } from '@/src/constants';
-import FormField from '@/src/components/FormField';
-import FormDisplayField from '@/src/components/FormDisplayField';
-import CustomButton from '@/src/components/CustomButton';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
-import RNDateTimePicker from '@react-native-community/datetimepicker';
-import ErrorText from '@/src/components/ErrorText';
-import moment from 'moment';
+
+import CustomButton from '@/components/CustomButton';
+import CustomSelectBottomSheet from '@/components/CustomSelectBottomSheet';
+import ErrorText from '@/components/ErrorText';
+import FormDisplayField from '@/components/FormDisplayField';
+import FormField from '@/components/FormField';
+import { dropdowns } from '@/constants';
+import { apiClient } from '@/lib/api/client';
 
 export interface ProfileFormData {
   issuedto: string;
@@ -36,57 +37,25 @@ interface ProfileFormProps {
 }
 
 // API Functions
-const fetchCountries = () => {
-  return new Promise((resolve, reject) => {
-    handleAPICall(
-      'GET',
-      '/location/countries',
-      null,
-      null,
-      (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
-      () => reject(new Error('Failed to fetch countries'))
-    );
-  });
-};
+const fetchCountries = () =>
+  apiClient
+    .get<{ data: any[] }>('/location/countries')
+    .then((res) => (Array.isArray(res.data) ? res.data : []));
 
-const fetchStates = (country: string) => {
-  return new Promise((resolve, reject) => {
-    handleAPICall(
-      'GET',
-      `/location/states/${country}`,
-      null,
-      null,
-      (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
-      () => reject(new Error('Failed to fetch states'))
-    );
-  });
-};
+const fetchStates = (country: string) =>
+  apiClient
+    .get<{ data: any[] }>(`/location/states/${country}`)
+    .then((res) => (Array.isArray(res.data) ? res.data : []));
 
-const fetchCities = (country: string, state: string) => {
-  return new Promise((resolve, reject) => {
-    handleAPICall(
-      'GET',
-      `/location/cities/${country}/${state}`,
-      null,
-      null,
-      (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
-      () => reject(new Error('Failed to fetch cities'))
-    );
-  });
-};
+const fetchCities = (country: string, state: string) =>
+  apiClient
+    .get<{ data: any[] }>(`/location/cities/${country}/${state}`)
+    .then((res) => (Array.isArray(res.data) ? res.data : []));
 
-const fetchCentres = () => {
-  return new Promise((resolve, reject) => {
-    handleAPICall(
-      'GET',
-      '/location/centres',
-      null,
-      null,
-      (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
-      () => reject(new Error('Failed to fetch centres'))
-    );
-  });
-};
+const fetchCentres = () =>
+  apiClient
+    .get<{ data: any[] }>('/location/centres')
+    .then((res) => (Array.isArray(res.data) ? res.data : []));
 
 // Section Header Component
 const SectionHeader = ({ title }: { title: string }) => (
@@ -112,7 +81,7 @@ export const validateProfileForm = (form: ProfileFormData): boolean => {
     form.pin &&
     form.center &&
     form.mobno.toString().length === 10 &&
-    /^[A-Za-z0-9\s\-]{4,8}$/.test(form.pin.toString()) &&
+    /^[A-Za-z0-9\s-]{4,8}$/.test(form.pin.toString()) &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
   );
 };
@@ -150,7 +119,7 @@ const ProfileForm = ({
 
   const fieldError = (cond: boolean, fieldName?: string) => {
     // Show error if validation is enabled OR if the field has been touched
-    return (showValidation || (fieldName && touchedFields.has(fieldName))) && cond;
+    return !!((showValidation || (fieldName && touchedFields.has(fieldName))) && cond);
   };
 
   const markFieldTouched = (fieldName: string) => {
@@ -322,9 +291,11 @@ const ProfileForm = ({
         placeholder="Enter Your ID Number"
         containerStyles="bg-gray-100"
         error={fieldError(
-          !form.idNo ||
-            (form.idNo && form.idType == 'PAN' && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(form.idNo)) ||
-            (form.idNo && form.idType == 'PASSPORT' && !/^[A-Z0-9]{6,12}$/.test(form.idNo)),
+          !!(
+            !form.idNo ||
+            (form.idNo && form.idType === 'PAN' && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(form.idNo)) ||
+            (form.idNo && form.idType === 'PASSPORT' && !/^[A-Z0-9]{6,12}$/.test(form.idNo))
+          ),
           'idNo'
         )}
         errorMessage="Valid Government ID is required"
@@ -451,7 +422,7 @@ const ProfileForm = ({
         placeholder="Enter Your Pin Code"
         maxLength={8}
         containerStyles="bg-gray-100"
-        error={fieldError(!form.pin || !/^[A-Za-z0-9\s\-]{4,8}$/.test(form.pin.toString()), 'pin')}
+        error={fieldError(!form.pin || !/^[A-Za-z0-9\s-]{4,8}$/.test(form.pin.toString()), 'pin')}
         errorMessage="Please enter a valid Pin / Postal Code"
       />
 

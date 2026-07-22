@@ -1,11 +1,12 @@
+import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
 import { useEffect, useRef, useMemo } from 'react';
 import { View, Text, Image, TouchableOpacity, Animated } from 'react-native';
-import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { icons, quotes } from '@/src/constants';
-import { useQueryClient } from '@tanstack/react-query';
-import { useAuthStore } from '@/src/stores';
-import CustomButton from '@/src/components/CustomButton';
+
+import CustomButton from '@/components/CustomButton';
+import { icons, quotes } from '@/constants';
+import { useAuthStore } from '@/stores';
 
 const BookingSuccess = () => {
   const { user } = useAuthStore();
@@ -53,7 +54,7 @@ const BookingSuccess = () => {
               <View className="mb-6 h-20 w-20 items-center justify-center rounded-full bg-green-600 shadow-lg shadow-gray-400">
                 <Image
                   source={icons.tick}
-                  tintColor={'white'}
+                  tintColor="white"
                   className="h-8 w-8"
                   resizeMode="contain"
                 />

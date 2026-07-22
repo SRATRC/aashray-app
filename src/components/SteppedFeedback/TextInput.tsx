@@ -1,6 +1,7 @@
-import { colors } from '@/src/constants';
 import React from 'react';
 import { StyleSheet, Text, TextInput as RNTextInput, View } from 'react-native';
+
+import { colors } from '@/constants';
 
 type FeedbackTextInputProps = {
   value: string;

@@ -1,27 +1,14 @@
-import { useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
 import moment from 'moment';
+import { useCallback } from 'react';
 
-const fetchUtsavs = async ({ cardno }: { cardno: string }): Promise<any[]> => {
-  return new Promise((resolve, reject) => {
-    handleAPICall(
-      'GET',
-      '/travel/events',
-      {
-        cardno,
-      },
-      null,
-      (res: any) => {
-        resolve(Array.isArray(res.data) ? res.data : []);
-      },
-      () => {},
-      () => reject(new Error('Failed to fetch utsavs')),
-      false
-    );
-  });
-};
+import { apiClient } from '@/lib/api/client';
+import { useAuthStore } from '@/stores';
+
+const fetchUtsavs = ({ cardno }: { cardno: string }): Promise<any[]> =>
+  apiClient
+    .get<{ data: any[] }>('/travel/events', { params: { cardno }, allowToast: false })
+    .then((res) => (Array.isArray(res.data) ? res.data : []));
 
 export const useUtsavDate = () => {
   const user = useAuthStore((state) => state.user);

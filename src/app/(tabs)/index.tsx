@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
 import {
   View,
@@ -9,14 +10,13 @@ import {
   ImageSourcePropType,
   ActivityIndicator,
   Platform,
-  TouchableOpacity,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { icons, images, quotes } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
-import { useBottomTabOverflow } from '@/src/components/TabBarBackground';
-import CustomHomeIcon from '@/src/components/CustomHomeIcon';
+
+import CustomHomeIcon from '@/components/CustomHomeIcon';
+import { useBottomTabOverflow } from '@/components/TabBarBackground';
+import { icons, images, quotes } from '@/constants';
+import { useAuthStore } from '@/stores';
 
 const QuotesBanner = ({ user, images }: any) => {
   const randomQuote = useMemo(() => {
@@ -94,32 +94,32 @@ const Home: React.FC = () => {
           <View className="mt-3 flex-row flex-wrap gap-y-4 px-4">
             <CustomHomeIcon
               image={icons.wifiHome as ImageSourcePropType}
-              title={'Wifi'}
+              title="Wifi"
               onPress={() => router.push('/wifi')}
             />
             <CustomHomeIcon
               image={icons.menuHome as ImageSourcePropType}
-              title={'Menu'}
+              title="Menu"
               onPress={() => router.push('/menu')}
             />
             <CustomHomeIcon
               image={icons.maintenanceHome as ImageSourcePropType}
-              title={'Maintenance'}
+              title="Maintenance"
               onPress={() => router.push('/maintenanceRequestList')}
             />
             <CustomHomeIcon
               image={icons.contact as ImageSourcePropType}
-              title={'Contact Info'}
+              title="Contact Info"
               onPress={() => router.push('/contactInfo')}
             />
             <CustomHomeIcon
               image={icons.support as ImageSourcePropType}
-              title={'Support'}
+              title="Support"
               onPress={() => router.push('/support')}
             />
             <CustomHomeIcon
               image={icons.pendingPayment as ImageSourcePropType}
-              title={'Pending Payments'}
+              title="Pending Payments"
               onPress={() => router.push('/pendingPayments')}
             />
           </View>
@@ -131,39 +131,39 @@ const Home: React.FC = () => {
           <View className="mb-6 mt-3 flex-row flex-wrap gap-y-4 px-4">
             <CustomHomeIcon
               image={icons.satshrut as ImageSourcePropType}
-              title={'Satshrut'}
+              title="Satshrut"
               onPress={() => Linking.openURL('https://satshrut.vitraagvigyaan.org/')}
             />
             <CustomHomeIcon
               image={icons.smilestones as ImageSourcePropType}
-              title={'Smilestones'}
+              title="Smilestones"
               onPress={() => Linking.openURL('https://smilestones.vitraagvigyaan.org/')}
             />
             <CustomHomeIcon
               image={icons.vvYt as ImageSourcePropType}
-              title={'Youtube'}
+              title="Youtube"
               onPress={() => Linking.openURL('https://youtube.com/@vitraagvigyaan')}
             />
             <CustomHomeIcon
               image={icons.vvInsta as ImageSourcePropType}
-              title={'VV Insta'}
+              title="VV Insta"
               onPress={() => Linking.openURL('https://www.instagram.com/vitraag.vigyaan/')}
             />
             <CustomHomeIcon
               image={icons.rcGlobalInsta as ImageSourcePropType}
-              title={'RC Global'}
+              title="RC Global"
               onPress={() => Linking.openURL('https://www.instagram.com/researchcentre_global/')}
             />
             <CustomHomeIcon
               image={icons.rcLinkedin as ImageSourcePropType}
-              title={'LinkedIn'}
+              title="LinkedIn"
               onPress={() =>
                 Linking.openURL('https://www.linkedin.com/company/researchcentre-global/')
               }
             />
             <CustomHomeIcon
               image={icons.sparshInsta as ImageSourcePropType}
-              title={'Sparsh'}
+              title="Sparsh"
               onPress={() => Linking.openURL('https://www.instagram.com/sparsh.international/')}
             />
           </View>

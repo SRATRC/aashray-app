@@ -1,5 +1,5 @@
-import React from 'react';
 import { Stack } from 'expo-router';
+import React from 'react';
 
 const CommonLayout = () => {
   return (
@@ -10,7 +10,6 @@ const CommonLayout = () => {
         <Stack.Screen name="menu" options={{ headerShown: false }} />
         <Stack.Screen name="pendingPayments" options={{ headerShown: false }} />
         <Stack.Screen name="contactInfo" options={{ headerShown: false }} />
-        <Stack.Screen name="support" options={{ headerShown: false }} />
       </Stack>
     </>
   );

@@ -22,4 +22,3 @@ export const compareVersions = (a?: string, b?: string): number => {
 export const isNewerVersion = (candidate?: string, current?: string): boolean => {
   return compareVersions(candidate, current) === 1;
 };
-

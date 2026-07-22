@@ -1,6 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
-import Shimmer from '@/src/components/Shimmer';
+
+import Shimmer from '@/components/Shimmer';
 
 export const SteppedFeedbackShimmer: React.FC = () => (
   <View className="flex-1 bg-white">

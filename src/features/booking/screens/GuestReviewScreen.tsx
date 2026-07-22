@@ -1,0 +1,644 @@
+import { Ionicons } from '@expo/vector-icons';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { useQuery } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useState, useCallback, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import RazorpayCheckout from 'react-native-razorpay';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { submitGuestBooking, validateGuestBooking } from '../api';
+import ChargeBreakdownBottomSheet from '../components/ChargeBreakdownBottomSheet';
+import GuestAdhyayanBookingDetails from '../components/GuestAdhyayanBookingDetails';
+import GuestEventBookingDetails from '../components/GuestEventBookingDetails';
+import GuestFlatBookingDetails from '../components/GuestFlatBookingDetails';
+import GuestFoodBookingDetails from '../components/GuestFoodBookingDetails';
+import GuestRoomBookingDetails from '../components/GuestRoomBookingDetails';
+
+import CustomButton from '@/components/CustomButton';
+import CustomModal from '@/components/CustomModal';
+import PageHeader from '@/components/PageHeader';
+import { ShadowBox } from '@/components/ShadowBox';
+import { colors } from '@/constants';
+import { useAuthStore, useBookingStore } from '@/stores';
+import { prepareGuestRequestBody } from '@/utils/preparingRequestBody';
+
+// @ts-ignore
+
+const GuestBookingReview = () => {
+  const router = useRouter();
+
+  const user = useAuthStore((state) => state.user);
+  const guestData = useBookingStore((state) => state.guestData);
+  const setGuestData = useBookingStore((state) => state.setGuestData);
+  const guestInfo = useBookingStore((state) => state.guestInfo);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPayLaterModal, setShowPayLaterModal] = useState(false);
+
+  // Bottom sheet refs for room and adhyayan charges
+  const roomChargeBottomSheetRef = useRef<BottomSheetModal>(null);
+  const flatChargeBottomSheetRef = useRef<BottomSheetModal>(null);
+
+  console.log('CONFIRM GUEST DATA: ', JSON.stringify(guestData));
+  const transformedData = guestData?.primary ? prepareGuestRequestBody(user, guestData) : null;
+  console.log('CONFIRM TRANSFORMED DATA: ', JSON.stringify(transformedData));
+
+  const enrichRoomDetailsWithNames = (roomDetails: any[]) => {
+    // Use guestInfo from store to map cardno to name/issuedto
+    return roomDetails.map((item: any) => {
+      const matchingGuest = guestInfo.find((g: any) => g.cardno === item.mumukshu);
+      return {
+        ...item,
+        name: matchingGuest?.name || null,
+      };
+    });
+  };
+
+  const enrichFlatDetailsWithNames = (flatDetails: any[]) => {
+    // Use guestInfo from store to map cardno to name/issuedto
+    return flatDetails.map((item: any) => {
+      const matchingGuest = guestInfo.find((g: any) => g.cardno === item.guest);
+      return {
+        ...item,
+        name: matchingGuest?.name || null,
+      };
+    });
+  };
+
+  const fetchValidation = useCallback(async () => {
+    try {
+      const res = await validateGuestBooking(transformedData);
+      setGuestData((prev: any) => ({ ...prev, validationData: res.data }));
+      return res.data;
+    } catch (error: any) {
+      throw new Error(error.message);
+    }
+  }, [transformedData, setGuestData]);
+
+  const {
+    error: validationDataError,
+    data: validationData,
+    refetch: refetchValidation,
+  }: any = useQuery({
+    queryKey: ['guestConfirmationValidations', user.cardno, JSON.stringify(guestData)],
+    queryFn: fetchValidation,
+    retry: false,
+    enabled: !!user.cardno && !!transformedData,
+  });
+
+  // Enrich validation data with guest names from stored form data (for room, adhyayan, and flat)
+  const enrichedValidationData = validationData
+    ? {
+        ...validationData,
+        roomDetails: validationData.roomDetails
+          ? enrichRoomDetailsWithNames(validationData.roomDetails)
+          : validationData.roomDetails,
+        flatDetails: validationData.flatDetails
+          ? enrichFlatDetailsWithNames(validationData.flatDetails)
+          : validationData.flatDetails,
+      }
+    : validationData;
+
+  console.log('ENRICHED VALIDATION DATA: ', JSON.stringify(enrichedValidationData));
+
+  // Force refetch validation when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (user.cardno && transformedData) {
+        refetchValidation();
+      }
+    }, [user.cardno, transformedData, refetchValidation])
+  );
+
+  const handleCloseValidationModal = useCallback(() => {
+    router.back();
+  }, [router]);
+
+  const handlePayLater = async () => {
+    if (!transformedData) return;
+    setShowPayLaterModal(false);
+    setIsSubmitting(true);
+
+    const payLaterPayload = { ...transformedData, pay_later: true };
+    try {
+      await submitGuestBooking(payLaterPayload);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.replace('/bookingConfirmation');
+    } catch {
+      // apiClient already surfaces the error toast/haptic
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const totalCredits =
+    (enrichedValidationData?.roomDetails?.reduce(
+      (sum: any, item: any) => sum + (item.availableCredits || 0),
+      0
+    ) || 0) +
+    (validationData?.foodDetails?.availableCredits || 0) +
+    (enrichedValidationData?.adhyayanDetails?.reduce(
+      (sum: any, item: any) => sum + (item.availableCredits || 0),
+      0
+    ) || 0) +
+    (validationData?.utsavDetails?.reduce(
+      (sum: any, item: any) => sum + (item.availableCredits || 0),
+      0
+    ) || 0);
+
+  return (
+    <SafeAreaView className="h-full bg-white" edges={['top', 'right', 'left']}>
+      <ScrollView
+        alwaysBounceVertical={false}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}>
+        <PageHeader title="Review Booking" />
+
+        {guestData.room && <GuestRoomBookingDetails containerStyles="mt-2" />}
+        {guestData.utsav && <GuestEventBookingDetails containerStyles="mt-2" />}
+        {guestData.flat && <GuestFlatBookingDetails containerStyles="mt-2" />}
+        {guestData.adhyayan && <GuestAdhyayanBookingDetails containerStyles="mt-2" />}
+        {guestData.food && <GuestFoodBookingDetails containerStyles="mt-2" />}
+
+        {validationData && validationData.totalCharge > 0 && (
+          <View className="mt-4 w-full px-4">
+            <Text className="mb-3 font-psemibold text-xl text-secondary">Charges</Text>
+            <ShadowBox className="rounded-2xl bg-white">
+              <View className="p-4">
+                <View className="flex-col gap-y-3">
+                  {enrichedValidationData?.roomDetails &&
+                    enrichedValidationData.roomDetails.length > 0 &&
+                    (() => {
+                      const totalCharge = enrichedValidationData.roomDetails.reduce(
+                        (total: number, room: { charge: number }) => total + room.charge,
+                        0
+                      );
+                      const totalCredits = enrichedValidationData.roomDetails.reduce(
+                        (total: number, room: { charge: number; availableCredits?: number }) =>
+                          total + (room.availableCredits || 0),
+                        0
+                      );
+
+                      if (totalCharge > 0) {
+                        return (
+                          <View className="border-b border-gray-200 pb-3">
+                            <TouchableOpacity
+                              onPress={() => roomChargeBottomSheetRef.current?.present()}
+                              activeOpacity={0.7}>
+                              <View className="flex-row items-center justify-between">
+                                <Text className="border-b border-dashed border-gray-500 font-pregular text-base text-gray-700">
+                                  Room Charge
+                                </Text>
+                                <View className="items-end">
+                                  <Text
+                                    className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
+                                    ₹{totalCharge.toLocaleString('en-IN')}
+                                  </Text>
+                                  {totalCredits > 0 && (
+                                    <>
+                                      <Text className="font-pregular text-xs text-green-600">
+                                        −₹{totalCredits.toLocaleString('en-IN')} credit
+                                      </Text>
+                                      <Text className="mt-0.5 font-pmedium text-base text-black">
+                                        ₹
+                                        {Math.max(0, totalCharge - totalCredits).toLocaleString(
+                                          'en-IN'
+                                        )}
+                                      </Text>
+                                    </>
+                                  )}
+                                </View>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
+                        );
+                      }
+                      return null;
+                    })()}
+
+                  {validationData.foodDetails?.charge !== undefined &&
+                    validationData.foodDetails.charge > 0 && (
+                      <View className="border-b border-gray-200 pb-3">
+                        <View className="flex-row items-center justify-between">
+                          <Text className="font-pregular text-base text-gray-700">Food Charge</Text>
+                          <View className="items-end">
+                            <Text
+                              className={`font-${validationData.foodDetails.availableCredits > 0 ? 'pregular' : 'pregular'} text-base text-${validationData.foodDetails.availableCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
+                              ₹{validationData.foodDetails.charge.toLocaleString('en-IN')}
+                            </Text>
+                            {validationData.foodDetails.availableCredits > 0 && (
+                              <>
+                                <Text className="font-pregular text-xs text-green-600">
+                                  −₹
+                                  {validationData.foodDetails.availableCredits.toLocaleString(
+                                    'en-IN'
+                                  )}{' '}
+                                  credit
+                                </Text>
+                                <Text className="mt-0.5 font-pmedium text-base text-black">
+                                  ₹
+                                  {Math.max(
+                                    0,
+                                    validationData.foodDetails.charge -
+                                      validationData.foodDetails.availableCredits
+                                  ).toLocaleString('en-IN')}
+                                </Text>
+                              </>
+                            )}
+                          </View>
+                        </View>
+                      </View>
+                    )}
+
+                  {enrichedValidationData?.adhyayanDetails &&
+                    enrichedValidationData.adhyayanDetails.length > 0 &&
+                    (() => {
+                      const totalCharge = enrichedValidationData.adhyayanDetails.reduce(
+                        (total: any, shibir: any) => total + shibir.charge,
+                        0
+                      );
+                      const totalCredits = enrichedValidationData.adhyayanDetails.reduce(
+                        (total: any, shibir: any) => total + (shibir.availableCredits || 0),
+                        0
+                      );
+
+                      if (totalCharge > 0) {
+                        return (
+                          <View className="border-b border-gray-200 pb-3">
+                            <View className="flex-row items-center justify-between">
+                              <Text
+                                className="font-pregular text-base text-gray-700"
+                                style={{
+                                  borderBottomWidth: 1,
+                                  borderBottomColor: '#6B7280',
+                                  borderStyle: 'dashed',
+                                }}>
+                                Adhyayan Charge
+                              </Text>
+                              <View className="items-end">
+                                <Text
+                                  className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
+                                  ₹{totalCharge.toLocaleString('en-IN')}
+                                </Text>
+                                {totalCredits > 0 && (
+                                  <>
+                                    <Text className="font-pregular text-xs text-green-600">
+                                      −₹{totalCredits.toLocaleString('en-IN')} credit
+                                    </Text>
+                                    <Text className="mt-0.5 font-pmedium text-base text-black">
+                                      ₹
+                                      {Math.max(0, totalCharge - totalCredits).toLocaleString(
+                                        'en-IN'
+                                      )}
+                                    </Text>
+                                  </>
+                                )}
+                              </View>
+                            </View>
+                          </View>
+                        );
+                      }
+                      return null;
+                    })()}
+
+                  {validationData.utsavDetails &&
+                    validationData.utsavDetails.length > 0 &&
+                    (() => {
+                      const totalCharge = validationData.utsavDetails.reduce(
+                        (total: any, utsav: any) => total + utsav.charge,
+                        0
+                      );
+                      const totalCredits = validationData.utsavDetails.reduce(
+                        (total: any, utsav: any) => total + (utsav.availableCredits || 0),
+                        0
+                      );
+                      return (
+                        <View className="border-b border-gray-200 pb-3">
+                          <View className="flex-row items-center justify-between">
+                            <Text className="font-pregular text-base text-gray-700">
+                              Utsav Charge
+                            </Text>
+                            <View className="items-end">
+                              <Text
+                                className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
+                                ₹{totalCharge.toLocaleString('en-IN')}
+                              </Text>
+                              {totalCredits > 0 && (
+                                <>
+                                  <Text className="font-pregular text-xs text-green-600">
+                                    −₹{totalCredits.toLocaleString('en-IN')} credit
+                                  </Text>
+                                  <Text className="mt-0.5 font-pmedium text-base text-black">
+                                    ₹
+                                    {Math.max(0, totalCharge - totalCredits).toLocaleString(
+                                      'en-IN'
+                                    )}
+                                  </Text>
+                                </>
+                              )}
+                            </View>
+                          </View>
+                        </View>
+                      );
+                    })()}
+
+                  {enrichedValidationData?.flatDetails &&
+                    enrichedValidationData.flatDetails.length > 0 &&
+                    (() => {
+                      const totalCharge = enrichedValidationData.flatDetails.reduce(
+                        (total: number, flat: { charge: number }) => total + flat.charge,
+                        0
+                      );
+                      const totalCredits = enrichedValidationData.flatDetails.reduce(
+                        (total: number, flat: { charge: number; availableCredits?: number }) =>
+                          total + (flat.availableCredits || 0),
+                        0
+                      );
+
+                      if (totalCharge > 0) {
+                        return (
+                          <View className="border-b border-gray-200 pb-3">
+                            <TouchableOpacity
+                              onPress={() => flatChargeBottomSheetRef.current?.present()}
+                              activeOpacity={0.7}>
+                              <View className="flex-row items-center justify-between">
+                                <Text
+                                  className="font-pregular text-base text-gray-700"
+                                  style={{
+                                    borderBottomWidth: 1,
+                                    borderBottomColor: '#6B7280',
+                                    borderStyle: 'dashed',
+                                  }}>
+                                  Flat Charge
+                                </Text>
+                                <View className="items-end">
+                                  <Text
+                                    className={`font-${totalCredits > 0 ? 'pregular' : 'pregular'} text-base text-${totalCredits > 0 ? 'gray-400 line-through' : 'black'}`}>
+                                    ₹{totalCharge.toLocaleString('en-IN')}
+                                  </Text>
+                                  {totalCredits > 0 && (
+                                    <>
+                                      <Text className="font-pregular text-xs text-green-600">
+                                        −₹{totalCredits.toLocaleString('en-IN')} credit
+                                      </Text>
+                                      <Text className="mt-0.5 font-pmedium text-base text-black">
+                                        ₹
+                                        {Math.max(0, totalCharge - totalCredits).toLocaleString(
+                                          'en-IN'
+                                        )}
+                                      </Text>
+                                    </>
+                                  )}
+                                </View>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
+                        );
+                      }
+                      return null;
+                    })()}
+
+                  {/* Total section */}
+                  <View className="pt-2">
+                    {totalCredits > 0 && (
+                      <>
+                        <View className="mb-1 flex-row items-center justify-between">
+                          <Text className="font-pregular text-sm text-gray-500">Subtotal</Text>
+                          <Text className="font-pregular text-sm text-gray-500">
+                            ₹{validationData.totalCharge.toLocaleString('en-IN')}
+                          </Text>
+                        </View>
+                        <View className="mb-2 flex-row items-center justify-between">
+                          <Text className="font-pregular text-sm text-green-600">
+                            Total Credits Applied
+                          </Text>
+                          <Text className="font-pregular text-sm text-green-600">
+                            −₹{totalCredits.toLocaleString('en-IN')}
+                          </Text>
+                        </View>
+                      </>
+                    )}
+                    <View className="flex-row items-center justify-between">
+                      <Text className="font-psemibold text-xl text-gray-800">Total Charge</Text>
+                      <Text className="font-psemibold text-xl text-secondary">
+                        ₹
+                        {Math.max(0, validationData.totalCharge - totalCredits).toLocaleString(
+                          'en-IN'
+                        )}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </ShadowBox>
+          </View>
+        )}
+      </ScrollView>
+
+      <ShadowBox className="w-full border-t border-gray-200 bg-white px-4 py-4">
+        {validationData && validationData.totalCharge - totalCredits > 0 ? (
+          <View className="mb-8 flex-row gap-x-4">
+            <CustomButton
+              text="Pay Now"
+              handlePress={async () => {
+                if (!transformedData) return;
+                setIsSubmitting(true);
+                const onSuccess = (data: any) => {
+                  if (data.data?.amount === 0) router.replace('/bookingConfirmation');
+                  else {
+                    const options = {
+                      key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
+                      name: 'Vitraag Vigyaan Aashray',
+                      image: 'https://vitraagvigyaan.org/img/logo.png',
+                      description: 'Payment for Vitraag Vigyaan Aashray',
+                      amount: `${data.data.amount}`,
+                      currency: 'INR',
+                      order_id: `${data.data.id}`,
+                      prefill: {
+                        email: `${user.email}`,
+                        contact: `${user.mobno}`,
+                        name: `${user.issuedto}`,
+                      },
+                      theme: { color: colors.orange },
+                    };
+                    RazorpayCheckout.open(options)
+                      .then((_rzrpayData: any) => {
+                        setIsSubmitting(false);
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        router.replace('/paymentConfirmation');
+                      })
+                      .catch((_error: any) => {
+                        setIsSubmitting(false);
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                        router.replace('/paymentFailed');
+                      });
+                  }
+                };
+
+                try {
+                  const data = await submitGuestBooking(transformedData);
+                  onSuccess(data);
+                } catch {
+                  // apiClient already surfaces the error toast/haptic
+                } finally {
+                  setIsSubmitting(false);
+                }
+              }}
+              containerStyles="flex-1 min-h-[52px]"
+              isLoading={isSubmitting}
+              isDisabled={!validationData}
+              variant="solid"
+            />
+            <CustomButton
+              text="Pay Later"
+              handlePress={() => setShowPayLaterModal(true)}
+              containerStyles="flex-1 min-h-[52px]"
+              isLoading={isSubmitting}
+              isDisabled={!validationData}
+              variant="outline"
+            />
+          </View>
+        ) : (
+          <CustomButton
+            text="Confirm Booking"
+            handlePress={async () => {
+              if (!transformedData) return;
+              setIsSubmitting(true);
+              try {
+                await submitGuestBooking(transformedData);
+                router.replace('/bookingConfirmation');
+              } catch {
+                // apiClient already surfaces the error toast/haptic
+              } finally {
+                setIsSubmitting(false);
+              }
+            }}
+            containerStyles="mb-8 min-h-[52px]"
+            isLoading={isSubmitting}
+            isDisabled={!validationData}
+          />
+        )}
+      </ShadowBox>
+
+      {validationDataError && (
+        <CustomModal
+          visible
+          onClose={handleCloseValidationModal}
+          message={validationDataError.message}
+          btnText="Okay"
+        />
+      )}
+
+      <CustomModal
+        visible={showPayLaterModal}
+        onClose={() => setShowPayLaterModal(false)}
+        title="Pay Later Notice"
+        showActionButton={false}>
+        <View>
+          <View className="mb-4">
+            <View className="mb-4 items-center">
+              <View className="mb-3 h-16 w-16 items-center justify-center rounded-full bg-amber-100">
+                <Ionicons name="time-outline" size={32} color="#F59E0B" />
+              </View>
+            </View>
+
+            <Text className="mb-3 text-center font-pregular text-sm text-gray-700">
+              You are choosing to pay later for this booking.
+            </Text>
+
+            <View className="rounded-lg bg-amber-50 p-3">
+              <Text className="mb-2 font-pmedium text-xs text-amber-900">
+                Important Information:
+              </Text>
+              <Text className="mb-1 font-pregular text-xs text-amber-800">
+                Your booking will be temporary and you must complete the payment within 24 hours.
+                After 24 hours, the booking will be automatically cancelled if payment is not
+                received.
+              </Text>
+            </View>
+          </View>
+
+          <View className="gap-y-3">
+            <CustomButton
+              text="I Understand, Proceed"
+              handlePress={handlePayLater}
+              containerStyles="min-h-[44px]"
+              textStyles="font-psemibold text-sm text-white"
+              isLoading={isSubmitting}
+            />
+          </View>
+        </View>
+      </CustomModal>
+
+      {/* Room Charge Breakdown Bottom Sheet */}
+      {enrichedValidationData?.roomDetails && enrichedValidationData.roomDetails.length > 0 && (
+        <ChargeBreakdownBottomSheet
+          ref={roomChargeBottomSheetRef}
+          title="Room Charge Breakdown"
+          subtitle="Charges per Guest:"
+          items={enrichedValidationData.roomDetails}
+          itemRenderer={(item, index) => (
+            <View
+              key={index}
+              className={`flex-row items-center justify-between py-2 ${
+                index !== enrichedValidationData.roomDetails!.length - 1
+                  ? 'border-b border-gray-200'
+                  : ''
+              }`}>
+              <View className="flex-1">
+                <Text className="font-pmedium text-sm text-gray-900">
+                  {item.name || `Guest: ${item.guest}`}
+                </Text>
+                {item.nights && (
+                  <Text className="mt-1 font-pregular text-xs text-gray-600">
+                    {`${item.nights} ${item.nights === 1 ? 'night' : 'nights'}`}
+                  </Text>
+                )}
+              </View>
+              <View className="items-end">
+                <Text className="font-psemibold text-base text-gray-900">₹{item.charge}</Text>
+              </View>
+            </View>
+          )}
+          emptyMessage="No room charge details available."
+        />
+      )}
+
+      {/* Flat Charge Breakdown Bottom Sheet */}
+      {enrichedValidationData?.flatDetails && enrichedValidationData.flatDetails.length > 0 && (
+        <ChargeBreakdownBottomSheet
+          ref={flatChargeBottomSheetRef}
+          title="Flat Charge Breakdown"
+          subtitle="Charges per Guest:"
+          items={enrichedValidationData.flatDetails}
+          itemRenderer={(item, index) => (
+            <View
+              key={index}
+              className={`flex-row items-center justify-between py-2 ${
+                index !== enrichedValidationData.flatDetails!.length - 1
+                  ? 'border-b border-gray-200'
+                  : ''
+              }`}>
+              <View className="flex-1">
+                <Text className="font-pmedium text-sm text-gray-900">
+                  {item.name || `Card: ${item.guest}`}
+                </Text>
+                <Text className="mt-1 font-pregular text-xs text-gray-600">
+                  {item.nights} {item.nights === 1 ? 'night' : 'nights'}
+                </Text>
+              </View>
+              <View className="items-end">
+                <Text className="font-psemibold text-base text-gray-900">₹{item.charge}</Text>
+              </View>
+            </View>
+          )}
+          emptyMessage="No flat charge details available."
+        />
+      )}
+    </SafeAreaView>
+  );
+};
+
+export default GuestBookingReview;

@@ -1,6 +1,7 @@
-import { colors } from '@/src/constants';
 import React from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { colors } from '@/constants';
 
 type RatingInputProps = {
   value: number | undefined;

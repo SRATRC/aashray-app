@@ -1,3 +1,4 @@
+/* eslint-env node */
 const { getDefaultConfig } = require('@expo/metro-config');
 const { getSentryExpoConfig } = require('@sentry/react-native/metro');
 const { withNativeWind } = require('nativewind/metro');

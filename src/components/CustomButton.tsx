@@ -1,5 +1,5 @@
-import { ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 import React, { FC } from 'react';
+import { ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 
 interface CustomButtonProps {
   text: string;

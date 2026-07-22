@@ -1,5 +1,5 @@
-import { DeepLinkType, ParsedDeepLink, DeepLinkConfig } from '@/src/types/deeplink';
-import { DEEPLINK_ROUTES } from '@/src/config/deeplinks';
+import { DEEPLINK_ROUTES } from '@/config/deeplinks';
+import { DeepLinkType, ParsedDeepLink, DeepLinkConfig } from '@/types/deeplink';
 
 /**
  * Configuration for supported deep link schemes and domains

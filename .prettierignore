@@ -1,0 +1,11 @@
+# Generated / non-source files — not hand-edited, keep out of the lint gate.
+nativewind-env.d.ts
+expo-env.d.ts
+dist/
+assets/
+android/
+ios/
+.expo/
+node_modules/
+package-lock.json
+.superpowers/

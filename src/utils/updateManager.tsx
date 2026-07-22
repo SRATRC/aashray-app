@@ -1,13 +1,14 @@
+import axios from 'axios';
+import * as Application from 'expo-application';
+import Constants from 'expo-constants';
+import * as Linking from 'expo-linking';
 import React, { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
-import { isNewerVersion } from '@/src/utils/version';
-import { BASE_URL } from '@/src/constants';
-import { getSnoozeUntil, setSnoozeUntil } from '@/src/utils/updatePrefs';
-import UpdateModal, { UpdateInfo } from '@/src/components/UpdateModal';
-import axios from 'axios';
-import Constants from 'expo-constants';
-import * as Application from 'expo-application';
-import * as Linking from 'expo-linking';
+
+import UpdateModal, { UpdateInfo } from '@/components/UpdateModal';
+import { BASE_URL } from '@/constants';
+import { getSnoozeUntil, setSnoozeUntil } from '@/utils/updatePrefs';
+import { isNewerVersion } from '@/utils/version';
 
 interface ApiResponse {
   message?: string;
@@ -58,7 +59,7 @@ const fetchUpdateInfo = async (): Promise<{
       },
       raw: d,
     };
-  } catch (e) {
+  } catch {
     // Silent fail – do not show toast on startup
     return { info: null };
   }

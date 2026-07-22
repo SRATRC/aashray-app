@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Easing } from 'react-native';
+
 import type { Question, AnswerValue } from './types';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;

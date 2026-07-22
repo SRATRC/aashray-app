@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { colors } from '../constants';
-import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
+import React, { useState } from 'react';
+import { Calendar } from 'react-native-calendars';
+
+import { colors } from '../constants';
 
 const MIN_DATE = moment(new Date()).add(1, 'days').format('YYYY-MM-DD');
 

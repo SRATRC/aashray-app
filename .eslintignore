@@ -1,0 +1,8 @@
+# Native / generated / vendored dirs — not our source, keep out of the lint gate.
+node_modules/
+ios/
+android/
+dist/
+.expo/
+assets/
+coverage/
