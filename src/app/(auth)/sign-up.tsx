@@ -219,6 +219,15 @@ const SignUp = () => {
 
     if (!form.dob) {
       newErrors.dob = 'Date of birth is required';
+    } else {
+      const dobMoment = moment(form.dob, 'YYYY-MM-DD', true);
+      if (!dobMoment.isValid()) {
+        newErrors.dob = 'Invalid date of birth format';
+      } else if (dobMoment.isAfter(moment(), 'day')) {
+        newErrors.dob = 'Date of birth cannot be in the future';
+      } else if (dobMoment.isBefore('1900-01-01')) {
+        newErrors.dob = 'Please select a valid date of birth';
+      }
     }
 
     if (!form.center) {
