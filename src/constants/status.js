@@ -4,6 +4,7 @@ const TYPE_REFUND = 'refund';
 // STATUS
 const STATUS_WAITING = 'waiting';
 const STATUS_CONFIRMED = 'confirmed';
+const STATUS_AWAITING_CONFIRMATION = 'awaiting confirmation';
 const STATUS_CANCELLED = 'cancelled';
 const STATUS_PENDING = 'pending';
 const STATUS_REJECTED = 'rejected';
@@ -43,6 +44,7 @@ export default {
   TYPE_REFUND,
   STATUS_WAITING,
   STATUS_CONFIRMED,
+  STATUS_AWAITING_CONFIRMATION,
   STATUS_CANCELLED,
   STATUS_PENDING,
   STATUS_REJECTED,

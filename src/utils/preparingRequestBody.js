@@ -219,11 +219,15 @@ export const prepareGuestRequestBody = (user, input) => {
       })
       .filter(Boolean);
 
-  return {
+  const payload = {
     cardno: user.cardno,
     primary_booking: primaryBookingDetails(input.primary),
     addons: transformAddons(input),
   };
+  if (input.extra_stay_reason) {
+    payload.extra_stay_reason = input.extra_stay_reason;
+  }
+  return payload;
 };
 
 export const prepareMumukshuRequestBody = (user, input) => {
@@ -426,9 +430,13 @@ export const prepareMumukshuRequestBody = (user, input) => {
         }
       })
       .filter(Boolean);
-  return {
+  const payload = {
     cardno: user.cardno,
     primary_booking: primaryBookingDetails(bookingInput.primary),
     addons: transformAddons(bookingInput),
   };
+  if (bookingInput.extra_stay_reason) {
+    payload.extra_stay_reason = bookingInput.extra_stay_reason;
+  }
+  return payload;
 };

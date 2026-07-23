@@ -19,6 +19,8 @@ const BookingStatusDisplay: React.FC<BookingStatusDisplayProps> = ({
       item_status === status.STATUS_CANCELLED || item_status === status.STATUS_ADMIN_CANCELLED;
     const isConfirmed = item_status === status.STATUS_CONFIRMED;
 
+    const isAwaiting = item_status === status.STATUS_AWAITING_CONFIRMATION;
+
     if (isCancelled) {
       return {
         textStyles: 'text-red-200',
@@ -30,6 +32,13 @@ const BookingStatusDisplay: React.FC<BookingStatusDisplayProps> = ({
       return {
         textStyles: 'text-green-200',
         containerStyles: 'bg-green-100',
+      };
+    }
+
+    if (isAwaiting) {
+      return {
+        textStyles: 'text-amber-700',
+        containerStyles: 'bg-amber-100',
       };
     }
 

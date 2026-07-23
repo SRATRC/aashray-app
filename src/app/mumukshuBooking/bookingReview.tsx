@@ -20,6 +20,8 @@ import MumukshuEventBookingDetails from '@/src/components/booking details cards/
 import MumukshuFlatBookingDetails from '@/src/components/booking details cards/MumukshuFlatBookingDetails';
 import CustomModal from '@/src/components/CustomModal';
 import ChargeBreakdownBottomSheet from '@/src/components/ChargeBreakdownBottomSheet';
+import FormField from '@/src/components/FormField';
+import CustomAlert from '@/src/components/CustomAlert';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import * as Haptics from 'expo-haptics';
@@ -94,12 +96,18 @@ const mumukshuBookingReview = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPayLaterModal, setShowPayLaterModal] = useState(false);
+  const [extraStayReason, setExtraStayReason] = useState('');
 
   // Bottom sheet refs for room and flat charges
   const roomChargeBottomSheetRef = useRef<BottomSheetModal>(null);
   const flatChargeBottomSheetRef = useRef<BottomSheetModal>(null);
 
   const transformedData = prepareMumukshuRequestBody(user, mumukshuData);
+
+  const needsExtraReason = Boolean(
+    mumukshuData?.validationData?.roomDetails?.some((r: any) => r.status === 'awaiting confirmation' || r.requiresExtraStayReason) ||
+    mumukshuData?.validationData?.flatDetails?.some((f: any) => f.status === 'awaiting confirmation' || f.requiresExtraStayReason)
+  );
 
   const enrichRoomDetailsWithNames = (roomDetails: any[]) => {
     return roomDetails.map((item: any) => {
@@ -180,6 +188,11 @@ const mumukshuBookingReview = () => {
   }, [router]);
 
   const handlePayLater = async () => {
+    if (needsExtraReason && !extraStayReason.trim()) {
+      CustomAlert.alert('Reason Required', 'Please enter a reason for your extra stay beyond the 9-night limit.');
+      return;
+    }
+
     setShowPayLaterModal(false);
     setIsSubmitting(true);
     try {
@@ -192,7 +205,11 @@ const mumukshuBookingReview = () => {
         setIsSubmitting(false);
       };
 
-      const payLaterPayload = { ...transformedData, pay_later: true };
+      const payLaterPayload = {
+        ...transformedData,
+        pay_later: true,
+        ...(needsExtraReason && { extra_stay_reason: extraStayReason.trim() })
+      };
       await handleAPICall('POST', '/mumukshu/booking', null, payLaterPayload, onSuccess, onFinally);
     } catch (error: any) {
       setIsSubmitting(false);
@@ -521,6 +538,24 @@ const mumukshuBookingReview = () => {
             </ShadowBox>
           </View>
         )}
+        {needsExtraReason && (
+          <View className="mx-4 mt-4 mb-2 rounded-xl border border-amber-300 bg-amber-50 p-4">
+            <View className="flex-row items-center gap-x-2 mb-2">
+              <Ionicons name="warning" size={20} color="#b45309" />
+              <Text className="font-pmedium text-amber-800 text-base">Approval Required</Text>
+            </View>
+            <Text className="font-pregular text-amber-700 text-sm mb-3">
+              Your booking exceeds 9 nights in a 30-day window. Please enter your reason for requesting an extra stay for admin review.
+            </Text>
+            <FormField
+              title="Reason for Extra Stay *"
+              value={extraStayReason}
+              handleChangeText={setExtraStayReason}
+              placeholder="e.g. Attending shibir & family stay"
+            />
+          </View>
+        )}
+
       </ScrollView>
 
       <ShadowBox className="w-full border-t border-gray-200 bg-white px-4 py-4">
@@ -529,6 +564,10 @@ const mumukshuBookingReview = () => {
             <CustomButton
               text="Pay Now"
               handlePress={async () => {
+                if (needsExtraReason && !extraStayReason.trim()) {
+                  CustomAlert.alert('Reason Required', 'Please enter a reason for your extra stay beyond the 9-night limit.');
+                  return;
+                }
                 setIsSubmitting(true);
                 try {
                   const onSuccess = (data: any) => {
@@ -567,11 +606,16 @@ const mumukshuBookingReview = () => {
                     setIsSubmitting(false);
                   };
 
+                  const bookingPayload = {
+                    ...transformedData,
+                    ...(needsExtraReason && { extra_stay_reason: extraStayReason.trim() })
+                  };
+
                   await handleAPICall(
                     'POST',
                     '/mumukshu/booking',
                     null,
-                    transformedData,
+                    bookingPayload,
                     onSuccess,
                     onFinally
                   );
@@ -586,7 +630,13 @@ const mumukshuBookingReview = () => {
             />
             <CustomButton
               text="Pay Later"
-              handlePress={() => setShowPayLaterModal(true)}
+              handlePress={() => {
+                if (needsExtraReason && !extraStayReason.trim()) {
+                  CustomAlert.alert('Reason Required', 'Please enter a reason for your extra stay beyond the 9-night limit.');
+                  return;
+                }
+                setShowPayLaterModal(true);
+              }}
               containerStyles="flex-1 min-h-[52px]"
               isLoading={isSubmitting}
               isDisabled={!validationData}
@@ -597,6 +647,10 @@ const mumukshuBookingReview = () => {
           <CustomButton
             text="Confirm Booking"
             handlePress={async () => {
+              if (needsExtraReason && !extraStayReason.trim()) {
+                CustomAlert.alert('Reason Required', 'Please enter a reason for your extra stay beyond the 9-night limit.');
+                return;
+              }
               setIsSubmitting(true);
               try {
                 const onSuccess = () => {
@@ -607,11 +661,16 @@ const mumukshuBookingReview = () => {
                   setIsSubmitting(false);
                 };
 
+                const bookingPayload = {
+                  ...transformedData,
+                  ...(needsExtraReason && { extra_stay_reason: extraStayReason.trim() })
+                };
+
                 await handleAPICall(
                   'POST',
                   '/mumukshu/booking',
                   null,
-                  transformedData,
+                  bookingPayload,
                   onSuccess,
                   onFinally
                 );
