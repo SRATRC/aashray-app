@@ -2,7 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Image, Keyboard, Pressable, Text, View } from 'react-native';
+import { Image, Keyboard, Pressable, Text, View, Platform, TouchableOpacity } from 'react-native';
+import RNDateTimePicker from '@react-native-community/datetimepicker';
+import moment from 'moment';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,13 +17,6 @@ import { useAuthStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-
-const RES_STATUS_OPTIONS = [
-  { key: 'MUMUKSHU', value: 'Mumukshu' },
-  { key: 'PR', value: 'Permanent Resident' },
-  { key: 'SEVA KUTIR', value: 'Seva Kutir' },
-  { key: 'GUEST', value: 'Guest' },
-];
 
 const GENDER_OPTIONS = [
   { key: 'M', value: 'Male' },
@@ -37,6 +32,19 @@ const GUEST_TYPE_OPTIONS = [
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
+const fetchCentres = () => {
+  return new Promise<any[]>((resolve, reject) => {
+    handleAPICall(
+      'GET',
+      '/location/centres',
+      null,
+      null,
+      (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
+      () => reject(new Error('Failed to fetch centres'))
+    );
+  });
+};
+
 const SignUp = () => {
   const setUser = useAuthStore((state: any) => state.setUser);
   const { expoPushToken } = useNotification();
@@ -51,12 +59,24 @@ const SignUp = () => {
     guest_type: 'family',
     password: '',
     confirmPassword: '',
+    dob: '',
+    center: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPhoneChecking, setIsPhoneChecking] = useState(false);
   const [isRefPhoneChecking, setIsRefPhoneChecking] = useState(false);
   const [refName, setRefName] = useState('');
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+
+  // Fetch Centres
+  const { data: centres, isLoading: isCentresLoading }: any = useQuery({
+    queryKey: ['centres'],
+    queryFn: fetchCentres,
+    staleTime: 1000 * 60 * 30,
+  });
+
+  const centresWithOptions = centres ? [...centres, { key: 'Other', value: 'Other' }] : [];
 
   // Fetch departments for Seva Kutir picker
   const { data: departmentData } = useQuery({
@@ -197,6 +217,14 @@ const SignUp = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
+    if (!form.dob) {
+      newErrors.dob = 'Date of birth is required';
+    }
+
+    if (!form.center) {
+      newErrors.center = 'Centre is required';
+    }
+
     if (form.res_status === 'SEVA KUTIR' && !form.department)
       newErrors.department = 'Please select a department';
 
@@ -228,6 +256,8 @@ const SignUp = () => {
       res_status: form.res_status,
       password: form.password,
       token: expoPushToken,
+      dob: form.dob,
+      center: form.center,
     };
 
     if (form.res_status === 'SEVA KUTIR') body.department = form.department;
@@ -329,27 +359,71 @@ const SignUp = () => {
             />
           </View>
 
-          {/* Residential Status */}
+          {/* Date of Birth */}
+          <View className="mb-3 gap-y-2">
+            <Text className="font-pregular text-sm text-gray-400">Date of Birth</Text>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                Keyboard.dismiss();
+                setDatePickerVisibility(true);
+                if (errors.dob) setErrors((prev) => ({ ...prev, dob: '' }));
+              }}
+              className="h-16 w-full flex-row items-center rounded-2xl bg-gray-100 px-4">
+              <Text className={`font-pmedium text-base ${!form.dob ? 'text-gray-400' : 'text-black'}`}>
+                {form.dob ? moment(form.dob).format('Do MMMM YYYY') : 'Select Date of Birth'}
+              </Text>
+            </TouchableOpacity>
+            {errors.dob ? (
+              <Text className="ml-2 mt-1 font-pmedium text-sm text-red-600">
+                {errors.dob}
+              </Text>
+            ) : null}
+          </View>
+
+          {isDatePickerVisible && (
+            <RNDateTimePicker
+              themeVariant="light"
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              value={form.dob ? moment(form.dob, 'YYYY-MM-DD').toDate() : new Date()}
+              maximumDate={new Date()}
+              minimumDate={new Date(1900, 0, 1)}
+              onChange={(event, date) => {
+                if (Platform.OS === 'android') setDatePickerVisibility(false);
+                if (date) {
+                  setForm((prev) => ({ ...prev, dob: moment(date).format('YYYY-MM-DD') }));
+                  if (errors.dob) setErrors((prev) => ({ ...prev, dob: '' }));
+                }
+              }}
+            />
+          )}
+
+          {/* Centre */}
           <View className="mb-3">
             <CustomSelectBottomSheet
-              label="Residential Status"
-              options={RES_STATUS_OPTIONS}
-              selectedValue={form.res_status}
+              label="Centre"
+              placeholder="Select Centre"
+              options={centresWithOptions}
+              selectedValue={form.center}
               onValueChange={(v: any) => {
                 Keyboard.dismiss();
-                // Reset conditional fields when status changes
-                setForm((prev) => ({
-                  ...prev,
-                  res_status: String(v),
-                  department: '',
-                  ref_mobno: '',
-                  guest_type: 'family',
-                }));
+                setField('center', String(v));
               }}
-              placeholder="Select your status"
-              saveKeyInsteadOfValue
+              searchable
+              searchPlaceholder="Search Centres..."
+              noResultsText="No Centres Found"
+              isLoading={isCentresLoading}
+              onRetry={fetchCentres}
+              saveKeyInsteadOfValue={false}
             />
+            {errors.center ? (
+              <Text className="ml-2 mt-1 font-pmedium text-sm text-red-600">
+                {errors.center}
+              </Text>
+            ) : null}
           </View>
+
 
           {/* SEVA KUTIR — Department */}
           {form.res_status === 'SEVA KUTIR' && (
