@@ -84,6 +84,8 @@ const INITIAL_GUEST_FORM = {
       gender: '',
       mobno: '',
       type: '',
+      dob: '',
+      center: '',
       package: null,
       package_name: '',
       arrival: null,
@@ -258,6 +260,12 @@ const UtsavPage = () => {
     }));
   };
 
+  const isValidDob = (dob: string) => {
+    if (!dob) return false;
+    const m = moment(dob, 'YYYY-MM-DD', true);
+    return m.isValid() && !m.isAfter(moment(), 'day') && !m.isBefore('1900-01-01');
+  };
+
   const isGuestFormValid = () => {
     return guestForm.guests.every((guest: any) => {
       if (guest.cardno)
@@ -273,6 +281,8 @@ const UtsavPage = () => {
           guest.name &&
           guest.gender &&
           guest.type &&
+          isValidDob(guest.dob) &&
+          guest.center &&
           guest.mobno &&
           guest.mobno?.length == 10 &&
           guest.package &&

@@ -1,11 +1,27 @@
-import React, { useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, TouchableOpacity, Platform, Keyboard } from 'react-native';
 import { colors, icons, dropdowns } from '../constants';
-import { useQueries } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/src/stores';
 import FormField from './FormField';
+import FormDisplayField from './FormDisplayField';
 import handleAPICall from '../utils/HandleApiCall';
 import CustomSelectBottomSheet from './CustomSelectBottomSheet';
+import RNDateTimePicker from '@react-native-community/datetimepicker';
+import moment from 'moment';
+
+const fetchCentres = () => {
+  return new Promise<any[]>((resolve, reject) => {
+    handleAPICall(
+      'GET',
+      '/location/centres',
+      null,
+      null,
+      (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
+      () => reject(new Error('Failed to fetch centres'))
+    );
+  });
+};
 
 interface GuestFormProps {
   guestForm: any;
@@ -25,6 +41,15 @@ const GuestForm: React.FC<GuestFormProps> = ({
   children = () => null,
 }) => {
   const { user } = useAuthStore();
+  const [activeDatePickerIndex, setActiveDatePickerIndex] = useState<number | null>(null);
+
+  const { data: centres, isLoading: isCentresLoading }: any = useQuery({
+    queryKey: ['centres'],
+    queryFn: fetchCentres,
+    staleTime: 1000 * 60 * 30,
+  });
+
+  const centresWithOptions = centres ? [...centres, { key: 'Other', value: 'Other' }] : [];
 
   const verifyGuest = async (
     mobno: string
@@ -173,6 +198,50 @@ const GuestForm: React.FC<GuestFormProps> = ({
                   options={dropdowns.GENDER_LIST}
                   selectedValue={guest.gender}
                   onValueChange={(val) => handleGuestFormChange(index, 'gender', val)}
+                />
+
+                <FormDisplayField
+                  text="Date of Birth"
+                  value={guest.dob ? moment(guest.dob).format('Do MMMM YYYY') : ''}
+                  placeholder="Select Date of Birth"
+                  otherStyles="mt-7"
+                  backgroundColor="bg-gray-100"
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    setActiveDatePickerIndex(index);
+                  }}
+                />
+
+                {activeDatePickerIndex === index && (
+                  <RNDateTimePicker
+                    themeVariant="light"
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    value={guest.dob ? moment(guest.dob, 'YYYY-MM-DD').toDate() : new Date()}
+                    maximumDate={new Date()}
+                    minimumDate={new Date(1900, 0, 1)}
+                    onChange={(event, date) => {
+                      if (Platform.OS === 'android') setActiveDatePickerIndex(null);
+                      if (date) {
+                        handleGuestFormChange(index, 'dob', moment(date).format('YYYY-MM-DD'));
+                      }
+                    }}
+                  />
+                )}
+
+                <CustomSelectBottomSheet
+                  className="mt-7"
+                  label="Centre"
+                  placeholder="Select Centre"
+                  options={centresWithOptions}
+                  selectedValue={guest.center}
+                  onValueChange={(val) => handleGuestFormChange(index, 'center', val)}
+                  searchable
+                  searchPlaceholder="Search Centres..."
+                  noResultsText="No Centres Found"
+                  isLoading={isCentresLoading}
+                  onRetry={fetchCentres}
+                  saveKeyInsteadOfValue={false}
                 />
 
                 <CustomSelectBottomSheet
