@@ -143,11 +143,11 @@ export const prepareGuestRequestBody = (user, input) => {
             // A return date turns this into a round trip. The return is a full set of groups
             // (same shape as the onward), defaulting to the reversed onward but fully editable
             // via the return editor. The addon form supplies the resolved returnGuestGroup.
-            if (input[key].return_date) {
+            // Send return_date and returnGuestGroup together or not at all — the backend 400s
+            // on a partial round trip, and an empty group array counts as "not present".
+            if (input[key].return_date && input[key].returnGuestGroup?.length) {
               travelDetails.return_date = input[key].return_date;
-              if (input[key].returnGuestGroup) {
-                travelDetails.returnGuestGroup = transformGuestGroup(input[key].returnGuestGroup);
-              }
+              travelDetails.returnGuestGroup = transformGuestGroup(input[key].returnGuestGroup);
             }
             return {
               booking_type: key,
@@ -349,13 +349,13 @@ export const prepareMumukshuRequestBody = (user, input) => {
             // A return date turns this into a round trip. The return is a full set of groups
             // (same shape as the onward), defaulting to the reversed onward but fully editable
             // via the return editor. The addon form supplies the resolved returnMumukshuGroup.
-            if (input[key].return_date) {
+            // Send return_date and returnMumukshuGroup together or not at all — the backend 400s
+            // on a partial round trip, and an empty group array counts as "not present".
+            if (input[key].return_date && input[key].returnMumukshuGroup?.length) {
               travelDetails.return_date = input[key].return_date;
-              if (input[key].returnMumukshuGroup) {
-                travelDetails.returnMumukshuGroup = transformMumukshuGroup(
-                  input[key].returnMumukshuGroup
-                );
-              }
+              travelDetails.returnMumukshuGroup = transformMumukshuGroup(
+                input[key].returnMumukshuGroup
+              );
             }
             return {
               booking_type: key,
