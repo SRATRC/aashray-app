@@ -17,18 +17,10 @@ const MumukshuRoomBookingDetails: React.FC<{ containerStyles: any }> = ({ contai
     const groups: { [key: string]: any } = {};
 
     roomDetails.forEach((booking: any) => {
-      const range = booking.range || (() => {
-        if (booking.dates) {
-          const parts = booking.dates.split(' to ');
-          if (parts.length === 2) {
-            return { start: parts[0], end: parts[1] };
-          }
-        }
-        return {
-          start: mumukshuData?.room?.startDay,
-          end: mumukshuData?.room?.endDay,
-        };
-      })();
+      const range = booking.range || {
+        start: booking.checkin || booking.start || (booking.dates ? booking.dates.split(' to ')[0] : mumukshuData?.room?.startDay),
+        end: booking.checkout || booking.end || (booking.dates ? booking.dates.split(' to ')[1] : mumukshuData?.room?.endDay),
+      };
 
       const key = `${range.start}-${range.end}`;
       if (!groups[key]) {
@@ -85,13 +77,24 @@ const MumukshuRoomBookingDetails: React.FC<{ containerStyles: any }> = ({ contai
     );
   };
 
+  const isSplitBooking = groupedBookings.length > 1;
+
   return (
-    <PrimaryAddonBookingCard
-      containerStyles={containerStyles}
-      title="Raj Sharan Booking"
-      items={groupedBookings}
-      renderItem={renderBookingItem}
-    />
+    <View className={containerStyles}>
+      {isSplitBooking && (
+        <View className="mx-4 mb-2 rounded-lg bg-blue-50 p-3 border border-blue-200">
+          <Text className="font-pmedium text-xs text-blue-800">
+            ℹ️ Booking split into {groupedBookings.length} segments due to Utsav event dates.
+          </Text>
+        </View>
+      )}
+      <PrimaryAddonBookingCard
+        containerStyles=""
+        title="Raj Sharan Booking"
+        items={groupedBookings}
+        renderItem={renderBookingItem}
+      />
+    </View>
   );
 };
 

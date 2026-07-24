@@ -96,7 +96,9 @@ const mumukshuBookingReview = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPayLaterModal, setShowPayLaterModal] = useState(false);
-  const [extraStayReason, setExtraStayReason] = useState('');
+  const [extraStayReason, setExtraStayReason] = useState(
+    mumukshuData?.room?.extra_stay_reason || mumukshuData?.flat?.extra_stay_reason || ''
+  );
 
   // Bottom sheet refs for room and flat charges
   const roomChargeBottomSheetRef = useRef<BottomSheetModal>(null);
@@ -208,7 +210,7 @@ const mumukshuBookingReview = () => {
       const payLaterPayload = {
         ...transformedData,
         pay_later: true,
-        ...(needsExtraReason && { extra_stay_reason: extraStayReason.trim() })
+        ...(extraStayReason.trim() ? { extra_stay_reason: extraStayReason.trim() } : {})
       };
       await handleAPICall('POST', '/mumukshu/booking', null, payLaterPayload, onSuccess, onFinally);
     } catch (error: any) {
@@ -545,10 +547,10 @@ const mumukshuBookingReview = () => {
               <Text className="font-pmedium text-amber-800 text-base">Approval Required</Text>
             </View>
             <Text className="font-pregular text-amber-700 text-sm mb-3">
-              Your booking exceeds 9 nights in a 30-day window. Please enter your reason for requesting an extra stay for admin review.
+              Your stay exceeds the 9-night limit within a 30-day window and will be submitted under <Text className="font-psemibold">Awaiting Confirmation</Text>. Once approved by the admin, you will receive a WhatsApp message with a link to complete payment and confirm your booking.
             </Text>
             <FormField
-              title="Reason for Extra Stay *"
+              text="Reason for Extra Stay *"
               value={extraStayReason}
               handleChangeText={setExtraStayReason}
               placeholder="e.g. Attending shibir & family stay"

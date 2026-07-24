@@ -12,6 +12,7 @@ import CustomCalender from '@/src/components/CustomCalender';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomChipGroup from '@/src/components/CustomChipGroup';
 import CustomModal from '../CustomModal';
+import FormField from '../FormField';
 import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
@@ -122,6 +123,46 @@ const RoomBooking = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
 
+  const [extraReasonModalVisible, setExtraReasonModalVisible] = useState(false);
+  const [extraReasonInput, setExtraReasonInput] = useState('');
+  const [pendingNights, setPendingNights] = useState(0);
+  const [totalWindowNights, setTotalWindowNights] = useState(0);
+  const [limitReasonType, setLimitReasonType] = useState('');
+  const [limitTargetName, setLimitTargetName] = useState<string | null>(null);
+  const [splitRanges, setSplitRanges] = useState<any[] | null>(null);
+  const [onExtraReasonConfirm, setOnExtraReasonConfirm] = useState<((reason: string) => void) | null>(null);
+
+  const formatDateShort = (dateStr: string) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const year = parts[0];
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const month = monthNames[parseInt(parts[1], 10) - 1] || parts[1];
+      const day = parseInt(parts[2], 10);
+      return `${day} ${month}`;
+    }
+    return dateStr;
+  };
+
+  const getTargetName = () => {
+    if (selectedChip === CHIPS[1]) {
+      const names = (guestForm.guests || []).map((g: any) => g.name || g.issuedto).filter(Boolean);
+      if (names.length === 0 && singleDayGuestForm?.guests) {
+        names.push(...singleDayGuestForm.guests.map((g: any) => g.name || g.issuedto).filter(Boolean));
+      }
+      return names.length > 0 ? names.join(', ') : 'the guest';
+    }
+    if (selectedChip === CHIPS[2]) {
+      const names = (mumukshuForm.mumukshus || []).map((m: any) => m.issuedto || m.name || `${m.firstname || ''} ${m.lastname || ''}`.trim() || m.cardno).filter(Boolean);
+      if (names.length === 0 && singleDayMumukshuForm?.mumukshus) {
+        names.push(...singleDayMumukshuForm.mumukshus.map((m: any) => m.issuedto || m.name || `${m.firstname || ''} ${m.lastname || ''}`.trim() || m.cardno).filter(Boolean));
+      }
+      return names.length > 0 ? names.join(', ') : 'the mumukshu';
+    }
+    return null;
+  };
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [selfOneDayNeedRoom, setSelfOneDayNeedRoom] = useState(false);
@@ -165,16 +206,14 @@ const RoomBooking = () => {
   };
 
   const isSingleDayGuestFormValid = () => {
-    return (
-      selectedDay &&
-      singleDayGuestForm.guests.every((guest: any) => {
-        if (guest.cardno) return guest.mobno && guest.mobno?.length == 10;
-        else
-          return (
-            guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length == 10
-          );
-      })
-    );
+    if (!selectedDay || !singleDayGuestForm || !singleDayGuestForm.guests) return false;
+    return singleDayGuestForm.guests.every((guest: any) => {
+      const mobLen = guest.mobno ? String(guest.mobno).length : 0;
+      if (guest.cardno) {
+        return mobLen === 10;
+      }
+      return Boolean(guest.name && guest.gender && guest.type && mobLen === 10);
+    });
   };
 
   const [singleDayMumukshuForm, setSingleDayMumukshuForm] = useState(
@@ -436,71 +475,88 @@ const RoomBooking = () => {
                         moment(multiDayForm.startDay),
                         'days'
                       );
-                      if (nights > 9) {
-                        setModalVisible(true);
-                        setModalMessage('Room bookings are limited to a maximum of 9 nights.');
-                        setIsSubmitting(false);
-                        return;
-                      }
-                      const proceedBooking = async () => {
-                        const temp = transformMumukshuResponse({
-                          startDay: multiDayForm.startDay,
-                          endDay: multiDayForm.endDay,
-                          mumukshus: [
-                            {
-                              cardno: user.cardno,
-                              mobno: user.mobno,
-                              issuedto: user.name,
-                              gender: user.gender,
-                              res_status: user.res_status,
-                              roomType: multiDayForm.roomType,
-                              floorType: multiDayForm.floorType,
-                            },
-                          ],
-                        });
+                      const executeProceed = async (extraReason?: string) => {
+                        const proceedBooking = async () => {
+                          const temp = transformMumukshuResponse({
+                            startDay: multiDayForm.startDay,
+                            endDay: multiDayForm.endDay,
+                            mumukshus: [
+                              {
+                                cardno: user.cardno,
+                                mobno: user.mobno,
+                                issuedto: user.name,
+                                gender: user.gender,
+                                res_status: user.res_status,
+                                roomType: multiDayForm.roomType,
+                                floorType: multiDayForm.floorType,
+                              },
+                            ],
+                            ...(extraReason && { extra_stay_reason: extraReason }),
+                          });
 
-                        await updateMumukshuBooking('room', temp);
-                        setIsSubmitting(false);
-                        router.push(`/booking/${types.ROOM_DETAILS_TYPE}`);
+                          await updateMumukshuBooking('room', temp);
+                          setIsSubmitting(false);
+                          router.push(`/booking/${types.ROOM_DETAILS_TYPE}`);
+                        };
+
+                        await handleAPICall(
+                          'POST',
+                          '/stay/check-blocked-dates',
+                          null,
+                          {
+                            cardno: user.cardno,
+                            checkin: multiDayForm.startDay,
+                            checkout: multiDayForm.endDay
+                          },
+                          async (res: any) => {
+                            if (res.exceedsLimit && !extraReason) {
+                              setPendingNights(nights);
+                              setTotalWindowNights(res.totalWindowNights || nights);
+                              setLimitReasonType(res.reasonType || '');
+                              setSplitRanges(res.splitRanges || null);
+                              setExtraReasonInput('');
+                              setOnExtraReasonConfirm(() => (reason: string) => {
+                                executeProceed(reason);
+                              });
+                              setLimitTargetName(null);
+                              setExtraReasonModalVisible(true);
+                              setIsSubmitting(false);
+                              return;
+                            }
+
+                            if (res.isBlocked) {
+                              const periodsInfo = res.blockedPeriods ? res.blockedPeriods.join('\n') : '';
+                              const isUtsav = res.isUtsavBlock;
+                              CustomAlert.alert(
+                                'Research Centre Blocked',
+                                isUtsav
+                                  ? `The Research Centre is blocked for an Utsav during:\n${periodsInfo}\n\nYour booking will be split into two parts — one before and one after the event dates. Would you like to proceed?`
+                                  : `The Research Centre is blocked during the following periods:\n${periodsInfo}\n\nTherefore, this room booking will be placed on the waiting list, and confirmation will be at the office's discretion. For more information, please contact the Research Centre office. Would you like to proceed with the booking?`,
+                                [
+                                  {
+                                    text: 'Cancel',
+                                    style: 'cancel',
+                                    onPress: () => {
+                                      setIsSubmitting(false);
+                                    }
+                                  },
+                                  {
+                                    text: 'Proceed',
+                                    onPress: proceedBooking
+                                  }
+                                ]
+                              );
+                            } else {
+                              await proceedBooking();
+                            }
+                          },
+                          () => {
+                            setIsSubmitting(false);
+                          }
+                        );
                       };
 
-                      await handleAPICall(
-                        'POST',
-                        '/stay/check-blocked-dates',
-                        null,
-                        {
-                          cardno: user.cardno,
-                          checkin: multiDayForm.startDay,
-                          checkout: multiDayForm.endDay
-                        },
-                        async (res: any) => {
-                          if (res.isBlocked) {
-                            const periodsInfo = res.blockedPeriods ? res.blockedPeriods.join('\n') : '';
-                            CustomAlert.alert(
-                              'Research Centre Blocked',
-                              `The Research Centre is blocked during the following periods:\n${periodsInfo}\n\nTherefore, this room booking will be placed on the waiting list, and confirmation will be at the office's discretion. For more information, please contact the Research Centre office. Would you like to proceed with the booking?`,
-                              [
-                                {
-                                  text: 'Cancel',
-                                  style: 'cancel',
-                                  onPress: () => {
-                                    setIsSubmitting(false);
-                                  }
-                                },
-                                {
-                                  text: 'Proceed',
-                                  onPress: proceedBooking
-                                }
-                              ]
-                            );
-                          } else {
-                            await proceedBooking();
-                          }
-                        },
-                        () => {
-                          setIsSubmitting(false);
-                        }
-                      );
+                      await executeProceed();
                     }}
                     containerStyles="mt-7 min-h-[62px]"
                     isLoading={isSubmitting}
@@ -557,12 +613,7 @@ const RoomBooking = () => {
                         moment(guestForm.startDay),
                         'days'
                       );
-                      if (nights > 9) {
-                        setIsSubmitting(false);
-                        setModalMessage('Room bookings are limited to a maximum of 9 nights.');
-                        setModalVisible(true);
-                        return;
-                      } else {
+                      const executeProceed = async (extraReason?: string) => {
                         const proceedBooking = async () => {
                           await handleAPICall(
                             'POST',
@@ -588,13 +639,11 @@ const RoomBooking = () => {
                                   : formGuest;
                               });
 
-                              // Create the updated form object directly
                               const updatedGuestForm = {
                                 ...guestForm,
                                 guests: updatedGuests,
                               };
 
-                              // Update the state
                               await new Promise((resolve) => {
                                 setGuestForm((prev) => {
                                   const newForm = updatedGuestForm;
@@ -603,8 +652,10 @@ const RoomBooking = () => {
                                 });
                               });
 
-                              // Use the updated form object directly, not the state
-                              const temp = transformGuestApiResponse(updatedGuestForm);
+                              const temp = {
+                                ...transformGuestApiResponse(updatedGuestForm),
+                                ...(extraReason && { extra_stay_reason: extraReason }),
+                              };
 
                               updateGuestBooking('room', temp);
                               setIsSubmitting(false);
@@ -624,9 +675,25 @@ const RoomBooking = () => {
                           {
                             cardno: user.cardno,
                             checkin: guestForm.startDay,
-                            checkout: guestForm.endDay
+                            checkout: guestForm.endDay,
+                            guests: guestForm.guests
                           },
                           async (res: any) => {
+                            if (res.exceedsLimit && !extraReason) {
+                              setPendingNights(nights);
+                              setTotalWindowNights(res.totalWindowNights || nights);
+                              setLimitReasonType(res.reasonType || '');
+                              setSplitRanges(res.splitRanges || null);
+                              setExtraReasonInput('');
+                              setOnExtraReasonConfirm(() => (reason: string) => {
+                                executeProceed(reason);
+                              });
+                              setLimitTargetName(getTargetName());
+                              setExtraReasonModalVisible(true);
+                              setIsSubmitting(false);
+                              return;
+                            }
+
                             if (res.isBlocked) {
                               const periodsInfo = res.blockedPeriods ? res.blockedPeriods.join('\n') : '';
                               CustomAlert.alert(
@@ -654,7 +721,9 @@ const RoomBooking = () => {
                             setIsSubmitting(false);
                           }
                         );
-                      }
+                      };
+
+                      await executeProceed();
                     }}
                     containerStyles="mt-7 min-h-[62px]"
                     isLoading={isSubmitting}
@@ -712,64 +781,81 @@ const RoomBooking = () => {
                         moment(mumukshuForm.startDay),
                         'days'
                       );
-                      if (nights > 9) {
-                        setIsSubmitting(false);
-                        setModalMessage('Room bookings are limited to a maximum of 9 nights.');
-                        setModalVisible(true);
-                        return;
-                      }
 
-                      const proceedBooking = () => {
-                        const mumukshuInfoArray = mumukshuForm.mumukshus.map((mumukshu: any) => ({
-                          cardno: mumukshu.cardno,
-                          name: mumukshu.issuedto,
-                        }));
-                        setMumukshuInfo(mumukshuInfoArray);
+                      const executeProceed = async (extraReason?: string) => {
+                        const proceedBooking = () => {
+                          const mumukshuInfoArray = mumukshuForm.mumukshus.map((mumukshu: any) => ({
+                            cardno: mumukshu.cardno,
+                            name: mumukshu.issuedto,
+                          }));
+                          setMumukshuInfo(mumukshuInfoArray);
 
-                        const temp = transformMumukshuResponse(mumukshuForm);
+                          const temp = {
+                            ...transformMumukshuResponse(mumukshuForm),
+                            ...(extraReason && { extra_stay_reason: extraReason }),
+                          };
 
-                        updateMumukshuBooking('room', temp);
-                        setIsSubmitting(false);
-                        router.push(`/mumukshuBooking/${types.ROOM_DETAILS_TYPE}`);
+                          updateMumukshuBooking('room', temp);
+                          setIsSubmitting(false);
+                          router.push(`/mumukshuBooking/${types.ROOM_DETAILS_TYPE}`);
+                        };
+
+                        await handleAPICall(
+                          'POST',
+                          '/stay/check-blocked-dates',
+                          null,
+                          {
+                            cardno: user.cardno,
+                            checkin: mumukshuForm.startDay,
+                            checkout: mumukshuForm.endDay,
+                            mumukshus: mumukshuForm.mumukshus
+                          },
+                          async (res: any) => {
+                            if (res.exceedsLimit && !extraReason) {
+                              setPendingNights(nights);
+                              setTotalWindowNights(res.totalWindowNights || nights);
+                              setLimitReasonType(res.reasonType || '');
+                              setSplitRanges(res.splitRanges || null);
+                              setExtraReasonInput('');
+                              setOnExtraReasonConfirm(() => (reason: string) => {
+                                executeProceed(reason);
+                              });
+                              setLimitTargetName(getTargetName());
+                              setExtraReasonModalVisible(true);
+                              setIsSubmitting(false);
+                              return;
+                            }
+
+                            if (res.isBlocked) {
+                              const periodsInfo = res.blockedPeriods ? res.blockedPeriods.join('\n') : '';
+                              CustomAlert.alert(
+                                'Research Centre Blocked',
+                                `Research Centre is blocked during the following periods:\n${periodsInfo}\n\nSo this room booking will be placed in the waiting list. For more info contact Research Centre office. Are you ok to proceed with the booking?`,
+                                [
+                                  {
+                                    text: 'Cancel',
+                                    style: 'cancel',
+                                    onPress: () => {
+                                      setIsSubmitting(false);
+                                    }
+                                  },
+                                  {
+                                    text: 'Proceed',
+                                    onPress: proceedBooking
+                                  }
+                                ]
+                              );
+                            } else {
+                              proceedBooking();
+                            }
+                          },
+                          () => {
+                            setIsSubmitting(false);
+                          }
+                        );
                       };
 
-                      await handleAPICall(
-                        'POST',
-                        '/stay/check-blocked-dates',
-                        null,
-                        {
-                          cardno: user.cardno,
-                          checkin: mumukshuForm.startDay,
-                          checkout: mumukshuForm.endDay
-                        },
-                        async (res: any) => {
-                          if (res.isBlocked) {
-                            const periodsInfo = res.blockedPeriods ? res.blockedPeriods.join('\n') : '';
-                            CustomAlert.alert(
-                              'Research Centre Blocked',
-                              `Research Centre is blocked during the following periods:\n${periodsInfo}\n\nSo this room booking will be placed in the waiting list. For more info contact Research Centre office. Are you ok to proceed with the booking?`,
-                              [
-                                {
-                                  text: 'Cancel',
-                                  style: 'cancel',
-                                  onPress: () => {
-                                    setIsSubmitting(false);
-                                  }
-                                },
-                                {
-                                  text: 'Proceed',
-                                  onPress: proceedBooking
-                                }
-                              ]
-                            );
-                          } else {
-                            proceedBooking();
-                          }
-                        },
-                        () => {
-                          setIsSubmitting(false);
-                        }
-                      );
+                      await executeProceed();
                     }}
                     containerStyles="mt-7 min-h-[62px]"
                     isDisabled={!isMumukshuFormValid()}
@@ -983,9 +1069,12 @@ const RoomBooking = () => {
                         async (res: any) => {
                           if (res.isBlocked) {
                             const periodsInfo = res.blockedPeriods ? res.blockedPeriods.join('\n') : '';
+                            const isUtsav = res.isUtsavBlock;
                             CustomAlert.alert(
                               'Research Centre Blocked',
-                              `The Research Centre is blocked during the following periods:\n${periodsInfo}\n\nTherefore, this room booking will be placed on the waiting list, and confirmation will be at the office's discretion. For more information, please contact the Research Centre office. Would you like to proceed with the booking?`,
+                              isUtsav
+                                ? `The Research Centre is blocked for an Utsav during:\n${periodsInfo}\n\nYour booking will be split into two parts — one before and one after the event dates. Would you like to proceed?`
+                                : `The Research Centre is blocked during the following periods:\n${periodsInfo}\n\nTherefore, this room booking will be placed on the waiting list, and confirmation will be at the office's discretion. For more information, please contact the Research Centre office. Would you like to proceed with the booking?`,
                               [
                                 {
                                   text: 'Cancel',
@@ -1162,9 +1251,12 @@ const RoomBooking = () => {
                         async (res: any) => {
                           if (res.isBlocked) {
                             const periodsInfo = res.blockedPeriods ? res.blockedPeriods.join('\n') : '';
+                            const isUtsav = res.isUtsavBlock;
                             CustomAlert.alert(
                               'Research Centre Blocked',
-                              `The Research Centre is blocked during the following periods:\n${periodsInfo}\n\nTherefore, this room booking will be placed on the waiting list, and confirmation will be at the office's discretion. For more information, please contact the Research Centre office. Would you like to proceed with the booking?`,
+                              isUtsav
+                                ? `The Research Centre is blocked for an Utsav during:\n${periodsInfo}\n\nYour booking will be split into two parts — one before and one after the event dates. Would you like to proceed?`
+                                : `The Research Centre is blocked during the following periods:\n${periodsInfo}\n\nTherefore, this room booking will be placed on the waiting list, and confirmation will be at the office's discretion. For more information, please contact the Research Centre office. Would you like to proceed with the booking?`,
                               [
                                 {
                                   text: 'Cancel',
@@ -1329,12 +1421,100 @@ const RoomBooking = () => {
         message={modalMessage}
         btnText={'Okay'}
       />
+
+      <CustomModal
+        visible={extraReasonModalVisible}
+        onClose={() => {
+          setExtraReasonModalVisible(false);
+          setIsSubmitting(false);
+        }}
+        title="Admin Approval Required"
+        showActionButton={false}
+        avoidKeyboard={true}>
+        <View className="w-full">
+          {splitRanges && splitRanges.length >= 2 ? (
+            <View className="mb-2">
+              <Text className="mb-2 font-pregular text-sm text-gray-700">
+                Your booking {limitTargetName ? <>for <Text className="font-psemibold">{limitTargetName}</Text> </ > : ''}is split into 2 segments due to Utsav event dates:
+              </Text>
+              <Text className="mb-1.5 font-pregular text-xs text-gray-700">
+                • <Text className="font-psemibold">Segment 1 ({formatDateShort(splitRanges[0].start)} – {formatDateShort(splitRanges[0].end)}, {splitRanges[0].nights} nights):</Text> Confirmed (Available).
+              </Text>
+              <Text className="mb-2 font-pregular text-xs text-gray-700">
+                • <Text className="font-psemibold">Segment 2 ({formatDateShort(splitRanges[1].start)} – {formatDateShort(splitRanges[1].end)}, {splitRanges[1].nights} nights):</Text> Brings your total stay within 30 days to <Text className="font-psemibold">{totalWindowNights} nights</Text> (exceeding 9-night limit).
+              </Text>
+              <Text className="mt-1 mb-1 font-pmedium text-xs text-amber-800">
+                Segment 2 will be submitted under Awaiting Confirmation for admin approval.
+              </Text>
+            </View>
+          ) : (
+            <Text className="mb-2 font-pregular text-sm text-gray-700">
+              {limitReasonType === 'rolling_limit_exceeded' ? (
+                limitTargetName ? (
+                  <>
+                    Your booking for <Text className="font-psemibold">{limitTargetName}</Text> exceeds the 30-day limit (total <Text className="font-psemibold">{totalWindowNights} nights</Text> in 30 days) and will be submitted under <Text className="font-psemibold text-amber-700">Awaiting Confirmation</Text>.
+                  </>
+                ) : (
+                  <>
+                    Your total stay within a 30-day window will be <Text className="font-psemibold">{totalWindowNights} nights</Text> (exceeding the 9-night limit) and will be submitted under <Text className="font-psemibold text-amber-700">Awaiting Confirmation</Text>.
+                  </>
+                )
+              ) : (
+                limitTargetName ? (
+                  <>
+                    Your booking for <Text className="font-psemibold">{limitTargetName}</Text> exceeds 9 nights ({pendingNights} nights) and will be submitted under <Text className="font-psemibold text-amber-700">Awaiting Confirmation</Text>.
+                  </>
+                ) : (
+                  <>
+                    Your booking exceeds 9 nights ({pendingNights} nights) and will be submitted under <Text className="font-psemibold text-amber-700">Awaiting Confirmation</Text>.
+                  </>
+                )
+              )}
+            </Text>
+          )}
+          <Text className="mb-4 font-pregular text-xs text-gray-500">
+            Once approved by the admin, you will receive a WhatsApp message with a link to complete payment and confirm your stay.
+          </Text>
+          <FormField
+            text="Reason for Extended Stay *"
+            value={extraReasonInput}
+            handleChangeText={setExtraReasonInput}
+            placeholder="e.g. Attending shibir & family stay"
+            otherStyles="mb-4"
+          />
+          <View className="flex-row gap-x-3 mt-2">
+            <CustomButton
+              text="Cancel"
+              handlePress={() => {
+                setExtraReasonModalVisible(false);
+                setIsSubmitting(false);
+              }}
+              containerStyles="flex-1 bg-gray-200 py-3"
+              textStyles="text-gray-800"
+            />
+            <CustomButton
+              text="Proceed"
+              handlePress={() => {
+                if (!extraReasonInput.trim()) {
+                  CustomAlert.alert('Reason Required', 'Please enter a reason for your extra stay.');
+                  return;
+                }
+                setExtraReasonModalVisible(false);
+                if (onExtraReasonConfirm) {
+                  onExtraReasonConfirm(extraReasonInput.trim());
+                }
+              }}
+              containerStyles="flex-1 bg-secondary py-3"
+            />
+          </View>
+        </View>
+      </CustomModal>
     </View>
   );
 };
 
 function transformGuestApiResponse(apiResponse: any) {
-  const { startDay, endDay, guests } = apiResponse;
+  const { startDay, endDay, guests, extra_stay_reason } = apiResponse;
 
   const groupedGuests = guests.reduce((acc: any, guest: any) => {
     const groupKey = `${guest.roomType}_${guest.floorType}`;
@@ -1360,6 +1540,7 @@ function transformGuestApiResponse(apiResponse: any) {
     startDay,
     endDay,
     guestGroup,
+    ...(extra_stay_reason && { extra_stay_reason }),
   };
 }
 
@@ -1384,6 +1565,7 @@ function transformMumukshuResponse(data: any) {
     startDay: data.startDay,
     endDay: data.endDay,
     mumukshuGroup: mumukshuGroup,
+    ...(data.extra_stay_reason && { extra_stay_reason: data.extra_stay_reason }),
   };
 }
 
