@@ -156,15 +156,14 @@ const GuestAddons = () => {
     // Create adhyayan form
     const adhyayanFormInitial = createInitialAdhyayanForm(guestData.adhyayan);
 
-    // Create travel form with dates from any existing booking
+    // Create travel form with dates from any existing booking.
+    // Only the onward date is cross-referenced. return_date must NOT be inherited from a
+    // companion booking's end date — a round trip is an explicit user opt-in, otherwise a
+    // one-way travel addon silently becomes a round trip.
     const travelFormInitial = {
       ...createInitialTravelForm(guestData.travel),
       date: guestData.travel?.date || getInitialDates.startDate,
-      return_date:
-        guestData.travel?.return_date ||
-        (getInitialDates.endDate && getInitialDates.endDate !== getInitialDates.startDate
-          ? getInitialDates.endDate
-          : ''),
+      return_date: guestData.travel?.return_date || '',
     };
 
     return { roomFormInitial, foodFormInitial, adhyayanFormInitial, travelFormInitial };
@@ -241,11 +240,14 @@ const GuestAddons = () => {
         date: guestData.travel.date || startDate,
       }));
     } else if (startDate) {
-      // If travel data doesn't exist but we have date from other bookings
+      // If travel data doesn't exist but we have date from other bookings.
+      // Only cross-reference the onward date. return_date must NOT be inherited from a
+      // companion booking's end date — a round trip is an explicit user opt-in, otherwise
+      // a one-way travel addon silently becomes a round trip.
       setTravelForm((prev) => ({
         ...prev,
         date: prev.date || startDate,
-        return_date: prev.return_date || (endDate && endDate !== startDate ? endDate : ''),
+        return_date: prev.return_date || '',
       }));
     }
   }, [guestData]);

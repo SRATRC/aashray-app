@@ -247,11 +247,14 @@ const MumukshuAddons = () => {
         date: mumukshuData.travel.date || startDate,
       }));
     } else if (startDate) {
-      // If travel data doesn't exist but we have date from other bookings
+      // If travel data doesn't exist but we have date from other bookings.
+      // Only cross-reference the onward date. return_date must NOT be inherited from a
+      // companion booking's end date — a round trip is an explicit user opt-in, otherwise
+      // a one-way travel addon silently becomes a round trip.
       setTravelForm((prev) => ({
         ...prev,
         date: prev.date || startDate,
-        return_date: prev.return_date || (endDate && endDate !== startDate ? endDate : ''),
+        return_date: prev.return_date || '',
       }));
     }
   }, [mumukshuData]);
