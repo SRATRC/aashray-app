@@ -1,7 +1,8 @@
 import { View, Text, Image, ScrollView } from 'react-native';
 import { useMemo } from 'react';
-import { colors, icons, status } from '@/src/constants';
+import { colors, icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
+import { getStatusTagStyle } from '@/src/utils/statusTagStyle';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomTag from '../CustomTag';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
@@ -54,18 +55,20 @@ const RoomBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyle
           <Image source={icons.room} className="h-10 w-10" resizeMode="contain" />
           <View className="w-full flex-1 justify-center gap-y-1">
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {Object.entries(group.statuses).map(([statusKey, count]: [string, any]) => (
-                <CustomTag
-                  key={statusKey}
-                  text={`${statusKey}${count > 1 ? `: ${count}` : ''}`}
-                  textStyles={
-                    statusKey == status.STATUS_AVAILABLE ? 'text-green-200' : 'text-red-200'
-                  }
-                  containerStyles={`${
-                    statusKey == status.STATUS_AVAILABLE ? 'bg-green-100' : 'bg-red-100'
-                  } mx-1`}
-                />
-              ))}
+              {Object.entries(group.statuses).map(([statusKey, count]: [string, any]) => {
+                const { textStyles, containerStyles } = getStatusTagStyle(
+                  statusKey,
+                  group.bookings
+                );
+                return (
+                  <CustomTag
+                    key={statusKey}
+                    text={`${statusKey}${count > 1 ? `: ${count}` : ''}`}
+                    textStyles={textStyles}
+                    containerStyles={containerStyles}
+                  />
+                );
+              })}
             </ScrollView>
             <Text className="text-md font-pmedium">
               {`${formattedStartDate} - ${formattedEndDate}`}

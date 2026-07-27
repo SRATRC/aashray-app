@@ -21,6 +21,7 @@ import ExpandableItem from '../ExpandableItem';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import BookingStatusDisplay from '../BookingStatusDisplay';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import moment from 'moment';
 
 const RoomBookingCancellation: React.FC = () => {
@@ -168,6 +169,7 @@ const RoomBookingCancellation: React.FC = () => {
             <BookingStatusDisplay
               bookingStatus={item.status}
               transactionStatus={item.transaction_status}
+              holdReason={item.hold_reason}
             />
             <Text className="font-pmedium">
               {moment(item.checkin).format('Do MMMM')} -{' '}
@@ -183,6 +185,21 @@ const RoomBookingCancellation: React.FC = () => {
       }
       containerStyles="mt-3">
       <HorizontalSeparator />
+      {item.status === status.STATUS_WAITING &&
+        item.hold_reason === status.HOLD_REASON_ROLLING_WINDOW_LIMIT &&
+        item.hold_reason_message && (
+          <View className="mx-1 mt-3 flex-row items-start gap-x-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
+            <MaterialCommunityIcons
+              name="clock-alert-outline"
+              size={16}
+              color="#B45309"
+              style={{ marginTop: 1 }}
+            />
+            <Text className="flex-1 font-pregular text-xs leading-5 text-amber-800">
+              {item.hold_reason_message}
+            </Text>
+          </View>
+        )}
       <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
         <Image source={icons.ac} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Room Type:</Text>

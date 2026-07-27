@@ -4,7 +4,6 @@ const TYPE_REFUND = 'refund';
 // STATUS
 const STATUS_WAITING = 'waiting';
 const STATUS_CONFIRMED = 'confirmed';
-const STATUS_AWAITING_CONFIRMATION = 'awaiting confirmation';
 const STATUS_CANCELLED = 'cancelled';
 const STATUS_PENDING = 'pending';
 const STATUS_REJECTED = 'rejected';
@@ -30,6 +29,9 @@ const STATUS_MUMUKSHU = 'MUMUKSHU';
 const STATUS_SEVA_KUTIR = 'SEVA KUTIR';
 const STATUS_GUEST = 'GUEST';
 
+// HOLD REASONS (why a `waiting` booking is being held)
+const HOLD_REASON_ROLLING_WINDOW_LIMIT = 'ROLLING_WINDOW_LIMIT';
+
 // ROOM
 const ROOM_DETAIL = 'Room Booking';
 const ROOM_WL = 'WL';
@@ -44,7 +46,6 @@ export default {
   TYPE_REFUND,
   STATUS_WAITING,
   STATUS_CONFIRMED,
-  STATUS_AWAITING_CONFIRMATION,
   STATUS_CANCELLED,
   STATUS_PENDING,
   STATUS_REJECTED,
@@ -69,6 +70,7 @@ export default {
   STATUS_MUMUKSHU,
   STATUS_SEVA_KUTIR,
   STATUS_GUEST,
+  HOLD_REASON_ROLLING_WINDOW_LIMIT,
   ROOM_DETAIL,
   ROOM_WL,
   ROOM_STATUS_PENDING_CHECKIN,

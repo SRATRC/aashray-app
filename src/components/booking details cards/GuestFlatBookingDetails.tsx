@@ -1,7 +1,8 @@
 import { View, Text, Image, ScrollView } from 'react-native';
-import { colors, icons, status } from '@/src/constants';
+import { colors, icons } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
 import { countStatusesForField } from '@/src/utils/BookingValidationStatusCounter';
+import { getStatusTagStyle } from '@/src/utils/statusTagStyle';
 import { Ionicons } from '@expo/vector-icons';
 import HorizontalSeparator from '../HorizontalSeparator';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
@@ -15,6 +16,7 @@ const GuestFlatBookingDetails: React.FC<{ containerStyles: any }> = ({ container
     ? moment(guestData?.flat?.endDay).format('Do MMMM, YYYY')
     : null;
 
+  const flatDetails = guestData?.validationData?.flatDetails || [];
   const validationData = guestData?.validationData
     ? countStatusesForField(guestData?.validationData, 'flatDetails')
     : {};
@@ -26,16 +28,17 @@ const GuestFlatBookingDetails: React.FC<{ containerStyles: any }> = ({ container
         <View className="w-full flex-1 justify-center gap-y-1">
           {validationData && Object.keys(validationData).length > 0 && (
             <ScrollView horizontal>
-              {Object.entries(validationData).map(([key, value]) => (
-                <CustomTag
-                  key={key}
-                  text={`${key}: ${value}`}
-                  textStyles={key == status.STATUS_AVAILABLE ? 'text-green-200' : 'text-red-200'}
-                  containerStyles={`${
-                    key == status.STATUS_AVAILABLE ? 'bg-green-100' : 'bg-red-100'
-                  } mx-1`}
-                />
-              ))}
+              {Object.entries(validationData).map(([key, value]) => {
+                const { textStyles, containerStyles } = getStatusTagStyle(key, flatDetails);
+                return (
+                  <CustomTag
+                    key={key}
+                    text={`${key}: ${value}`}
+                    textStyles={textStyles}
+                    containerStyles={containerStyles}
+                  />
+                );
+              })}
             </ScrollView>
           )}
           <Text className="text-md font-pmedium">

@@ -13,6 +13,7 @@ import GuestForm from '../GuestForm';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import moment from 'moment';
 import CustomAlert from '../CustomAlert';
+import { showBlockedRejectAlert, showBlockedSplitAlert } from '@/src/utils/blockedDatesAlerts';
 
 const CHIPS = ['Mumukshus', 'Guest'];
 const INITIAL_MUMUKSHU_FORM = {
@@ -160,6 +161,7 @@ const FlatBooking = () => {
         keyboardShouldPersistTaps="handled">
         <CustomCalender
           type={'period'}
+          blockAware
           startDay={mumukshuForm.startDay}
           setStartDay={(day: any) => {
             setGuestForm((prev) => ({ ...prev, startDay: day, endDay: '' }));
@@ -220,18 +222,51 @@ const FlatBooking = () => {
                 return;
               }
 
-              const nights = moment(mumukshuForm.endDay).diff(moment(mumukshuForm.startDay), 'days');
+              const proceedBooking = async () => {
+                // Transform and save flat booking data
+                const mumukshuInfoArray = mumukshuForm.mumukshus.map((mumukshu: any) => ({
+                  cardno: mumukshu.cardno,
+                  name: mumukshu.issuedto,
+                }));
+                setMumukshuInfo(mumukshuInfoArray);
+                const flatData = transformMumukshuData(mumukshuForm);
+                await updateMumukshuBooking('flat', flatData);
+                router.push(`/mumukshuBooking/${types.FLAT_DETAILS_TYPE}`);
+                setIsSubmitting(false);
+              };
 
-              // Transform and save flat booking data
-              const mumukshuInfoArray = mumukshuForm.mumukshus.map((mumukshu: any) => ({
-                cardno: mumukshu.cardno,
-                name: mumukshu.issuedto,
-              }));
-              setMumukshuInfo(mumukshuInfoArray);
-              const flatData = transformMumukshuData(mumukshuForm);
-              await updateMumukshuBooking('flat', flatData);
-              router.push(`/mumukshuBooking/${types.FLAT_DETAILS_TYPE}`);
-              setIsSubmitting(false);
+              // Block gate (mirrors RoomBooking). Flats are exempt for PR + SEVA
+              // KUTIR residents, but the BACKEND enforces that — for a resident it
+              // won't return a reject, so the client can call unconditionally.
+              // No exceedsLimit branch: flats have no stay-cap UI (unlike rooms).
+              await handleAPICall(
+                'POST',
+                '/stay/check-blocked-dates',
+                null,
+                {
+                  cardno: user.cardno,
+                  checkin: mumukshuForm.startDay,
+                  checkout: mumukshuForm.endDay || mumukshuForm.startDay,
+                  mumukshus: mumukshuForm.mumukshus,
+                },
+                async (res: any) => {
+                  if (res.blockedAction === 'reject') {
+                    showBlockedRejectAlert(res.blockedPeriods, () => setIsSubmitting(false));
+                    return;
+                  }
+
+                  if (res.blockedAction === 'split') {
+                    showBlockedSplitAlert(res.blockedPeriods, proceedBooking, () =>
+                      setIsSubmitting(false)
+                    );
+                  } else {
+                    await proceedBooking();
+                  }
+                },
+                () => {
+                  setIsSubmitting(false);
+                }
+              );
             }
 
             if (selectedChip == CHIPS[1]) {
@@ -241,58 +276,92 @@ const FlatBooking = () => {
                 return;
               }
 
-              const nights = moment(guestForm.endDay).diff(moment(guestForm.startDay), 'days');
+              const proceedBooking = async () => {
+                await handleAPICall(
+                  'POST',
+                  '/guest',
+                  null,
+                  {
+                    cardno: user.cardno,
+                    guests: guestForm.guests,
+                  },
+                  async (res: any) => {
+                    // Store guest information (cardno and name/issuedto) in the store
+                    const guestInfoArray = res.guests.map((apiGuest: any) => ({
+                      cardno: apiGuest.cardno,
+                      name: apiGuest.issuedto || apiGuest.name,
+                    }));
+                    setGuestInfo(guestInfoArray);
 
+                    const updatedGuests = guestForm.guests.map((formGuest) => {
+                      const matchingApiGuest = res.guests.find(
+                        (apiGuest: any) =>
+                          apiGuest.issuedto === formGuest.name || apiGuest.name === formGuest.name
+                      );
+                      return matchingApiGuest ? matchingApiGuest.cardno : (formGuest as any).cardno;
+                    });
+
+                    // Create the updated form object directly
+                    const updatedGuestForm = {
+                      ...guestForm,
+                      guests: updatedGuests,
+                    };
+
+                    // Update the state
+                    await new Promise((resolve) => {
+                      setGuestForm(() => {
+                        const newForm = updatedGuestForm;
+                        resolve(newForm);
+                        return newForm;
+                      });
+                    });
+
+                    // Transform and save guest flat booking data
+                    const transformedData = {
+                      startDay: updatedGuestForm.startDay,
+                      endDay: updatedGuestForm.endDay,
+                      guests: updatedGuestForm.guests,
+                    };
+
+                    await updateGuestBooking('flat', transformedData);
+                    setGuestForm(INITIAL_GUEST_FORM);
+                    router.push(`/guestBooking/${types.FLAT_DETAILS_TYPE}`);
+                    setIsSubmitting(false);
+                  },
+                  () => {
+                    setIsSubmitting(false);
+                  }
+                );
+              };
+
+              // Block gate (mirrors RoomBooking), runs before creating guests.
+              // Flats are exempt for PR + SEVA KUTIR residents, but the BACKEND
+              // enforces that — for a resident it won't return a reject, so the
+              // client can call unconditionally. No exceedsLimit branch: flats
+              // have no stay-cap UI (unlike rooms).
               await handleAPICall(
                 'POST',
-                '/guest',
+                '/stay/check-blocked-dates',
                 null,
                 {
                   cardno: user.cardno,
+                  checkin: guestForm.startDay,
+                  checkout: guestForm.endDay || guestForm.startDay,
                   guests: guestForm.guests,
                 },
                 async (res: any) => {
-                  // Store guest information (cardno and name/issuedto) in the store
-                  const guestInfoArray = res.guests.map((apiGuest: any) => ({
-                    cardno: apiGuest.cardno,
-                    name: apiGuest.issuedto || apiGuest.name,
-                  }));
-                  setGuestInfo(guestInfoArray);
+                  if (res.blockedAction === 'reject') {
+                    showBlockedRejectAlert(res.blockedPeriods, () => setIsSubmitting(false));
+                    return;
+                  }
 
-                  const updatedGuests = guestForm.guests.map((formGuest) => {
-                    const matchingApiGuest = res.guests.find(
-                      (apiGuest: any) =>
-                        apiGuest.issuedto === formGuest.name || apiGuest.name === formGuest.name
+                  if (res.blockedAction === 'split') {
+                    showBlockedSplitAlert(res.blockedPeriods, proceedBooking, () =>
+                      setIsSubmitting(false)
                     );
-                    return matchingApiGuest ? matchingApiGuest.cardno : (formGuest as any).cardno;
-                  });
-
-                  // Create the updated form object directly
-                  const updatedGuestForm = {
-                    ...guestForm,
-                    guests: updatedGuests,
-                  };
-
-                  // Update the state
-                  await new Promise((resolve) => {
-                    setGuestForm(() => {
-                      const newForm = updatedGuestForm;
-                      resolve(newForm);
-                      return newForm;
-                    });
-                  });
-
-                  // Transform and save guest flat booking data
-                  const transformedData = {
-                    startDay: updatedGuestForm.startDay,
-                    endDay: updatedGuestForm.endDay,
-                    guests: updatedGuestForm.guests,
-                  };
-
-                  await updateGuestBooking('flat', transformedData);
-                  setGuestForm(INITIAL_GUEST_FORM);
-                  router.push(`/guestBooking/${types.FLAT_DETAILS_TYPE}`);
-                  setIsSubmitting(false);
+                  } else {
+                    await proceedBooking();
+                  }
                 },
                 () => {
                   setIsSubmitting(false);

@@ -53,7 +53,7 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
     }, []);
 
     // Filter out guests that are already selected in other groups
-    return guest_dropdown.filter((guest: any) => !selectedIndices.includes(guest.value));
+    return guest_dropdown.filter((guest: any) => !selectedIndices.includes(guest.key));
   };
 
   // Add this function near the getAvailableGuests function
@@ -61,7 +61,7 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
     // Get all selected guest indices from all groups
     const selectedIndices = roomForm.guestGroup.flatMap((group: any) => group.guestIndices);
     // Check if there are any unselected guests
-    return guest_dropdown.some((guest: any) => !selectedIndices.includes(guest.value));
+    return guest_dropdown.some((guest: any) => !selectedIndices.includes(guest.key));
   };
 
   return (

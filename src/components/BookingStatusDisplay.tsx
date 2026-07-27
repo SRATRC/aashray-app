@@ -7,19 +7,24 @@ interface BookingStatusDisplayProps {
   bookingStatus: string;
   transactionStatus?: string;
   containerStyles?: string;
+  holdReason?: string | null;
 }
 
 const BookingStatusDisplay: React.FC<BookingStatusDisplayProps> = ({
   bookingStatus,
   transactionStatus,
   containerStyles = '',
+  holdReason,
 }) => {
+  // Over-cap holds: status is still 'waiting', flagged via hold_reason (no separate status).
+  const isRollingWindowHold =
+    bookingStatus === status.STATUS_WAITING &&
+    holdReason === status.HOLD_REASON_ROLLING_WINDOW_LIMIT;
+
   const getBookingStatusStyles = (item_status: string) => {
     const isCancelled =
       item_status === status.STATUS_CANCELLED || item_status === status.STATUS_ADMIN_CANCELLED;
     const isConfirmed = item_status === status.STATUS_CONFIRMED;
-
-    const isAwaiting = item_status === status.STATUS_AWAITING_CONFIRMATION;
 
     if (isCancelled) {
       return {
@@ -35,7 +40,7 @@ const BookingStatusDisplay: React.FC<BookingStatusDisplayProps> = ({
       };
     }
 
-    if (isAwaiting) {
+    if (isRollingWindowHold) {
       return {
         textStyles: 'text-amber-700',
         containerStyles: 'bg-amber-100',
@@ -113,11 +118,15 @@ const BookingStatusDisplay: React.FC<BookingStatusDisplayProps> = ({
   };
 
   const bookingStyles = getBookingStatusStyles(bookingStatus);
+  // Keep the pill to a short status word — never the full sentence. The long
+  // explanation (holdReasonMessage) is surfaced as a dedicated note in the
+  // expanded card body so it doesn't wrap/clip inside a status pill.
+  const bookingStatusText = isRollingWindowHold ? 'Awaiting approval' : bookingStatus;
 
   return (
     <View className={`flex flex-row ${containerStyles}`}>
       <CustomTag
-        text={bookingStatus}
+        text={bookingStatusText}
         textStyles={bookingStyles.textStyles}
         containerStyles={bookingStyles.containerStyles}
       />

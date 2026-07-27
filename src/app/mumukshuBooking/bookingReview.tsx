@@ -20,8 +20,8 @@ import MumukshuEventBookingDetails from '@/src/components/booking details cards/
 import MumukshuFlatBookingDetails from '@/src/components/booking details cards/MumukshuFlatBookingDetails';
 import CustomModal from '@/src/components/CustomModal';
 import ChargeBreakdownBottomSheet from '@/src/components/ChargeBreakdownBottomSheet';
-import FormField from '@/src/components/FormField';
-import CustomAlert from '@/src/components/CustomAlert';
+import ExtraStayApprovalNotice from '@/src/components/ExtraStayApprovalNotice';
+import { requireExtraStayReason } from '@/src/utils/requireExtraStayReason';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import * as Haptics from 'expo-haptics';
@@ -107,8 +107,8 @@ const mumukshuBookingReview = () => {
   const transformedData = prepareMumukshuRequestBody(user, mumukshuData);
 
   const needsExtraReason = Boolean(
-    mumukshuData?.validationData?.roomDetails?.some((r: any) => r.status === 'awaiting confirmation' || r.requiresExtraStayReason) ||
-    mumukshuData?.validationData?.flatDetails?.some((f: any) => f.status === 'awaiting confirmation' || f.requiresExtraStayReason)
+    mumukshuData?.validationData?.roomDetails?.some((r: any) => r.requiresExtraStayReason) ||
+    mumukshuData?.validationData?.flatDetails?.some((f: any) => f.requiresExtraStayReason)
   );
 
   const enrichRoomDetailsWithNames = (roomDetails: any[]) => {
@@ -190,10 +190,7 @@ const mumukshuBookingReview = () => {
   }, [router]);
 
   const handlePayLater = async () => {
-    if (needsExtraReason && !extraStayReason.trim()) {
-      CustomAlert.alert('Reason Required', 'Please enter a reason for your extra stay beyond the 9-night limit.');
-      return;
-    }
+    if (!requireExtraStayReason(needsExtraReason, extraStayReason)) return;
 
     setShowPayLaterModal(false);
     setIsSubmitting(true);
@@ -258,6 +255,14 @@ const mumukshuBookingReview = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 20 }}>
         <PageHeader title="Review Booking" />
+
+        {needsExtraReason && (
+          <ExtraStayApprovalNotice
+            reason={extraStayReason}
+            onChangeReason={setExtraStayReason}
+            containerStyles="mx-4 mt-3"
+          />
+        )}
 
         {mumukshuData.room && <MumukshuRoomBookingDetails containerStyles={'mt-2'} />}
         {mumukshuData.adhyayan && <MumukshuAdhyayanBookingDetails containerStyles={'mt-2'} />}
@@ -540,23 +545,6 @@ const mumukshuBookingReview = () => {
             </ShadowBox>
           </View>
         )}
-        {needsExtraReason && (
-          <View className="mx-4 mt-4 mb-2 rounded-xl border border-amber-300 bg-amber-50 p-4">
-            <View className="flex-row items-center gap-x-2 mb-2">
-              <Ionicons name="warning" size={20} color="#b45309" />
-              <Text className="font-pmedium text-amber-800 text-base">Approval Required</Text>
-            </View>
-            <Text className="font-pregular text-amber-700 text-sm mb-3">
-              Your stay exceeds the 9-night limit within a 30-day window and will be submitted under <Text className="font-psemibold">Awaiting Confirmation</Text>. Once approved by the admin, you will receive a WhatsApp message with a link to complete payment and confirm your booking.
-            </Text>
-            <FormField
-              text="Reason for Extra Stay *"
-              value={extraStayReason}
-              handleChangeText={setExtraStayReason}
-              placeholder="e.g. Attending shibir & family stay"
-            />
-          </View>
-        )}
 
       </ScrollView>
 
@@ -566,10 +554,7 @@ const mumukshuBookingReview = () => {
             <CustomButton
               text="Pay Now"
               handlePress={async () => {
-                if (needsExtraReason && !extraStayReason.trim()) {
-                  CustomAlert.alert('Reason Required', 'Please enter a reason for your extra stay beyond the 9-night limit.');
-                  return;
-                }
+                if (!requireExtraStayReason(needsExtraReason, extraStayReason)) return;
                 setIsSubmitting(true);
                 try {
                   const onSuccess = (data: any) => {
@@ -633,10 +618,7 @@ const mumukshuBookingReview = () => {
             <CustomButton
               text="Pay Later"
               handlePress={() => {
-                if (needsExtraReason && !extraStayReason.trim()) {
-                  CustomAlert.alert('Reason Required', 'Please enter a reason for your extra stay beyond the 9-night limit.');
-                  return;
-                }
+                if (!requireExtraStayReason(needsExtraReason, extraStayReason)) return;
                 setShowPayLaterModal(true);
               }}
               containerStyles="flex-1 min-h-[52px]"
@@ -649,10 +631,7 @@ const mumukshuBookingReview = () => {
           <CustomButton
             text="Confirm Booking"
             handlePress={async () => {
-              if (needsExtraReason && !extraStayReason.trim()) {
-                CustomAlert.alert('Reason Required', 'Please enter a reason for your extra stay beyond the 9-night limit.');
-                return;
-              }
+              if (!requireExtraStayReason(needsExtraReason, extraStayReason)) return;
               setIsSubmitting(true);
               try {
                 const onSuccess = () => {

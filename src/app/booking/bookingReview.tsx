@@ -12,6 +12,8 @@ import PageHeader from '@/src/components/PageHeader';
 import TravelBookingDetails from '@/src/components/booking details cards/TravelBookingDetails';
 import AdhyayanBookingDetails from '@/src/components/booking details cards/AdhyayanBookingDetails';
 import CustomButton from '@/src/components/CustomButton';
+import ExtraStayApprovalNotice from '@/src/components/ExtraStayApprovalNotice';
+import { requireExtraStayReason } from '@/src/utils/requireExtraStayReason';
 import FoodBookingDetails from '@/src/components/booking details cards/FoodBookingDetails';
 import handleAPICall from '@/src/utils/HandleApiCall';
 // @ts-ignore
@@ -38,8 +40,16 @@ const bookingReview = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPayLaterModal, setShowPayLaterModal] = useState(false);
+  const [extraStayReason, setExtraStayReason] = useState(
+    mumukshuData?.room?.extra_stay_reason || mumukshuData?.flat?.extra_stay_reason || ''
+  );
 
-  const payload = prepareMumukshuRequestBody(user, mumukshuData);
+  // Include the extended-stay reason in the request body so an over-9-night
+  // booking carries it through to the waitlist. The /validate call ignores it.
+  const payload = {
+    ...prepareMumukshuRequestBody(user, mumukshuData),
+    ...(extraStayReason.trim() ? { extra_stay_reason: extraStayReason.trim() } : {}),
+  };
 
   const fetchValidation = useCallback(async () => {
     return new Promise<ValidationData>((resolve, reject) => {
@@ -85,6 +95,7 @@ const bookingReview = () => {
   }, [router]);
 
   const handlePayLater = async () => {
+    if (!requireExtraStayReason(needsExtraReason, extraStayReason)) return;
     setShowPayLaterModal(false);
     setIsSubmitting(true);
     const onSuccess = () => {
@@ -115,6 +126,11 @@ const bookingReview = () => {
       0
     ) || 0);
 
+  const needsExtraReason = Boolean(
+    validationData?.roomDetails?.some((r: any) => r.requiresExtraStayReason) ||
+      (validationData as any)?.flatDetails?.some((f: any) => f.requiresExtraStayReason)
+  );
+
   return (
     <SafeAreaView className="h-full bg-white" edges={['top', 'right', 'left']}>
       <ScrollView
@@ -122,6 +138,14 @@ const bookingReview = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 20 }}>
         <PageHeader title="Review Booking" />
+
+        {needsExtraReason && (
+          <ExtraStayApprovalNotice
+            reason={extraStayReason}
+            onChangeReason={setExtraStayReason}
+            containerStyles="mx-4 mt-3"
+          />
+        )}
 
         {mumukshuData.room && <RoomBookingDetails containerStyles={'mt-2'} />}
         {mumukshuData.travel && <TravelBookingDetails containerStyles={'mt-2'} />}
@@ -351,6 +375,7 @@ const bookingReview = () => {
             <CustomButton
               text="Pay Now"
               handlePress={async () => {
+                if (!requireExtraStayReason(needsExtraReason, extraStayReason)) return;
                 setIsSubmitting(true);
 
                 const onSuccess = (data: any) => {
@@ -413,6 +438,7 @@ const bookingReview = () => {
           <CustomButton
             text="Confirm"
             handlePress={async () => {
+              if (!requireExtraStayReason(needsExtraReason, extraStayReason)) return;
               setIsSubmitting(true);
               const onSuccess = () => {
                 router.replace('/bookingConfirmation');

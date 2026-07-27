@@ -52,14 +52,14 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
     );
 
     // Filter out mumukshus that are already selected in other groups
-    return mumukshu_dropdown.filter((mumukshu: any) => !selectedIndices.includes(mumukshu.value));
+    return mumukshu_dropdown.filter((mumukshu: any) => !selectedIndices.includes(mumukshu.key));
   };
 
   const hasAvailableMumukshus = () => {
     // Get all selected mumukshu indices from all groups
     const selectedIndices = foodForm.mumukshuGroup.flatMap((group: any) => group.mumukshuIndices);
     // Check if there are any unselected mumukshus
-    return mumukshu_dropdown.some((mumukshu: any) => !selectedIndices.includes(mumukshu.value));
+    return mumukshu_dropdown.some((mumukshu: any) => !selectedIndices.includes(mumukshu.key));
   };
 
   return (

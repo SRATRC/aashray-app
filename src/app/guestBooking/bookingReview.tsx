@@ -19,11 +19,53 @@ import CustomButton from '@/src/components/CustomButton';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '@/src/components/CustomModal';
 import ChargeBreakdownBottomSheet from '@/src/components/ChargeBreakdownBottomSheet';
-import FormField from '@/src/components/FormField';
-import CustomAlert from '@/src/components/CustomAlert';
+import ExtraStayApprovalNotice from '@/src/components/ExtraStayApprovalNotice';
+import { requireExtraStayReason } from '@/src/utils/requireExtraStayReason';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import * as Haptics from 'expo-haptics';
+
+// Define validation data type
+interface ValidationData {
+  roomDetails?: Array<{
+    guest?: string;
+    roomno?: number;
+    nights?: number;
+    charge: number;
+    availableCredits?: number;
+    issuedto?: string;
+    requiresExtraStayReason?: boolean;
+    [key: string]: any;
+  }>;
+  foodDetails?: {
+    charge: number;
+    availableCredits: number;
+    [key: string]: any;
+  };
+  adhyayanDetails?: Array<{
+    guest?: string;
+    charge: number;
+    availableCredits?: number;
+    [key: string]: any;
+  }>;
+  utsavDetails?: Array<{
+    charge: number;
+    availableCredits?: number;
+    [key: string]: any;
+  }>;
+  flatDetails?: Array<{
+    guest: string;
+    flatno?: number;
+    nights?: number;
+    charge: number;
+    availableCredits?: number;
+    status?: string;
+    issuedto?: string;
+    requiresExtraStayReason?: boolean;
+    [key: string]: any;
+  }>;
+  totalCharge: number;
+}
 
 const guestBookingReview = () => {
   const router = useRouter();
@@ -43,13 +85,11 @@ const guestBookingReview = () => {
   const roomChargeBottomSheetRef = useRef<BottomSheetModal>(null);
   const flatChargeBottomSheetRef = useRef<BottomSheetModal>(null);
 
-  console.log('CONFIRM GUEST DATA: ', JSON.stringify(guestData));
   const transformedData = prepareGuestRequestBody(user, guestData);
-  console.log('CONFIRM TRANSFORMED DATA: ', JSON.stringify(transformedData));
 
   const needsExtraReason = Boolean(
-    guestData?.validationData?.roomDetails?.some((r: any) => r.status === 'awaiting confirmation' || r.requiresExtraStayReason) ||
-    guestData?.validationData?.flatDetails?.some((f: any) => f.status === 'awaiting confirmation' || f.requiresExtraStayReason)
+    guestData?.validationData?.roomDetails?.some((r: any) => r.requiresExtraStayReason) ||
+    guestData?.validationData?.flatDetails?.some((f: any) => f.requiresExtraStayReason)
   );
 
   const enrichRoomDetailsWithNames = (roomDetails: any[]) => {
@@ -75,7 +115,7 @@ const guestBookingReview = () => {
   };
 
   const fetchValidation = useCallback(async () => {
-    return new Promise((resolve, reject) => {
+    return new Promise<ValidationData>((resolve, reject) => {
       handleAPICall(
         'POST',
         '/guest/validate',
@@ -99,7 +139,7 @@ const guestBookingReview = () => {
     error: validationDataError,
     data: validationData,
     refetch: refetchValidation,
-  } = useQuery({
+  } = useQuery<ValidationData, Error>({
     queryKey: ['guestConfirmationValidations', user.cardno, JSON.stringify(guestData)],
     queryFn: fetchValidation,
     retry: false,
@@ -133,10 +173,7 @@ const guestBookingReview = () => {
   }, [router]);
 
   const handlePayLater = async () => {
-    if (needsExtraReason && !extraStayReason.trim()) {
-      CustomAlert.alert('Reason Required', 'Please enter a reason for your extra stay beyond the 9-night limit.');
-      return;
-    }
+    if (!requireExtraStayReason(needsExtraReason, extraStayReason)) return;
 
     setShowPayLaterModal(false);
     setIsSubmitting(true);
@@ -179,6 +216,14 @@ const guestBookingReview = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 20 }}>
         <PageHeader title="Review Booking" />
+
+        {needsExtraReason && (
+          <ExtraStayApprovalNotice
+            reason={extraStayReason}
+            onChangeReason={setExtraStayReason}
+            containerStyles="mx-4 mt-3"
+          />
+        )}
 
         {guestData.room && <GuestRoomBookingDetails containerStyles={'mt-2'} />}
         {guestData.utsav && <GuestEventBookingDetails containerStyles={'mt-2'} />}
@@ -459,23 +504,6 @@ const guestBookingReview = () => {
             </ShadowBox>
           </View>
         )}
-        {needsExtraReason && (
-          <View className="mx-4 mt-4 mb-2 rounded-xl border border-amber-300 bg-amber-50 p-4">
-            <View className="flex-row items-center gap-x-2 mb-2">
-              <Ionicons name="warning" size={20} color="#b45309" />
-              <Text className="font-pmedium text-amber-800 text-base">Approval Required</Text>
-            </View>
-            <Text className="font-pregular text-amber-700 text-sm mb-3">
-              Your stay exceeds the 9-night limit within a 30-day window and will be submitted under <Text className="font-psemibold">Awaiting Confirmation</Text>. Once approved by the admin, you will receive a WhatsApp message with a link to complete payment and confirm your booking.
-            </Text>
-            <FormField
-              text="Reason for Extra Stay *"
-              value={extraStayReason}
-              handleChangeText={setExtraStayReason}
-              placeholder="e.g. Attending shibir & family stay"
-            />
-          </View>
-        )}
 
       </ScrollView>
 
@@ -485,10 +513,7 @@ const guestBookingReview = () => {
             <CustomButton
               text="Pay Now"
               handlePress={async () => {
-                if (needsExtraReason && !extraStayReason.trim()) {
-                  CustomAlert.alert('Reason Required', 'Please enter a reason for your extra stay beyond the 9-night limit.');
-                  return;
-                }
+                if (!requireExtraStayReason(needsExtraReason, extraStayReason)) return;
                 setIsSubmitting(true);
                 const onSuccess = (data: any) => {
                   if (data.data?.amount == 0) router.replace('/bookingConfirmation');
@@ -548,10 +573,7 @@ const guestBookingReview = () => {
             <CustomButton
               text="Pay Later"
               handlePress={() => {
-                if (needsExtraReason && !extraStayReason.trim()) {
-                  CustomAlert.alert('Reason Required', 'Please enter a reason for your extra stay beyond the 9-night limit.');
-                  return;
-                }
+                if (!requireExtraStayReason(needsExtraReason, extraStayReason)) return;
                 setShowPayLaterModal(true);
               }}
               containerStyles="flex-1 min-h-[52px]"
@@ -564,10 +586,7 @@ const guestBookingReview = () => {
           <CustomButton
             text="Confirm Booking"
             handlePress={async () => {
-              if (needsExtraReason && !extraStayReason.trim()) {
-                CustomAlert.alert('Reason Required', 'Please enter a reason for your extra stay beyond the 9-night limit.');
-                return;
-              }
+              if (!requireExtraStayReason(needsExtraReason, extraStayReason)) return;
               setIsSubmitting(true);
               const onSuccess = () => {
                 router.replace('/bookingConfirmation');
