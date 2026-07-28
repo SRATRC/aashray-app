@@ -13,7 +13,6 @@ import GuestForm from '../GuestForm';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import moment from 'moment';
 import CustomAlert from '../CustomAlert';
-import { showBlockedRejectAlert, showBlockedSplitAlert } from '@/src/utils/blockedDatesAlerts';
 
 const CHIPS = ['Mumukshus', 'Guest'];
 const INITIAL_MUMUKSHU_FORM = {
@@ -161,7 +160,6 @@ const FlatBooking = () => {
         keyboardShouldPersistTaps="handled">
         <CustomCalender
           type={'period'}
-          blockAware
           startDay={mumukshuForm.startDay}
           setStartDay={(day: any) => {
             setGuestForm((prev) => ({ ...prev, startDay: day, endDay: '' }));
@@ -235,38 +233,10 @@ const FlatBooking = () => {
                 setIsSubmitting(false);
               };
 
-              // Block gate (mirrors RoomBooking). Flats are exempt for PR + SEVA
-              // KUTIR residents, but the BACKEND enforces that — for a resident it
-              // won't return a reject, so the client can call unconditionally.
-              // No exceedsLimit branch: flats have no stay-cap UI (unlike rooms).
-              await handleAPICall(
-                'POST',
-                '/stay/check-blocked-dates',
-                null,
-                {
-                  cardno: user.cardno,
-                  checkin: mumukshuForm.startDay,
-                  checkout: mumukshuForm.endDay || mumukshuForm.startDay,
-                  mumukshus: mumukshuForm.mumukshus,
-                },
-                async (res: any) => {
-                  if (res.blockedAction === 'reject') {
-                    showBlockedRejectAlert(res.blockedPeriods, () => setIsSubmitting(false));
-                    return;
-                  }
-
-                  if (res.blockedAction === 'split') {
-                    showBlockedSplitAlert(res.blockedPeriods, proceedBooking, () =>
-                      setIsSubmitting(false)
-                    );
-                  } else {
-                    await proceedBooking();
-                  }
-                },
-                () => {
-                  setIsSubmitting(false);
-                }
-              );
+              // Flats bypass the Research Centre block: a flat owner may book their
+              // flat for people even when RC is blocked. The 9-night cap still
+              // applies (enforced on the review screen + backend).
+              await proceedBooking();
             }
 
             if (selectedChip == CHIPS[1]) {
@@ -334,39 +304,10 @@ const FlatBooking = () => {
                 );
               };
 
-              // Block gate (mirrors RoomBooking), runs before creating guests.
-              // Flats are exempt for PR + SEVA KUTIR residents, but the BACKEND
-              // enforces that — for a resident it won't return a reject, so the
-              // client can call unconditionally. No exceedsLimit branch: flats
-              // have no stay-cap UI (unlike rooms).
-              await handleAPICall(
-                'POST',
-                '/stay/check-blocked-dates',
-                null,
-                {
-                  cardno: user.cardno,
-                  checkin: guestForm.startDay,
-                  checkout: guestForm.endDay || guestForm.startDay,
-                  guests: guestForm.guests,
-                },
-                async (res: any) => {
-                  if (res.blockedAction === 'reject') {
-                    showBlockedRejectAlert(res.blockedPeriods, () => setIsSubmitting(false));
-                    return;
-                  }
-
-                  if (res.blockedAction === 'split') {
-                    showBlockedSplitAlert(res.blockedPeriods, proceedBooking, () =>
-                      setIsSubmitting(false)
-                    );
-                  } else {
-                    await proceedBooking();
-                  }
-                },
-                () => {
-                  setIsSubmitting(false);
-                }
-              );
+              // Flats bypass the Research Centre block: a flat owner may book their
+              // flat for guests even when RC is blocked. The 9-night cap still
+              // applies (enforced on the review screen + backend).
+              await proceedBooking();
             }
           }}
           containerStyles="mt-7 min-h-[62px]"

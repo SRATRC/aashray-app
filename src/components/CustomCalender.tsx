@@ -223,7 +223,7 @@ const CustomCalender: React.FC<CustomCalenderProps> = ({
               className="mr-1.5 h-3 w-3 rounded-full"
               style={{ backgroundColor: FESTIVAL_COLOR }}
             />
-            <Text className="font-pregular text-xs text-gray-500">Festival</Text>
+            <Text className="font-pregular text-xs text-gray-500">Utsav</Text>
           </View>
         </View>
       )}
