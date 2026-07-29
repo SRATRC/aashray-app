@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useAuthStore, useBookingStore } from '@/src/stores';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +19,8 @@ import MumukshuFoodBookingDetails from '@/src/components/booking details cards/M
 import MumukshuEventBookingDetails from '@/src/components/booking details cards/MumukshuEventBookingDetails';
 import MumukshuFlatBookingDetails from '@/src/components/booking details cards/MumukshuFlatBookingDetails';
 import CustomModal from '@/src/components/CustomModal';
+import InternationalPaymentWarning from '@/src/components/InternationalPaymentWarning';
+import isInternationalUser from '@/src/utils/isInternationalUser';
 import ChargeBreakdownBottomSheet from '@/src/components/ChargeBreakdownBottomSheet';
 import ExtraStayApprovalNotice from '@/src/components/ExtraStayApprovalNotice';
 import { requireExtraStayReason } from '@/src/utils/requireExtraStayReason';
@@ -86,7 +88,7 @@ interface ValidationData {
   totalCharge: number;
 }
 
-const mumukshuBookingReview = () => {
+const MumukshuBookingReview = () => {
   const router = useRouter();
 
   const user = useAuthStore((state) => state.user);
@@ -96,6 +98,7 @@ const mumukshuBookingReview = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPayLaterModal, setShowPayLaterModal] = useState(false);
+  const [showInternationalWarning, setShowInternationalWarning] = useState(false);
   const [extraStayReason, setExtraStayReason] = useState(
     mumukshuData?.room?.extra_stay_reason || mumukshuData?.flat?.extra_stay_reason || ''
   );
@@ -104,11 +107,16 @@ const mumukshuBookingReview = () => {
   const roomChargeBottomSheetRef = useRef<BottomSheetModal>(null);
   const flatChargeBottomSheetRef = useRef<BottomSheetModal>(null);
 
-  const transformedData = prepareMumukshuRequestBody(user, mumukshuData);
+  // Memoised so typing in the extra-stay reason field does not re-run the whole
+  // request-body transform, and so fetchValidation keeps a stable identity.
+  const transformedData = useMemo(
+    () => prepareMumukshuRequestBody(user, mumukshuData),
+    [user, mumukshuData]
+  );
 
   const needsExtraReason = Boolean(
     mumukshuData?.validationData?.roomDetails?.some((r: any) => r.requiresExtraStayReason) ||
-    mumukshuData?.validationData?.flatDetails?.some((f: any) => f.requiresExtraStayReason)
+      mumukshuData?.validationData?.flatDetails?.some((f: any) => f.requiresExtraStayReason)
   );
 
   const enrichRoomDetailsWithNames = (roomDetails: any[]) => {
@@ -207,12 +215,74 @@ const mumukshuBookingReview = () => {
       const payLaterPayload = {
         ...transformedData,
         pay_later: true,
-        ...(extraStayReason.trim() ? { extra_stay_reason: extraStayReason.trim() } : {})
+        ...(extraStayReason.trim() ? { extra_stay_reason: extraStayReason.trim() } : {}),
       };
       await handleAPICall('POST', '/mumukshu/booking', null, payLaterPayload, onSuccess, onFinally);
     } catch (error: any) {
       setIsSubmitting(false);
     }
+  };
+
+  const proceedWithPayment = async () => {
+    setShowInternationalWarning(false);
+    setIsSubmitting(true);
+
+    const onSuccess = (data: any) => {
+      // A booking with nothing left to charge comes back without a Razorpay
+      // order, so there is no checkout to open.
+      if (!data.order?.id) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        router.replace('/bookingConfirmation');
+        return;
+      }
+
+      const options = {
+        key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
+        name: 'Vitraag Vigyaan Aashray',
+        image: 'https://vitraagvigyaan.org/img/logo.png',
+        description: 'Payment for Vitraag Vigyaan Aashray',
+        amount: `${data.order.amount}`,
+        currency: 'INR',
+        order_id: `${data.order.id}`,
+        prefill: {
+          email: `${user.email}`,
+          contact: `${user.mobno}`,
+          name: `${user.issuedto}`,
+        },
+        theme: { color: colors.orange },
+      };
+      RazorpayCheckout.open(options)
+        .then((_rzrpayData: any) => {
+          setIsSubmitting(false);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          router.replace('/paymentConfirmation');
+        })
+        .catch((_error: any) => {
+          setIsSubmitting(false);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          router.replace('/paymentFailed');
+        });
+    };
+
+    const onFinally = () => {
+      setIsSubmitting(false);
+    };
+
+    const bookingPayload = {
+      ...transformedData,
+      ...(needsExtraReason && { extra_stay_reason: extraStayReason.trim() }),
+    };
+
+    await handleAPICall('POST', '/mumukshu/booking', null, bookingPayload, onSuccess, onFinally);
+  };
+
+  const handlePayNow = () => {
+    if (!requireExtraStayReason(needsExtraReason, extraStayReason)) return;
+    if (isInternationalUser(user)) {
+      setShowInternationalWarning(true);
+      return;
+    }
+    proceedWithPayment();
   };
 
   const totalCredits =
@@ -253,6 +323,10 @@ const mumukshuBookingReview = () => {
       <ScrollView
         alwaysBounceVertical={false}
         showsVerticalScrollIndicator={false}
+        // Without this the default 'never' makes the ScrollView's tap responder
+        // dismiss the keyboard on the same tap that focuses the extra-stay
+        // reason field, so it focuses and blurs immediately.
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingBottom: 20 }}>
         <PageHeader title="Review Booking" />
 
@@ -545,7 +619,6 @@ const mumukshuBookingReview = () => {
             </ShadowBox>
           </View>
         )}
-
       </ScrollView>
 
       <ShadowBox className="w-full border-t border-gray-200 bg-white px-4 py-4">
@@ -553,63 +626,7 @@ const mumukshuBookingReview = () => {
           <View className="mb-8 flex-row gap-x-4">
             <CustomButton
               text="Pay Now"
-              handlePress={async () => {
-                if (!requireExtraStayReason(needsExtraReason, extraStayReason)) return;
-                setIsSubmitting(true);
-                try {
-                  const onSuccess = (data: any) => {
-                    if (data.order?.amount == 0) router.replace('/bookingConfirmation');
-                    else {
-                      var options = {
-                        key: `${process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID}`,
-                        name: 'Vitraag Vigyaan Aashray',
-                        image: 'https://vitraagvigyaan.org/img/logo.png',
-                        description: 'Payment for Vitraag Vigyaan Aashray',
-                        amount: `${data.order.amount}`,
-                        currency: 'INR',
-                        order_id: `${data.order.id}`,
-                        prefill: {
-                          email: `${user.email}`,
-                          contact: `${user.mobno}`,
-                          name: `${user.issuedto}`,
-                        },
-                        theme: { color: colors.orange },
-                      };
-                      RazorpayCheckout.open(options)
-                        .then((_rzrpayData: any) => {
-                          setIsSubmitting(false);
-                          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                          router.replace('/paymentConfirmation');
-                        })
-                        .catch((_error: any) => {
-                          setIsSubmitting(false);
-                          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-                          router.replace('/paymentFailed');
-                        });
-                    }
-                  };
-
-                  const onFinally = () => {
-                    setIsSubmitting(false);
-                  };
-
-                  const bookingPayload = {
-                    ...transformedData,
-                    ...(needsExtraReason && { extra_stay_reason: extraStayReason.trim() })
-                  };
-
-                  await handleAPICall(
-                    'POST',
-                    '/mumukshu/booking',
-                    null,
-                    bookingPayload,
-                    onSuccess,
-                    onFinally
-                  );
-                } catch (error: any) {
-                  setIsSubmitting(false);
-                }
-              }}
+              handlePress={handlePayNow}
               containerStyles="flex-1 min-h-[52px]"
               isLoading={isSubmitting}
               isDisabled={!validationData}
@@ -644,7 +661,7 @@ const mumukshuBookingReview = () => {
 
                 const bookingPayload = {
                   ...transformedData,
-                  ...(needsExtraReason && { extra_stay_reason: extraStayReason.trim() })
+                  ...(needsExtraReason && { extra_stay_reason: extraStayReason.trim() }),
                 };
 
                 await handleAPICall(
@@ -783,8 +800,15 @@ const mumukshuBookingReview = () => {
           emptyMessage="No flat charge details available."
         />
       )}
+
+      <InternationalPaymentWarning
+        visible={showInternationalWarning}
+        country={user.country}
+        onClose={() => setShowInternationalWarning(false)}
+        onProceed={proceedWithPayment}
+      />
     </SafeAreaView>
   );
 };
 
-export default mumukshuBookingReview;
+export default MumukshuBookingReview;

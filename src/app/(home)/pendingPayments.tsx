@@ -21,7 +21,9 @@ import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
 import CustomErrorMessage from '@/src/components/CustomErrorMessage';
 import CustomButton from '@/src/components/CustomButton';
 import CustomModal from '@/src/components/CustomModal';
+import InternationalPaymentWarning from '@/src/components/InternationalPaymentWarning';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import isInternationalUserFn from '@/src/utils/isInternationalUser';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
@@ -54,38 +56,46 @@ interface ApiResponse {
   };
 }
 
+const computeTimeRemaining = (createdAt: string) => {
+  const expiry = moment.utc(createdAt).add(24, 'hours');
+  const diff = expiry.diff(moment.utc());
+
+  if (diff <= 0) {
+    return { label: 'Expired', isExpired: true, isUrgent: false };
+  }
+
+  const duration = moment.duration(diff);
+  const hours = Math.floor(duration.asHours());
+  const minutes = duration.minutes();
+  const seconds = duration.seconds();
+
+  return {
+    label:
+      hours > 0 ? `${hours}h ${minutes}m` : minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`,
+    isExpired: false,
+    isUrgent: diff <= 3 * 60 * 60 * 1000,
+  };
+};
+
 const PaymentTimer = ({ createdAt }: { createdAt: string }) => {
-  const [timeRemaining, setTimeRemaining] = useState<{
-    hours: number;
-    minutes: number;
-    seconds: number;
-    isExpired: boolean;
-    isUrgent: boolean;
-  }>({ hours: 0, minutes: 0, seconds: 0, isExpired: false, isUrgent: false });
+  const [timeRemaining, setTimeRemaining] = useState(() => computeTimeRemaining(createdAt));
 
+  // Ticks every second but keeps the previous object when the rendered label is
+  // unchanged, so React bails out rather than re-rendering the row.
   useEffect(() => {
-    const calculateTimeRemaining = () => {
-      const created = moment.utc(createdAt);
-      const expiry = created.clone().add(24, 'hours');
-      const now = moment.utc();
-      const diff = expiry.diff(now);
-
-      if (diff <= 0) {
-        setTimeRemaining({ hours: 0, minutes: 0, seconds: 0, isExpired: true, isUrgent: false });
-        return;
-      }
-
-      const duration = moment.duration(diff);
-      const hours = Math.floor(duration.asHours());
-      const minutes = duration.minutes();
-      const seconds = duration.seconds();
-      const isUrgent = diff <= 3 * 60 * 60 * 1000;
-
-      setTimeRemaining({ hours, minutes, seconds, isExpired: false, isUrgent });
+    const tick = () => {
+      const next = computeTimeRemaining(createdAt);
+      setTimeRemaining((prev) =>
+        prev.label === next.label &&
+        prev.isExpired === next.isExpired &&
+        prev.isUrgent === next.isUrgent
+          ? prev
+          : next
+      );
     };
 
-    calculateTimeRemaining();
-    const interval = setInterval(calculateTimeRemaining, 1000);
+    tick();
+    const interval = setInterval(tick, 1000);
 
     return () => clearInterval(interval);
   }, [createdAt]);
@@ -108,19 +118,7 @@ const PaymentTimer = ({ createdAt }: { createdAt: string }) => {
     return 'time-outline';
   };
 
-  const formatTime = () => {
-    if (timeRemaining.isExpired) return 'Expired';
-
-    const { hours, minutes, seconds } = timeRemaining;
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    } else if (minutes > 0) {
-      return `${minutes}m ${seconds}s`;
-    } else {
-      return `${seconds}s`;
-    }
-  };
+  const formatTime = () => timeRemaining.label;
 
   return (
     <View className={`flex-row items-center rounded-lg border px-2 py-1 ${getTimerBgColor()}`}>
@@ -242,9 +240,7 @@ const PendingPayments = () => {
     return totalNonExpiredAmount > 0;
   }, [totalNonExpiredAmount]);
 
-  const isInternationalUser = useMemo(() => {
-    return user.country !== 'India';
-  }, [user.country]);
+  const isInternationalUser = isInternationalUserFn(user);
 
   const categoryStats = useMemo(() => {
     const stats = pendingPayments.reduce(
@@ -817,8 +813,8 @@ const PendingPayments = () => {
                   International Payment Notice
                 </Text>
                 <Text className="font-pregular text-xs text-amber-700">
-                  You are attempting to make a payment from {user.country}. Unfortunately, we do not
-                  accept payments from outside India.
+                  You are paying from {user.country}. We do not support international cards — use an
+                  Indian bank account, or pay at the Research Centre on arrival.
                 </Text>
               </View>
             </View>
@@ -937,46 +933,12 @@ const PendingPayments = () => {
         </View>
       )}
 
-      <CustomModal
+      <InternationalPaymentWarning
         visible={showInternationalWarning}
+        country={user.country}
         onClose={() => setShowInternationalWarning(false)}
-        title="Warning"
-        showActionButton={false}>
-        <View>
-          <View className="mb-4">
-            <View className="mb-4 items-center">
-              <View className="mb-3 h-16 w-16 items-center justify-center rounded-full bg-amber-100">
-                <Ionicons name="warning" size={32} color="#F59E0B" />
-              </View>
-            </View>
-
-            <Text className="mb-3 text-center font-pregular text-sm text-gray-700">
-              You are attempting to make a payment from{' '}
-              <Text className="font-psemibold">{user.country}</Text>.
-            </Text>
-
-            <View className="rounded-lg bg-amber-50 p-3">
-              <Text className="mb-2 font-pmedium text-xs text-amber-900">
-                Important Information:
-              </Text>
-              <Text className="mb-1 font-pregular text-xs text-amber-800">
-                We currently do not support international payments. If you intend to pay using an
-                Indian bank account, you may proceed with the payment.
-              </Text>
-            </View>
-          </View>
-
-          <View className="gap-y-3">
-            <CustomButton
-              text="I Understand, Proceed"
-              handlePress={proceedWithPayment}
-              containerStyles="min-h-[44px]"
-              textStyles="font-psemibold text-sm text-white"
-              isLoading={isSubmitting}
-            />
-          </View>
-        </View>
-      </CustomModal>
+        onProceed={proceedWithPayment}
+      />
     </SafeAreaView>
   );
 };

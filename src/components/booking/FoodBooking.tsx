@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Alert, Text, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -12,6 +12,8 @@ import CustomButton from '../CustomButton';
 import CustomCalender from '../CustomCalender';
 import CustomChipGroup from '../CustomChipGroup';
 import CustomModal from '../CustomModal';
+import InternationalPaymentWarning from '../InternationalPaymentWarning';
+import isInternationalUser from '@/src/utils/isInternationalUser';
 import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
@@ -23,16 +25,15 @@ import * as Haptics from 'expo-haptics';
 import CustomAlert from '../CustomAlert';
 import Callout from '../Callout';
 
-let CHIPS = ['Self', 'Guest', 'Mumukshus'];
+const ALL_CHIPS = ['Self', 'Guest', 'Mumukshus'];
+const GUEST_CHIPS = ['Self'];
 
 const FoodBooking = () => {
   const { user } = useAuthStore();
   const router: any = useRouter();
   const tabBarPadding = useTabBarPadding();
 
-  if (user.res_status == status.STATUS_GUEST) {
-    CHIPS = ['Self'];
-  }
+  const CHIPS = user.res_status == status.STATUS_GUEST ? GUEST_CHIPS : ALL_CHIPS;
 
   const [foodForm, setFoodForm] = useState({
     startDay: '',
@@ -62,20 +63,19 @@ const FoodBooking = () => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
+  const [showInternationalWarning, setShowInternationalWarning] = useState(false);
+  const pendingPaymentAction = useRef<(() => void) | null>(null);
 
-  const BookingNote = () => (
-    // <View className="mb-2 flex-row items-start gap-x-3 rounded-lg border border-amber-300 bg-amber-50 p-3">
-    //   <FontAwesome name="info-circle" size={16} color="#b45309" style={{ alignSelf: 'center' }} />
-    //   <Text className="flex-1 font-pregular text-sm text-amber-800">
-
-    //   </Text>
-    // </View>
-
-    <Callout
-      variant="warning"
-      message="Bookings must be made before 11 AM of the previous day for upcoming meals."
-    />
-  );
+  // International users get the payment warning before the booking is created;
+  // `action` is resumed only if they choose to proceed.
+  const guardInternationalPayment = (action: () => void) => {
+    if (isInternationalUser(user)) {
+      pendingPaymentAction.current = action;
+      setShowInternationalWarning(true);
+      return;
+    }
+    action();
+  };
 
   const [selectedChip, setSelectedChip] = useState('Self');
   const handleChipClick = (chip: any) => {
@@ -212,7 +212,10 @@ const FoodBooking = () => {
         showsVerticalScrollIndicator={false}
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled">
-        <BookingNote />
+        <Callout
+          variant="warning"
+          message="Bookings must be made before 11 AM of the previous day for upcoming meals."
+        />
         <CustomCalender
           type={'period'}
           startDay={foodForm.startDay}
@@ -254,7 +257,7 @@ const FoodBooking = () => {
               placeholder="Select Meals"
               options={dropdowns.FOOD_TYPE_LIST}
               selectedValues={foodForm.meals}
-              onValuesChange={(val) => setFoodForm({ ...foodForm, meals: val as string[] })}
+              onValuesChange={(val) => setFoodForm((prev) => ({ ...prev, meals: val as string[] }))}
               multiSelect={true}
               confirmButtonText="Select"
               maxSelectedDisplay={3}
@@ -266,7 +269,7 @@ const FoodBooking = () => {
               placeholder="How much spice do you want?"
               options={dropdowns.SPICE_LIST}
               selectedValue={foodForm.spicy}
-              onValueChange={(val: any) => setFoodForm({ ...foodForm, spicy: val })}
+              onValueChange={(val: any) => setFoodForm((prev) => ({ ...prev, spicy: val }))}
             />
 
             <CustomSelectBottomSheet
@@ -275,7 +278,7 @@ const FoodBooking = () => {
               placeholder="Hightea"
               options={dropdowns.HIGHTEA_LIST}
               selectedValue={foodForm.hightea}
-              onValueChange={(val: any) => setFoodForm({ ...foodForm, hightea: val })}
+              onValueChange={(val: any) => setFoodForm((prev) => ({ ...prev, hightea: val }))}
             />
 
             <CustomButton
@@ -385,7 +388,8 @@ const FoodBooking = () => {
 
             <CustomButton
               text="Book Now"
-              handlePress={async () => {
+              handlePress={() =>
+                guardInternationalPayment(async () => {
                 setIsSubmitting(true);
                 if (!isGuestFormValid()) {
                   setIsSubmitting(false);
@@ -482,7 +486,8 @@ const FoodBooking = () => {
                     setIsSubmitting(false);
                   }
                 );
-              }}
+                })
+              }
               containerStyles="mt-7 w-full px-1 min-h-[62px]"
               isLoading={isSubmitting}
               isDisabled={!isGuestFormValid()}
@@ -584,6 +589,21 @@ const FoodBooking = () => {
         onClose={() => setModalVisible(false)}
         message={modalMessage}
         btnText={'Okay'}
+      />
+
+      <InternationalPaymentWarning
+        visible={showInternationalWarning}
+        country={user.country}
+        onClose={() => {
+          pendingPaymentAction.current = null;
+          setShowInternationalWarning(false);
+        }}
+        onProceed={() => {
+          setShowInternationalWarning(false);
+          const action = pendingPaymentAction.current;
+          pendingPaymentAction.current = null;
+          action?.();
+        }}
       />
     </View>
   );
