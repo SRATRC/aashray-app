@@ -1,667 +1,252 @@
-import { View, Text } from 'react-native';
-import React, { useState, useCallback, useEffect } from 'react';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { useRouter } from 'expo-router';
-import { types, dropdowns, status } from '@/src/constants';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import { useUtsavDate } from '@/src/hooks/useUtsavDate';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import CustomButton from '../CustomButton';
-import CustomCalender from '../CustomCalender';
-import FormField from '../FormField';
-import CustomModal from '../CustomModal';
-import CustomChipGroup from '../CustomChipGroup';
-import OtherMumukshuForm from '../OtherMumukshuForm';
-import FormDisplayField from '../FormDisplayField';
-import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
+import { useFocusEffect } from 'expo-router';
 import moment from 'moment';
+import React, { useCallback, useMemo, useState } from 'react';
+import { View } from 'react-native';
 
-let CHIPS = ['Self', 'Mumukshus'];
+import BookingShell from './shared/BookingShell';
+import FieldGroup from './shared/FieldGroup';
+import PartySection from './shared/PartySection';
+import {
+  applyRoutePairing,
+  describeLegProblem,
+  requiresArrivalTime,
+  requiresSpecialRequest,
+  requiresTotalPeople,
+  type TravelLeg,
+} from './shared/travelRules';
+import useBookingParty from './shared/useBookingParty';
+import useBookingSubmit from './shared/useBookingSubmit';
 
-const INITIAL_MUMUKSHU_FORM = {
-  date: '',
-  mumukshus: [
-    {
-      cardno: '',
-      mobno: '',
-      pickup: '',
-      drop: '',
-      luggage: [],
-      adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
-      type: dropdowns.BOOKING_TYPE_LIST[0].value,
-      total_people: null,
-      special_request: '',
-      arrival_time: '',
-    },
-  ],
+import CustomCalender from '@/src/components/CustomCalender';
+import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
+import FormField from '@/src/components/FormField';
+import { dropdowns, types } from '@/src/constants';
+import { useUtsavDate } from '@/src/hooks/useUtsavDate';
+
+/**
+ * Raj Pravas. One date, then who is travelling, then each person's journey.
+ *
+ * The route rules live in travelRules.ts so the member's own leg and each
+ * mumukshu's leg are judged identically.
+ */
+
+const LEG_DEFAULTS = {
+  pickup: '',
+  drop: '',
+  luggage: [] as any[],
+  adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
+  type: dropdowns.BOOKING_TYPE_LIST[0].value,
+  total_people: null,
+  special_request: '',
+  arrival_time: '',
 };
 
 const TravelBooking = () => {
-  const router = useRouter();
-  const user = useAuthStore((state) => state.user);
-  const updateMumukshuBooking = useBookingStore((state) => state.updateMumukshuBooking);
-  const setMumukshuInfo = useBookingStore((state) => state.setMumukshuInfo);
-  const tabBarPadding = useTabBarPadding();
+  const [resetKey, setResetKey] = useState(0);
+  const { isUtsavDate } = useUtsavDate();
 
-  const otherLocation = dropdowns.LOCATION_LIST.find((loc) => loc.key === 'other');
+  const party = useBookingParty({
+    allow: ['self', 'mumukshu'],
+    mumukshuTemplate: { cardno: '', mobno: '', ...LEG_DEFAULTS },
+    shared: { date: '', ...LEG_DEFAULTS },
+    validateMumukshuRow: (r) => describeLegProblem(r) === undefined,
+  });
 
-  // Helper function to check if pickup or drop location requires arrival time
-  const requiresArrivalTime = (pickup: string, drop: string) => {
-    return (
-      (pickup &&
-        dropdowns.LOCATION_LIST.find(
-          (loc) =>
-            loc.value === pickup &&
-            (loc.key.toLowerCase().includes('railway') || loc.key.toLowerCase().includes('airport'))
-        )) ||
-      (drop &&
-        dropdowns.LOCATION_LIST.find(
-          (loc) =>
-            loc.value === drop &&
-            (loc.key.toLowerCase().includes('railway') || loc.key.toLowerCase().includes('airport'))
-        ))
-    );
-  };
+  const { submit, isSubmitting } = useBookingSubmit();
 
-  if (user.res_status == status.STATUS_GUEST) {
-    CHIPS = ['Self'];
-  }
-
-  useEffect(
+  useFocusEffect(
     useCallback(() => {
-      setIsSubmitting(false);
+      party.reset();
+      setResetKey((k) => k + 1);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
   );
 
-  const [selectedChip, setSelectedChip] = useState('Self');
-  const handleChipClick = (chip: any) => {
-    setSelectedChip(chip);
-  };
+  const { form, audience, user } = party;
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalMessage, setModalMessage] = useState('');
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [activeMumukshuIndex, setActiveMumukshuIndex] = useState(null);
-
-  const [travelForm, setTravelForm] = useState({
-    date: '',
-    pickup: '',
-    drop: '',
-    arrival_time: '',
-    luggage: [],
-    adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
-    type: dropdowns.BOOKING_TYPE_LIST[0].value,
-    total_people: null,
-    special_request: '',
-  });
-
-  const isSelfFormValid = () => {
-    const requiresTime = requiresArrivalTime(travelForm.pickup, travelForm.drop);
-
-    if (travelForm.type == dropdowns.BOOKING_TYPE_LIST[1].value && !travelForm.total_people) {
-      return false;
-    }
-
-    const requiresSpecialRequest =
-      travelForm.pickup === otherLocation?.value || travelForm.drop === otherLocation?.value;
-
-    return (
-      travelForm.date &&
-      travelForm.pickup &&
-      travelForm.drop &&
-      travelForm.luggage.length > 0 &&
-      travelForm.type &&
-      (!requiresTime || (requiresTime && travelForm.arrival_time)) &&
-      (!requiresSpecialRequest ||
-        (requiresSpecialRequest && travelForm.special_request.trim() !== '')) &&
-      !(
-        (travelForm.pickup == dropdowns.LOCATION_LIST[0].value &&
-          travelForm.drop == dropdowns.LOCATION_LIST[0].value) ||
-        (travelForm.pickup != dropdowns.LOCATION_LIST[0].value &&
-          travelForm.drop != dropdowns.LOCATION_LIST[0].value)
-      )
-    );
-  };
-
-  const [mumukshuForm, setMumukshuForm] = useState(INITIAL_MUMUKSHU_FORM);
-
-  const addMumukshuForm = () => {
-    setMumukshuForm((prev) => ({
-      ...prev,
-      mumukshus: [
-        ...prev.mumukshus,
-        {
-          cardno: '',
-          mobno: '',
-          pickup: '',
-          drop: '',
-          luggage: [],
-          adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
-          type: dropdowns.BOOKING_TYPE_LIST[0].value,
-          total_people: null,
-          special_request: '',
-          arrival_time: '',
-        },
-      ],
-    }));
-  };
-
-  const removeMumukshuForm = (indexToRemove: any) => {
-    setMumukshuForm((prev) => ({
-      ...prev,
-      mumukshus: prev.mumukshus.filter((_, index) => index !== indexToRemove),
-    }));
-  };
-
-  const handleMumukshuFormChange = (index: any, key: any, value: any) => {
-    setMumukshuForm((prev) => ({
-      ...prev,
-      mumukshus: prev.mumukshus.map((mumukshu, i) => {
-        if (i !== index) return mumukshu;
-
-        const updated = { ...mumukshu, [key]: value } as any;
-
-        if (key === 'pickup') {
-          if (value == 'Research Centre') {
-            updated.drop = mumukshu.drop === 'Research Centre' ? '' : mumukshu.drop;
-          } else {
-            updated.drop = 'Research Centre';
-          }
-        }
-        if (key === 'drop') {
-          if (value === 'Research Centre') {
-            updated.pickup = mumukshu.pickup === 'Research Centre' ? '' : mumukshu.pickup;
-          } else {
-            updated.pickup = 'Research Centre';
-          }
-        }
-        return updated;
-      }),
-    }));
-  };
-
-  const isMumukshuFormValid = () => {
-    return (
-      mumukshuForm.date &&
-      mumukshuForm.mumukshus.every((mumukshu) => {
-        const requiresTime = requiresArrivalTime(mumukshu.pickup, mumukshu.drop);
-
-        if (mumukshu.type == dropdowns.BOOKING_TYPE_LIST[1].value && !mumukshu.total_people) {
-          return false;
-        }
-
-        const requiresSpecialRequest =
-          mumukshu.pickup === otherLocation?.value || mumukshu.drop === otherLocation?.value;
-
-        return (
-          mumukshu.mobno?.length === 10 &&
-          mumukshu.cardno &&
-          mumukshu.pickup &&
-          mumukshu.drop &&
-          mumukshu.luggage.length > 0 &&
-          mumukshu.type &&
-          (!requiresTime || (requiresTime && mumukshu.arrival_time)) &&
-          (!requiresSpecialRequest ||
-            (requiresSpecialRequest && mumukshu.special_request.trim() !== '')) &&
-          !(
-            (mumukshu.pickup === dropdowns.LOCATION_LIST[0].value &&
-              mumukshu.drop === dropdowns.LOCATION_LIST[0].value) ||
-            (mumukshu.pickup !== dropdowns.LOCATION_LIST[0].value &&
-              mumukshu.drop !== dropdowns.LOCATION_LIST[0].value)
-          )
-        );
-      })
-    );
-  };
-
-  const { isUtsavDate } = useUtsavDate();
-
-  const getLocationOptions = useCallback(
-    (selectedDate: string) => {
-      if (isUtsavDate(selectedDate)) {
-        return dropdowns.EVENT_LOCATION_LIST;
-      }
-      return dropdowns.LOCATION_LIST;
-    },
-    [isUtsavDate]
+  // Utsav days run a different set of pickup points.
+  const locations = useMemo(
+    () => (isUtsavDate(form.date) ? dropdowns.EVENT_LOCATION_LIST : dropdowns.LOCATION_LIST),
+    [isUtsavDate, form.date]
   );
 
-  return (
-    <View className="mt-3 w-full flex-1">
-      <KeyboardAwareScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: 8,
-          paddingBottom: tabBarPadding + 20,
-        }}
-        showsVerticalScrollIndicator={false}
-        alwaysBounceVertical={false}
-        keyboardShouldPersistTaps="handled">
-        <CustomCalender
-          selectedDay={travelForm.date}
-          setSelectedDay={(day: any) => {
-            setTravelForm((prev) => ({ ...prev, date: day }));
-            setMumukshuForm((prev) => ({ ...prev, date: day }));
-          }}
-          minDate={moment(new Date()).format('YYYY-MM-DD')}
-        />
+  const selfProblem = audience === 'self' ? describeLegProblem(form) : undefined;
+  const canContinue = Boolean(form.date) && party.isPartyValid && !selfProblem;
 
-        <View className="mt-7 flex w-full flex-col">
-          <Text className="font-pmedium text-base text-gray-600">Book for</Text>
-          <CustomChipGroup
-            chips={CHIPS}
-            selectedChip={selectedChip}
-            handleChipPress={handleChipClick}
-            containerStyles={'mt-1'}
-            chipContainerStyles={'py-2'}
-            textStyles={'text-sm'}
+  const footerNote = !form.date
+    ? 'Pick the date you are travelling.'
+    : (selfProblem ??
+      (party.isPartyValid ? undefined : 'Complete each traveller’s journey to continue.'));
+
+  /** One person's journey. Used for the member and for each mumukshu. */
+  const legFields = (
+    leg: TravelLeg & Record<string, any>,
+    patch: (changes: Record<string, any>) => void,
+    title?: string
+  ) => {
+    const needsTime = requiresArrivalTime(leg.pickup, leg.drop);
+    const needsPeople = requiresTotalPeople(leg);
+    const needsNote = requiresSpecialRequest(leg);
+
+    return (
+      <View className="mt-4">
+        <FieldGroup title={title}>
+          <CustomSelectBottomSheet
+            variant="row"
+            label="Pickup"
+            options={locations}
+            selectedValue={leg.pickup}
+            saveKeyInsteadOfValue={false}
+            onValueChange={(v: any) => patch(applyRoutePairing(leg, 'pickup', v))}
           />
-        </View>
+          <CustomSelectBottomSheet
+            variant="row"
+            label="Drop"
+            options={locations}
+            selectedValue={leg.drop}
+            saveKeyInsteadOfValue={false}
+            onValueChange={(v: any) => patch(applyRoutePairing(leg, 'drop', v))}
+          />
+          <CustomSelectBottomSheet
+            variant="row"
+            label="Luggage"
+            placeholder="Select"
+            options={dropdowns.LUGGAGE_LIST}
+            selectedValues={leg.luggage}
+            onValuesChange={(v) => patch({ luggage: v })}
+            multiSelect
+            confirmButtonText="Select"
+            saveKeyInsteadOfValue={false}
+          />
+          <CustomSelectBottomSheet
+            variant="row"
+            label="Car type"
+            options={dropdowns.BOOKING_TYPE_LIST}
+            selectedValue={leg.type}
+            saveKeyInsteadOfValue={false}
+            onValueChange={(v: any) =>
+              patch({ type: v, ...(requiresTotalPeople({ type: v }) ? {} : { total_people: null }) })
+            }
+          />
+          <CustomSelectBottomSheet
+            variant="row"
+            label="Leaving after adhyayan?"
+            options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
+            selectedValue={leg.adhyayan}
+            saveKeyInsteadOfValue={false}
+            onValueChange={(v: any) => patch({ adhyayan: v })}
+          />
+        </FieldGroup>
 
-        {selectedChip == CHIPS[0] && (
-          <View>
-            <CustomSelectBottomSheet
-              className="mt-7"
-              label="Booking Type"
-              placeholder="Booking Type"
-              options={dropdowns.BOOKING_TYPE_LIST}
-              selectedValue={travelForm.type}
-              onValueChange={(val: any) => setTravelForm({ ...travelForm, type: val })}
-              saveKeyInsteadOfValue={false}
-            />
-
-            {travelForm.type == dropdowns.BOOKING_TYPE_LIST[1].value && (
+        {needsPeople || needsTime || needsNote ? (
+          <View className="mt-4 gap-y-4">
+            {needsPeople ? (
               <FormField
-                text="Total People"
-                value={travelForm.total_people}
-                handleChangeText={(e: any) => setTravelForm({ ...travelForm, total_people: e })}
-                otherStyles="mt-7"
-                containerStyles="bg-gray-100"
+                text="How many people are travelling?"
+                value={leg.total_people ? String(leg.total_people) : ''}
+                handleChangeText={(v: string) => patch({ total_people: v.replace(/[^0-9]/g, '') })}
+                placeholder="e.g. 4"
                 keyboardType="number-pad"
-                placeholder="please specify total people here..."
-                inputStyles={'font-pmedium text-black text-lg'}
+                maxLength={2}
               />
-            )}
-
-            <CustomSelectBottomSheet
-              className="mt-7"
-              label="Pickup Location"
-              placeholder="Select Pickup Location"
-              options={getLocationOptions(travelForm.date)}
-              selectedValue={travelForm.pickup}
-              onValueChange={(val: any) => {
-                let newDrop = travelForm.drop;
-                if (val === 'Research Centre') {
-                  // If selecting Research Centre as pickup, drop must be something else
-                  newDrop = travelForm.drop === 'Research Centre' ? '' : travelForm.drop;
-                } else {
-                  // If selecting anything else as pickup, drop must be Research Centre
-                  newDrop = 'Research Centre';
-                }
-
-                setTravelForm({
-                  ...travelForm,
-                  pickup: val,
-                  drop: newDrop,
-                  // Clear arrival_time if the new pickup/drop combination doesn't require it
-                  arrival_time: requiresArrivalTime(val, newDrop) ? travelForm.arrival_time : '',
-                });
-              }}
-              saveKeyInsteadOfValue={false}
-            />
-
-            <CustomSelectBottomSheet
-              className="mt-7"
-              label="Drop Location"
-              placeholder="Select Drop Location"
-              options={getLocationOptions(travelForm.date)}
-              selectedValue={travelForm.drop}
-              onValueChange={(val: any) => {
-                let newPickup = travelForm.pickup;
-                if (val === 'Research Centre') {
-                  // If selecting Research Centre as drop, pickup must be something else
-                  newPickup = travelForm.pickup === 'Research Centre' ? '' : travelForm.pickup;
-                } else {
-                  // If selecting anything else as drop, pickup must be Research Centre
-                  newPickup = 'Research Centre';
-                }
-
-                setTravelForm({
-                  ...travelForm,
-                  drop: val,
-                  pickup: newPickup,
-                  // Clear arrival_time if the new pickup/drop combination doesn't require it
-                  arrival_time: requiresArrivalTime(newPickup, val) ? travelForm.arrival_time : '',
-                });
-              }}
-              saveKeyInsteadOfValue={false}
-            />
-
-            {requiresArrivalTime(travelForm.pickup, travelForm.drop) ? (
-              <>
-                <FormDisplayField
-                  text="Flight/Train Time"
-                  value={
-                    travelForm.arrival_time
-                      ? moment(travelForm.arrival_time, 'HH:mm').format('h:mm a')
-                      : ''
-                  }
-                  placeholder="Flight/Train Time"
-                  otherStyles="mt-5"
-                  inputStyles="font-pmedium text-black text-lg"
-                  backgroundColor="bg-gray-100"
-                  onPress={() => setDatePickerVisibility(true)}
-                />
-                <DateTimePickerModal
-                  isVisible={isDatePickerVisible}
-                  mode="time"
-                  date={
-                    travelForm.arrival_time
-                      ? moment(travelForm.arrival_time, 'HH:mm').toDate()
-                      : new Date()
-                  }
-                  onConfirm={(date: Date) => {
-                    const timeOnly = moment(date).format('HH:mm');
-                    setTravelForm((prev) => ({
-                      ...prev,
-                      arrival_time: timeOnly,
-                    }));
-                    setDatePickerVisibility(false);
-                  }}
-                  onCancel={() => setDatePickerVisibility(false)}
-                />
-              </>
             ) : null}
 
-            <CustomSelectBottomSheet
-              className="mt-7"
-              label="Luggage"
-              placeholder="Select any Luggage"
-              options={dropdowns.LUGGAGE_LIST}
-              selectedValues={travelForm.luggage}
-              onValuesChange={(val: any) => setTravelForm({ ...travelForm, luggage: val })}
-              saveKeyInsteadOfValue={false}
-              multiSelect={true}
-              confirmButtonText="Select"
-              maxSelectedDisplay={3}
-            />
-
-            {travelForm.pickup == dropdowns.LOCATION_LIST[0].value && (
-              <CustomSelectBottomSheet
-                className="mt-7"
-                label="Leaving post adhyayan?"
-                placeholder="Leaving post adhyayan?"
-                options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
-                selectedValue={travelForm.adhyayan}
-                onValueChange={(val: any) => setTravelForm({ ...travelForm, adhyayan: val })}
-                saveKeyInsteadOfValue={false}
+            {needsTime ? (
+              <FormField
+                text="Train or flight arrival time"
+                value={leg.arrival_time}
+                handleChangeText={(v: string) => patch({ arrival_time: v })}
+                placeholder="e.g. 14:30"
               />
-            )}
+            ) : null}
 
-            <FormField
-              text="Comments"
-              value={travelForm.special_request}
-              handleChangeText={(e: any) => setTravelForm({ ...travelForm, special_request: e })}
-              otherStyles="mt-7"
-              containerStyles="bg-gray-100"
-              keyboardType="default"
-              inputStyles={'font-pmedium text-black text-lg'}
-              placeholder="Please specify a location if 'Other' is selected, or provide any additional requests here..."
-              multiline={true}
-              numberOfLines={2}
-            />
+            {needsNote ? (
+              <FormField
+                text="Where exactly? *"
+                value={leg.special_request}
+                handleChangeText={(v: string) => patch({ special_request: v })}
+                placeholder="Describe the pickup or drop point"
+                multiline
+                numberOfLines={2}
+              />
+            ) : null}
           </View>
-        )}
+        ) : null}
+      </View>
+    );
+  };
 
-        {selectedChip == CHIPS[1] && (
-          <View>
-            <OtherMumukshuForm
-              mumukshuForm={mumukshuForm}
-              setMumukshuForm={setMumukshuForm}
-              handleMumukshuFormChange={handleMumukshuFormChange}
-              addMumukshuForm={addMumukshuForm}
-              removeMumukshuForm={removeMumukshuForm}>
-              {(index: any) => (
-                <>
-                  <CustomSelectBottomSheet
-                    className="mt-7"
-                    label="Booking Type"
-                    placeholder="Select Booking Type"
-                    options={dropdowns.BOOKING_TYPE_LIST}
-                    selectedValue={mumukshuForm.mumukshus[index].type}
-                    onValueChange={(val: any) => handleMumukshuFormChange(index, 'type', val)}
-                    saveKeyInsteadOfValue={false}
-                  />
+  const handleContinue = () =>
+    submit({
+      bookingType: types.TRAVEL_DETAILS_TYPE,
+      audience,
+      form,
+      buildPayload: (f) => ({
+        date: f.date,
+        mumukshuGroup:
+          audience === 'mumukshu'
+            ? f.mumukshus
+            : [
+                {
+                  cardno: user.cardno,
+                  mobno: user.mobno,
+                  pickup: f.pickup,
+                  drop: f.drop,
+                  luggage: f.luggage,
+                  adhyayan: f.adhyayan,
+                  type: f.type,
+                  total_people: f.total_people,
+                  special_request: f.special_request,
+                  arrival_time: f.arrival_time,
+                },
+              ],
+      }),
+    });
 
-                  {mumukshuForm.mumukshus[index].type == dropdowns.BOOKING_TYPE_LIST[1].value && (
-                    <FormField
-                      text="Total People"
-                      value={mumukshuForm.mumukshus[index].total_people}
-                      handleChangeText={(e: any) =>
-                        handleMumukshuFormChange(index, 'total_people', e)
-                      }
-                      otherStyles="mt-7"
-                      containerStyles="bg-gray-100"
-                      keyboardType="number-pad"
-                      placeholder="please specify total people here..."
-                      inputStyles={'font-pmedium text-black text-lg'}
-                    />
-                  )}
-
-                  <CustomSelectBottomSheet
-                    className="mt-7"
-                    label="Pickup Location"
-                    placeholder="Select Pickup Location"
-                    options={getLocationOptions(mumukshuForm.date)}
-                    selectedValue={mumukshuForm.mumukshus[index].pickup}
-                    onValueChange={(val: any) => {
-                      handleMumukshuFormChange(index, 'pickup', val);
-                      // Clear arrival_time if the new pickup/drop combination doesn't require it
-                      if (!requiresArrivalTime(val, mumukshuForm.mumukshus[index].drop)) {
-                        handleMumukshuFormChange(index, 'arrival_time', '');
-                      }
-                    }}
-                    saveKeyInsteadOfValue={false}
-                  />
-
-                  <CustomSelectBottomSheet
-                    className="mt-7"
-                    label="Drop Location"
-                    placeholder="Select Drop Location"
-                    options={getLocationOptions(mumukshuForm.date)}
-                    selectedValue={mumukshuForm.mumukshus[index].drop}
-                    onValueChange={(val: any) => {
-                      handleMumukshuFormChange(index, 'drop', val);
-                      // Clear arrival_time if the new pickup/drop combination doesn't require it
-                      if (!requiresArrivalTime(mumukshuForm.mumukshus[index].pickup, val)) {
-                        handleMumukshuFormChange(index, 'arrival_time', '');
-                      }
-                    }}
-                    saveKeyInsteadOfValue={false}
-                  />
-
-                  {requiresArrivalTime(
-                    mumukshuForm.mumukshus[index].pickup,
-                    mumukshuForm.mumukshus[index].drop
-                  ) ? (
-                    <>
-                      <FormDisplayField
-                        text="Flight/Train Time"
-                        value={
-                          mumukshuForm.mumukshus[index].arrival_time
-                            ? moment(mumukshuForm.mumukshus[index].arrival_time, 'HH:mm').format(
-                                'h:mm a'
-                              )
-                            : ''
-                        }
-                        placeholder="Flight/Train Time"
-                        otherStyles="mt-5"
-                        inputStyles="font-pmedium text-black text-lg"
-                        backgroundColor="bg-gray-100"
-                        onPress={() => {
-                          setDatePickerVisibility(true);
-                          setActiveMumukshuIndex(index);
-                        }}
-                      />
-                      <DateTimePickerModal
-                        isVisible={isDatePickerVisible && activeMumukshuIndex === index}
-                        mode="time"
-                        date={
-                          mumukshuForm.mumukshus[index].arrival_time
-                            ? moment(mumukshuForm.mumukshus[index].arrival_time, 'HH:mm').toDate()
-                            : new Date()
-                        }
-                        onConfirm={(date: Date) => {
-                          const timeOnly = moment(date).format('HH:mm');
-                          handleMumukshuFormChange(index, 'arrival_time', timeOnly);
-                          setDatePickerVisibility(false);
-                        }}
-                        onCancel={() => setDatePickerVisibility(false)}
-                      />
-                    </>
-                  ) : null}
-
-                  <CustomSelectBottomSheet
-                    className="mt-7"
-                    label="Luggage"
-                    placeholder="Select any luggage"
-                    options={dropdowns.LUGGAGE_LIST}
-                    selectedValues={mumukshuForm.mumukshus[index].luggage}
-                    onValuesChange={(val: any) => handleMumukshuFormChange(index, 'luggage', val)}
-                    saveKeyInsteadOfValue={false}
-                    multiSelect={true}
-                    confirmButtonText="Select"
-                    maxSelectedDisplay={3}
-                  />
-
-                  {mumukshuForm.mumukshus[index].pickup == dropdowns.LOCATION_LIST[0].value && (
-                    <CustomSelectBottomSheet
-                      className="mt-7"
-                      label="Leaving post adhyayan?"
-                      placeholder="Leaving post adhyayan?"
-                      options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
-                      selectedValue={mumukshuForm.mumukshus[index].adhyayan}
-                      onValueChange={(val: any) => handleMumukshuFormChange(index, 'adhyayan', val)}
-                      saveKeyInsteadOfValue={false}
-                    />
-                  )}
-
-                  <FormField
-                    text="Comments"
-                    value={mumukshuForm.mumukshus[index].special_request}
-                    handleChangeText={(e: any) =>
-                      handleMumukshuFormChange(index, 'special_request', e)
-                    }
-                    otherStyles="mt-7"
-                    containerStyles="bg-gray-100"
-                    keyboardType="default"
-                    inputStyles={'font-pmedium text-black text-lg'}
-                    placeholder="Please specify a location if 'Other' is selected, or provide any additional requests here..."
-                    multiline={true}
-                    numberOfLines={2}
-                  />
-                </>
-              )}
-            </OtherMumukshuForm>
-          </View>
-        )}
-        <CustomButton
-          text="Book Now"
-          handlePress={async () => {
-            setIsSubmitting(true);
-            if (selectedChip == CHIPS[0]) {
-              if (!isSelfFormValid()) {
-                setModalVisible(true);
-                setModalMessage('Please fill all fields');
-                setIsSubmitting(false);
-                return;
-              }
-
-              const temp = transformMumukshuData({
-                date: travelForm.date,
-                mumukshus: [
-                  {
-                    cardno: user.cardno,
-                    mobno: user.mobno,
-                    pickup: travelForm.pickup,
-                    drop: travelForm.drop,
-                    luggage: travelForm.luggage,
-                    adhyayan: travelForm.adhyayan,
-                    type: travelForm.type,
-                    total_people: travelForm.total_people,
-                    special_request: travelForm.special_request,
-                    arrival_time: travelForm.arrival_time,
-                  },
-                ],
-              });
-
-              await updateMumukshuBooking('travel', temp);
-              router.push(`/booking/${types.TRAVEL_DETAILS_TYPE}`);
-            }
-            if (selectedChip == CHIPS[1]) {
-              if (!isMumukshuFormValid()) {
-                setModalVisible(true);
-                setModalMessage('Please fill all fields');
-                setIsSubmitting(false);
-                return;
-              }
-              const mumukshuInfoArray = mumukshuForm.mumukshus.map((mumukshu: any) => ({
-                cardno: mumukshu.cardno,
-                name: mumukshu.issuedto,
-              }));
-              setMumukshuInfo(mumukshuInfoArray);
-              const temp = transformMumukshuData(mumukshuForm);
-              await updateMumukshuBooking('travel', temp);
-              router.push(`/mumukshuBooking/${types.TRAVEL_DETAILS_TYPE}`);
-            }
-          }}
-          containerStyles="mt-7 w-full px-1 min-h-[62px]"
-          isLoading={isSubmitting}
-          isDisabled={selectedChip == CHIPS[0] ? !isSelfFormValid() : !isMumukshuFormValid()}
+  return (
+    <BookingShell
+      embedded
+      title={types.booking_type_travel}
+      caption={form.date ? moment(form.date).format('ddd, D MMM YYYY') : 'Choose the date'}
+      primaryLabel="Continue"
+      onPrimary={handleContinue}
+      primaryDisabled={!canContinue}
+      primaryLoading={isSubmitting}
+      footerNote={footerNote}>
+      <View className="px-4">
+        <CustomCalender
+          key={resetKey}
+          selectedDay={form.date}
+          setSelectedDay={(d: any) => party.setSharedField('date', d)}
+          minDate={moment().format('YYYY-MM-DD')}
         />
-      </KeyboardAwareScrollView>
-      <CustomModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        message={modalMessage}
-        btnText={'Okay'}
-      />
-    </View>
+
+        <PartySection
+          className="mt-7"
+          audiences={party.audiences}
+          audience={audience}
+          onAudienceChange={party.setAudience}
+          guestFormProps={party.guestFormProps}
+          mumukshuFormProps={party.mumukshuFormProps}
+          renderMumukshuExtras={(i) =>
+            legFields(form.mumukshus[i] ?? {}, (changes) => {
+              Object.entries(changes).forEach(([k, v]) =>
+                party.mumukshuFormProps.handleMumukshuFormChange(i, k, v)
+              );
+            })
+          }
+        />
+
+        {audience === 'self'
+          ? legFields(
+              form,
+              (changes) => party.setSharedFields(changes),
+              'Your journey'
+            )
+          : null}
+      </View>
+    </BookingShell>
   );
 };
-
-function transformMumukshuData(inputData: any) {
-  const { date, mumukshus } = inputData;
-
-  const groupedMumukshus = mumukshus.reduce((acc: any, mumukshu: any) => {
-    const key = `${mumukshu.pickup}-${mumukshu.drop}-${mumukshu.type}-${mumukshu.total_people || 'none'}`;
-    if (!acc[key]) {
-      acc[key] = {
-        pickup: mumukshu.pickup,
-        drop: mumukshu.drop,
-        type: mumukshu.type,
-        arrival_time: mumukshu.arrival_time,
-        luggage: mumukshu.luggage,
-        adhyayan: mumukshu.adhyayan,
-        special_request: mumukshu.special_request,
-        total_people: mumukshu.total_people,
-        mumukshus: [],
-      };
-    }
-    acc[key].mumukshus.push(mumukshu);
-
-    return acc;
-  }, {});
-
-  const mumukshuGroup = Object.values(groupedMumukshus);
-
-  return {
-    date: date,
-    mumukshuGroup: mumukshuGroup,
-  };
-}
 
 export default TravelBooking;

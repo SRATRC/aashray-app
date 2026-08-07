@@ -25,7 +25,7 @@ import moment from 'moment';
 import { useRouter } from 'expo-router';
 
 const EventBookingCancellation = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -175,7 +175,7 @@ const EventBookingCancellation = () => {
         visibleContent={
           <View className="flex-1 flex-shrink flex-row items-center gap-x-4">
             <Image source={icons.events} className="h-10 w-10 items-center" resizeMode="contain" />
-            <View className="flex-col gap-y-2">
+            <View className="min-w-0 flex-1 flex-col gap-y-2">
               <BookingStatusDisplay
                 bookingStatus={item.status}
                 transactionStatus={item.transaction_status}

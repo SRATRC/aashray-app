@@ -1,19 +1,10 @@
+import { useQuery } from '@tanstack/react-query';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useState, useMemo, useCallback } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { dropdowns, types } from '@/src/constants';
-import { useQuery } from '@tanstack/react-query';
-import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
-import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { ShadowBox } from '@/src/components/ShadowBox';
-import CustomButton from '@/src/components/CustomButton';
-import PageHeader from '@/src/components/PageHeader';
-import RoomBookingDetails from '@/src/components/booking details cards/RoomBookingDetails';
-import TravelBookingDetails from '@/src/components/booking details cards/TravelBookingDetails';
-import AdhyayanBookingDetails from '@/src/components/booking details cards/AdhyayanBookingDetails';
-import EventBookingDetails from '@/src/components/booking details cards/EventBookingDetails';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import RoomAddon from '@/src/components/booking addons/RoomAddon';
 import FoodAddon from '@/src/components/booking addons/FoodAddon';
 import AdhyayanAddon from '@/src/components/booking addons/AdhyayanAddon';
@@ -22,6 +13,16 @@ import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '@/src/components/CustomModal';
 import CustomAlert from '@/src/components/CustomAlert';
 import Callout from '@/src/components/Callout';
+import CustomButton from '@/src/components/CustomButton';
+import PageHeader from '@/src/components/PageHeader';
+import SectionHeader from '@/src/components/booking/shared/SectionHeader';
+import { ShadowBox } from '@/src/components/ShadowBox';
+import BookingSummary from '@/src/components/booking/shared/BookingSummary';
+import StayOutcomeBlock from '@/src/components/stay/StayOutcomeBlock';
+import { useStayOutcome } from '@/src/components/stay/useStayOutcome';
+import { dropdowns, types } from '@/src/constants';
+import { useAuthStore, useBookingStore } from '@/src/stores';
+import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
 
 // Transform simple form to mumukshu format for API compatibility
 const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string) => {
@@ -107,6 +108,20 @@ const BookingDetails = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
+
+  // The verdict for these dates, per person and per segment. Shown here — above
+  // the add-ons — so nobody fills in food and travel only to learn on the
+  // payment screen that their stay is waitlisted.
+  const stayOutcome = useStayOutcome('self');
+  const [extraStayReason, setExtraStayReason] = useState(
+    () => mumukshuData?.room?.extra_stay_reason || mumukshuData?.flat?.extra_stay_reason || ''
+  );
+  const [showReasonError, setShowReasonError] = useState(false);
+
+  const reasonMissing = Boolean(stayOutcome?.requiresExtraStayReason && !extraStayReason.trim());
+  const cannotBookHere = Boolean(
+    stayOutcome?.segments.some((seg) => seg.groups.some((g) => g.verdict === 'unavailable'))
+  );
 
   // Extract initial dates from context data with memoization
   const initialDates = useMemo(() => {
@@ -229,56 +244,42 @@ const BookingDetails = () => {
     staleTime: 1000 * 10,
   });
 
-  const [cleanupTimeoutId, setCleanupTimeoutId] = useState<NodeJS.Timeout | null>(null);
-
   useFocusEffect(
     useCallback(() => {
-      if (user?.cardno) {
-        // Clear any existing timeout
-        if (cleanupTimeoutId) {
-          clearTimeout(cleanupTimeoutId);
+      if (!user?.cardno) return;
+
+      // Runs on entry, not on a timer. The old version deferred this by 100ms
+      // and cancelled a timeout id captured from an earlier render, so the real
+      // timeout outlived the screen and wiped add-ons that Continue had just
+      // written — an add-on chosen on a second visit vanished from the charges.
+      setMumukshuData((prev: any) => {
+        const cleanedData = { ...prev };
+
+        // Drop anything that is not this screen's own booking. Whatever the
+        // member picks here is written back by Continue.
+        if (booking !== types.ROOM_DETAILS_TYPE) {
+          delete cleanedData.room;
+        }
+        if (booking !== types.TRAVEL_DETAILS_TYPE) {
+          delete cleanedData.travel;
+        }
+        if (booking !== types.ADHYAYAN_DETAILS_TYPE) {
+          delete cleanedData.adhyayan;
+        }
+        if (booking !== types.EVENT_DETAILS_TYPE) {
+          delete cleanedData.utsav;
+        }
+        // Food is bookable on its own, so on its own screen it is the booking.
+        if (booking !== types.FOOD_DETAILS_TYPE) {
+          delete cleanedData.food;
         }
 
-        // Debounce the cleanup operation
-        const timeoutId = setTimeout(() => {
-          setMumukshuData((prev: any) => {
-            const cleanedData = { ...prev };
+        return cleanedData;
+      });
 
-            // Remove addon data based on what's NOT the main booking type
-            if (booking !== types.ROOM_DETAILS_TYPE) {
-              delete cleanedData.room;
-            }
-            if (booking !== types.TRAVEL_DETAILS_TYPE) {
-              delete cleanedData.travel;
-            }
-            if (booking !== types.ADHYAYAN_DETAILS_TYPE) {
-              delete cleanedData.adhyayan;
-            }
-            if (booking !== types.EVENT_DETAILS_TYPE) {
-              delete cleanedData.utsav;
-            }
-
-            // Always remove food addon as it's never a main booking type
-            delete cleanedData.food;
-
-            return cleanedData;
-          });
-
-          // Only refetch if not currently validating
-          if (!isValidating) {
-            refetchValidation();
-          }
-        }, 100); // 100ms debounce
-
-        setCleanupTimeoutId(timeoutId);
+      if (!isValidating) {
+        refetchValidation();
       }
-
-      // Cleanup function
-      return () => {
-        if (cleanupTimeoutId) {
-          clearTimeout(cleanupTimeoutId);
-        }
-      };
     }, [user?.cardno, refetchValidation, booking, setMumukshuData, isValidating])
   );
 
@@ -317,8 +318,25 @@ const BookingDetails = () => {
   const handleSubmit = useCallback(async () => {
     if (isSubmitting) return;
 
+    if (cannotBookHere) return;
+    if (reasonMissing) {
+      setShowReasonError(true);
+      return;
+    }
+
     setIsSubmitting(true);
     let hasValidationError = false;
+
+    // Carry the reason forward on the booking itself, so the review screen shows
+    // the same text and the waitlisted booking is submitted with it.
+    if (extraStayReason.trim()) {
+      const reasonText = extraStayReason.trim();
+      setMumukshuData((prev: any) => ({
+        ...prev,
+        ...(prev.room ? { room: { ...prev.room, extra_stay_reason: reasonText } } : {}),
+        ...(prev.flat ? { flat: { ...prev.flat, extra_stay_reason: reasonText } } : {}),
+      }));
+    }
 
     try {
       // Validate forms in batch and transform to mumukshu format when saving
@@ -391,6 +409,9 @@ const BookingDetails = () => {
     setMumukshuData,
     router,
     user,
+    cannotBookHere,
+    reasonMissing,
+    extraStayReason,
   ]);
 
   const handleCloseValidationModal = useCallback(() => {
@@ -398,22 +419,6 @@ const BookingDetails = () => {
     setIsValidating(false);
     router.back();
   }, [router]);
-
-  // Memoized booking details component
-  const BookingDetailsComponent = useMemo(() => {
-    switch (booking) {
-      case types.ROOM_DETAILS_TYPE:
-        return <RoomBookingDetails containerStyles="mt-2" />;
-      case types.ADHYAYAN_DETAILS_TYPE:
-        return <AdhyayanBookingDetails containerStyles="mt-2" />;
-      case types.TRAVEL_DETAILS_TYPE:
-        return <TravelBookingDetails containerStyles="mt-2" />;
-      case types.EVENT_DETAILS_TYPE:
-        return <EventBookingDetails containerStyles="mt-2" />;
-      default:
-        return null;
-    }
-  }, [booking]);
 
   const renderAddons = () => {
     if (isValidating) {
@@ -471,7 +476,7 @@ const BookingDetails = () => {
   };
 
   return (
-    <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
+    <SafeAreaView className="h-full bg-gray-50" edges={['right', 'top', 'left']}>
       <KeyboardAwareScrollView
         bottomOffset={62}
         style={{ flex: 1 }}
@@ -480,36 +485,78 @@ const BookingDetails = () => {
         contentContainerStyle={{ paddingBottom: 20 }}>
         <PageHeader title="Booking Details" />
 
-        {BookingDetailsComponent}
-
-        {booking === types.EVENT_DETAILS_TYPE ? (
-          <Callout
-            variant="warning"
-            message="For Early Arrival or Late Departure during events please book your stay, food and travel through add-ons below."
-            overrideStyle="m-4"
+        {/* One gap between every section. Each block used to carry its own
+            margin, and an empty view stood in for one of them. */}
+        <View className="gap-y-6">
+          {/* Same card component the review screen uses. There is one way to show
+              a booking, so the two screens cannot drift apart. */}
+          <BookingSummary
+            data={mumukshuData}
+            audience="self"
+            validationData={mumukshuData?.validationData}
+            className="px-4"
           />
-        ) : (
-          <View className="mt-4" />
-        )}
 
-        <View className="w-full px-4">
-          <Text className="mb-2 font-psemibold text-xl text-secondary">Add Ons</Text>
-          {renderAddons()}
+          {booking === types.EVENT_DETAILS_TYPE ? (
+            <Callout
+              variant="warning"
+              message="For Early Arrival or Late Departure during events please book your stay, food and travel through add-ons below."
+              overrideStyle="mx-4"
+            />
+          ) : null}
+
+          {stayOutcome && (
+            <View className="w-full px-4">
+              <StayOutcomeBlock
+                outcome={stayOutcome}
+                variant="full"
+                onChangeDates={() => router.back()}
+                reason={extraStayReason}
+                onChangeReason={(text) => {
+                  setExtraStayReason(text);
+                  if (text.trim()) setShowReasonError(false);
+                }}
+                showReasonError={showReasonError}
+              />
+            </View>
+          )}
+
+          <View className="w-full px-4">
+            <SectionHeader
+              title="Add-ons"
+              subtitle="Optional. Anything you add here is booked together with the stay above."
+              className="mb-3"
+            />
+            {renderAddons()}
+          </View>
         </View>
       </KeyboardAwareScrollView>
 
       <ShadowBox className="w-full border-t border-gray-200 bg-white px-4 py-4">
+        {/* A disabled button with no stated cause makes a member tap a dead
+            control. Name the blocker next to it. */}
+        {cannotBookHere && (
+          <Text className="mb-2.5 font-pregular text-xs leading-5 text-gray-600">
+            These dates cannot be booked. Go back and pick different dates.
+          </Text>
+        )}
+        {!cannotBookHere && reasonMissing && (
+          <Text className="mb-2.5 font-pregular text-xs leading-5 text-gray-600">
+            Add a reason for the extra nights above to continue.
+          </Text>
+        )}
         <CustomButton
           text="Continue"
           handlePress={handleSubmit}
           containerStyles="min-h-[52px] mb-8"
           isLoading={isSubmitting}
+          isDisabled={cannotBookHere || reasonMissing}
         />
       </ShadowBox>
 
       {validationDataError && (
         <CustomModal
-          visible={true}
+          visible
           onClose={handleCloseValidationModal}
           message={validationDataError.message}
           btnText="Okay"

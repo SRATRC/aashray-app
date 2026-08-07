@@ -25,7 +25,7 @@ import OldBookingsTrigger from '../OldBookingsTrigger';
 import moment from 'moment';
 
 const AdhyayanBookingCancellation = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -179,7 +179,7 @@ const AdhyayanBookingCancellation = () => {
               className="h-10 w-10 items-center"
               resizeMode="contain"
             />
-            <View className="flex-col gap-y-2">
+            <View className="min-w-0 flex-1 flex-col gap-y-2">
               <BookingStatusDisplay
                 bookingStatus={item.status}
                 transactionStatus={item.transaction_status}

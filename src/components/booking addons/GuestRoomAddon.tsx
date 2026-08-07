@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { useBookingStore } from '@/src/stores';
 import { colors, icons, dropdowns } from '@/src/constants';
 import AddonItem from '../AddonItem';
+import AddonHeader from '../booking/shared/AddonHeader';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -38,7 +39,7 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
 }) => {
   const setGuestData = useBookingStore((store) => store.setGuestData);
 
-  const [tempCheckinDate, setTempCheckinDate] = useState(
+  const [tempCheckinDate, setTempCheckinDate] = useState(() =>
     roomForm.startDay ? moment(roomForm.startDay).toDate() : moment().add(1, 'days').toDate()
   );
 
@@ -75,10 +76,7 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
       }}
       onToggle={onToggle}
       visibleContent={
-        <View className="flex flex-row items-center gap-x-4">
-          <Image source={icons.room} className="h-10 w-10" resizeMode="contain" />
-          <Text className="font-pmedium">Raj Sharan Booking</Text>
-        </View>
+        <AddonHeader icon={icons.room} title="Raj Sharan" subtitle="A room for these dates" />
       }
       containerStyles={'mt-3'}>
       <FormDisplayField
@@ -86,7 +84,6 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
         value={roomForm.startDay ? moment(roomForm.startDay).format('Do MMMM YYYY') : ''}
         placeholder="Checkin Date"
         otherStyles="mt-5"
-        backgroundColor="bg-gray-100"
         onPress={() => setDatePickerVisibility('checkin', true)}
       />
 
@@ -117,7 +114,6 @@ const GuestRoomAddon: React.FC<GuestRoomAddonProps> = ({
         value={roomForm.endDay ? moment(roomForm.endDay).format('Do MMMM YYYY') : ''}
         placeholder="Checkout Date"
         otherStyles="mt-5"
-        backgroundColor="bg-gray-100"
         onPress={() => {
           if (roomForm.startDay) {
             setDatePickerVisibility('checkout', true);

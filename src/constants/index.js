@@ -165,5 +165,6 @@ import types from './types';
 import colors from './colors';
 import status from './status';
 import dropdowns from './dropdowns';
+import surfaces from './surfaces';
 
-export { icons, images, BASE_URL, DEV_URL, types, colors, status, dropdowns, quotes };
+export { icons, images, BASE_URL, DEV_URL, types, colors, status, dropdowns, surfaces, quotes };

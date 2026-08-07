@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { colors, icons, dropdowns } from '@/src/constants';
 import moment from 'moment';
 import AddonItem from '../AddonItem';
+import AddonHeader from '../booking/shared/AddonHeader';
 import HorizontalSeparator from '../HorizontalSeparator';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FormDisplayField from '../FormDisplayField';
@@ -35,7 +36,7 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
   setDatePickerVisibility,
   onToggle,
 }) => {
-  const [tempFoodStartDate, setTempFoodStartDate] = useState(
+  const [tempFoodStartDate, setTempFoodStartDate] = useState(() =>
     foodForm.startDay ? moment(foodForm.startDay).toDate() : moment().add(1, 'days').toDate()
   );
 
@@ -69,10 +70,7 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
       }}
       onToggle={onToggle}
       visibleContent={
-        <View className="flex flex-row items-center gap-x-4">
-          <Image source={icons.food} className="h-10 w-10" resizeMode="contain" />
-          <Text className="font-pmedium">Raj Prasad Booking</Text>
-        </View>
+        <AddonHeader icon={icons.food} title="Raj Prasad" subtitle="Meals during your stay" />
       }
       containerStyles={'mt-3'}>
       <FormDisplayField
@@ -80,7 +78,6 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
         value={foodForm.startDay ? moment(foodForm.startDay).format('Do MMMM YYYY') : ''}
         placeholder="Start Date"
         otherStyles="mt-5"
-        backgroundColor="bg-gray-100"
         onPress={() => setDatePickerVisibility('foodStart', true)}
       />
       <DateTimePickerModal
@@ -111,7 +108,6 @@ const MumukshuFoodAddon: React.FC<MumukshuFoodAddonProps> = ({
         value={foodForm.endDay ? moment(foodForm.endDay).format('Do MMMM YYYY') : ''}
         placeholder="End Date"
         otherStyles="mt-5"
-        backgroundColor="bg-gray-100"
         onPress={() => {
           if (foodForm.startDay) {
             setDatePickerVisibility('foodEnd', true);

@@ -26,7 +26,7 @@ import BookingStatusDisplay from '../BookingStatusDisplay';
 import moment from 'moment';
 
 const TravelBookingCancellation = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -183,7 +183,7 @@ const TravelBookingCancellation = () => {
       visibleContent={
         <View className="flex flex-row items-center gap-x-4">
           <Image source={icons.travel} className="h-10 w-10 items-center" resizeMode="contain" />
-          <View className="flex-col gap-y-2">
+          <View className="min-w-0 flex-1 flex-col gap-y-2">
             <BookingStatusDisplay
               bookingStatus={item.status}
               transactionStatus={item.transaction_status}
@@ -443,7 +443,7 @@ const TravelBookingCancellation = () => {
             </View>
 
             {busDetailsBooking.admin_comments && (
-              <View className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex-col gap-y-1">
+              <View className="bg-gray-50 p-3 rounded-lg border border-gray-200 flex-col gap-y-1">
                 <Text className="font-pregular text-xs text-gray-400">Admin Comments:</Text>
                 <Text className="font-pmedium text-xs text-black">{busDetailsBooking.admin_comments}</Text>
               </View>

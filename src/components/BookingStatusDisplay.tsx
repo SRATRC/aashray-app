@@ -21,6 +21,9 @@ const BookingStatusDisplay: React.FC<BookingStatusDisplayProps> = ({
     bookingStatus === status.STATUS_WAITING &&
     holdReason === status.HOLD_REASON_ROLLING_WINDOW_LIMIT;
 
+  // A waitlist is ONE state with one color, whatever put it there. The reason is
+  // a sentence next to the pill, not a second color — a member cannot be taught
+  // that amber and orange mean two different kinds of waiting.
   const getBookingStatusStyles = (item_status: string) => {
     const isCancelled =
       item_status === status.STATUS_CANCELLED || item_status === status.STATUS_ADMIN_CANCELLED;
@@ -37,13 +40,6 @@ const BookingStatusDisplay: React.FC<BookingStatusDisplayProps> = ({
       return {
         textStyles: 'text-green-200',
         containerStyles: 'bg-green-100',
-      };
-    }
-
-    if (isRollingWindowHold) {
-      return {
-        textStyles: 'text-amber-700',
-        containerStyles: 'bg-amber-100',
       };
     }
 
@@ -119,9 +115,17 @@ const BookingStatusDisplay: React.FC<BookingStatusDisplayProps> = ({
 
   const bookingStyles = getBookingStatusStyles(bookingStatus);
   // Keep the pill to a short status word — never the full sentence. The long
-  // explanation (holdReasonMessage) is surfaced as a dedicated note in the
+  // explanation (hold_reason_message) is surfaced as a dedicated note in the
   // expanded card body so it doesn't wrap/clip inside a status pill.
-  const bookingStatusText = isRollingWindowHold ? 'Awaiting approval' : bookingStatus;
+  //
+  // 'waiting' is a database word. A member reads 'Waitlist'. The 9-night hold
+  // keeps its own wording because that one genuinely waits on a person, not on a
+  // free bed.
+  const bookingStatusText = isRollingWindowHold
+    ? 'Awaiting approval'
+    : bookingStatus === status.STATUS_WAITING
+      ? 'Waitlist'
+      : bookingStatus;
 
   return (
     <View className={`flex flex-row ${containerStyles}`}>

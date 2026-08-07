@@ -1,13 +1,14 @@
-import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, Image, FlatList, ActivityIndicator } from 'react-native';
 import { icons } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore, useBookingStore } from '@/src/stores';
 import AddonItem from '../AddonItem';
+import AddonHeader from '../booking/shared/AddonHeader';
+import CatalogueCard from '../booking/shared/CatalogueCard';
+import { isShibirFull, seatsLeftLabel } from '../booking/shared/catalogueStatus';
 import handleAPICall from '@/src/utils/HandleApiCall';
-import HorizontalSeparator from '../HorizontalSeparator';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import moment from 'moment';
 import * as Haptics from 'expo-haptics';
 
 interface GuestAdhyayanAddonProps {
@@ -59,64 +60,40 @@ const GuestAdhyayanAddon: React.FC<GuestAdhyayanAddonProps> = ({
     staleTime: 1000 * 60 * 30,
   });
 
+  // The same card the main Adhyayan screen uses, so a shibir reads identically
+  // in both places — including whether it is full.
   const renderItem = ({ item }: any) => {
     const isSelected = adhyayanForm.adhyayan?.id == item.id;
 
     return (
-      <View className="mb-2 w-full rounded-2xl bg-gray-50 p-2">
-        <View className="flex flex-row items-center justify-between py-2">
-          <Text className="font-pmedium text-base text-secondary">{`${moment(
-            item.start_date
-          ).format('Do MMMM')} - ${moment(item.end_date).format('Do MMMM, YYYY')}`}</Text>
-        </View>
-        <HorizontalSeparator />
-        <View className="flex flex-row gap-x-2 pb-4 pt-2">
-          <Image source={icons.description} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Name: </Text>
-          <Text className="font-pmedium text-black" numberOfLines={1}>
-            {item.name}
-          </Text>
-        </View>
-        <View className="flex flex-row gap-x-2 pb-4">
-          <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Swadhyay Karta: </Text>
-          <Text className="font-pmedium text-black" numberOfLines={1}>
-            {item.speaker}
-          </Text>
-        </View>
-        <View className="flex flex-row gap-x-2">
-          <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Charges:</Text>
-          <Text className="font-pmedium text-black">₹ {item.amount}</Text>
-        </View>
-        <TouchableOpacity
-          className={`mt-4 w-full items-center justify-center rounded-lg border border-secondary p-2 ${
-            isSelected ? 'bg-secondary' : ''
-          }`}
-          onPress={() => {
-            if (isSelected) {
-              setAdhyayanForm((prev: any) => ({
-                ...prev,
-                adhyayan: null,
-              }));
-              setGuestData((prev: any) => {
-                const { adhyayan, ...rest } = prev;
-                return rest;
-              });
-            } else {
-              setAdhyayanForm((prev: any) => ({
-                ...prev,
-                adhyayan: item,
-              }));
-            }
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          }}>
-          <Text
-            className={`text-md font-pmedium ${isSelected ? 'text-white' : 'text-secondary-100'}`}>
-            {isSelected ? 'Unregister' : 'Register'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <CatalogueCard
+        title={item.name}
+        startDate={item.start_date}
+        endDate={item.end_date}
+        isWaitlist={isShibirFull(item)}
+        note={seatsLeftLabel(item)}
+        selectable
+        selected={isSelected}
+        meta={[
+          { icon: 'person-outline', label: 'Swadhyay Karta', value: item.speaker },
+          ...(item.location
+            ? [{ icon: 'location-outline' as const, label: 'Location', value: item.location }]
+            : []),
+          { icon: 'card-outline', label: 'Charges', value: `₹${item.amount}` },
+        ]}
+        onPress={() => {
+          if (isSelected) {
+            setAdhyayanForm((prev: any) => ({ ...prev, adhyayan: null }));
+            setGuestData((prev: any) => {
+              const { adhyayan, ...rest } = prev;
+              return rest;
+            });
+          } else {
+            setAdhyayanForm((prev: any) => ({ ...prev, adhyayan: item }));
+          }
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }}
+      />
     );
   };
 
@@ -137,10 +114,7 @@ const GuestAdhyayanAddon: React.FC<GuestAdhyayanAddonProps> = ({
         });
       }}
       visibleContent={
-        <View className="flex flex-row items-center gap-x-4">
-          <Image source={icons.adhyayan} className="h-10 w-10" resizeMode="contain" />
-          <Text className="font-pmedium">Raj Adhyayan Booking</Text>
-        </View>
+        <AddonHeader icon={icons.adhyayan} title="Raj Adhyayan" subtitle="Join a shibir" />
       }
       containerStyles={'mt-3'}>
       {(adhyayanList?.length > 0 || isError) && (

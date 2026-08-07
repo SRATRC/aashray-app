@@ -1,83 +1,84 @@
-import React, { useState, useMemo } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { types } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
-import RoomBooking from '@/src/components/booking/RoomBooking';
-import FoodBooking from '@/src/components/booking/FoodBooking';
-import TravelBooking from '@/src/components/booking/TravelBooking';
+
 import AdhyayanBooking from '@/src/components/booking/AdhyayanBooking';
+import BookingTypeTabs from '@/src/components/booking/shared/BookingTypeTabs';
 import EventsBooking from '@/src/components/booking/EventsBooking';
 import FlatBooking from '@/src/components/booking/FlatBooking';
-import CustomChipGroup from '@/src/components/CustomChipGroup';
+import FoodBooking from '@/src/components/booking/FoodBooking';
+import RoomBooking from '@/src/components/booking/RoomBooking';
+import TravelBooking from '@/src/components/booking/TravelBooking';
+import { colors, types } from '@/src/constants';
+import { useAuthStore } from '@/src/stores';
 
-const BookingCategories = () => {
-  const { user } = useAuthStore();
+/**
+ * Picks which booking to start. Each booking type owns its own screen from here
+ * on, inside the shared BookingShell, so this host renders no header, no scroll
+ * container and no action button — that used to be duplicated per type.
+ */
 
-  const availableChips = useMemo(() => {
-    const baseChips = [
+/** Short keys so a deep link or a notification can open one booking type. */
+const TYPE_BY_KEY: Record<string, string> = {
+  adhyayan: types.booking_type_adhyayan,
+  room: types.booking_type_room,
+  food: types.booking_type_food,
+  travel: types.booking_type_travel,
+  utsav: types.booking_type_event,
+  flat: types.booking_type_flat,
+};
+
+const BookNow: React.FC = () => {
+  const user = useAuthStore((s: any) => s.user);
+  const { type } = useLocalSearchParams<{ type?: string }>();
+
+  const tabs = useMemo(() => {
+    const base = [
       types.booking_type_adhyayan,
       types.booking_type_room,
       types.booking_type_food,
       types.booking_type_travel,
       types.booking_type_event,
     ];
-    if (user?.isFlatOwner && !baseChips.includes(types.booking_type_flat)) {
-      return [...baseChips, types.booking_type_flat];
-    }
-    return baseChips;
+    return user?.isFlatOwner ? [...base, types.booking_type_flat] : base;
   }, [user?.isFlatOwner]);
 
-  const [selectedChip, setSelectedChip] = useState(() => {
-    if (availableChips.includes(types.booking_type_adhyayan)) {
-      return types.booking_type_adhyayan;
-    }
-    return availableChips.length > 0 ? availableChips[0] : undefined;
-  });
+  const [active, setActive] = useState<string>(
+    () => TYPE_BY_KEY[String(type ?? '')] ?? types.booking_type_adhyayan
+  );
 
-  const handleChipClick = (chip: any) => {
-    setSelectedChip(chip);
-  };
+  // A later deep link should move the picker even if the tab is already mounted.
+  useEffect(() => {
+    const requested = TYPE_BY_KEY[String(type ?? '')];
+    if (requested && tabs.includes(requested)) setActive(requested);
+  }, [type, tabs]);
 
-  if (selectedChip === undefined) {
+  if (tabs.length === 0) {
     return (
-      <View className="my-6 w-full items-center justify-center px-4">
+      <SafeAreaView className="flex-1 items-center justify-center bg-gray-50" edges={['top']}>
         <Text className="font-psemibold text-lg">No booking categories available.</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View className="w-full flex-1">
-      <View className="w-full px-4">
-        <Text className="mt-6 font-psemibold text-2xl">{`${selectedChip} Booking`}</Text>
-
-        <CustomChipGroup
-          chips={availableChips}
-          selectedChip={selectedChip}
-          handleChipPress={handleChipClick}
-        />
-      </View>
+    <View className="flex-1 bg-gray-50">
+      {/* The type picker rides above the shared shell so switching type feels
+          like changing tabs, not restarting a flow. */}
+      <SafeAreaView edges={['top']} className="bg-gray-50">
+        <BookingTypeTabs types={tabs} selected={active} onSelect={setActive} />
+      </SafeAreaView>
 
       <View className="flex-1">
-        {selectedChip === types.booking_type_room && <RoomBooking />}
-        {selectedChip === types.booking_type_flat && <FlatBooking />}
-        {selectedChip === types.booking_type_food && <FoodBooking />}
-        {selectedChip === types.booking_type_travel && <TravelBooking />}
-        {selectedChip === types.booking_type_adhyayan && <AdhyayanBooking />}
-        {selectedChip === types.booking_type_event && <EventsBooking />}
+        {active === types.booking_type_room ? <RoomBooking /> : null}
+        {active === types.booking_type_flat ? <FlatBooking /> : null}
+        {active === types.booking_type_food ? <FoodBooking /> : null}
+        {active === types.booking_type_travel ? <TravelBooking /> : null}
+        {active === types.booking_type_adhyayan ? <AdhyayanBooking /> : null}
+        {active === types.booking_type_event ? <EventsBooking /> : null}
       </View>
     </View>
-  );
-};
-
-const BookNow: React.FC = () => {
-  return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-      <View className="flex-1">
-        <BookingCategories />
-      </View>
-    </SafeAreaView>
   );
 };
 

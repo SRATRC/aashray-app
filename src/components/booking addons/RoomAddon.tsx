@@ -3,6 +3,7 @@ import { View, Text, Image } from 'react-native';
 import { icons, dropdowns } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
 import AddonItem from '../AddonItem';
+import AddonHeader from '../booking/shared/AddonHeader';
 import FormDisplayField from '../FormDisplayField';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -29,7 +30,7 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
   const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
   // Temporary state to hold the date for the checkin picker
-  const [tempCheckinDate, setTempCheckinDate] = useState(
+  const [tempCheckinDate, setTempCheckinDate] = useState(() =>
     roomForm.startDay ? moment(roomForm.startDay).toDate() : moment().add(1, 'days').toDate()
   );
 
@@ -58,10 +59,7 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
         });
       }}
       visibleContent={
-        <View className="flex flex-row items-center gap-x-4">
-          <Image source={icons.room} className="h-10 w-10" resizeMode="contain" />
-          <Text className="font-pmedium">Raj Sharan Booking</Text>
-        </View>
+        <AddonHeader icon={icons.room} title="Raj Sharan" subtitle="A room for these dates" />
       }
       containerStyles={'mt-3'}>
       <FormDisplayField
@@ -69,7 +67,6 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
         value={roomForm.startDay ? moment(roomForm.startDay).format('Do MMMM YYYY') : ''}
         placeholder="Checkin Date"
         otherStyles="mt-5"
-        backgroundColor="bg-gray-100"
         onPress={() => setDatePickerVisibility('checkin', true)}
       />
 
@@ -100,7 +97,6 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
         value={roomForm.endDay ? moment(roomForm.endDay).format('Do MMMM YYYY') : ''}
         placeholder="Checkout Date"
         otherStyles="mt-5"
-        backgroundColor="bg-gray-100"
         onPress={() => {
           if (roomForm.startDay) {
             setDatePickerVisibility('checkout', true);

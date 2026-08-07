@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { types } from '@/src/constants';
 import { useQueryClient } from '@tanstack/react-query';
@@ -8,7 +8,7 @@ import FoodBookingCancellation from '@/src/components/cancel booking/FoodBooking
 import TravelBookingCancellation from '@/src/components/cancel booking/TravelBookingCancellation';
 import AdhyayanBookingCancellation from '@/src/components/cancel booking/AdhyayanBookingCancellation';
 import EventBookingCancellation from '@/src/components/cancel booking/EventBookingCancellation';
-import CustomChipGroup from '@/src/components/CustomChipGroup';
+import BookingTypeTabs from '@/src/components/booking/shared/BookingTypeTabs';
 
 const BookingCategories = () => {
   const queryClient = useQueryClient();
@@ -58,15 +58,7 @@ const BookingCategories = () => {
 
   return (
     <View className="w-full flex-1">
-      <View className="w-full px-4">
-        <Text className="mt-6 font-psemibold text-2xl">{`${selectedChip} Booking`}</Text>
-
-        <CustomChipGroup
-          chips={CHIPS}
-          selectedChip={selectedChip}
-          handleChipPress={handleChipClick}
-        />
-      </View>
+      <BookingTypeTabs types={CHIPS} selected={selectedChip} onSelect={setSelectedChip} />
 
       {selectedChip === types.booking_type_room && <RoomBookingCancellation />}
       {selectedChip === types.booking_type_food && <FoodBookingCancellation />}
@@ -79,7 +71,7 @@ const BookingCategories = () => {
 
 const Bookings: React.FC = () => {
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
       <View className="flex-1">
         <BookingCategories />
       </View>
