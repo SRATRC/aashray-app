@@ -22,10 +22,10 @@ export default {
     name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
-    version: '1.1.53',
+    version: '1.1.56',
     orientation: 'portrait',
     icon: './src/assets/images/icon.png',
-    userInterfaceStyle: 'automatic',
+    userInterfaceStyle: 'light',
     assetBundlePatterns: ['**/*'],
     updates: {
       enabled: true,
@@ -178,10 +178,6 @@ export default {
         {
           backgroundColor: '#ffffff',
           image: './src/assets/images/logo.png',
-          dark: {
-            image: './src/assets/images/logo.png',
-            backgroundColor: '#000000',
-          },
           imageWidth: 200,
         },
       ],
@@ -206,9 +202,9 @@ export default {
       },
     },
     owner: 'vitraagvigyaan',
-  },
-  experiments: {
-    buildCacheProvider: 'eas',
-    reactCompiler: true,
+    experiments: {
+      buildCacheProvider: 'eas',
+      reactCompiler: true,
+    },
   },
 };
