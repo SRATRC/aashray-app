@@ -4,15 +4,14 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  Platform,
   RefreshControl,
   Animated,
   Modal,
-  KeyboardAvoidingView,
   Image,
   Share,
 } from 'react-native';
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import { KeyboardAvoidingView, KeyboardProvider } from 'react-native-keyboard-controller';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { icons, status, types } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
@@ -28,7 +27,8 @@ import OtherMumukshuForm from '@/src/components/OtherMumukshuForm';
 import HorizontalSeparator from '@/src/components/HorizontalSeparator';
 import CustomAlert from '@/src/components/CustomAlert';
 
-let CHIPS = ['Self', 'Guest', 'Mumukshus'];
+const ALL_CHIPS = ['Self', 'Guest', 'Mumukshus'];
+const GUEST_CHIPS = ['Self'];
 
 const INITIAL_GUEST_FORM = {
   adhyayan: null,
@@ -76,8 +76,8 @@ const AdhyayanDetails = () => {
   const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
 
   const insets = useSafeAreaInsets();
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scrollY = useState(() => new Animated.Value(0))[0];
+  const fadeAnim = useState(() => new Animated.Value(0))[0];
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -86,12 +86,9 @@ const AdhyayanDetails = () => {
   const [guestForm, setGuestForm] = useState(INITIAL_GUEST_FORM);
   const [mumukshuForm, setMumukshuForm] = useState(INITIAL_MUMUKSHU_FORM);
 
-  if (user?.res_status == status.STATUS_GUEST) {
-    CHIPS = ['Self'];
-  }
+  const CHIPS = user?.res_status == status.STATUS_GUEST ? GUEST_CHIPS : ALL_CHIPS;
 
-  // Reset isSubmitting state on component mount
-  useEffect(
+  useFocusEffect(
     useCallback(() => {
       setIsSubmitting(false);
     }, [])
@@ -166,10 +163,10 @@ const AdhyayanDetails = () => {
   };
 
   const handleGuestFormChange = (index: any, field: any, value: any) => {
-    const updatedForms = guestForm.guests.map((guest, i) =>
-      i === index ? { ...guest, [field]: value } : guest
-    );
-    setGuestForm((prev) => ({ ...prev, guests: updatedForms }));
+    setGuestForm((prev) => ({
+      ...prev,
+      guests: prev.guests.map((guest, i) => (i === index ? { ...guest, [field]: value } : guest)),
+    }));
   };
 
   const removeGuestForm = (indexToRemove: any) => {
@@ -392,22 +389,31 @@ const AdhyayanDetails = () => {
     };
   };
 
-  // Header text animations
-  const headerTextOpacity = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [0, 1],
-    extrapolate: 'clamp',
-  });
+  // Header text animations. Memoised so typing in the booking form does not
+  // allocate new interpolation nodes and re-attach the header's driver.
+  const headerTextOpacity = useMemo(
+    () =>
+      scrollY.interpolate({
+        inputRange: [0, 100],
+        outputRange: [0, 1],
+        extrapolate: 'clamp',
+      }),
+    [scrollY]
+  );
 
-  const headerTextTranslateY = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [20, 0],
-    extrapolate: 'clamp',
-  });
+  const headerTextTranslateY = useMemo(
+    () =>
+      scrollY.interpolate({
+        inputRange: [0, 100],
+        outputRange: [20, 0],
+        extrapolate: 'clamp',
+      }),
+    [scrollY]
+  );
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-white">
+      <View className="flex-1 bg-gray-50">
         <View
           className="bg-white"
           style={{
@@ -449,7 +455,7 @@ const AdhyayanDetails = () => {
 
   if (isError || !adhyayan) {
     return (
-      <View className="flex-1 bg-white">
+      <View className="flex-1 bg-gray-50">
         <View
           className="bg-white"
           style={{
@@ -493,7 +499,7 @@ const AdhyayanDetails = () => {
   const availabilityInfo = getAvailabilityInfo();
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-gray-50">
       {/* Single Sticky Header */}
       <View
         className="bg-white"
@@ -555,7 +561,7 @@ const AdhyayanDetails = () => {
 
       <Animated.ScrollView
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
-          useNativeDriver: false,
+          useNativeDriver: true,
         })}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
@@ -845,102 +851,106 @@ const AdhyayanDetails = () => {
         transparent={true}
         statusBarTranslucent={true}
         onRequestClose={toggleModal}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1 }}>
-          <View className="flex-1 items-center justify-center bg-black/50">
-            <View className="max-h-[80%] w-[90%] max-w-[400px] rounded-lg bg-white p-5">
-              <View className="mb-2 flex-row justify-between">
-                <View className="flex-1 flex-col gap-y-1 pr-2">
-                  <Text
-                    className="font-pmedium text-sm text-black"
-                    numberOfLines={2}
-                    ellipsizeMode="tail">
-                    {adhyayan?.name}
-                  </Text>
-                  <View className="flex-row gap-x-1">
-                    <Text className="font-pregular text-xs text-gray-500">Date:</Text>
-                    <Text className="font-pregular text-xs text-secondary">
-                      {moment(adhyayan?.start_date).format('Do MMMM')} -{' '}
-                      {moment(adhyayan?.end_date).format('Do MMMM')}
+        {/* A Modal is its own native window, so keyboard-controller needs a
+            provider here to measure insets correctly. RN's own
+            KeyboardAvoidingView reads the wrong frame in this position and
+            oscillates the container height, which drops input focus. */}
+        <KeyboardProvider>
+          <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+            <View className="flex-1 items-center justify-center bg-black/50">
+              <View className="max-h-[80%] w-[90%] max-w-[400px] rounded-lg bg-white p-5">
+                <View className="mb-2 flex-row justify-between">
+                  <View className="flex-1 flex-col gap-y-1 pr-2">
+                    <Text
+                      className="font-pmedium text-sm text-black"
+                      numberOfLines={2}
+                      ellipsizeMode="tail">
+                      {adhyayan?.name}
                     </Text>
+                    <View className="flex-row gap-x-1">
+                      <Text className="font-pregular text-xs text-gray-500">Date:</Text>
+                      <Text className="font-pregular text-xs text-secondary">
+                        {moment(adhyayan?.start_date).format('Do MMMM')} -{' '}
+                        {moment(adhyayan?.end_date).format('Do MMMM')}
+                      </Text>
+                    </View>
                   </View>
+                  <TouchableOpacity onPress={toggleModal}>
+                    <Image
+                      source={icons.remove}
+                      tintColor={'black'}
+                      className="h-4 w-4"
+                      resizeMode="contain"
+                    />
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity onPress={toggleModal}>
-                  <Image
-                    source={icons.remove}
-                    tintColor={'black'}
-                    className="h-4 w-4"
-                    resizeMode="contain"
+
+                <HorizontalSeparator otherStyles={'w-full'} />
+
+                <ScrollView
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ flexGrow: 1 }}>
+                  {/* Book For Section */}
+                  <View className="mt-2 flex-col">
+                    <Text className="font-pregular text-base text-black">Book For</Text>
+                    <CustomChipGroup
+                      chips={CHIPS}
+                      selectedChip={selectedChip}
+                      handleChipPress={handleChipClick}
+                      containerStyles={'mt-1'}
+                      chipContainerStyles={'py-1'}
+                      textStyles={'text-sm'}
+                    />
+                  </View>
+
+                  {/* Guest Form Section */}
+                  {selectedChip === CHIPS[1] && (
+                    <View>
+                      <GuestForm
+                        guestForm={guestForm}
+                        setGuestForm={setGuestForm}
+                        handleGuestFormChange={handleGuestFormChange}
+                        addGuestForm={addGuestForm}
+                        removeGuestForm={removeGuestForm}
+                      />
+                    </View>
+                  )}
+
+                  {/* Mumukshu Form Section */}
+                  {selectedChip === CHIPS[2] && (
+                    <View>
+                      <OtherMumukshuForm
+                        mumukshuForm={mumukshuForm}
+                        setMumukshuForm={setMumukshuForm}
+                        handleMumukshuFormChange={handleMumukshuFormChange}
+                        addMumukshuForm={addMumukshuForm}
+                        removeMumukshuForm={removeMumukshuForm}
+                      />
+                    </View>
+                  )}
+
+                  {/* Confirm Button Section */}
+                  <CustomButton
+                    handlePress={handleBookingConfirm}
+                    text={'Confirm'}
+                    bgcolor="bg-secondary"
+                    containerStyles="mt-4 p-2"
+                    textStyles={'text-sm text-white'}
+                    isDisabled={
+                      selectedChip === CHIPS[1]
+                        ? !isGuestFormValid()
+                        : selectedChip === CHIPS[2]
+                          ? !isMumukshuFormValid()
+                          : false
+                    }
+                    isLoading={isSubmitting}
                   />
-                </TouchableOpacity>
+                </ScrollView>
               </View>
-
-              <HorizontalSeparator otherStyles={'w-full'} />
-
-              <ScrollView
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ flexGrow: 1 }}>
-                {/* Book For Section */}
-                <View className="mt-2 flex-col">
-                  <Text className="font-pregular text-base text-black">Book For</Text>
-                  <CustomChipGroup
-                    chips={CHIPS}
-                    selectedChip={selectedChip}
-                    handleChipPress={handleChipClick}
-                    containerStyles={'mt-1'}
-                    chipContainerStyles={'py-1'}
-                    textStyles={'text-sm'}
-                  />
-                </View>
-
-                {/* Guest Form Section */}
-                {selectedChip === CHIPS[1] && (
-                  <View>
-                    <GuestForm
-                      guestForm={guestForm}
-                      setGuestForm={setGuestForm}
-                      handleGuestFormChange={handleGuestFormChange}
-                      addGuestForm={addGuestForm}
-                      removeGuestForm={removeGuestForm}
-                    />
-                  </View>
-                )}
-
-                {/* Mumukshu Form Section */}
-                {selectedChip === CHIPS[2] && (
-                  <View>
-                    <OtherMumukshuForm
-                      mumukshuForm={mumukshuForm}
-                      setMumukshuForm={setMumukshuForm}
-                      handleMumukshuFormChange={handleMumukshuFormChange}
-                      addMumukshuForm={addMumukshuForm}
-                      removeMumukshuForm={removeMumukshuForm}
-                    />
-                  </View>
-                )}
-
-                {/* Confirm Button Section */}
-                <CustomButton
-                  handlePress={handleBookingConfirm}
-                  text={'Confirm'}
-                  bgcolor="bg-secondary"
-                  containerStyles="mt-4 p-2"
-                  textStyles={'text-sm text-white'}
-                  isDisabled={
-                    selectedChip === CHIPS[1]
-                      ? !isGuestFormValid()
-                      : selectedChip === CHIPS[2]
-                        ? !isMumukshuFormValid()
-                        : false
-                  }
-                  isLoading={isSubmitting}
-                />
-              </ScrollView>
             </View>
-          </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </KeyboardProvider>
       </Modal>
     </View>
   );

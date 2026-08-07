@@ -1,3 +1,5 @@
+import { Ionicons, AntDesign } from '@expo/vector-icons';
+import { FlashList } from '@shopify/flash-list';
 import React, {
   useState,
   useRef,
@@ -15,24 +17,23 @@ import {
   Modal,
   Animated,
   Dimensions,
+  Easing,
   Pressable,
   ScrollView,
   ActivityIndicator,
   TextInput,
   Platform,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
 import {
   KeyboardProvider,
   KeyboardAvoidingView,
   KeyboardController,
   useKeyboardAnimation,
-  useKeyboardController,
 } from 'react-native-keyboard-controller';
+
 import { colors } from '../constants';
-import { Ionicons, AntDesign } from '@expo/vector-icons';
+
 // @ts-ignore
-import debounce from 'lodash/debounce';
 
 // Define types
 interface Option {
@@ -52,9 +53,9 @@ interface SearchInputComponentProps {
 interface CustomSelectBottomSheetProps {
   options: Option[] | null | undefined;
   selectedValue?: string | number | null;
-  selectedValues?: Array<string | number>;
+  selectedValues?: (string | number)[];
   onValueChange?: (value: string | number) => void;
-  onValuesChange?: (values: Array<string | number>) => void;
+  onValuesChange?: (values: (string | number)[]) => void;
   placeholder?: string;
   label?: string;
   multiSelect?: boolean;
@@ -69,6 +70,13 @@ interface CustomSelectBottomSheetProps {
   searchable?: boolean;
   searchPlaceholder?: string;
   noResultsText?: string;
+  /**
+   * 'box'  — legacy: label above a full-width 60px control. Kept so existing
+   *          callers are untouched.
+   * 'row'  — native grouped-list row: label left, value + chevron right, made
+   *          to sit inside a FieldGroup. Use this for booking inputs.
+   */
+  variant?: 'box' | 'row';
 }
 
 // Optimized item component with improved memo implementation
@@ -200,6 +208,30 @@ export interface CustomSelectBottomSheetRef {
   close: () => void;
 }
 
+type Debounced<T extends (...args: any[]) => void> = ((...args: Parameters<T>) => void) & {
+  cancel: () => void;
+};
+
+function debounce<T extends (...args: any[]) => void>(fn: T, wait: number): Debounced<T> {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const wrapped = (...args: Parameters<T>) => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = null;
+      fn(...args);
+    }, wait);
+  };
+  wrapped.cancel = () => {
+    if (timer) clearTimeout(timer);
+    timer = null;
+  };
+  return wrapped as Debounced<T>;
+}
+
+// A fresh [] default would be a new identity every render, invalidating the
+// useCallback deps below for every single-select usage.
+const EMPTY_SELECTED_VALUES: (string | number)[] = [];
+
 const CustomSelectBottomSheet = forwardRef<
   CustomSelectBottomSheetRef,
   CustomSelectBottomSheetProps
@@ -208,7 +240,7 @@ const CustomSelectBottomSheet = forwardRef<
     {
       options,
       selectedValue,
-      selectedValues = [],
+      selectedValues = EMPTY_SELECTED_VALUES,
       onValueChange,
       onValuesChange,
       placeholder = 'Select an option',
@@ -225,21 +257,27 @@ const CustomSelectBottomSheet = forwardRef<
       searchable = false,
       searchPlaceholder = 'Search...',
       noResultsText = 'No matching options found',
+      variant = 'box',
     },
     ref
   ) => {
     const [modalVisible, setModalVisible] = useState<boolean>(false);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [filteredOptions, setFilteredOptions] = useState<Option[]>([]);
-    const [tempSelectedValues, setTempSelectedValues] = useState<Array<string | number>>([]);
+    const [tempSelectedValues, setTempSelectedValues] = useState<(string | number)[]>([]);
     const [isSearching, setIsSearching] = useState<boolean>(false);
     const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
-    const slideAnim = useRef(new Animated.Value(height)).current;
+    // 0 hidden, 1 shown. The old value animated from the full screen height, so
+    // the sheet travelled ~870pt in 300ms while being off screen for most of it:
+    // nothing happened, then it snapped. It now travels its own height.
+    const slideAnim = useState(() => new Animated.Value(0))[0];
+    const [sheetHeight, setSheetHeight] = useState(height * 0.5);
     const searchInputRef = useRef<TextInput | null>(null);
     const flashListRef = useRef(null);
 
-    // Use keyboard controller hooks
-    const { setEnabled } = useKeyboardController();
+    // No setEnabled here. It toggles the ROOT KeyboardProvider's context, which
+    // re-renders every screen in the app — twice per open/close. The modal has
+    // its own KeyboardProvider below, so the root one needs no disabling.
     const { height: keyboardHeight, progress } = useKeyboardAnimation();
 
     // Track keyboard visibility
@@ -391,31 +429,36 @@ const CustomSelectBottomSheet = forwardRef<
         setSearchQuery('');
         setFilteredOptions(options || []);
 
-        setEnabled(false);
-
         setModalVisible(true);
         if (multiSelect) setTempSelectedValues([...selectedValues]);
-
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }).start();
       }
-    }, [options, isLoading, multiSelect, selectedValues, slideAnim, setEnabled]);
+    }, [options, isLoading, multiSelect, selectedValues]);
+
+    // Started from the modal's onShow, not from the tap. Starting it in the same
+    // tick ran the clock while the modal and its list were still mounting, so
+    // the first frames were dropped before anything appeared.
+    const runOpenAnimation = useCallback(() => {
+      slideAnim.setValue(0);
+      Animated.timing(slideAnim, {
+        toValue: 1,
+        duration: 260,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    }, [slideAnim]);
 
     const closeBottomSheet = useCallback(() => {
       // Use keyboard controller's static dismiss method
       KeyboardController.dismiss();
       Animated.timing(slideAnim, {
-        toValue: height,
-        duration: 300,
+        toValue: 0,
+        duration: 200,
+        easing: Easing.in(Easing.cubic),
         useNativeDriver: true,
       }).start(() => {
         setModalVisible(false);
-        setEnabled(true);
       });
-    }, [slideAnim, height, setEnabled]);
+    }, [slideAnim]);
 
     useImperativeHandle(ref, () => ({
       open: openBottomSheet,
@@ -636,12 +679,212 @@ const CustomSelectBottomSheet = forwardRef<
     // Use keyExtractor for optimized list rendering
     const keyExtractor = useCallback((item: Option) => item.key.toString(), []);
 
+    const renderSheet = () => (
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="none"
+        statusBarTranslucent
+        onShow={runOpenAnimation}
+        onRequestClose={closeBottomSheet}>
+        <KeyboardProvider>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ flex: 1 }}>
+            <View className="flex-1 justify-end">
+              <Animated.View
+                className="absolute inset-0 bg-black/50"
+                style={{ opacity: slideAnim }}
+              />
+              <Pressable
+                onPress={closeBottomSheet}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+              />
+              <Animated.View
+                className="overflow-hidden rounded-t-3xl bg-white"
+                onLayout={(e) => {
+                  const h = e.nativeEvent.layout.height;
+                  if (h > 0 && Math.abs(h - sheetHeight) > 1) setSheetHeight(h);
+                }}
+                style={[
+                  {
+                    transform: [
+                      {
+                        translateY: slideAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [sheetHeight, 0],
+                        }),
+                      },
+                    ],
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: -3 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 5,
+                    elevation: 10,
+                  },
+                  // Apply keyboard offset as a separate style
+                  isKeyboardVisible && {
+                    marginBottom: 20, // Static margin when keyboard is visible
+                  },
+                ]}>
+                {/* Pull indicator */}
+                <View className="items-center pb-3 pt-2">
+                  <View className="h-1.5 w-16 rounded-full bg-gray-300" />
+                </View>
+
+                {/* Header */}
+                <View className="flex-row items-center justify-between border-b border-gray-200 px-4 pb-4">
+                  <Text
+                    style={{
+                      fontSize: 18,
+                      fontFamily: 'Poppins-SemiBold',
+                      color: colors.black_100,
+                    }}>
+                    {label || (multiSelect ? 'Select options' : 'Select an option')}
+                  </Text>
+                  <TouchableOpacity
+                    className="h-8 w-8 items-center justify-center rounded-full bg-gray-100"
+                    onPress={closeBottomSheet}
+                    hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+                    <AntDesign name="close" size={18} color={colors.gray_400} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Selected chips for multi-select */}
+                {SelectedChips}
+
+                {/* Search bar */}
+                {searchable && (
+                  <View className="border-t border-gray-200 px-4 py-3">
+                    <SearchInputComponent
+                      inputRef={searchInputRef}
+                      value={searchQuery}
+                      onChangeText={handleSearchChange}
+                      placeholder={searchPlaceholder}
+                      placeholderTextColor={colors.gray_400}
+                    />
+                  </View>
+                )}
+
+                {/* Loading indicator or empty state */}
+                {EmptyContent}
+
+                {/* Options list - Only show if we have options and are not loading */}
+                {!isLoading &&
+                  !isSearching &&
+                  options &&
+                  options.length > 0 &&
+                  filteredOptions.length > 0 && (
+                    <View
+                      style={{
+                        height: isKeyboardVisible
+                          ? Math.min(height * 0.25, filteredOptions.length * 60)
+                          : Math.min(height * 0.4, filteredOptions.length * 60),
+                      }}>
+                      <FlashList
+                        ref={flashListRef}
+                        data={filteredOptions}
+                        renderItem={renderItem}
+                        keyExtractor={keyExtractor}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{
+                          paddingHorizontal: 8,
+                          paddingVertical: 8,
+                        }}
+                        keyboardShouldPersistTaps="handled"
+                        keyboardDismissMode="on-drag"
+                        // No initialScrollIndex: aligning item 0 to the top of
+                        // the viewport scrolls past the content padding, so the
+                        // first option opens flush against the header.
+                        onEndReachedThreshold={0.5}
+                        removeClippedSubviews
+                        extraData={[tempSelectedValues, selectedValue]} // Add this to ensure list updates when selection changes
+                      />
+                    </View>
+                  )}
+
+                {/* Confirm button for multi-select - Only show if not loading and have options */}
+                {multiSelect && !isLoading && options && options.length > 0 && (
+                  <View className="border-t border-gray-200 px-4 py-3">
+                    <TouchableOpacity
+                      style={{
+                        backgroundColor: colors.orange,
+                        borderRadius: 12,
+                        padding: 12,
+                        alignItems: 'center',
+                      }}
+                      onPress={confirmMultiSelection}
+                      activeOpacity={0.8}>
+                      <Text
+                        style={{
+                          fontFamily: 'Poppins-Medium',
+                          fontSize: 16,
+                          color: 'white',
+                        }}>
+                        {confirmButtonText} ({tempSelectedValues.length})
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* Safe area padding at bottom */}
+                <View className="h-8" />
+              </Animated.View>
+            </View>
+          </KeyboardAvoidingView>
+        </KeyboardProvider>
+      </Modal>
+    );
+
+    // Native grouped-list row. Same sheet, phone-shaped trigger.
+    if (variant === 'row') {
+      const empty = multiSelect ? selectedValues.length === 0 : !isValueSelected(selectedValue);
+      return (
+        <View className={className} style={style}>
+          <TouchableOpacity
+            className="min-h-[52px] flex-row items-center justify-between gap-x-3 px-4 py-3"
+            onPress={openBottomSheet}
+            activeOpacity={0.6}
+            disabled={!isLoading && (!options || options.length === 0)}
+            style={{
+              opacity: !isLoading && (!options || options.length === 0) ? 0.5 : 1,
+            }}>
+            <Text className="font-pregular text-base text-gray-700">{label}</Text>
+            <View className="flex-1 flex-row items-center justify-end gap-x-2">
+              {isLoading ? (
+                <ActivityIndicator size="small" color={colors.gray_400} />
+              ) : (
+                <Text
+                  className="font-pmedium text-base"
+                  numberOfLines={1}
+                  style={{
+                    color: hasInvalidSelection()
+                      ? '#EF4444'
+                      : empty
+                        ? colors.gray_400
+                        : colors.gray_900,
+                  }}>
+                  {getDisplayText()}
+                </Text>
+              )}
+              <AntDesign
+                name="right"
+                size={13}
+                color={hasInvalidSelection() ? '#EF4444' : colors.gray_400}
+              />
+            </View>
+          </TouchableOpacity>
+          {renderSheet()}
+        </View>
+      );
+    }
+
     return (
       <View className={`w-full ${className}`} style={style}>
         {label && <Text className="font-pmedium text-base text-gray-600">{label}</Text>}
 
         <TouchableOpacity
-          className="flex-row items-center justify-between rounded-xl bg-gray-100 p-4"
+          className="flex-row items-center justify-between rounded-2xl border-2 border-gray-200 bg-white p-4"
           onPress={openBottomSheet}
           activeOpacity={0.7}
           disabled={!isLoading && (!options || options.length === 0)}
@@ -661,7 +904,7 @@ const CustomSelectBottomSheet = forwardRef<
               />
             )}
             <Text
-              className={`flex-1 font-pmedium text-base`}
+              className="flex-1 font-pmedium text-base"
               style={{
                 color: hasInvalidSelection()
                   ? '#EF4444'
@@ -685,142 +928,7 @@ const CustomSelectBottomSheet = forwardRef<
           )}
         </TouchableOpacity>
 
-        <Modal
-          visible={modalVisible}
-          transparent={true}
-          animationType="none"
-          statusBarTranslucent={true}
-          onRequestClose={closeBottomSheet}>
-          <KeyboardProvider>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              style={{ flex: 1 }}>
-              <View className="flex-1 justify-end bg-black/50">
-                <Pressable
-                  onPress={closeBottomSheet}
-                  style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-                />
-                <Animated.View
-                  className="overflow-hidden rounded-t-3xl bg-white"
-                  style={[
-                    {
-                      transform: [{ translateY: slideAnim }],
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: -3 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 5,
-                      elevation: 10,
-                    },
-                    // Apply keyboard offset as a separate style
-                    isKeyboardVisible && {
-                      marginBottom: 20, // Static margin when keyboard is visible
-                    },
-                  ]}>
-                  {/* Pull indicator */}
-                  <View className="items-center pb-3 pt-2">
-                    <View className="h-1.5 w-16 rounded-full bg-gray-300" />
-                  </View>
-
-                  {/* Header */}
-                  <View className="flex-row items-center justify-between border-b border-gray-200 px-4 pb-4">
-                    <Text
-                      style={{
-                        fontSize: 18,
-                        fontFamily: 'Poppins-SemiBold',
-                        color: colors.black_100,
-                      }}>
-                      {label || (multiSelect ? 'Select options' : 'Select an option')}
-                    </Text>
-                    <TouchableOpacity
-                      className="h-8 w-8 items-center justify-center rounded-full bg-gray-100"
-                      onPress={closeBottomSheet}
-                      hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}>
-                      <AntDesign name="close" size={18} color={colors.gray_400} />
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* Selected chips for multi-select */}
-                  {SelectedChips}
-
-                  {/* Search bar */}
-                  {searchable && (
-                    <View className="border-t border-gray-200 px-4 py-3">
-                      <SearchInputComponent
-                        inputRef={searchInputRef}
-                        value={searchQuery}
-                        onChangeText={handleSearchChange}
-                        placeholder={searchPlaceholder}
-                        placeholderTextColor={colors.gray_400}
-                      />
-                    </View>
-                  )}
-
-                  {/* Loading indicator or empty state */}
-                  {EmptyContent}
-
-                  {/* Options list - Only show if we have options and are not loading */}
-                  {!isLoading &&
-                    !isSearching &&
-                    options &&
-                    options.length > 0 &&
-                    filteredOptions.length > 0 && (
-                      <View
-                        style={{
-                          height: isKeyboardVisible
-                            ? Math.min(height * 0.25, filteredOptions.length * 60)
-                            : Math.min(height * 0.4, filteredOptions.length * 60),
-                        }}>
-                        <FlashList
-                          ref={flashListRef}
-                          data={filteredOptions}
-                          renderItem={renderItem}
-                          keyExtractor={keyExtractor}
-                          showsVerticalScrollIndicator={false}
-                          contentContainerStyle={{
-                            paddingHorizontal: 8,
-                            paddingVertical: 8,
-                          }}
-                          keyboardShouldPersistTaps="handled"
-                          keyboardDismissMode="on-drag"
-                          initialScrollIndex={0}
-                          onEndReachedThreshold={0.5}
-                          removeClippedSubviews={true}
-                          extraData={[tempSelectedValues, selectedValue]} // Add this to ensure list updates when selection changes
-                        />
-                      </View>
-                    )}
-
-                  {/* Confirm button for multi-select - Only show if not loading and have options */}
-                  {multiSelect && !isLoading && options && options.length > 0 && (
-                    <View className="border-t border-gray-200 px-4 py-3">
-                      <TouchableOpacity
-                        style={{
-                          backgroundColor: colors.orange,
-                          borderRadius: 12,
-                          padding: 12,
-                          alignItems: 'center',
-                        }}
-                        onPress={confirmMultiSelection}
-                        activeOpacity={0.8}>
-                        <Text
-                          style={{
-                            fontFamily: 'Poppins-Medium',
-                            fontSize: 16,
-                            color: 'white',
-                          }}>
-                          {confirmButtonText} ({tempSelectedValues.length})
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-
-                  {/* Safe area padding at bottom */}
-                  <View className="h-8" />
-                </Animated.View>
-              </View>
-            </KeyboardAvoidingView>
-          </KeyboardProvider>
-        </Modal>
+        {renderSheet()}
       </View>
     );
   }

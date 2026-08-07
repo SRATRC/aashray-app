@@ -1,14 +1,16 @@
-import { useState } from 'react';
-import { View, Platform, Text } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, View, Text, Platform, Modal, Pressable } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { dropdowns } from '@/src/constants';
-import FormField from '@/src/components/FormField';
-import FormDisplayField from '@/src/components/FormDisplayField';
 import CustomButton from '@/src/components/CustomButton';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
+import FieldGroup, {
+  FieldRow,
+  FieldRowError,
+  FieldTextRow,
+} from '@/src/components/booking/shared/FieldGroup';
 import RNDateTimePicker from '@react-native-community/datetimepicker';
-import ErrorText from '@/src/components/ErrorText';
 import moment from 'moment';
 
 export interface ProfileFormData {
@@ -88,13 +90,6 @@ const fetchCentres = () => {
   });
 };
 
-// Section Header Component
-const SectionHeader = ({ title }: { title: string }) => (
-  <View className="mb-4 mt-6 border-b border-gray-200 pb-2">
-    <Text className="text-lg font-semibold text-gray-800">{title}</Text>
-  </View>
-);
-
 // Validation helpers
 export const validateProfileForm = (form: ProfileFormData): boolean => {
   return !!(
@@ -144,13 +139,34 @@ const ProfileForm = ({
   const [form, setForm] = useState<ProfileFormData>(() => getDefaultFormData(initialData));
   const [showValidation, setShowValidation] = useState(false);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  // The spinner writes on every scroll tick, so it edits a draft the sheet
+  // commits on Done. Otherwise Cancel would still have changed the date.
+  const [draftDob, setDraftDob] = useState<Date>(new Date());
+  // `animationType="slide"` moves the whole modal, so the dim backdrop slid up
+  // with the sheet. The backdrop fades and only the sheet travels, which means
+  // driving both here and keeping the modal mounted until the exit finishes.
+  const [isSheetMounted, setSheetMounted] = useState(false);
+  const sheetAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (isDatePickerVisible) {
+      setSheetMounted(true);
+      Animated.timing(sheetAnim, { toValue: 1, duration: 220, useNativeDriver: true }).start();
+      return;
+    }
+    Animated.timing(sheetAnim, { toValue: 0, duration: 180, useNativeDriver: true }).start(
+      ({ finished }) => {
+        if (finished) setSheetMounted(false);
+      }
+    );
+  }, [isDatePickerVisible, sheetAnim]);
   const [selectedCountry, setSelectedCountry] = useState(initialData?.country || '');
   const [selectedState, setSelectedState] = useState(initialData?.state || '');
-  const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
+  const [touchedFields, setTouchedFields] = useState<Set<string>>(() => new Set());
 
-  const fieldError = (cond: boolean, fieldName?: string) => {
+  const fieldError = (cond: unknown, fieldName?: string): boolean => {
     // Show error if validation is enabled OR if the field has been touched
-    return (showValidation || (fieldName && touchedFields.has(fieldName))) && cond;
+    return Boolean((showValidation || (fieldName && touchedFields.has(fieldName))) && cond);
   };
 
   const markFieldTouched = (fieldName: string) => {
@@ -185,56 +201,78 @@ const ProfileForm = ({
   });
 
   const handleSubmit = async () => {
-    if (!validateProfileForm(form)) {
+    // Trimmed here rather than per-keystroke: transforming the value on the way
+    // into state makes the controlled echo differ from what was typed.
+    const cleaned = { ...form, idNo: form.idNo.trim() };
+    if (!validateProfileForm(cleaned)) {
       setShowValidation(true);
       return;
     }
-    await onSubmit(form);
+    await onSubmit(cleaned);
   };
 
   return (
-    <View className="w-full">
-      {/* Personal Details */}
-      {showSectionHeaders && <SectionHeader title="Personal Details" />}
-      <FormField
-        text="Name"
-        value={form.issuedto}
-        handleChangeText={(e: string) => {
-          setForm({ ...form, issuedto: e });
-          markFieldTouched('issuedto');
-        }}
-        otherStyles={showSectionHeaders ? 'mt-2' : ''}
-        inputStyles="font-pmedium text-base"
-        keyboardType="default"
-        placeholder="Enter Your Name"
-        containerStyles="bg-gray-100"
-        error={fieldError(!form.issuedto, 'issuedto')}
-        errorMessage="Name is required"
-      />
+    <View className="w-full gap-y-6">
+      <FieldGroup title={showSectionHeaders ? 'Personal details' : undefined}>
+        <FieldTextRow
+          label="Name"
+          value={form.issuedto}
+          placeholder="Your name"
+          autoCapitalize="words"
+          onChangeText={(e: string) => {
+            setForm((prev) => ({ ...prev, issuedto: e }));
+            markFieldTouched('issuedto');
+          }}
+          error={fieldError(!form.issuedto, 'issuedto')}
+          errorMessage="Name is required"
+        />
+        <View>
+          <FieldRow
+            label="Date of birth"
+            value={form.dob ? moment(form.dob).format('Do MMMM YYYY') : ''}
+            placeholder="Select"
+            error={fieldError(!form.dob, 'dob')}
+            onPress={() => {
+              setDraftDob(form.dob ? moment(form.dob, 'YYYY-MM-DD').toDate() : new Date());
+              setDatePickerVisibility(true);
+              markFieldTouched('dob');
+            }}
+          />
+          <FieldRowError
+            message={fieldError(!form.dob, 'dob') ? 'Date of birth is required' : undefined}
+          />
+        </View>
+        <View>
+          <CustomSelectBottomSheet
+            variant="row"
+            label="Gender"
+            placeholder="Select"
+            options={dropdowns.GENDER_LIST}
+            selectedValue={form.gender}
+            onValueChange={(val: any) => {
+              setForm((prev) => ({ ...prev, gender: val }));
+              markFieldTouched('gender');
+            }}
+          />
+          <FieldRowError
+            message={fieldError(!form.gender, 'gender') ? 'Gender is required' : undefined}
+          />
+        </View>
+      </FieldGroup>
 
-      <FormDisplayField
-        text="Date of Birth"
-        value={form.dob ? moment(form.dob).format('Do MMMM YYYY') : ''}
-        placeholder="Select Date of Birth"
-        otherStyles="mt-5"
-        backgroundColor="bg-gray-100"
-        onPress={() => {
-          setDatePickerVisibility(true);
-          markFieldTouched('dob');
-        }}
-      />
-      <ErrorText show={fieldError(!form.dob, 'dob')} message="Date of Birth is required" />
-
-      {isDatePickerVisible && (
+      {/* Android opens its own dialog. On iOS the spinner has no chrome of its
+          own, so inline it just lands in the page and shoves the form around —
+          it goes in the same bottom sheet every other picker here uses. */}
+      {isDatePickerVisible && Platform.OS === 'android' && (
         <RNDateTimePicker
           themeVariant="light"
           mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          display="default"
           value={form.dob ? moment(form.dob, 'YYYY-MM-DD').toDate() : new Date()}
           maximumDate={new Date()}
           minimumDate={new Date(1900, 0, 1)}
           onChange={(event, date) => {
-            if (Platform.OS === 'android') setDatePickerVisibility(false);
+            setDatePickerVisibility(false);
             if (date) {
               setForm((prev) => ({ ...prev, dob: moment(date).format('YYYY-MM-DD') }));
               markFieldTouched('dob');
@@ -243,222 +281,267 @@ const ProfileForm = ({
         />
       )}
 
-      <CustomSelectBottomSheet
-        className="mt-5"
-        label="Gender"
-        placeholder="Select Gender"
-        options={dropdowns.GENDER_LIST}
-        selectedValue={form.gender}
-        onValueChange={(val: any) => {
-          setForm({ ...form, gender: val });
-          markFieldTouched('gender');
-        }}
-      />
-      <ErrorText show={fieldError(!form.gender, 'gender')} message="Gender is required" />
+      {Platform.OS === 'ios' && (
+        <Modal
+          visible={isSheetMounted}
+          transparent
+          animationType="none"
+          statusBarTranslucent
+          onRequestClose={() => setDatePickerVisibility(false)}>
+          <View className="flex-1 justify-end">
+            <Animated.View
+              className="absolute inset-0 bg-black/50"
+              style={{ opacity: sheetAnim }}
+            />
+            <Pressable
+              className="absolute inset-0"
+              onPress={() => setDatePickerVisibility(false)}
+            />
+            <Animated.View
+              className="overflow-hidden rounded-t-3xl bg-white pb-8"
+              style={{
+                transform: [
+                  {
+                    translateY: sheetAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [420, 0],
+                    }),
+                  },
+                ],
+              }}>
+              <View className="items-center pb-3 pt-2">
+                <View className="h-1.5 w-16 rounded-full bg-gray-300" />
+              </View>
 
-      {/* Contact Info */}
-      {showSectionHeaders && <SectionHeader title="Contact Info" />}
-      <FormField
-        text="Phone Number"
-        value={form.mobno?.toString() || ''}
-        handleChangeText={(e: string) => {
-          setForm({ ...form, mobno: Number(e) });
-          markFieldTouched('mobno');
-        }}
-        otherStyles={showSectionHeaders ? 'mt-2' : 'mt-5'}
-        inputStyles="font-pmedium text-base"
-        keyboardType="number-pad"
-        placeholder="Enter Your Phone Number"
-        maxLength={10}
-        containerStyles="bg-gray-100"
-        error={fieldError(!form.mobno || form.mobno.toString().length !== 10, 'mobno')}
-        errorMessage="Mobile Number is required"
-      />
+              <View className="flex-row items-center justify-between border-b border-gray-200 px-4 pb-4">
+                <Pressable onPress={() => setDatePickerVisibility(false)} hitSlop={10}>
+                  <Text className="font-pmedium text-base text-gray-500">Cancel</Text>
+                </Pressable>
+                <Text className="font-psemibold text-lg text-gray-900">Date of birth</Text>
+                <Pressable
+                  onPress={() => {
+                    setForm((prev) => ({ ...prev, dob: moment(draftDob).format('YYYY-MM-DD') }));
+                    markFieldTouched('dob');
+                    setDatePickerVisibility(false);
+                  }}
+                  hitSlop={10}>
+                  <Text className="font-psemibold text-base text-secondary-200">Done</Text>
+                </Pressable>
+              </View>
 
-      <FormField
-        text="Email"
-        value={form.email}
-        handleChangeText={(e: string) => {
-          setForm({ ...form, email: e });
-          markFieldTouched('email');
-        }}
-        otherStyles="mt-5"
-        inputStyles="font-pmedium text-base"
-        keyboardType="email-address"
-        placeholder="Enter Your Email ID"
-        maxLength={100}
-        containerStyles="bg-gray-100"
-        error={fieldError(!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email), 'email')}
-        errorMessage="Email is required"
-      />
-
-      {/* Identity */}
-      {showSectionHeaders && <SectionHeader title="Identity" />}
-      <CustomSelectBottomSheet
-        className={showSectionHeaders ? 'mt-2' : 'mt-5'}
-        label="Select Government ID Type"
-        placeholder="Select Government ID Type"
-        options={dropdowns.ID_TYPE_LIST}
-        selectedValue={form.idType}
-        saveKeyInsteadOfValue
-        onValueChange={(val: any) => {
-          setForm({ ...form, idType: val });
-          markFieldTouched('idType');
-        }}
-      />
-      <ErrorText show={fieldError(!form.idType, 'idType')} message="ID Type is required" />
-
-      <FormField
-        text="Enter ID Number"
-        value={form.idNo}
-        autoCapitalize="characters"
-        handleChangeText={(e: string) => {
-          setForm({ ...form, idNo: e.trim() });
-          markFieldTouched('idNo');
-        }}
-        otherStyles="mt-5"
-        inputStyles="font-pmedium text-base"
-        keyboardType="default"
-        placeholder="Enter Your ID Number"
-        containerStyles="bg-gray-100"
-        error={fieldError(
-          !form.idNo ||
-            (form.idNo && form.idType == 'PAN' && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(form.idNo)) ||
-            (form.idNo && form.idType == 'PASSPORT' && !/^[A-Z0-9]{6,12}$/.test(form.idNo)),
-          'idNo'
-        )}
-        errorMessage="Valid Government ID is required"
-      />
-
-      {/* Address & Centre */}
-      {showSectionHeaders && <SectionHeader title="Address & Centre" />}
-      <CustomSelectBottomSheet
-        className={showSectionHeaders ? 'mt-2' : 'mt-5'}
-        label="Centre"
-        placeholder="Select Centre"
-        options={centres}
-        selectedValue={form.center}
-        onValueChange={(val: any) => {
-          setForm({ ...form, center: val });
-          markFieldTouched('center');
-        }}
-        searchable
-        searchPlaceholder="Search Centres..."
-        noResultsText="No Centres Found"
-        isLoading={isCentresLoading}
-        onRetry={fetchCentres}
-        saveKeyInsteadOfValue={false}
-      />
-      <ErrorText show={fieldError(!form.center, 'center')} message="Center is required" />
-
-      <FormField
-        text="Address"
-        value={form.address}
-        handleChangeText={(e: string) => {
-          setForm({ ...form, address: e });
-          markFieldTouched('address');
-        }}
-        multiline
-        numberOfLines={4}
-        otherStyles="mt-5"
-        inputStyles="font-pmedium text-base"
-        keyboardType="default"
-        placeholder="Enter Your Address"
-        maxLength={200}
-        containerStyles="bg-gray-100"
-        error={fieldError(!form.address, 'address')}
-        errorMessage="Address is required"
-      />
-
-      <CustomSelectBottomSheet
-        className="mt-5"
-        label="Country"
-        placeholder="Select Country"
-        options={countries}
-        selectedValue={form.country}
-        onValueChange={(val: any) => {
-          setForm({ ...form, country: val, state: '', city: '' });
-          setSelectedCountry(val);
-          setSelectedState('');
-          markFieldTouched('country');
-        }}
-        searchable
-        searchPlaceholder="Search Countries..."
-        noResultsText="No Countries Found"
-        isLoading={isCountriesLoading}
-        onRetry={fetchCountries}
-        saveKeyInsteadOfValue={false}
-      />
-      <ErrorText show={fieldError(!form.country, 'country')} message="Country is required" />
-
-      {selectedCountry && (
-        <>
-          <CustomSelectBottomSheet
-            className="mt-5"
-            label="State"
-            placeholder="Select State"
-            options={states}
-            selectedValue={form.state}
-            onValueChange={(val: any) => {
-              setForm({ ...form, state: val, city: '' });
-              setSelectedState(val);
-              markFieldTouched('state');
-            }}
-            searchable
-            searchPlaceholder="Search States..."
-            noResultsText="No States Found"
-            isLoading={isStatesLoading}
-            onRetry={() => fetchStates(selectedCountry)}
-            saveKeyInsteadOfValue={false}
-          />
-          <ErrorText show={fieldError(!form.state, 'state')} message="State is required" />
-        </>
+              <RNDateTimePicker
+                themeVariant="light"
+                mode="date"
+                display="spinner"
+                value={draftDob}
+                maximumDate={new Date()}
+                minimumDate={new Date(1900, 0, 1)}
+                onChange={(event, date) => {
+                  if (date) setDraftDob(date);
+                }}
+              />
+            </Animated.View>
+          </View>
+        </Modal>
       )}
 
-      {selectedState && (
-        <>
+      <FieldGroup title={showSectionHeaders ? 'Contact' : undefined}>
+        <FieldTextRow
+          label="Phone"
+          value={form.mobno?.toString() || ''}
+          placeholder="10 digits"
+          keyboardType="number-pad"
+          maxLength={10}
+          onChangeText={(e: string) => {
+            setForm((prev) => ({ ...prev, mobno: e }));
+            markFieldTouched('mobno');
+          }}
+          error={fieldError(!form.mobno || form.mobno.toString().length !== 10, 'mobno')}
+          errorMessage="A 10 digit mobile number is required"
+        />
+        <FieldTextRow
+          label="Email"
+          value={form.email}
+          placeholder="you@example.com"
+          keyboardType="email-address"
+          maxLength={100}
+          onChangeText={(e: string) => {
+            setForm((prev) => ({ ...prev, email: e }));
+            markFieldTouched('email');
+          }}
+          error={fieldError(!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email), 'email')}
+          errorMessage="A valid email is required"
+        />
+      </FieldGroup>
+
+      <FieldGroup title={showSectionHeaders ? 'Identity' : undefined}>
+        <View>
           <CustomSelectBottomSheet
-            className="mt-5"
-            label="City"
-            placeholder="Select City"
-            options={cities}
-            selectedValue={form.city}
+            variant="row"
+            label="ID type"
+            placeholder="Select"
+            options={dropdowns.ID_TYPE_LIST}
+            selectedValue={form.idType}
+            saveKeyInsteadOfValue
             onValueChange={(val: any) => {
-              setForm({ ...form, city: val });
-              markFieldTouched('city');
+              setForm((prev) => ({ ...prev, idType: val }));
+              markFieldTouched('idType');
+            }}
+          />
+          <FieldRowError
+            message={fieldError(!form.idType, 'idType') ? 'ID type is required' : undefined}
+          />
+        </View>
+        <FieldTextRow
+          label="ID number"
+          value={form.idNo}
+          placeholder="Enter ID number"
+          autoCapitalize="characters"
+          onChangeText={(e: string) => {
+            setForm((prev) => ({ ...prev, idNo: e }));
+            markFieldTouched('idNo');
+          }}
+          error={fieldError(
+            !form.idNo ||
+              (form.idNo && form.idType == 'PAN' && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(form.idNo)) ||
+              (form.idNo && form.idType == 'PASSPORT' && !/^[A-Z0-9]{6,12}$/.test(form.idNo)),
+            'idNo'
+          )}
+          errorMessage="A valid government ID is required"
+        />
+      </FieldGroup>
+
+      <FieldGroup title={showSectionHeaders ? 'Address & centre' : undefined}>
+        <View>
+          <CustomSelectBottomSheet
+            variant="row"
+            label="Centre"
+            placeholder="Select"
+            options={centres}
+            selectedValue={form.center}
+            onValueChange={(val: any) => {
+              setForm((prev) => ({ ...prev, center: val }));
+              markFieldTouched('center');
             }}
             searchable
-            searchPlaceholder="Search Cities..."
-            noResultsText="No Cities Found"
-            isLoading={isCitiesLoading}
-            onRetry={() => fetchCities(selectedCountry, selectedState)}
+            searchPlaceholder="Search Centres..."
+            noResultsText="No Centres Found"
+            isLoading={isCentresLoading}
+            onRetry={fetchCentres}
             saveKeyInsteadOfValue={false}
           />
-          <ErrorText show={fieldError(!form.city, 'city')} message="City is required" />
-        </>
-      )}
-
-      <FormField
-        text="Pin Code"
-        value={form.pin || ''}
-        handleChangeText={(e: string) => {
-          setForm({ ...form, pin: e });
-          markFieldTouched('pin');
-        }}
-        otherStyles="mt-5"
-        inputStyles="font-pmedium text-base"
-        keyboardType="number-pad"
-        placeholder="Enter Your Pin Code"
-        maxLength={8}
-        containerStyles="bg-gray-100"
-        error={fieldError(!form.pin || !/^[A-Za-z0-9\s\-]{4,8}$/.test(form.pin.toString()), 'pin')}
-        errorMessage="Please enter a valid Pin / Postal Code"
-      />
+          <FieldRowError
+            message={fieldError(!form.center, 'center') ? 'Centre is required' : undefined}
+          />
+        </View>
+        <FieldTextRow
+          label="Address"
+          value={form.address}
+          placeholder="Enter your address"
+          multiline
+          maxLength={200}
+          onChangeText={(e: string) => {
+            setForm((prev) => ({ ...prev, address: e }));
+            markFieldTouched('address');
+          }}
+          error={fieldError(!form.address, 'address')}
+          errorMessage="Address is required"
+        />
+        <View>
+          <CustomSelectBottomSheet
+            variant="row"
+            label="Country"
+            placeholder="Select"
+            options={countries}
+            selectedValue={form.country}
+            onValueChange={(val: any) => {
+              setForm((prev) => ({ ...prev, country: val, state: '', city: '' }));
+              setSelectedCountry(val);
+              setSelectedState('');
+              markFieldTouched('country');
+            }}
+            searchable
+            searchPlaceholder="Search Countries..."
+            noResultsText="No Countries Found"
+            isLoading={isCountriesLoading}
+            onRetry={fetchCountries}
+            saveKeyInsteadOfValue={false}
+          />
+          <FieldRowError
+            message={fieldError(!form.country, 'country') ? 'Country is required' : undefined}
+          />
+        </View>
+        {selectedCountry ? (
+          <View>
+            <CustomSelectBottomSheet
+              variant="row"
+              label="State"
+              placeholder="Select"
+              options={states}
+              selectedValue={form.state}
+              onValueChange={(val: any) => {
+                setForm((prev) => ({ ...prev, state: val, city: '' }));
+                setSelectedState(val);
+                markFieldTouched('state');
+              }}
+              searchable
+              searchPlaceholder="Search States..."
+              noResultsText="No States Found"
+              isLoading={isStatesLoading}
+              onRetry={() => fetchStates(selectedCountry)}
+              saveKeyInsteadOfValue={false}
+            />
+            <FieldRowError
+              message={fieldError(!form.state, 'state') ? 'State is required' : undefined}
+            />
+          </View>
+        ) : null}
+        {selectedState ? (
+          <View>
+            <CustomSelectBottomSheet
+              variant="row"
+              label="City"
+              placeholder="Select"
+              options={cities}
+              selectedValue={form.city}
+              onValueChange={(val: any) => {
+                setForm((prev) => ({ ...prev, city: val }));
+                markFieldTouched('city');
+              }}
+              searchable
+              searchPlaceholder="Search Cities..."
+              noResultsText="No Cities Found"
+              isLoading={isCitiesLoading}
+              onRetry={() => fetchCities(selectedCountry, selectedState)}
+              saveKeyInsteadOfValue={false}
+            />
+            <FieldRowError
+              message={fieldError(!form.city, 'city') ? 'City is required' : undefined}
+            />
+          </View>
+        ) : null}
+        <FieldTextRow
+          label="Pin code"
+          value={form.pin || ''}
+          placeholder="Postal code"
+          keyboardType="number-pad"
+          maxLength={8}
+          onChangeText={(e: string) => {
+            setForm((prev) => ({ ...prev, pin: e }));
+            markFieldTouched('pin');
+          }}
+          error={fieldError(
+            !form.pin || !/^[A-Za-z0-9\s\-]{4,8}$/.test(form.pin.toString()),
+            'pin'
+          )}
+          errorMessage="Enter a valid pin or postal code"
+        />
+      </FieldGroup>
 
       <CustomButton
         text={submitButtonText}
         handlePress={handleSubmit}
-        containerStyles={`mt-8 mb-10 min-h-[62px] ${Platform.OS === 'android' && 'mb-3'}`}
+        containerStyles="min-h-[62px]"
         isLoading={isSubmitting}
       />
     </View>

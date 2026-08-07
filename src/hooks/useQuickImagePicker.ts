@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAuthStore } from '@/src/stores';
 import { invalidateCachedImage } from '@/src/utils/imageCache';
 import handleAPICall from '@/src/utils/HandleApiCall';
@@ -21,6 +21,18 @@ export const useQuickImagePicker = () => {
     progress: 0,
     error: null,
   });
+
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const clearProgressInterval = useCallback(() => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+  }, []);
+
+  // Without this the ticker survives unmount and keeps calling setUploadState.
+  useEffect(() => clearProgressInterval, [clearProgressInterval]);
 
   const resetUploadState = useCallback(() => {
     setUploadState({
@@ -61,7 +73,7 @@ export const useQuickImagePicker = () => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
       // Simulate progress updates (you can replace this with actual progress from your API)
-      const progressInterval = setInterval(() => {
+      progressIntervalRef.current = setInterval(() => {
         setUploadState(prev => {
           if (prev.progress < 90) {
             return { ...prev, progress: prev.progress + 20 };
@@ -76,7 +88,7 @@ export const useQuickImagePicker = () => {
         { cardno: user?.cardno },
         { image: imageUri },
         async (data: any) => {
-          clearInterval(progressInterval);
+          clearProgressInterval();
           
           // Complete progress
           setUploadState(prev => ({ ...prev, progress: 100 }));
@@ -102,7 +114,7 @@ export const useQuickImagePicker = () => {
         },
         () => {},
         (error) => {
-          clearInterval(progressInterval);
+          clearProgressInterval();
           setUploadState(prev => ({
             ...prev,
             isUploading: false,
@@ -112,6 +124,7 @@ export const useQuickImagePicker = () => {
       );
     } catch (err: any) {
       console.error('Image upload failed:', err);
+      clearProgressInterval();
       setUploadState(prev => ({
         ...prev,
         isUploading: false,

@@ -279,7 +279,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
   const renderWifiItem = (item: PermanentWifiData, index: number) => (
     <View
       key={item.id || index}
-      className="mb-4 rounded-xl border border-gray-100 bg-white p-5 shadow-sm shadow-gray-200">
+      className="mb-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm shadow-gray-200">
       {item.status !== 'approved' && renderStatusBadge(item.status, index)}
 
       {item.status === 'approved' && item.code && renderApprovedCode(item)}

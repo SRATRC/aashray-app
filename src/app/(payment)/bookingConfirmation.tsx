@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,16 +8,18 @@ import { useAuthStore } from '@/src/stores';
 import CustomButton from '@/src/components/CustomButton';
 
 const BookingSuccess = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const router = useRouter();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+  const fadeAnim = useState(() => new Animated.Value(0))[0];
+  const slideAnim = useState(() => new Animated.Value(30))[0];
 
   const queryClient = useQueryClient();
 
-  queryClient.invalidateQueries({
-    queryKey: ['pendingPayments', user.cardno],
-  });
+  useEffect(() => {
+    queryClient.invalidateQueries({
+      queryKey: ['pendingPayments', user.cardno],
+    });
+  }, [queryClient, user.cardno]);
 
   useEffect(() => {
     Animated.parallel([
@@ -40,7 +42,7 @@ const BookingSuccess = () => {
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <View className="flex-1">
         <Animated.View
           className="flex-1 px-6"

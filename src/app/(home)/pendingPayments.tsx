@@ -134,7 +134,7 @@ const PaymentTimer = ({ createdAt }: { createdAt: string }) => {
 };
 
 const PendingPayments = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const router = useRouter();
   const insets = useSafeAreaInsets();
 

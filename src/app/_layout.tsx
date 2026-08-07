@@ -47,9 +47,9 @@ Sentry.init({
   enableTombstone: true,
   integrations: [
     Sentry.mobileReplayIntegration({
-      maskAllText: false,
-      maskAllImages: false,
-      maskAllVectors: false,
+      maskAllText: true,
+      maskAllImages: true,
+      maskAllVectors: true,
     }),
   ],
 });
@@ -110,7 +110,12 @@ const AppNavigator = () => {
   });
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        freezeOnBlur: true,
+        contentStyle: { backgroundColor: '#F9FAFB' },
+      }}>
       <Stack.Protected guard={!authState.userExists}>
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
@@ -139,15 +144,10 @@ const AppNavigator = () => {
 
 const RootLayout = () => {
   const [fontsLoaded, fontError] = useFonts({
-    'Poppins-Black': require('@/src/assets/fonts/Poppins-Black.ttf'),
     'Poppins-Bold': require('@/src/assets/fonts/Poppins-Bold.ttf'),
-    'Poppins-ExtraBold': require('@/src/assets/fonts/Poppins-ExtraBold.ttf'),
-    'Poppins-ExtraLight': require('@/src/assets/fonts/Poppins-ExtraLight.ttf'),
-    'Poppins-Light': require('@/src/assets/fonts/Poppins-Light.ttf'),
     'Poppins-Medium': require('@/src/assets/fonts/Poppins-Medium.ttf'),
     'Poppins-Regular': require('@/src/assets/fonts/Poppins-Regular.ttf'),
     'Poppins-SemiBold': require('@/src/assets/fonts/Poppins-SemiBold.ttf'),
-    'Poppins-Thin': require('@/src/assets/fonts/Poppins-Thin.ttf'),
     'DMSerifDisplay-Regular': require('@/src/assets/fonts/DMSerifDisplay-Regular.ttf'),
     'DMSans-Regular': require('@/src/assets/fonts/DMSans-Regular.ttf'),
     'DMSans-Medium': require('@/src/assets/fonts/DMSans-Medium.ttf'),
@@ -171,7 +171,6 @@ const RootLayout = () => {
   useEffect(() => {
     async function hideSplash() {
       if (fontsLoaded && isAuthReady) {
-        await new Promise((resolve) => setTimeout(resolve, 200));
         await SplashScreen.hideAsync();
       }
     }
@@ -191,20 +190,18 @@ const RootLayout = () => {
   );
 };
 
-const RootLayoutContent = () => {
-  return (
-    <KeyboardProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <BottomSheetModalProvider>
-          <SystemBars style="dark" />
-          <AppNavigator />
-          <CustomAlert />
-          <UpdateManager />
-          <Toast />
-        </BottomSheetModalProvider>
-      </GestureHandlerRootView>
-    </KeyboardProvider>
-  );
-};
+const RootLayoutContent = () => (
+  <KeyboardProvider>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <BottomSheetModalProvider>
+        <SystemBars style="dark" />
+        <AppNavigator />
+        <CustomAlert />
+        <UpdateManager />
+        <Toast />
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
+  </KeyboardProvider>
+);
 
 export default Sentry.wrap(RootLayout);

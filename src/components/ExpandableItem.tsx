@@ -1,6 +1,6 @@
-import { View, Text, TouchableOpacity, Image, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { useState } from 'react';
-import { icons } from '../constants';
+import { icons, surfaces } from '../constants';
 import * as Haptics from 'expo-haptics';
 
 interface ExpandableItemProps {
@@ -20,7 +20,7 @@ const ExpandableItem: React.FC<ExpandableItemProps> = ({
   backgroundColor,
   shadowShown,
   onToggle,
-  rootClassName = 'mb-5',
+  rootClassName = 'mb-3',
 }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -34,14 +34,7 @@ const ExpandableItem: React.FC<ExpandableItemProps> = ({
   };
 
   return (
-    <View
-      className={`${rootClassName} rounded-2xl p-3 ${
-        shadowShown == false
-          ? ''
-          : Platform.OS === 'ios'
-            ? 'shadow-lg shadow-gray-200'
-            : 'shadow-2xl shadow-gray-400'
-      } ${backgroundColor ? backgroundColor : 'bg-white'}`}>
+    <View className={`${rootClassName} p-3 ${surfaces.CARD} ${backgroundColor ?? ''}`}>
       <TouchableOpacity onPress={toggleExpand} className="flex-row justify-between overflow-hidden">
         <View className="flex-1 flex-row items-center gap-x-4">{visibleContent}</View>
         <View className="h-8 w-8 items-center justify-center rounded-md bg-gray-100">

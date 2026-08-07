@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Text,
   View,
@@ -12,6 +12,7 @@ import {
   TextInput,
   Animated,
   Dimensions,
+  Easing,
   Pressable,
   ScrollView,
   Keyboard,
@@ -45,8 +46,11 @@ const Profile: React.FC = () => {
   const logout = useAuthStore((state) => state.logout);
   const tabBarHeight = useBottomTabOverflow();
   const insets = useSafeAreaInsets();
-  const slideAnim = useRef(new Animated.Value(screenHeight)).current;
-  const keyboardOffset = useRef(new Animated.Value(0)).current;
+  // 0 hidden, 1 shown. Animating from the full screen height made the sheet
+  // travel ~870pt while off screen for most of it, which read as lag.
+  const slideAnim = useState(() => new Animated.Value(0))[0];
+  const [sheetHeight, setSheetHeight] = useState(screenHeight * 0.5);
+  const keyboardOffset = useState(() => new Animated.Value(0))[0];
   const { setEnabled } = useKeyboardController();
 
   const { pickAndUpload, isUploading, uploadProgress, uploadError } = useQuickImagePicker();
@@ -165,8 +169,9 @@ const Profile: React.FC = () => {
       // Dismiss keyboard and animate modal closed, then show toast after modal is fully gone
       KeyboardController.dismiss();
       Animated.timing(slideAnim, {
-        toValue: screenHeight,
-        duration: 300,
+        toValue: 0,
+        duration: 200,
+        easing: Easing.in(Easing.cubic),
         useNativeDriver: true,
       }).start(() => {
         setPasswordModalVisible(false);
@@ -203,9 +208,15 @@ const Profile: React.FC = () => {
   const openPasswordModal = () => {
     setEnabled(false);
     setPasswordModalVisible(true);
+  };
+
+  // Run once the modal is on screen, so mounting does not eat the first frames.
+  const runOpenAnimation = () => {
+    slideAnim.setValue(0);
     Animated.timing(slideAnim, {
-      toValue: 0,
-      duration: 300,
+      toValue: 1,
+      duration: 260,
+      easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
   };
@@ -213,8 +224,9 @@ const Profile: React.FC = () => {
   const closePasswordModal = () => {
     KeyboardController.dismiss();
     Animated.timing(slideAnim, {
-      toValue: screenHeight,
-      duration: 300,
+      toValue: 0,
+      duration: 200,
+      easing: Easing.in(Easing.cubic),
       useNativeDriver: true,
     }).start(() => {
       setPasswordModalVisible(false);
@@ -600,16 +612,33 @@ const Profile: React.FC = () => {
           transparent={true}
           animationType="none"
           statusBarTranslucent={true}
+          onShow={runOpenAnimation}
           onRequestClose={closePasswordModal}>
-          <View className="flex-1 justify-end bg-black/50">
+          <View className="flex-1 justify-end">
+            <Animated.View
+              className="absolute inset-0 bg-black/50"
+              style={{ opacity: slideAnim }}
+            />
             <Pressable
               onPress={closePasswordModal}
               style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
             />
             <Animated.View
               className="overflow-hidden rounded-t-3xl bg-white"
+              onLayout={(e) => {
+                const h = e.nativeEvent.layout.height;
+                if (h > 0 && Math.abs(h - sheetHeight) > 1) setSheetHeight(h);
+              }}
               style={{
-                transform: [{ translateY: slideAnim }, { translateY: keyboardOffset }],
+                transform: [
+                  {
+                    translateY: slideAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [sheetHeight, 0],
+                    }),
+                  },
+                  { translateY: keyboardOffset },
+                ],
                 maxHeight: '85%',
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: -3 },

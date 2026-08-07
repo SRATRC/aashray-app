@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Modal,
   View,
@@ -20,9 +20,9 @@ import * as Haptics from 'expo-haptics';
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export const QrModal = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const [modalVisible, setModalVisible] = useState(false);
-  const modalAnimation = useRef(new Animated.Value(0)).current;
+  const modalAnimation = useState(() => new Animated.Value(0))[0];
 
   const qrSize = Math.min(screenWidth, screenHeight) * 0.7;
   const pieceSize = Math.max(8, Math.floor(qrSize / 35));
@@ -56,15 +56,23 @@ export const QrModal = () => {
     setModalVisible(false);
   };
 
-  const modalTranslateY = modalAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [screenHeight, 0],
-  });
+  const modalTranslateY = useMemo(
+    () =>
+      modalAnimation.interpolate({
+        inputRange: [0, 1],
+        outputRange: [screenHeight, 0],
+      }),
+    [modalAnimation]
+  );
 
-  const modalScale = modalAnimation.interpolate({
-    inputRange: [0, 0.8, 1],
-    outputRange: [0.9, 1.05, 1],
-  });
+  const modalScale = useMemo(
+    () =>
+      modalAnimation.interpolate({
+        inputRange: [0, 0.8, 1],
+        outputRange: [0.9, 1.05, 1],
+      }),
+    [modalAnimation]
+  );
 
   return (
     <>

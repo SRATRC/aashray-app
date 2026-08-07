@@ -70,7 +70,7 @@ const CompleteProfile = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <KeyboardAwareScrollView
         bottomOffset={62}
         style={{ flex: 1 }}

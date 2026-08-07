@@ -4,15 +4,14 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  Platform,
   RefreshControl,
   Animated,
   Modal,
-  KeyboardAvoidingView,
   Image,
   Share,
 } from 'react-native';
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import { KeyboardAvoidingView, KeyboardProvider } from 'react-native-keyboard-controller';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { icons, status, types } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
@@ -52,7 +51,8 @@ type Utsav = {
   comments?: string;
 };
 
-let CHIPS = ['Self', 'Guest', 'Mumukshus'];
+const ALL_CHIPS = ['Self', 'Guest', 'Mumukshus'];
+const GUEST_CHIPS = ['Self'];
 
 const ARRIVAL = [
   { key: 'yes', value: 'Yes' },
@@ -138,8 +138,8 @@ const UtsavPage = () => {
   const updateGuestBooking = useBookingStore((state) => state.updateGuestBooking);
 
   const insets = useSafeAreaInsets();
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scrollY = useState(() => new Animated.Value(0))[0];
+  const fadeAnim = useState(() => new Animated.Value(0))[0];
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -150,12 +150,9 @@ const UtsavPage = () => {
   const [mumukshuForm, setMumukshuForm] = useState(INITIAL_MUMUKSHU_FORM);
   const [packages, setPackages] = useState<any[]>([]);
 
-  if (user?.res_status == status.STATUS_GUEST) {
-    CHIPS = ['Self'];
-  }
+  const CHIPS = user?.res_status == status.STATUS_GUEST ? GUEST_CHIPS : ALL_CHIPS;
 
-  // Reset isSubmitting state on component mount
-  useEffect(
+  useFocusEffect(
     useCallback(() => {
       setIsSubmitting(false);
     }, [])
@@ -547,22 +544,31 @@ const UtsavPage = () => {
     };
   };
 
-  // Header text animations
-  const headerTextOpacity = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [0, 1],
-    extrapolate: 'clamp',
-  });
+  // Header text animations. Memoised so typing in the booking form does not
+  // allocate new interpolation nodes and re-attach the header's driver.
+  const headerTextOpacity = useMemo(
+    () =>
+      scrollY.interpolate({
+        inputRange: [0, 100],
+        outputRange: [0, 1],
+        extrapolate: 'clamp',
+      }),
+    [scrollY]
+  );
 
-  const headerTextTranslateY = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [20, 0],
-    extrapolate: 'clamp',
-  });
+  const headerTextTranslateY = useMemo(
+    () =>
+      scrollY.interpolate({
+        inputRange: [0, 100],
+        outputRange: [20, 0],
+        extrapolate: 'clamp',
+      }),
+    [scrollY]
+  );
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-white">
+      <View className="flex-1 bg-gray-50">
         <View
           className="bg-white"
           style={{
@@ -604,7 +610,7 @@ const UtsavPage = () => {
 
   if (isError || !utsav) {
     return (
-      <View className="flex-1 bg-white">
+      <View className="flex-1 bg-gray-50">
         <View
           className="bg-white"
           style={{
@@ -648,7 +654,7 @@ const UtsavPage = () => {
   const availabilityInfo = getAvailabilityInfo();
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-gray-50">
       {/* Single Sticky Header */}
       <View
         className="bg-white"
@@ -710,7 +716,7 @@ const UtsavPage = () => {
 
       <Animated.ScrollView
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
-          useNativeDriver: false,
+          useNativeDriver: true,
         })}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
@@ -967,133 +973,225 @@ const UtsavPage = () => {
         transparent={true}
         statusBarTranslucent={true}
         onRequestClose={toggleModal}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1 }}>
-          <View className="flex-1 items-center justify-center bg-black/50">
-            <View className="max-h-[80%] w-[90%] max-w-[400px] rounded-lg bg-white p-5">
-              <View className="mb-2 flex-row justify-between">
-                <View className="flex-1 flex-col gap-y-1 pr-2">
-                  <Text
-                    className="font-pmedium text-sm text-black"
-                    numberOfLines={2}
-                    ellipsizeMode="tail">
-                    {utsav?.utsav_name}
-                  </Text>
-                  <View className="flex-row gap-x-1">
-                    <Text className="font-pregular text-xs text-gray-500">Date:</Text>
-                    <Text className="font-pregular text-xs text-secondary">
-                      {moment(utsav?.utsav_start).format('Do MMMM')} -{' '}
-                      {moment(utsav?.utsav_end).format('Do MMMM')}
+        {/* A Modal is its own native window, so keyboard-controller needs a
+            provider here to measure insets correctly. RN's own
+            KeyboardAvoidingView reads the wrong frame in this position and
+            oscillates the container height, which drops input focus. */}
+        <KeyboardProvider>
+          <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+            <View className="flex-1 items-center justify-center bg-black/50">
+              <View className="max-h-[80%] w-[90%] max-w-[400px] rounded-lg bg-white p-5">
+                <View className="mb-2 flex-row justify-between">
+                  <View className="flex-1 flex-col gap-y-1 pr-2">
+                    <Text
+                      className="font-pmedium text-sm text-black"
+                      numberOfLines={2}
+                      ellipsizeMode="tail">
+                      {utsav?.utsav_name}
                     </Text>
+                    <View className="flex-row gap-x-1">
+                      <Text className="font-pregular text-xs text-gray-500">Date:</Text>
+                      <Text className="font-pregular text-xs text-secondary">
+                        {moment(utsav?.utsav_start).format('Do MMMM')} -{' '}
+                        {moment(utsav?.utsav_end).format('Do MMMM')}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-                <TouchableOpacity onPress={toggleModal}>
-                  <Image
-                    source={icons.remove}
-                    tintColor={'black'}
-                    className="h-4 w-4"
-                    resizeMode="contain"
-                  />
-                </TouchableOpacity>
-              </View>
-
-              <HorizontalSeparator otherStyles={'w-full'} />
-
-              <ScrollView
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ flexGrow: 1 }}>
-                {/* Book For Section */}
-                <View className="mt-2 flex-col">
-                  <Text className="font-pregular text-base text-black">Book For</Text>
-                  <CustomChipGroup
-                    chips={CHIPS}
-                    selectedChip={selectedChip}
-                    handleChipPress={handleChipClick}
-                    containerStyles={'mt-1'}
-                    chipContainerStyles={'py-1'}
-                    textStyles={'text-sm'}
-                  />
+                  <TouchableOpacity onPress={toggleModal}>
+                    <Image
+                      source={icons.remove}
+                      tintColor={'black'}
+                      className="h-4 w-4"
+                      resizeMode="contain"
+                    />
+                  </TouchableOpacity>
                 </View>
 
-                {/* Self Form */}
-                {selectedChip == CHIPS[0] && (
-                  <View>
-                    <CustomSelectBottomSheet
-                      className="mt-7"
-                      label="Package"
-                      placeholder="Select Package"
-                      options={packages}
-                      selectedValue={selfForm.package}
-                      onValueChange={(val: any) =>
-                        setSelfForm({
-                          ...selfForm,
-                          package: val,
-                          package_name: packages.find((item: any) => item.key == val)?.value,
-                        })
-                      }
-                    />
+                <HorizontalSeparator otherStyles={'w-full'} />
 
-                    <CustomSelectBottomSheet
-                      className="mt-7"
-                      label="Will you be arriving in your own car?"
-                      placeholder="Select option"
-                      options={ARRIVAL}
-                      selectedValue={selfForm.arrival}
-                      onValueChange={(val: any) => setSelfForm({ ...selfForm, arrival: val })}
-                    />
-
-                    {selfForm.arrival == 'yes' && (
-                      <View>
-                        <FormField
-                          text="Enter Car Number"
-                          value={selfForm.carno}
-                          handleChangeText={(e: any) => setSelfForm({ ...selfForm, carno: e })}
-                          otherStyles="mt-7"
-                          inputStyles="font-pmedium text-base"
-                          containerStyles="bg-gray-100"
-                          placeholder="XX-XXX-XXXX"
-                          maxLength={10}
-                          autoCapitalize={'characters'}
-                          autoComplete={'off'}
-                        />
-                      </View>
-                    )}
-
-                    <CustomSelectBottomSheet
-                      className="mt-7"
-                      label="Would you like to volunteer?"
-                      placeholder="Select option"
-                      options={VOLUNTEER}
-                      selectedValue={selfForm.volunteer}
-                      onValueChange={(val: any) => setSelfForm({ ...selfForm, volunteer: val })}
-                      saveKeyInsteadOfValue={false}
-                    />
-
-                    <FormField
-                      text="Any other details?"
-                      value={selfForm.other}
-                      handleChangeText={(e: any) => setSelfForm({ ...selfForm, other: e })}
-                      otherStyles="mt-7 mb-4"
-                      inputStyles="font-pmedium text-base"
-                      containerStyles="bg-gray-100"
-                      placeholder="Enter details here..."
-                      multiline={true}
-                      numberOfLines={3}
+                <ScrollView
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ flexGrow: 1 }}>
+                  {/* Book For Section */}
+                  <View className="mt-2 flex-col">
+                    <Text className="font-pregular text-base text-black">Book For</Text>
+                    <CustomChipGroup
+                      chips={CHIPS}
+                      selectedChip={selectedChip}
+                      handleChipPress={handleChipClick}
+                      containerStyles={'mt-1'}
+                      chipContainerStyles={'py-1'}
+                      textStyles={'text-sm'}
                     />
                   </View>
-                )}
 
-                {/* Guest Form */}
-                {selectedChip == CHIPS[1] && (
-                  <View>
-                    <GuestForm
-                      guestForm={guestForm}
-                      setGuestForm={setGuestForm}
-                      handleGuestFormChange={handleGuestFormChange}
-                      addGuestForm={addGuestForm}
-                      removeGuestForm={removeGuestForm}>
+                  {/* Self Form */}
+                  {selectedChip == CHIPS[0] && (
+                    <View>
+                      <CustomSelectBottomSheet
+                        className="mt-7"
+                        label="Package"
+                        placeholder="Select Package"
+                        options={packages}
+                        selectedValue={selfForm.package}
+                        onValueChange={(val: any) =>
+                          setSelfForm({
+                            ...selfForm,
+                            package: val,
+                            package_name: packages.find((item: any) => item.key == val)?.value,
+                          })
+                        }
+                      />
+
+                      <CustomSelectBottomSheet
+                        className="mt-7"
+                        label="Will you be arriving in your own car?"
+                        placeholder="Select option"
+                        options={ARRIVAL}
+                        selectedValue={selfForm.arrival}
+                        onValueChange={(val: any) =>
+                          setSelfForm((prev) => ({ ...prev, arrival: val }))
+                        }
+                      />
+
+                      {selfForm.arrival == 'yes' && (
+                        <View>
+                          <FormField
+                            text="Enter Car Number"
+                            value={selfForm.carno}
+                            handleChangeText={(e: any) =>
+                              setSelfForm((prev) => ({ ...prev, carno: e }))
+                            }
+                            otherStyles="mt-7"
+                            inputStyles="font-pmedium text-base"
+                            placeholder="XX-XXX-XXXX"
+                            maxLength={10}
+                            autoCapitalize={'characters'}
+                            autoComplete={'off'}
+                          />
+                        </View>
+                      )}
+
+                      <CustomSelectBottomSheet
+                        className="mt-7"
+                        label="Would you like to volunteer?"
+                        placeholder="Select option"
+                        options={VOLUNTEER}
+                        selectedValue={selfForm.volunteer}
+                        onValueChange={(val: any) =>
+                          setSelfForm((prev) => ({ ...prev, volunteer: val }))
+                        }
+                        saveKeyInsteadOfValue={false}
+                      />
+
+                      <FormField
+                        text="Any other details?"
+                        value={selfForm.other}
+                        handleChangeText={(e: any) =>
+                          setSelfForm((prev) => ({ ...prev, other: e }))
+                        }
+                        otherStyles="mt-7 mb-4"
+                        inputStyles="font-pmedium text-base"
+                        placeholder="Enter details here..."
+                        multiline={true}
+                        numberOfLines={3}
+                      />
+                    </View>
+                  )}
+
+                  {/* Guest Form */}
+                  {selectedChip == CHIPS[1] && (
+                    <View>
+                      <GuestForm
+                        guestForm={guestForm}
+                        setGuestForm={setGuestForm}
+                        handleGuestFormChange={handleGuestFormChange}
+                        addGuestForm={addGuestForm}
+                        removeGuestForm={removeGuestForm}>
+                        {(index: any) => (
+                          <View>
+                            <CustomSelectBottomSheet
+                              className="mt-7"
+                              label="Package"
+                              placeholder="Select Package"
+                              options={packages}
+                              selectedValue={guestForm.guests[index].package}
+                              onValueChange={(val: any) => {
+                                handleGuestFormChange(index, 'package', val);
+                                handleGuestFormChange(
+                                  index,
+                                  'package_name',
+                                  packages.find((item: any) => item.key == val)?.value
+                                );
+                              }}
+                            />
+
+                            <CustomSelectBottomSheet
+                              className="mt-7"
+                              label="Will you be arriving in your own car?"
+                              placeholder="Select option"
+                              options={ARRIVAL}
+                              selectedValue={guestForm.guests[index].arrival}
+                              onValueChange={(val: any) => {
+                                handleGuestFormChange(index, 'arrival', val);
+                              }}
+                            />
+                            {guestForm.guests[index].arrival == 'yes' && (
+                              <View>
+                                <FormField
+                                  text="Enter Car Number"
+                                  value={guestForm.guests[index].carno}
+                                  handleChangeText={(e: any) =>
+                                    handleGuestFormChange(index, 'carno', e)
+                                  }
+                                  otherStyles="mt-7"
+                                  inputStyles="font-pmedium text-base"
+                                  placeholder="XX-XXX-XXXX"
+                                  autoCapitalize={'characters'}
+                                  maxLength={10}
+                                />
+                              </View>
+                            )}
+
+                            <CustomSelectBottomSheet
+                              className="mt-7"
+                              label="Would you like to volunteer?"
+                              placeholder="Select option"
+                              options={VOLUNTEER}
+                              selectedValue={guestForm.guests[index].volunteer}
+                              onValueChange={(val: any) =>
+                                handleGuestFormChange(index, 'volunteer', val)
+                              }
+                              saveKeyInsteadOfValue={false}
+                            />
+
+                            <FormField
+                              text="Any other details?"
+                              value={guestForm.guests[index].other}
+                              handleChangeText={(e: any) =>
+                                handleGuestFormChange(index, 'other', e)
+                              }
+                              otherStyles="mt-7 mb-4"
+                              inputStyles="font-pmedium text-bases"
+                              placeholder="Enter details here..."
+                              multiline={true}
+                              numberOfLines={3}
+                            />
+                          </View>
+                        )}
+                      </GuestForm>
+                    </View>
+                  )}
+
+                  {/* Mumukshu Form */}
+                  {selectedChip == CHIPS[2] && (
+                    <OtherMumukshuForm
+                      mumukshuForm={mumukshuForm}
+                      setMumukshuForm={setMumukshuForm}
+                      handleMumukshuFormChange={handleMumukshuFormChange}
+                      addMumukshuForm={addMumukshuForm}
+                      removeMumukshuForm={removeMumukshuForm}>
                       {(index: any) => (
                         <View>
                           <CustomSelectBottomSheet
@@ -1101,10 +1199,10 @@ const UtsavPage = () => {
                             label="Package"
                             placeholder="Select Package"
                             options={packages}
-                            selectedValue={guestForm.guests[index].package}
+                            selectedValue={mumukshuForm.mumukshus[index].package}
                             onValueChange={(val: any) => {
-                              handleGuestFormChange(index, 'package', val);
-                              handleGuestFormChange(
+                              handleMumukshuFormChange(index, 'package', val);
+                              handleMumukshuFormChange(
                                 index,
                                 'package_name',
                                 packages.find((item: any) => item.key == val)?.value
@@ -1117,27 +1215,26 @@ const UtsavPage = () => {
                             label="Will you be arriving in your own car?"
                             placeholder="Select option"
                             options={ARRIVAL}
-                            selectedValue={guestForm.guests[index].arrival}
+                            selectedValue={mumukshuForm.mumukshus[index].arrival}
                             onValueChange={(val: any) => {
-                              handleGuestFormChange(index, 'arrival', val);
+                              handleMumukshuFormChange(index, 'arrival', val);
                             }}
                           />
-                          {guestForm.guests[index].arrival == 'yes' && (
-                            <View>
-                              <FormField
-                                text="Enter Car Number"
-                                value={guestForm.guests[index].carno}
-                                handleChangeText={(e: any) =>
-                                  handleGuestFormChange(index, 'carno', e)
-                                }
-                                otherStyles="mt-7"
-                                inputStyles="font-pmedium text-base"
-                                containerStyles="bg-gray-100"
-                                placeholder="XX-XXX-XXXX"
-                                autoCapitalize={'characters'}
-                                maxLength={10}
-                              />
-                            </View>
+
+                          {mumukshuForm.mumukshus[index].arrival == 'yes' && (
+                            <FormField
+                              text="Enter Car Number"
+                              value={mumukshuForm.mumukshus[index].carno}
+                              handleChangeText={(e: any) =>
+                                handleMumukshuFormChange(index, 'carno', e)
+                              }
+                              otherStyles="mt-7"
+                              inputStyles="font-pmedium text-base"
+                              placeholder="XX-XXX-XXXX"
+                              maxLength={10}
+                              autoCapitalize={'characters'}
+                              autoComplete={'off'}
+                            />
                           )}
 
                           <CustomSelectBottomSheet
@@ -1145,134 +1242,53 @@ const UtsavPage = () => {
                             label="Would you like to volunteer?"
                             placeholder="Select option"
                             options={VOLUNTEER}
-                            selectedValue={guestForm.guests[index].volunteer}
+                            selectedValue={mumukshuForm.mumukshus[index].volunteer}
                             onValueChange={(val: any) =>
-                              handleGuestFormChange(index, 'volunteer', val)
+                              handleMumukshuFormChange(index, 'volunteer', val)
                             }
                             saveKeyInsteadOfValue={false}
                           />
 
                           <FormField
                             text="Any other details?"
-                            value={guestForm.guests[index].other}
-                            handleChangeText={(e: any) => handleGuestFormChange(index, 'other', e)}
+                            value={mumukshuForm.mumukshus[index].other}
+                            handleChangeText={(e: any) =>
+                              handleMumukshuFormChange(index, 'other', e)
+                            }
                             otherStyles="mt-7 mb-4"
-                            inputStyles="font-pmedium text-bases"
-                            containerStyles="bg-gray-100"
+                            inputStyles="font-pmedium text-base"
                             placeholder="Enter details here..."
                             multiline={true}
                             numberOfLines={3}
                           />
                         </View>
                       )}
-                    </GuestForm>
-                  </View>
-                )}
+                    </OtherMumukshuForm>
+                  )}
 
-                {/* Mumukshu Form */}
-                {selectedChip == CHIPS[2] && (
-                  <OtherMumukshuForm
-                    mumukshuForm={mumukshuForm}
-                    setMumukshuForm={setMumukshuForm}
-                    handleMumukshuFormChange={handleMumukshuFormChange}
-                    addMumukshuForm={addMumukshuForm}
-                    removeMumukshuForm={removeMumukshuForm}>
-                    {(index: any) => (
-                      <View>
-                        <CustomSelectBottomSheet
-                          className="mt-7"
-                          label="Package"
-                          placeholder="Select Package"
-                          options={packages}
-                          selectedValue={mumukshuForm.mumukshus[index].package}
-                          onValueChange={(val: any) => {
-                            handleMumukshuFormChange(index, 'package', val);
-                            handleMumukshuFormChange(
-                              index,
-                              'package_name',
-                              packages.find((item: any) => item.key == val)?.value
-                            );
-                          }}
-                        />
-
-                        <CustomSelectBottomSheet
-                          className="mt-7"
-                          label="Will you be arriving in your own car?"
-                          placeholder="Select option"
-                          options={ARRIVAL}
-                          selectedValue={mumukshuForm.mumukshus[index].arrival}
-                          onValueChange={(val: any) => {
-                            handleMumukshuFormChange(index, 'arrival', val);
-                          }}
-                        />
-
-                        {mumukshuForm.mumukshus[index].arrival == 'yes' && (
-                          <FormField
-                            text="Enter Car Number"
-                            value={mumukshuForm.mumukshus[index].carno}
-                            handleChangeText={(e: any) =>
-                              handleMumukshuFormChange(index, 'carno', e)
-                            }
-                            otherStyles="mt-7"
-                            inputStyles="font-pmedium text-base"
-                            containerStyles="bg-gray-100"
-                            placeholder="XX-XXX-XXXX"
-                            maxLength={10}
-                            autoCapitalize={'characters'}
-                            autoComplete={'off'}
-                          />
-                        )}
-
-                        <CustomSelectBottomSheet
-                          className="mt-7"
-                          label="Would you like to volunteer?"
-                          placeholder="Select option"
-                          options={VOLUNTEER}
-                          selectedValue={mumukshuForm.mumukshus[index].volunteer}
-                          onValueChange={(val: any) =>
-                            handleMumukshuFormChange(index, 'volunteer', val)
-                          }
-                          saveKeyInsteadOfValue={false}
-                        />
-
-                        <FormField
-                          text="Any other details?"
-                          value={mumukshuForm.mumukshus[index].other}
-                          handleChangeText={(e: any) => handleMumukshuFormChange(index, 'other', e)}
-                          otherStyles="mt-7 mb-4"
-                          inputStyles="font-pmedium text-base"
-                          containerStyles="bg-gray-100"
-                          placeholder="Enter details here..."
-                          multiline={true}
-                          numberOfLines={3}
-                        />
-                      </View>
-                    )}
-                  </OtherMumukshuForm>
-                )}
-
-                {/* Confirm Button Section */}
-                <CustomButton
-                  handlePress={handleBookingConfirm}
-                  text={'Confirm'}
-                  bgcolor="bg-secondary"
-                  containerStyles="mt-4 p-2"
-                  textStyles={'text-sm text-white'}
-                  isDisabled={
-                    selectedChip === CHIPS[0]
-                      ? !isSelfFormValid()
-                      : selectedChip === CHIPS[1]
-                        ? !isGuestFormValid()
-                        : selectedChip === CHIPS[2]
-                          ? !isMumukshuFormValid()
-                          : false
-                  }
-                  isLoading={isSubmitting}
-                />
-              </ScrollView>
+                  {/* Confirm Button Section */}
+                  <CustomButton
+                    handlePress={handleBookingConfirm}
+                    text={'Confirm'}
+                    bgcolor="bg-secondary"
+                    containerStyles="mt-4 p-2"
+                    textStyles={'text-sm text-white'}
+                    isDisabled={
+                      selectedChip === CHIPS[0]
+                        ? !isSelfFormValid()
+                        : selectedChip === CHIPS[1]
+                          ? !isGuestFormValid()
+                          : selectedChip === CHIPS[2]
+                            ? !isMumukshuFormValid()
+                            : false
+                    }
+                    isLoading={isSubmitting}
+                  />
+                </ScrollView>
+              </View>
             </View>
-          </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </KeyboardProvider>
       </Modal>
     </View>
   );

@@ -40,7 +40,7 @@ const DEPARTMENT_LIST = [
 ];
 
 const maintenanceRequestList = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
 
   const [selectedChip, setSelectedChip] = useState(types.MAINTENANCE_TYPE_ALL);
@@ -175,7 +175,7 @@ const maintenanceRequestList = () => {
     );
 
   return (
-    <SafeAreaView className="h-full w-full bg-white">
+    <SafeAreaView className="h-full w-full bg-gray-50">
       <FlashList
         className="flex-grow-1"
         contentContainerStyle={{ padding: 10 }}
@@ -214,7 +214,7 @@ const maintenanceRequestList = () => {
         presentationStyle="pageSheet"
         statusBarTranslucent={true}
         onRequestClose={() => setIsModalVisible(false)}>
-        <SafeAreaView className="h-full w-full bg-white">
+        <SafeAreaView className="h-full w-full bg-gray-50">
           <KeyboardAwareScrollView
             bottomOffset={62}
             style={{ flex: 1 }}
@@ -243,13 +243,13 @@ const maintenanceRequestList = () => {
                 placeholder="Select Department"
                 options={DEPARTMENT_LIST}
                 selectedValue={form.department}
-                onValueChange={(val: any) => setForm({ ...form, department: val })}
+                onValueChange={(val: any) => setForm((prev) => ({ ...prev, department: val }))}
               />
 
               <FormField
                 text="Detail of Work"
                 value={form.work_detail}
-                handleChangeText={(e: any) => setForm({ ...form, work_detail: e })}
+                handleChangeText={(e: any) => setForm((prev) => ({ ...prev, work_detail: e }))}
                 multiline={true}
                 numberOfLines={4}
                 otherStyles="mt-7"
@@ -261,7 +261,7 @@ const maintenanceRequestList = () => {
               <FormField
                 text="Place where work is needed"
                 value={form.area_of_work}
-                handleChangeText={(e: any) => setForm({ ...form, area_of_work: e })}
+                handleChangeText={(e: any) => setForm((prev) => ({ ...prev, area_of_work: e }))}
                 otherStyles="mt-7"
                 inputStyles="font-pmedium text-base text-black"
                 containerStyles={'bg-gray-100'}

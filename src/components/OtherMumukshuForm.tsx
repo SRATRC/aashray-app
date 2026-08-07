@@ -24,7 +24,7 @@ const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
   removeMumukshuForm,
   children = () => null,
 }) => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   const verifyMumukshu = async (mobno: any) => {
     return new Promise((resolve, reject) => {
@@ -72,14 +72,16 @@ const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
             updatedMumukshus[index] = {
               ...updatedMumukshus[index],
               ...query.data,
-              mobno: mumukshuForm.mumukshus[index].mobno,
+              mobno: updatedMumukshus[index].mobno,
             };
             return { ...prevForm, mumukshus: updatedMumukshus };
           });
         }
       }
     });
-  }, [mumukshuQueries.map((q: any) => q.data), mumukshuForm.mumukshus.length]);
+    // Keyed on a primitive: a mapped array literal is a new reference every
+    // render, which made this effect run after every keystroke.
+  }, [mumukshuQueries.map((q: any) => q.data?.cardno).join(','), mumukshuForm.mumukshus.length]);
 
   // Helper function to get API error message
   const getErrorMessage = (error: any) => {
@@ -137,7 +139,6 @@ const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
               placeholder="Enter Mumukshu's Phone Number"
               // maxLength={20}
               maxLength={10}
-              containerStyles="bg-gray-100"
               additionalText={data?.issuedto}
               error={shouldShowError}
               errorMessage={errorMessage}

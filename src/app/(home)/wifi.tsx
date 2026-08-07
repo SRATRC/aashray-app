@@ -63,7 +63,7 @@ const wifiTutorials = {
 };
 
 const Wifi = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const isResidentOrSevakutir =
     user.res_status === status.STATUS_RESIDENT || user.res_status === status.STATUS_SEVA_KUTIR;
 
@@ -272,7 +272,7 @@ const Wifi = () => {
     };
 
     return (
-      <View key={title} className="mb-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+      <View key={title} className="mb-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm shadow-gray-200">
         <Text className="font-psemibold text-sm text-gray-800 mb-3">{title}</Text>
         <View className="flex-row gap-x-3">
           <TouchableOpacity
@@ -293,7 +293,7 @@ const Wifi = () => {
   };
 
   return (
-    <SafeAreaView className="h-full bg-white-100" edges={['top', 'left', 'right']}>
+    <SafeAreaView className="h-full bg-gray-50" edges={['top', 'left', 'right']}>
       <ScrollView
         className="flex-1"
         keyboardShouldPersistTaps="handled"
