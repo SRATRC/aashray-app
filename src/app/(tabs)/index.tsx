@@ -5,7 +5,6 @@ import {
   Image,
   ImageBackground,
   ScrollView,
-  Linking,
   ImageSourcePropType,
   ActivityIndicator,
   Platform,
@@ -16,7 +15,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { icons, images, quotes } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
 import { useBottomTabOverflow } from '@/src/components/TabBarBackground';
-import CustomHomeIcon from '@/src/components/CustomHomeIcon';
+import HomeSection from '@/src/components/home/HomeSection';
+import NextStayCard from '@/src/components/home/NextStayCard';
+import ShortcutRow from '@/src/components/home/ShortcutRow';
+import SocialRow from '@/src/components/home/SocialRow';
+import PendingPaymentAlert from '@/src/components/home/PendingPaymentAlert';
 
 const QuotesBanner = ({ user, images }: any) => {
   const randomQuote = useMemo(() => {
@@ -57,25 +60,25 @@ const QuotesBanner = ({ user, images }: any) => {
 };
 
 const Home: React.FC = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const router: any = useRouter();
   const tabBarHeight = useBottomTabOverflow();
 
   if (!user || !user.issuedto) {
     return (
-      <SafeAreaView className="h-full items-center justify-center bg-white">
+      <SafeAreaView className="h-full items-center justify-center bg-gray-50">
         <ActivityIndicator size="large" color="#000" />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="h-full bg-white" edges={['top']}>
+    <SafeAreaView className="h-full bg-gray-50" edges={['top']}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         className="flex-1"
         contentContainerStyle={{
-          paddingBottom: Platform.OS === 'ios' ? tabBarHeight + 20 : 20,
+          paddingBottom: (Platform.OS === 'ios' ? tabBarHeight : 0) + 48,
         }}>
         <View className=" flex-row items-center justify-start px-4">
           <Image
@@ -88,86 +91,97 @@ const Home: React.FC = () => {
         {/* Banner */}
         <QuotesBanner user={user} images={images} />
 
-        {/* Services */}
-        <View className="mt-7 w-full">
-          <Text className="px-4 font-pmedium text-lg text-black">Quick Access</Text>
-          <View className="mt-3 flex-row flex-wrap gap-y-4 px-4">
-            <CustomHomeIcon
-              image={icons.wifiHome as ImageSourcePropType}
-              title={'Wifi'}
-              onPress={() => router.push('/wifi')}
-            />
-            <CustomHomeIcon
-              image={icons.menuHome as ImageSourcePropType}
-              title={'Menu'}
-              onPress={() => router.push('/menu')}
-            />
-            <CustomHomeIcon
-              image={icons.maintenanceHome as ImageSourcePropType}
-              title={'Maintenance'}
-              onPress={() => router.push('/maintenanceRequestList')}
-            />
-            <CustomHomeIcon
-              image={icons.contact as ImageSourcePropType}
-              title={'Contact Info'}
-              onPress={() => router.push('/contactInfo')}
-            />
-            <CustomHomeIcon
-              image={icons.support as ImageSourcePropType}
-              title={'Support'}
-              onPress={() => router.push('/support')}
-            />
-            <CustomHomeIcon
-              image={icons.pendingPayment as ImageSourcePropType}
-              title={'Pending Payments'}
-              onPress={() => router.push('/pendingPayments')}
-            />
-          </View>
+        {/* Your booking. Urgent first, then the stay itself. */}
+        <View className="mt-6 w-full gap-y-3 px-4">
+          <PendingPaymentAlert />
+          <NextStayCard />
         </View>
 
-        {/* Socials */}
-        <View className="mt-7 w-full">
-          <Text className="px-4 font-pmedium text-lg text-black">Checkout Our Social Media!</Text>
-          <View className="mb-6 mt-3 flex-row flex-wrap gap-y-4 px-4">
-            <CustomHomeIcon
-              image={icons.satshrut as ImageSourcePropType}
-              title={'Satshrut'}
-              onPress={() => Linking.openURL('https://satshrut.vitraagvigyaan.org/')}
-            />
-            <CustomHomeIcon
-              image={icons.smilestones as ImageSourcePropType}
-              title={'Smilestones'}
-              onPress={() => Linking.openURL('https://smilestones.vitraagvigyaan.org/')}
-            />
-            <CustomHomeIcon
-              image={icons.vvYt as ImageSourcePropType}
-              title={'Youtube'}
-              onPress={() => Linking.openURL('https://youtube.com/@vitraagvigyaan')}
-            />
-            <CustomHomeIcon
-              image={icons.vvInsta as ImageSourcePropType}
-              title={'VV Insta'}
-              onPress={() => Linking.openURL('https://www.instagram.com/vitraag.vigyaan/')}
-            />
-            <CustomHomeIcon
-              image={icons.rcGlobalInsta as ImageSourcePropType}
-              title={'RC Global'}
-              onPress={() => Linking.openURL('https://www.instagram.com/researchcentre_global/')}
-            />
-            <CustomHomeIcon
-              image={icons.rcLinkedin as ImageSourcePropType}
-              title={'LinkedIn'}
-              onPress={() =>
-                Linking.openURL('https://www.linkedin.com/company/researchcentre-global/')
-              }
-            />
-            <CustomHomeIcon
-              image={icons.sparshInsta as ImageSourcePropType}
-              title={'Sparsh'}
-              onPress={() => Linking.openURL('https://www.instagram.com/sparsh.international/')}
-            />
-          </View>
-        </View>
+        <HomeSection title="At the centre" className="mt-8 w-full">
+          <ShortcutRow
+            items={[
+              {
+                key: 'wifi',
+                icon: icons.wifiHome as ImageSourcePropType,
+                label: 'Wifi',
+                onPress: () => router.push('/wifi'),
+              },
+              {
+                key: 'menu',
+                icon: icons.menuHome as ImageSourcePropType,
+                label: 'Menu',
+                onPress: () => router.push('/menu'),
+              },
+              {
+                key: 'maintenance',
+                icon: icons.maintenanceHome as ImageSourcePropType,
+                label: 'Maintenance',
+                onPress: () => router.push('/maintenanceRequestList'),
+              },
+              {
+                key: 'payments',
+                icon: icons.pendingPayment as ImageSourcePropType,
+                label: 'Payments',
+                onPress: () => router.push('/pendingPayments'),
+              },
+              {
+                key: 'contact',
+                icon: icons.contact as ImageSourcePropType,
+                label: 'Contact',
+                onPress: () => router.push('/contactInfo'),
+              },
+            ]}
+          />
+        </HomeSection>
+
+        <HomeSection title="Follow us" className="mt-8 w-full">
+          <SocialRow
+            items={[
+              {
+                key: 'satshrut',
+                icon: icons.satshrut as ImageSourcePropType,
+                label: 'Satshrut',
+                url: 'https://satshrut.vitraagvigyaan.org/',
+              },
+              {
+                key: 'smilestones',
+                icon: icons.smilestones as ImageSourcePropType,
+                label: 'Smilestones',
+                url: 'https://smilestones.vitraagvigyaan.org/',
+              },
+              {
+                key: 'yt',
+                icon: icons.vvYt as ImageSourcePropType,
+                label: 'Youtube',
+                url: 'https://youtube.com/@vitraagvigyaan',
+              },
+              {
+                key: 'vvinsta',
+                icon: icons.vvInsta as ImageSourcePropType,
+                label: 'VV Insta',
+                url: 'https://www.instagram.com/vitraag.vigyaan/',
+              },
+              {
+                key: 'rcglobal',
+                icon: icons.rcGlobalInsta as ImageSourcePropType,
+                label: 'RC Global',
+                url: 'https://www.instagram.com/researchcentre_global/',
+              },
+              {
+                key: 'linkedin',
+                icon: icons.rcLinkedin as ImageSourcePropType,
+                label: 'LinkedIn',
+                url: 'https://www.linkedin.com/company/researchcentre-global/',
+              },
+              {
+                key: 'sparsh',
+                icon: icons.sparshInsta as ImageSourcePropType,
+                label: 'Sparsh',
+                url: 'https://www.instagram.com/sparsh.international/',
+              },
+            ]}
+          />
+        </HomeSection>
       </ScrollView>
     </SafeAreaView>
   );

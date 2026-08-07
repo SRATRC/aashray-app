@@ -44,7 +44,6 @@ import pendingPayment from '../assets/icons/pending-payment.png';
 import tick from '../assets/icons/tick.png';
 import contact from '../assets/icons/contact.png';
 import miscellaneousTransaction from '../assets/icons/miscellaneous_transactions.png';
-import support from '../assets/icons/support.png';
 import rcLinkedin from '../assets/icons/rc-linkedin.png';
 import copy from '../assets/icons/copy.png';
 
@@ -95,7 +94,6 @@ export default {
   tick,
   contact,
   miscellaneousTransaction,
-  support,
   rcLinkedin,
   copy,
 };
