@@ -60,7 +60,6 @@ export default {
         'android.permission.READ_MEDIA_IMAGES',
         'android.permission.READ_MEDIA_VIDEO',
       ],
-      edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: true,
       adaptiveIcon: {
         foregroundImage: './src/assets/images/adaptive-icon.png',
@@ -150,6 +149,17 @@ export default {
         {
           android: {
             minSdkVersion: 26,
+            enableProguardInReleaseBuilds: true,
+            enableShrinkResourcesInReleaseBuilds: true,
+            extraProguardRules: `
+-keepattributes *Annotation*
+-dontwarn com.razorpay.**
+-keep class com.razorpay.** {*;}
+-optimizations !method/inlining/
+-keepclasseswithmembers class * {
+  public void onPayment*(...);
+}
+            `,
           },
           ios: {
             useFrameworks: 'static',
