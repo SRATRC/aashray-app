@@ -159,6 +159,9 @@ export default {
 -keepclasseswithmembers class * {
   public void onPayment*(...);
 }
+-keepclassmembers class * {
+  @android.webkit.JavascriptInterface <methods>;
+}
             `,
           },
           ios: {
