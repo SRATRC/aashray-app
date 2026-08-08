@@ -128,16 +128,21 @@ const handleAPICall = async (
       const err = new Error(res.data.message || 'An error occurred');
       err.correlationId = res.headers['x-request-id'] || requestId;
       err.status = res.status;
+      err.responseData = res.data;
       throw err;
     }
   } catch (error) {
     const correlationId = error.correlationId || error.response?.headers?.['x-request-id'] || requestId;
     const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
     const status = error.response?.status ?? error.status;
+    // validateStatus: () => true means axios never rejects on its own, so
+    // error.response is never populated here — the response body travels
+    // on error.responseData instead (attached where the error is thrown).
+    const responseData = error.responseData ?? error.response?.data;
     const errorDetails = {
       message: errorMessage,
       status,
-      data: error.response?.data,
+      data: responseData,
       correlationId,
       originalError: error,
     };
@@ -160,19 +165,17 @@ const handleAPICall = async (
       level: 'error',
     });
 
-    Sentry.setTag('correlation_id', correlationId);
-
     // No response (network/timeout) or a 5xx means the request never got a
     // real answer from the backend — that's a bug to see, not a normal
     // rejection. 4xx responses are the backend's validated business
     // decision (bad OTP, slot full, etc.) and are already surfaced to the
     // user via the toast below, so they don't need a Sentry issue too.
-    // correlation_id isn't repeated in tags here — it's already on the
-    // scope from the setTag call above, and Sentry attaches scope tags to
-    // every event automatically.
+    // correlation_id is passed on this call's own tags rather than via
+    // Sentry.setTag, which would mutate global scope and leak onto
+    // unrelated later events until the next API error overwrites it.
     if (!status || status >= 500) {
       Sentry.captureException(error, {
-        tags: { endpoint },
+        tags: { endpoint, correlation_id: correlationId },
         extra: sentryContext,
       });
     }

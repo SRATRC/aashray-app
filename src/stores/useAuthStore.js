@@ -59,6 +59,14 @@ export const useAuthStore = create(
 // guards against it turning up unintended inside bulk request/response
 // dumps — this is the one deliberate, minimal exception: Sentry's dedicated
 // user-identity field, with no name/email/phone attached.
+//
+// Ordering: this file is a static import of src/app/_layout.tsx and so
+// finishes evaluating — including this subscribe() registration — before
+// _layout.tsx's own top-level Sentry.init() call runs. zustand/persist's
+// rehydration is deferred past that point (a microtask), so its first fire
+// lands after Sentry.init() too. Calling Sentry.setUser before Sentry.init
+// is a silent no-op, not a crash, but if this assumption ever breaks the
+// symptom is "cold-start user identity missing," not an error.
 useAuthStore.subscribe((state) => {
   Sentry.setUser(state.user?.cardno ? { id: state.user.cardno } : null);
 });
