@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { isNewerVersion } from '@/src/utils/version';
-import { BASE_URL } from '@/src/constants';
+import { resolveBaseUrl } from '@/src/constants/backends';
+import { useDevStore } from '@/src/stores';
 import { getSnoozeUntil, setSnoozeUntil } from '@/src/utils/updatePrefs';
 import UpdateModal, { UpdateInfo } from '@/src/components/UpdateModal';
 import axios from 'axios';
@@ -41,7 +42,11 @@ const fetchUpdateInfo = async (): Promise<{
   raw?: ApiResponse['data'];
 }> => {
   try {
-    const res = await axios.get<ApiResponse>(`${BASE_URL}/updates`, {
+    // Follow the same backend the rest of the app is pointed at. This read
+    // BASE_URL directly, so a dev on QA or Local still had update checks
+    // answered by production.
+    const { backend, qaPrNumber, localPort } = useDevStore.getState();
+    const res = await axios.get<ApiResponse>(`${resolveBaseUrl(backend, qaPrNumber, localPort)}/updates`, {
       params: { os: Platform.OS },
       timeout: 8000,
       validateStatus: () => true,

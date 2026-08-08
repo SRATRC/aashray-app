@@ -1,5 +1,4 @@
 const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL;
-const DEV_URL = process.env.EXPO_PUBLIC_DEV_BASE_URL;
 
 const quotes = [
   {
@@ -167,4 +166,4 @@ import status from './status';
 import dropdowns from './dropdowns';
 import surfaces from './surfaces';
 
-export { icons, images, BASE_URL, DEV_URL, types, colors, status, dropdowns, surfaces, quotes };
+export { icons, images, BASE_URL, types, colors, status, dropdowns, surfaces, quotes };

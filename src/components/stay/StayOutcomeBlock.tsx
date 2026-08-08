@@ -118,7 +118,9 @@ const StayOutcomeBlock: React.FC<StayOutcomeBlockProps> = ({
         className={isLast ? '' : 'mb-3 border-b border-dashed border-gray-200 pb-3'}>
         <View className="flex-row items-start justify-between gap-x-3">
           <View className="flex-1 gap-y-1.5">
-            <VerdictPill verdict={verdict} count={people.length} />
+            {/* A group of one is the trivial case; the pill only earns a number
+                when it stands for several people. */}
+            <VerdictPill verdict={verdict} count={people.length > 1 ? people.length : undefined} />
             <Text className="font-pmedium text-sm text-gray-800">
               {people.map((p) => p.name).join(', ')}
             </Text>
@@ -254,7 +256,12 @@ const StayOutcomeBlock: React.FC<StayOutcomeBlockProps> = ({
             {(['unavailable', 'waitlist', 'confirmed'] as Verdict[])
               .filter((v) => counts[v])
               .map((v) => (
-                <VerdictPill key={v} verdict={v} count={counts[v]} size="sm" />
+                <VerdictPill
+                  key={v}
+                  verdict={v}
+                  count={counts[v] > 1 ? counts[v] : undefined}
+                  size="sm"
+                />
               ))}
           </View>
         )}

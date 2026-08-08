@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { Animated, View, Text, Platform, Modal, Pressable } from 'react-native';
+import { useState } from 'react';
+import { View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { dropdowns } from '@/src/constants';
 import CustomButton from '@/src/components/CustomButton';
@@ -10,7 +10,7 @@ import FieldGroup, {
   FieldRowError,
   FieldTextRow,
 } from '@/src/components/booking/shared/FieldGroup';
-import RNDateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
 
 export interface ProfileFormData {
@@ -128,6 +128,8 @@ const getDefaultFormData = (initial?: Partial<ProfileFormData>): ProfileFormData
   center: initial?.center || '',
 });
 
+const MIN_DOB = new Date(1900, 0, 1);
+
 // Main Component
 const ProfileForm = ({
   initialData,
@@ -139,27 +141,6 @@ const ProfileForm = ({
   const [form, setForm] = useState<ProfileFormData>(() => getDefaultFormData(initialData));
   const [showValidation, setShowValidation] = useState(false);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  // The spinner writes on every scroll tick, so it edits a draft the sheet
-  // commits on Done. Otherwise Cancel would still have changed the date.
-  const [draftDob, setDraftDob] = useState<Date>(new Date());
-  // `animationType="slide"` moves the whole modal, so the dim backdrop slid up
-  // with the sheet. The backdrop fades and only the sheet travels, which means
-  // driving both here and keeping the modal mounted until the exit finishes.
-  const [isSheetMounted, setSheetMounted] = useState(false);
-  const sheetAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (isDatePickerVisible) {
-      setSheetMounted(true);
-      Animated.timing(sheetAnim, { toValue: 1, duration: 220, useNativeDriver: true }).start();
-      return;
-    }
-    Animated.timing(sheetAnim, { toValue: 0, duration: 180, useNativeDriver: true }).start(
-      ({ finished }) => {
-        if (finished) setSheetMounted(false);
-      }
-    );
-  }, [isDatePickerVisible, sheetAnim]);
   const [selectedCountry, setSelectedCountry] = useState(initialData?.country || '');
   const [selectedState, setSelectedState] = useState(initialData?.state || '');
   const [touchedFields, setTouchedFields] = useState<Set<string>>(() => new Set());
@@ -233,7 +214,6 @@ const ProfileForm = ({
             placeholder="Select"
             error={fieldError(!form.dob, 'dob')}
             onPress={() => {
-              setDraftDob(form.dob ? moment(form.dob, 'YYYY-MM-DD').toDate() : new Date());
               setDatePickerVisibility(true);
               markFieldTouched('dob');
             }}
@@ -260,90 +240,23 @@ const ProfileForm = ({
         </View>
       </FieldGroup>
 
-      {/* Android opens its own dialog. On iOS the spinner has no chrome of its
-          own, so inline it just lands in the page and shoves the form around —
-          it goes in the same bottom sheet every other picker here uses. */}
-      {isDatePickerVisible && Platform.OS === 'android' && (
-        <RNDateTimePicker
-          themeVariant="light"
+      {/* Mounted only while open. Kept mounted it re-parsed the date and built
+          three Date objects on every keystroke in any field on this form. */}
+      {isDatePickerVisible ? (
+        <DateTimePickerModal
+          isVisible
           mode="date"
-          display="default"
-          value={form.dob ? moment(form.dob, 'YYYY-MM-DD').toDate() : new Date()}
+          date={form.dob ? moment(form.dob, 'YYYY-MM-DD').toDate() : new Date()}
           maximumDate={new Date()}
-          minimumDate={new Date(1900, 0, 1)}
-          onChange={(event, date) => {
+          minimumDate={MIN_DOB}
+          onConfirm={(date: Date) => {
+            setForm((prev) => ({ ...prev, dob: moment(date).format('YYYY-MM-DD') }));
+            markFieldTouched('dob');
             setDatePickerVisibility(false);
-            if (date) {
-              setForm((prev) => ({ ...prev, dob: moment(date).format('YYYY-MM-DD') }));
-              markFieldTouched('dob');
-            }
           }}
+          onCancel={() => setDatePickerVisibility(false)}
         />
-      )}
-
-      {Platform.OS === 'ios' && (
-        <Modal
-          visible={isSheetMounted}
-          transparent
-          animationType="none"
-          statusBarTranslucent
-          onRequestClose={() => setDatePickerVisibility(false)}>
-          <View className="flex-1 justify-end">
-            <Animated.View
-              className="absolute inset-0 bg-black/50"
-              style={{ opacity: sheetAnim }}
-            />
-            <Pressable
-              className="absolute inset-0"
-              onPress={() => setDatePickerVisibility(false)}
-            />
-            <Animated.View
-              className="overflow-hidden rounded-t-3xl bg-white pb-8"
-              style={{
-                transform: [
-                  {
-                    translateY: sheetAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [420, 0],
-                    }),
-                  },
-                ],
-              }}>
-              <View className="items-center pb-3 pt-2">
-                <View className="h-1.5 w-16 rounded-full bg-gray-300" />
-              </View>
-
-              <View className="flex-row items-center justify-between border-b border-gray-200 px-4 pb-4">
-                <Pressable onPress={() => setDatePickerVisibility(false)} hitSlop={10}>
-                  <Text className="font-pmedium text-base text-gray-500">Cancel</Text>
-                </Pressable>
-                <Text className="font-psemibold text-lg text-gray-900">Date of birth</Text>
-                <Pressable
-                  onPress={() => {
-                    setForm((prev) => ({ ...prev, dob: moment(draftDob).format('YYYY-MM-DD') }));
-                    markFieldTouched('dob');
-                    setDatePickerVisibility(false);
-                  }}
-                  hitSlop={10}>
-                  <Text className="font-psemibold text-base text-secondary-200">Done</Text>
-                </Pressable>
-              </View>
-
-              <RNDateTimePicker
-                themeVariant="light"
-                mode="date"
-                display="spinner"
-                value={draftDob}
-                maximumDate={new Date()}
-                minimumDate={new Date(1900, 0, 1)}
-                onChange={(event, date) => {
-                  if (date) setDraftDob(date);
-                }}
-              />
-            </Animated.View>
-          </View>
-        </Modal>
-      )}
+      ) : null}
 
       <FieldGroup title={showSectionHeaders ? 'Contact' : undefined}>
         <FieldTextRow
@@ -541,7 +454,7 @@ const ProfileForm = ({
       <CustomButton
         text={submitButtonText}
         handlePress={handleSubmit}
-        containerStyles="min-h-[62px]"
+        containerStyles="min-h-[52px]"
         isLoading={isSubmitting}
       />
     </View>

@@ -485,44 +485,41 @@ const GuestAddons = () => {
   // Handle form submission
   const handleSubmit = useCallback(() => {
     setIsSubmitting(true);
-    let hasValidationError = false;
-
-    // Validate and set Room Form data
-    if (booking !== types.ROOM_DETAILS_TYPE && addonOpen.room) {
-      if (!validateRoomForm()) {
-        CustomAlert.alert('Please fill all the room booking fields');
-        hasValidationError = true;
-        return;
+    // try/finally, because every validation failure returns early. Without it
+    // isSubmitting stayed true, CustomButton stayed disabled, and the member
+    // could not retry without leaving the screen.
+    try {
+      // Validate and set Room Form data
+      if (booking !== types.ROOM_DETAILS_TYPE && addonOpen.room) {
+        if (!validateRoomForm()) {
+          CustomAlert.alert('Please fill all the room booking fields');
+          return;
+        }
+        setGuestData((prev: any) => ({ ...prev, room: roomForm }));
       }
-      setGuestData((prev: any) => ({ ...prev, room: roomForm }));
-    }
 
-    // Validate and set Food Form data
-    if (addonOpen.food) {
-      if (!validateFoodForm()) {
-        CustomAlert.alert('Please fill all the food booking fields');
-        hasValidationError = true;
-        return;
+      // Validate and set Food Form data
+      if (addonOpen.food) {
+        if (!validateFoodForm()) {
+          CustomAlert.alert('Please fill all the food booking fields');
+          return;
+        }
+        setGuestData((prev: any) => ({ ...prev, food: foodForm }));
       }
-      setGuestData((prev: any) => ({ ...prev, food: foodForm }));
-    }
 
-    // Validate and set Adhyayan Form data
-    if (booking !== types.ADHYAYAN_DETAILS_TYPE && isAdhyayanFormEmpty()) {
-      if (!validateAdhyayanForm()) {
-        CustomAlert.alert('Please fill all the adhyayan booking fields');
-        hasValidationError = true;
-        return;
+      // Validate and set Adhyayan Form data
+      if (booking !== types.ADHYAYAN_DETAILS_TYPE && isAdhyayanFormEmpty()) {
+        if (!validateAdhyayanForm()) {
+          CustomAlert.alert('Please fill all the adhyayan booking fields');
+          return;
+        }
+        setGuestData((prev: any) => ({ ...prev, adhyayan: adhyayanForm }));
       }
-      setGuestData((prev: any) => ({ ...prev, adhyayan: adhyayanForm }));
-    }
 
-    // If no validation errors, navigate to confirmation page
-    if (!hasValidationError) {
       router.push('/guestBooking/bookingReview');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   }, [
     booking,
     isRoomFormEmpty,

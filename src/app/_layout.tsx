@@ -17,6 +17,9 @@ import * as Sentry from '@sentry/react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 import { CustomAlert } from '@/src/components/CustomAlert';
+import { nextStayQuery } from '@/src/components/home/NextStayCard';
+import { blockedDatesQuery, initialMonthKey } from '@/src/components/stay/StayCalendar';
+import moment from 'moment';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -167,6 +170,26 @@ const RootLayout = () => {
   useEffect(() => {
     if (fontError) throw fontError;
   }, [fontError]);
+
+  // Warm the two screens a member reaches first: the home stay card, and the
+  // blocked dates the booking calendar needs before it can mark a single day.
+  // Deliberately NOT awaited by hideSplash below — a cold start must never wait
+  // on the network. These are in flight while the splash is still up, so both
+  // screens usually render from cache instead of a shimmer.
+  useEffect(() => {
+    if (!isAuthReady) return;
+    const cardno = useAuthStore.getState().user?.cardno;
+    if (!cardno) return;
+
+    queryClient.prefetchQuery(nextStayQuery(cardno));
+    // Room opens on tomorrow's month, Flat on today's. They differ only on the
+    // last day of a month, and the Set keeps that from costing a second call.
+    const months = new Set([
+      initialMonthKey(),
+      initialMonthKey(moment().format('YYYY-MM-DD')),
+    ]);
+    months.forEach((monthKey) => queryClient.prefetchQuery(blockedDatesQuery(cardno, monthKey)));
+  }, [isAuthReady]);
 
   useEffect(() => {
     async function hideSplash() {

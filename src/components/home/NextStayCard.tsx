@@ -45,6 +45,13 @@ const fetchStays = (cardno: string): Promise<StayBooking[]> =>
     );
   });
 
+/** Key and fetcher together, so the launch prefetch in `app/_layout.tsx` cannot
+ * warm a key this card does not read. */
+export const nextStayQuery = (cardno: string) => ({
+  queryKey: ['nextStay', cardno],
+  queryFn: () => fetchStays(cardno),
+});
+
 const verdictOf = (booking: StayBooking): Verdict =>
   booking.status === status.STATUS_WAITING ? 'waitlist' : 'confirmed';
 
@@ -57,8 +64,11 @@ const dateRange = (start: string, end: string) =>
 const whenLabel = (checkin: string, checkout: string) => {
   const today = moment().startOf('day');
   const days = moment(checkin).startOf('day').diff(today, 'days');
-  if (moment(checkout).startOf('day').isSameOrBefore(today) === false && days < 0)
-    return 'Staying now';
+  // Already checked in and not yet departed. The checkout day itself counts —
+  // the member is still here that morning. Requiring checkout to be strictly
+  // after today sent a stay ending today to the last line, which read
+  // "Checking in in -3 days".
+  if (days < 0 && moment(checkout).startOf('day').isSameOrAfter(today)) return 'Staying now';
   if (days === 0) return 'Checking in today';
   if (days === 1) return 'Checking in tomorrow';
   return `Checking in in ${days} days`;
@@ -70,8 +80,7 @@ const NextStayCard: React.FC<{ className?: string }> = ({ className = '' }) => {
   const cardno = user?.cardno;
 
   const { data, isPending } = useQuery({
-    queryKey: ['nextStay', cardno],
-    queryFn: () => fetchStays(cardno),
+    ...nextStayQuery(cardno),
     enabled: Boolean(cardno),
   });
 

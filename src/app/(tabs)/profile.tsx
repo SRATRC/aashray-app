@@ -8,7 +8,6 @@ import {
   Image,
   RefreshControl,
   ActivityIndicator,
-  Switch,
   TextInput,
   Animated,
   Dimensions,
@@ -25,6 +24,7 @@ import {
 import { icons } from '@/src/constants';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore, useDevStore } from '@/src/stores';
+import { BACKEND_LABELS, DEFAULT_LOCAL_PORT } from '@/src/constants/backends';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Feather, FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useBottomTabOverflow } from '@/src/components/TabBarBackground';
@@ -54,7 +54,8 @@ const Profile: React.FC = () => {
   const { setEnabled } = useKeyboardController();
 
   const { pickAndUpload, isUploading, uploadProgress, uploadError } = useQuickImagePicker();
-  const { useDevBackend, setUseDevBackend, devPrNumber, setDevPrNumber } = useDevStore();
+  const { backend, setBackend, qaPrNumber, setQaPrNumber, localPort, setLocalPort } =
+    useDevStore();
 
   const router: any = useRouter();
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
@@ -261,13 +262,14 @@ const Profile: React.FC = () => {
     );
   };
 
-  const handleToggleDevBackend = (value: boolean) => {
-    setUseDevBackend(value);
+  const handleSelectBackend = (value: string) => {
+    if (value === backend) return;
+    setBackend(value);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Toast.show({
       type: 'success',
       text1: 'Environment Updated',
-      text2: `Switched to ${value ? 'Development' : 'Production'}`,
+      text2: `Switched to ${BACKEND_LABELS[value as keyof typeof BACKEND_LABELS]}`,
     });
     refreshUserData().then(() => {
       Updates.reloadAsync();
@@ -299,21 +301,36 @@ const Profile: React.FC = () => {
     ...(user?.showDevelopmentDashboard
       ? [
           {
-            name: 'Use Development Backend',
+            name: 'Backend',
             icon: <MaterialIcons name="developer-mode" size={22} color="#4B5563" />,
-            type: 'switch',
-            value: useDevBackend,
-            onValueChange: handleToggleDevBackend,
+            type: 'segmented',
+            value: backend,
+            options: BACKEND_LABELS,
+            onSelect: handleSelectBackend,
           },
-          ...(useDevBackend
+          // Only under QA: a PR number means nothing for prod or local, and
+          // leaving the field on screen invites setting one that is ignored.
+          ...(backend === 'qa'
             ? [
                 {
                   name: 'PR Number',
                   icon: <FontAwesome name="code-fork" size={22} color="#4B5563" />,
                   type: 'input',
-                  value: devPrNumber,
-                  onChangeText: setDevPrNumber,
-                  placeholder: 'Enter PR Number (e.g. 230)',
+                  value: qaPrNumber,
+                  onChangeText: setQaPrNumber,
+                  placeholder: 'Blank for shared QA (e.g. 230)',
+                },
+              ]
+            : []),
+          ...(backend === 'local'
+            ? [
+                {
+                  name: 'Port',
+                  icon: <MaterialIcons name="lan" size={22} color="#4B5563" />,
+                  type: 'input',
+                  value: localPort,
+                  onChangeText: setLocalPort,
+                  placeholder: DEFAULT_LOCAL_PORT,
                 },
               ]
             : []),
@@ -346,8 +363,8 @@ const Profile: React.FC = () => {
   };
 
   const renderMenuItem = (item: any, index: number, isLast: boolean) => {
-    const isSwitch = item.type === 'switch';
     const isInput = item.type === 'input';
+    const isSegmented = item.type === 'segmented';
 
     const content = (
       <>
@@ -359,14 +376,26 @@ const Profile: React.FC = () => {
           )}
           <Text className="font-pmedium text-[15px] text-gray-700">{item.name}</Text>
         </View>
-        {isSwitch ? (
-          <Switch
-            value={item.value}
-            onValueChange={item.onValueChange}
-            trackColor={{ false: '#E5E7EB', true: '#F1AC09' }}
-            thumbColor="#fff"
-            ios_backgroundColor="#E5E7EB"
-          />
+        {isSegmented ? (
+          <View className="flex-row items-center gap-x-1 rounded-lg bg-gray-100 p-1">
+            {Object.keys(item.options).map((option: string) => {
+              const active = option === item.value;
+              return (
+                <TouchableOpacity
+                  key={option}
+                  onPress={() => item.onSelect(option)}
+                  activeOpacity={0.7}
+                  className={`rounded-md px-3 py-1.5 ${active ? 'bg-white' : ''}`}>
+                  <Text
+                    className={`font-pmedium text-xs ${
+                      active ? 'text-gray-900' : 'text-gray-500'
+                    }`}>
+                    {item.options[option]}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         ) : isInput ? (
           <View className="flex-1">
             <TextInput
@@ -384,7 +413,7 @@ const Profile: React.FC = () => {
       </>
     );
 
-    if (isSwitch || isInput) {
+    if (isInput || isSegmented) {
       return (
         <View key={item.name}>
           <View className="flex-row items-center justify-between px-4 py-4">{content}</View>

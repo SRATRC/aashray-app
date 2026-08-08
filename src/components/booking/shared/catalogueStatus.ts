@@ -21,3 +21,15 @@ export const seatsLeftLabel = (item: any): string | undefined => {
   if (!Number.isFinite(seats) || seats <= 0) return undefined;
   return `${seats} seat${seats === 1 ? '' : 's'} left`;
 };
+
+/**
+ * How many people are already queued, for rendering inside the Waitlist pill.
+ *
+ * Undefined rather than 0 when nobody is waiting or the backend sent no count,
+ * so the pill reads "Waitlist" on its own instead of "Waitlist · 0". Older
+ * builds of the API omit `waitlist_count` entirely and simply get the bare pill.
+ */
+export const waitlistCountOf = (item: any): number | undefined => {
+  const waiting = Number(item?.waitlist_count);
+  return Number.isFinite(waiting) && waiting > 0 ? waiting : undefined;
+};

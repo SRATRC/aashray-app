@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Modal,
   View,
@@ -8,6 +8,8 @@ import {
   Pressable,
   Animated,
   Dimensions,
+  Easing,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
@@ -21,56 +23,83 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export const QrModal = () => {
   const user = useAuthStore((state) => state.user);
-  const [modalVisible, setModalVisible] = useState(false);
+  /**
+   * Whether the Modal is on screen — which is NOT the same as whether it is
+   * open. Closing keeps it mounted until the exit animation finishes.
+   *
+   * The old code drove `visible` straight off an `isOpen` flag, so closing tore
+   * the modal down on the same frame and the exit `timing` ran against a
+   * detached view. With `useNativeDriver` the value lives on the native side,
+   * and that orphaned animation never wrote 0 back to the JS value: it stayed
+   * at 1. Every open after the first sprang from 1 to 1, which is exactly no
+   * animation at all.
+   */
+  const [isMounted, setIsMounted] = useState(false);
   const modalAnimation = useState(() => new Animated.Value(0))[0];
 
   const qrSize = Math.min(screenWidth, screenHeight) * 0.7;
   const pieceSize = Math.max(8, Math.floor(qrSize / 35));
 
+  // Belt and braces: seed the value here too, so the entrance starts from the
+  // bottom even if a previous exit was interrupted.
+  const animateIn = useCallback(() => {
+    modalAnimation.setValue(0);
+    Animated.timing(modalAnimation, {
+      toValue: 1,
+      duration: 260,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [modalAnimation]);
+
+  // Runs once the Modal is actually on screen, so the spring never plays
+  // against a view that has not attached yet.
   useEffect(() => {
-    if (modalVisible) {
-      // Animate modal in
-      Animated.spring(modalAnimation, {
-        toValue: 1,
-        tension: 60,
-        friction: 10,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      // Animate modal out
-      Animated.timing(modalAnimation, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [modalVisible]);
+    if (isMounted) animateIn();
+  }, [isMounted, animateIn]);
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setModalVisible(true);
+    // Already mounted means an exit is still running — restart the entrance
+    // rather than leaving it to finish closing.
+    if (isMounted) {
+      animateIn();
+      return;
+    }
+    setIsMounted(true);
   };
 
   const closeModal = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setModalVisible(false);
+    Animated.timing(modalAnimation, {
+      toValue: 0,
+      duration: 180,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    }).start(({ finished }) => {
+      // Only unmount when the exit actually completed. Reopening mid-exit
+      // cancels this, and tearing the modal down then would close it under the
+      // user's finger.
+      if (finished) setIsMounted(false);
+    });
   };
 
+  /**
+   * 48pt of travel, not a full screen height.
+   *
+   * The card carries a 30pt shadow, and it used to spring the whole height of
+   * the display with a 1.05 overshoot. Every frame of that re-rasterized the
+   * shadow over a blurred backdrop, across ~900pt, on a slow spring — which is
+   * what read as chunky. Opacity does most of the entrance now and the movement
+   * is short enough to stay cheap.
+   */
   const modalTranslateY = useMemo(
-    () =>
-      modalAnimation.interpolate({
-        inputRange: [0, 1],
-        outputRange: [screenHeight, 0],
-      }),
+    () => modalAnimation.interpolate({ inputRange: [0, 1], outputRange: [48, 0] }),
     [modalAnimation]
   );
 
   const modalScale = useMemo(
-    () =>
-      modalAnimation.interpolate({
-        inputRange: [0, 0.8, 1],
-        outputRange: [0.9, 1.05, 1],
-      }),
+    () => modalAnimation.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }),
     [modalAnimation]
   );
 
@@ -89,18 +118,31 @@ export const QrModal = () => {
 
       <Modal
         transparent={true}
-        visible={modalVisible}
+        visible={isMounted}
         statusBarTranslucent={true}
         onRequestClose={closeModal}
         presentationStyle="overFullScreen" // Add this to prevent interference
         animationType="none" // We handle our own animations
       >
-        <BlurView intensity={100} tint="dark" style={styles.overlay}>
+        <BlurView
+          intensity={Platform.OS === 'ios' ? 100 : 40}
+          tint="dark"
+          // No blur method on Android on purpose. The scrim below already
+          // darkens to 82%, so a real-time blur would re-capture the view
+          // hierarchy every frame to produce something almost entirely hidden.
+          style={styles.overlay}>
+          {/* iOS gets its darkness from the blur itself. Android cannot rely on
+              that, so a scrim does the work there and the modal stays legible
+              whether or not the blur actually ran. */}
+          {Platform.OS === 'android' ? (
+            <View pointerEvents="none" style={styles.androidScrim} />
+          ) : null}
           <SafeAreaView style={styles.safeArea}>
             <Animated.View
               style={[
                 styles.modalContainer,
                 {
+                  opacity: modalAnimation,
                   transform: [{ translateY: modalTranslateY }, { scale: modalScale }],
                 },
               ]}>
@@ -214,6 +256,14 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
   },
+  androidScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.82)',
+  },
   safeArea: {
     flex: 1,
     justifyContent: 'center',
@@ -226,10 +276,10 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     padding: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
-    shadowRadius: 30,
-    elevation: 20,
+    shadowRadius: 16,
+    elevation: 8,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },

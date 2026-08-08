@@ -33,14 +33,30 @@ const mmkvStorage = {
 export const useDevStore = create(
   persist(
     (set) => ({
-      useDevBackend: false,
-      devPrNumber: '',
-      setUseDevBackend: (value) => set({ useDevBackend: value }),
-      setDevPrNumber: (value) => set({ devPrNumber: value }),
+      /** 'prod' | 'qa' | 'local' — see src/constants/backends.js */
+      backend: 'prod',
+      /** Only read when backend is 'qa'. */
+      qaPrNumber: '',
+      /** Only read when backend is 'local'. Blank means DEFAULT_LOCAL_PORT. */
+      localPort: '',
+      setBackend: (backend) => set({ backend }),
+      setQaPrNumber: (qaPrNumber) => set({ qaPrNumber }),
+      setLocalPort: (localPort) => set({ localPort }),
     }),
     {
       name: 'dev-store',
+      version: 1,
       storage: createJSONStorage(() => mmkvStorage),
+      // v0 held a boolean `useDevBackend`, where true meant the QA backend.
+      // Without this an existing install rehydrates with no `backend` at all and
+      // silently falls back to prod, losing whichever target was selected.
+      migrate: (state, version) =>
+        version === 0
+          ? {
+              backend: state?.useDevBackend ? 'qa' : 'prod',
+              qaPrNumber: state?.devPrNumber ?? '',
+            }
+          : state,
     }
   )
 );

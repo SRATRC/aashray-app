@@ -38,3 +38,4 @@ gcp-eas-key.json
 # claude generated files
 .claude/
 .superpowers/
+CLAUDE.local.md

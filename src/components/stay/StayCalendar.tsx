@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useQueries } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 import moment from 'moment';
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text } from 'react-native';
@@ -87,6 +88,19 @@ const fetchBlockedDates = (cardno: string, monthKey: string): Promise<DayMap> =>
     );
   });
 
+/** The month the calendar opens on. Exported so the launch prefetch asks for the
+ * same one the screen will. */
+export const initialMonthKey = (minDate?: string) =>
+  moment(minDate || getMinDate())
+    .startOf('month')
+    .format('YYYY-MM');
+
+/** Key and fetcher together — see the note on `nextStayQuery`. */
+export const blockedDatesQuery = (cardno: string, monthKey: string) => ({
+  queryKey: ['blockedDates', cardno, monthKey],
+  queryFn: () => fetchBlockedDates(cardno, monthKey),
+});
+
 interface StayCalendarProps {
   mode?: 'period' | 'single';
   startDay?: string;
@@ -119,16 +133,11 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
 
   // Which months have been looked at. The answers themselves live in the query
   // cache, so leaving the screen and coming back does not refetch them.
-  const [months, setMonths] = useState<string[]>(() => [
-    moment(minDate || getMinDate())
-      .startOf('month')
-      .format('YYYY-MM'),
-  ]);
+  const [months, setMonths] = useState<string[]>(() => [initialMonthKey(minDate)]);
 
   const results = useQueries({
     queries: months.map((monthKey) => ({
-      queryKey: ['blockedDates', cardno, monthKey],
-      queryFn: () => fetchBlockedDates(cardno, monthKey),
+      ...blockedDatesQuery(cardno, monthKey),
       enabled: Boolean(cardno) && !dayMapOverride,
     })),
   });
@@ -209,6 +218,27 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
   const describeSpan = (span: { start: string; end: string }) =>
     span.start === span.end ? fmt(span.start) : `${fmt(span.start)} – ${fmt(span.end)}`;
 
+  /**
+   * The one sentence for a closure, so both call sites word it the same way.
+   *
+   * `utsavName` is often empty and the names arrive inside `reason` instead,
+   * which the backend sends as a finished sentence ("The centre is closed on
+   * these dates: Advocates & Mumbai Youth Forum"). Appending that whole string
+   * said the same thing twice, so keep only the part after the last colon —
+   * a reason with no colon ("Maintenance") passes through unchanged.
+   */
+  const describeClosure = (
+    span: { start: string; end: string; names: string[] },
+    reason?: string
+  ) => {
+    const cause = span.names.length
+      ? span.names.join(' & ')
+      : reason?.split(':').pop()?.trim();
+    return cause
+      ? `The centre is closed on ${describeSpan(span)} for ${cause}.`
+      : `The centre is closed on ${describeSpan(span)}.`;
+  };
+
   const utsavSpanInside = useCallback(
     (from: string, to: string) => {
       const days: string[] = [];
@@ -228,6 +258,13 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
     [effectiveMap]
   );
 
+  /** A note appears in place with no other movement on screen, so it lands with
+   * a light tap to say something answered the press. Clearing one is silent. */
+  const showNote = (next: { tone: 'info' | 'blocked'; text: string } | null) => {
+    if (next) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setNote(next);
+  };
+
   const handleDayPress = (day: any) => {
     const key = day.dateString;
     const info = effectiveMap[key];
@@ -236,30 +273,28 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
     // before it is read, and two of them stack.
     if (isBlocking(info)) {
       const span = blockedSpanFrom(key);
-      setNote({
+      showNote({
         tone: 'blocked',
-        text: span.names.length
-          ? `${describeSpan(span)} cannot be booked: ${span.names.join(' & ')}.`
-          : `${describeSpan(span)} cannot be booked. ${info?.reason ?? ''}`.trim(),
+        text: describeClosure(span, info?.reason),
       });
       return;
     }
 
     if (mode === 'single') {
-      setNote(null);
+      showNote(null);
       setSelectedDay?.(key);
       return;
     }
 
     if (!startDay || endDay) {
-      setNote(null);
+      showNote(null);
       setStartDay?.(key);
       setEndDay?.(null);
       return;
     }
 
     if (key < startDay) {
-      setNote(null);
+      showNote(null);
       setStartDay?.(key);
       setEndDay?.(null);
       return;
@@ -273,20 +308,16 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
       const clamped = lastSelectableFrom(startDay);
       const span = blockedSpanFrom(blocker.date);
       setEndDay?.(clamped);
-      setNote({
+      showNote({
         tone: 'blocked',
-        text: span.names.length
-          ? `Your stay can run to ${fmt(clamped)}. ${describeSpan(span)} cannot be booked: ${span.names.join(' & ')}.`
-          : `Your stay can run to ${fmt(clamped)}. ${describeSpan(span)} cannot be booked. ${
-              blocker.info?.reason ?? ''
-            }`.trim(),
+        text: describeClosure(span, blocker.info?.reason),
       });
       return;
     }
 
     setEndDay?.(key);
     const utsav = utsavSpanInside(startDay, key);
-    setNote(
+    showNote(
       utsav
         ? {
             tone: 'info',

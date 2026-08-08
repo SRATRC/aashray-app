@@ -124,6 +124,12 @@ export function buildStayOutcome(
   }
 
   const segments = Array.from(bySegment.values()).sort((a, b) => (a.start < b.start ? -1 : 1));
+  // Rows arrived, but not one of them carried a resolvable date range, so every
+  // row was skipped above. Callers read segments[0] and the last segment to
+  // build the headline range, so an outcome with no segments would crash them.
+  // No dates means nothing to say.
+  if (segments.length === 0) return null;
+
   for (const segment of segments) {
     segment.groups.sort((a, b) => VERDICT_RANK[a.verdict] - VERDICT_RANK[b.verdict]);
   }

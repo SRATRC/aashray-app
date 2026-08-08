@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Image, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
 import React, { useState } from 'react';
 import { colors, icons } from '../constants';
 
@@ -23,7 +23,6 @@ interface FormFieldProps {
   error?: boolean;
   errorMessage?: string;
   isLoading?: boolean;
-  useNeomorphic?: boolean;
   variant?: 'default' | 'clean';
 }
 
@@ -48,7 +47,6 @@ const FormField: React.FC<FormFieldProps> = ({
   error = false,
   errorMessage,
   isLoading = false,
-  useNeomorphic = false,
   variant = 'default',
 }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -113,18 +111,10 @@ const FormField: React.FC<FormFieldProps> = ({
     } else {
       if (containerStyles) {
         baseStyles += ` ${containerStyles}`;
-      } else if (useNeomorphic) {
-        baseStyles +=
-          Platform.OS === 'ios'
-            ? ' bg-white border-2 border-gray-200 shadow-md shadow-gray-300'
-            : ' bg-white border-2 border-gray-200 shadow-lg shadow-gray-400';
       } else {
         // border-gray-100 is within a shade of the page behind it, so the field
         // had no visible edge and read as part of the background.
-        baseStyles +=
-          Platform.OS === 'ios'
-            ? ' bg-white border-2 border-gray-200 shadow-sm shadow-gray-200'
-            : ' bg-white border-2 border-gray-200 shadow-sm shadow-gray-300';
+        baseStyles += ' bg-white border-2 border-gray-200';
       }
     }
 

@@ -223,15 +223,14 @@ export const prepareGuestRequestBody = (user, input) => {
       })
       .filter(Boolean);
 
-  const payload = {
+  // No extra_stay_reason here: it is stored on the room or flat entry, and
+  // BookingReviewScreen puts it on the payload this returns. Reading it off the
+  // top-level input never matched anything.
+  return {
     cardno: user.cardno,
     primary_booking: primaryBookingDetails(input.primary),
     addons: transformAddons(input),
   };
-  if (input.extra_stay_reason) {
-    payload.extra_stay_reason = input.extra_stay_reason;
-  }
-  return payload;
 };
 
 export const prepareMumukshuRequestBody = (user, input) => {
@@ -438,13 +437,11 @@ export const prepareMumukshuRequestBody = (user, input) => {
         }
       })
       .filter(Boolean);
-  const payload = {
+  // See prepareGuestRequestBody: the reason is added by the review screen, not
+  // read from the store input.
+  return {
     cardno: user.cardno,
     primary_booking: primaryBookingDetails(bookingInput.primary),
     addons: transformAddons(bookingInput),
   };
-  if (bookingInput.extra_stay_reason) {
-    payload.extra_stay_reason = bookingInput.extra_stay_reason;
-  }
-  return payload;
 };

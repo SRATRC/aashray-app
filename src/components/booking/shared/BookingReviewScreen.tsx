@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, Text } from 'react-native';
 // @ts-ignore — react-native-razorpay ships no type declarations
 import RazorpayCheckout from 'react-native-razorpay';
@@ -144,8 +144,15 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
     return true;
   };
 
+  // handleAPICall runs its finally the moment the success callback returns, and
+  // the callback fires the Razorpay sheet without awaiting it. The button would
+  // therefore re-enable while the sheet was still opening, and a second tap
+  // placed a second order. This holds the button until Razorpay settles.
+  const paying = useRef(false);
+
   const book = async (payLater: boolean) => {
     setIsSubmitting(true);
+    paying.current = false;
     await handleAPICall(
       'POST',
       config.bookingUrl,
@@ -158,6 +165,7 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
           router.replace('/bookingConfirmation');
           return;
         }
+        paying.current = true;
         RazorpayCheckout.open({
           key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,
           name: 'Vitraag Vigyaan Aashray',
@@ -176,9 +184,15 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
           .catch(() => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
             router.replace('/paymentFailed');
+          })
+          .finally(() => {
+            paying.current = false;
+            setIsSubmitting(false);
           });
       },
-      () => setIsSubmitting(false)
+      () => {
+        if (!paying.current) setIsSubmitting(false);
+      }
     );
   };
 

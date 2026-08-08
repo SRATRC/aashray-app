@@ -1,22 +1,23 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { useFocusEffect, useRouter } from 'expo-router';
-import moment from 'moment';
-import React, { useCallback, useMemo, useState } from 'react';
+import { useRouter } from 'expo-router';
+import React, { useMemo, useState } from 'react';
 import { View, Text, SectionList, RefreshControl, ActivityIndicator } from 'react-native';
 
 import BookingShell from './shared/BookingShell';
 import CatalogueCard from './shared/CatalogueCard';
+import StepTransition from './shared/StepTransition';
 import { isUtsavFull } from './shared/catalogueStatus';
 import FieldGroup from './shared/FieldGroup';
 import PartySection from './shared/PartySection';
 import useBookingParty from './shared/useBookingParty';
 import useBookingSubmit from './shared/useBookingSubmit';
+import useResetOnLeave from './shared/useResetOnLeave';
 
 import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
 import FormField from '@/src/components/FormField';
-import { status, types } from '@/src/constants';
+import { types } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
 
@@ -57,6 +58,27 @@ const attendeeValid = (row: any) =>
   Boolean(row.arrival) &&
   !(row.arrival === ARRIVAL[0].key && (!row.carno || row.carno.length !== 10));
 
+/** Everything an utsav shows on a card. Shared by the list and by the recap on
+ * step 2, so the two cannot describe the same utsav differently. */
+const cardProps = (item: any) => ({
+  title: item.utsav_name,
+  startDate: item.utsav_start,
+  endDate: item.utsav_end,
+  isWaitlist: isUtsavFull(item),
+  meta: [
+    {
+      icon: 'location-outline' as const,
+      label: 'Location',
+      value: item.utsav_location || 'Not available',
+    },
+    {
+      icon: 'pricetags-outline' as const,
+      label: 'Packages',
+      value: `${item.packages?.length ?? 0} available`,
+    },
+  ],
+});
+
 const EventsBooking = () => {
   const router = useRouter();
   const user = useAuthStore((s: any) => s.user);
@@ -75,13 +97,10 @@ const EventsBooking = () => {
 
   const { submit, isSubmitting } = useBookingSubmit();
 
-  useFocusEffect(
-    useCallback(() => {
-      setSelected(null);
-      party.reset();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
-  );
+  useResetOnLeave(() => {
+    setSelected(null);
+    party.reset();
+  });
 
   const fetchUtsavs = async ({ pageParam = 1 }: any) => {
     if (!user?.cardno) return [];
@@ -238,137 +257,115 @@ const EventsBooking = () => {
   // Step 2: who is attending, and how.
   if (selected) {
     return (
-      <BookingShell
-        embedded
-        title={types.booking_type_event}
-        caption={selected.utsav_name}
-        progress={{ current: 2, total: 2 }}
-        onBack={() => setSelected(null)}
-        primaryLabel={isFull(selected) ? 'Join waitlist' : 'Continue'}
-        onPrimary={handleConfirm}
-        primaryDisabled={!canContinue}
-        primaryLoading={isSubmitting}
-        footerNote={
-          isFull(selected)
-            ? 'This utsav is full. You can still book, and you will be confirmed if a place frees up.'
-            : !canContinue
-              ? 'Choose a package and arrival for everyone attending.'
-              : undefined
-        }>
-        <View className="px-4">
-          <View className="mb-5 rounded-2xl border border-gray-200 bg-white p-4">
-            <Text className="font-psemibold text-base text-gray-900">{selected.utsav_name}</Text>
-            <Text className="mt-1 font-pregular text-xs text-gray-500">
-              {moment(selected.utsav_start).isSame(moment(selected.utsav_end), 'day')
-                ? moment(selected.utsav_start).format('D MMM YYYY')
-                : `${moment(selected.utsav_start).format('D MMM')} – ${moment(
-                    selected.utsav_end
-                  ).format('D MMM YYYY')}`}
-              {selected.utsav_location ? ` · ${selected.utsav_location}` : ''}
-            </Text>
+      <StepTransition stepKey="party" direction="forward">
+        <BookingShell
+          embedded
+          title={types.booking_type_event}
+          caption={selected.utsav_name}
+          progress={{ current: 2, total: 2 }}
+          onBack={() => setSelected(null)}
+          primaryLabel={isFull(selected) ? 'Join waitlist' : 'Continue'}
+          onPrimary={handleConfirm}
+          primaryDisabled={!canContinue}
+          primaryLoading={isSubmitting}
+          footerNote={
+            isFull(selected)
+              ? 'This utsav is full. You can still book, and you will be confirmed if a place frees up.'
+              : !canContinue
+                ? 'Choose a package and arrival for everyone attending.'
+                : undefined
+          }>
+          <View className="px-4">
+            {/* The card you tapped, shown again exactly as it was, rather than
+                a thinner hand-written summary that can drift from the list. */}
+            <CatalogueCard {...cardProps(selected)} className="mb-5" />
+
+            <PartySection
+              audiences={party.audiences}
+              audience={audience}
+              onAudienceChange={party.setAudience}
+              guestFormProps={party.guestFormProps}
+              mumukshuFormProps={party.mumukshuFormProps}
+              renderGuestExtras={(i) =>
+                attendeeFields(form.guests[i] ?? {}, (field, v) =>
+                  party.guestFormProps.handleGuestFormChange(i, field, v)
+                )
+              }
+              renderMumukshuExtras={(i) =>
+                attendeeFields(form.mumukshus[i] ?? {}, (field, v) =>
+                  party.mumukshuFormProps.handleMumukshuFormChange(i, field, v)
+                )
+              }
+            />
+
+            {audience === 'self'
+              ? attendeeFields(form, (field, v) => party.setSharedField(field, v), 'Your details')
+              : null}
           </View>
-
-          <PartySection
-            audiences={party.audiences}
-            audience={audience}
-            onAudienceChange={party.setAudience}
-            guestFormProps={party.guestFormProps}
-            mumukshuFormProps={party.mumukshuFormProps}
-            renderGuestExtras={(i) =>
-              attendeeFields(form.guests[i] ?? {}, (field, v) =>
-                party.guestFormProps.handleGuestFormChange(i, field, v)
-              )
-            }
-            renderMumukshuExtras={(i) =>
-              attendeeFields(form.mumukshus[i] ?? {}, (field, v) =>
-                party.mumukshuFormProps.handleMumukshuFormChange(i, field, v)
-              )
-            }
-          />
-
-          {audience === 'self'
-            ? attendeeFields(form, (field, v) => party.setSharedField(field, v), 'Your details')
-            : null}
-        </View>
-      </BookingShell>
+        </BookingShell>
+      </StepTransition>
     );
   }
 
   // Step 1: choose an utsav.
   return (
-    <BookingShell
-      embedded
-      title={types.booking_type_event}
-      caption="Choose an utsav"
-      progress={sections.length > 0 || isLoading ? { current: 1, total: 2 } : undefined}
-      scrollBody={false}>
-      <SectionList
-        sections={sections}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: tabBarPadding + 24 }}
-        showsVerticalScrollIndicator={false}
-        stickySectionHeadersEnabled={false}
-        keyExtractor={(item: any, index) => item?.utsav_id?.toString() || index.toString()}
-        renderSectionHeader={({ section: { title } }: any) => (
-          <Text className="mb-2 mt-4 px-1 font-psemibold text-base text-gray-800">{title}</Text>
-        )}
-        renderItem={({ item }: any) => (
-          <CatalogueCard
-            title={item.utsav_name}
-            startDate={item.utsav_start}
-            endDate={item.utsav_end}
-            isWaitlist={isFull(item)}
-            meta={[
-              {
-                icon: 'location-outline',
-                label: 'Location',
-                value: item.utsav_location || 'Not available',
-              },
-              {
-                icon: 'pricetags-outline',
-                label: 'Packages',
-                value: `${item.packages?.length ?? 0} available`,
-              },
-            ]}
-            onPress={() => setSelected(item)}
-          />
-        )}
-        ListEmptyComponent={
-          <View className="items-center justify-center pt-24">
-            {isError ? (
-              <CustomEmptyMessage message="Could not load Utsavs. Pull down to try again." />
-            ) : isLoading ? (
-              <ActivityIndicator />
-            ) : (
-              <CustomEmptyMessage message="No upcoming Utsavs at this moment!" />
-            )}
-          </View>
-        }
-        ListFooterComponent={
-          <View className="items-center py-4">
-            {isFetchingNextPage ? <ActivityIndicator /> : null}
-            {!hasNextPage && sections.length > 0 ? (
-              <Text className="font-pregular text-xs text-gray-400">
-                No more utsavs at the moment
-              </Text>
-            ) : null}
-          </View>
-        }
-        onEndReachedThreshold={0.4}
-        onEndReached={() => {
-          if (hasNextPage && !isFetchingNextPage && !isError) fetchNextPage();
-        }}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={async () => {
-              setIsRefreshing(true);
-              await refetch();
-              setIsRefreshing(false);
-            }}
-          />
-        }
-      />
-    </BookingShell>
+    <StepTransition stepKey="list" direction="back">
+      <BookingShell
+        embedded
+        title={types.booking_type_event}
+        caption="Choose an utsav"
+        progress={sections.length > 0 || isLoading ? { current: 1, total: 2 } : undefined}
+        scrollBody={false}>
+        <SectionList
+          sections={sections}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: tabBarPadding + 24 }}
+          showsVerticalScrollIndicator={false}
+          stickySectionHeadersEnabled={false}
+          keyExtractor={(item: any, index) => item?.utsav_id?.toString() || index.toString()}
+          renderSectionHeader={({ section: { title } }: any) => (
+            <Text className="mb-2 mt-4 px-1 font-psemibold text-base text-gray-800">{title}</Text>
+          )}
+          renderItem={({ item }: any) => (
+            <CatalogueCard {...cardProps(item)} onPress={() => setSelected(item)} />
+          )}
+          ListEmptyComponent={
+            <View className="items-center justify-center pt-24">
+              {isError ? (
+                <CustomEmptyMessage message="Could not load Utsavs. Pull down to try again." />
+              ) : isLoading ? (
+                <ActivityIndicator />
+              ) : (
+                <CustomEmptyMessage message="No upcoming Utsavs at this moment!" />
+              )}
+            </View>
+          }
+          ListFooterComponent={
+            <View className="items-center py-4">
+              {isFetchingNextPage ? <ActivityIndicator /> : null}
+              {!hasNextPage && sections.length > 0 ? (
+                <Text className="font-pregular text-xs text-gray-400">
+                  No more utsavs at the moment
+                </Text>
+              ) : null}
+            </View>
+          }
+          onEndReachedThreshold={0.4}
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage && !isError) fetchNextPage();
+          }}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={async () => {
+                setIsRefreshing(true);
+                await refetch();
+                setIsRefreshing(false);
+              }}
+            />
+          }
+        />
+      </BookingShell>
+    </StepTransition>
   );
 };
 

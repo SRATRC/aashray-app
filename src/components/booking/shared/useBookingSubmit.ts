@@ -70,11 +70,16 @@ export function useBookingSubmit() {
               }))
             );
             // Match on the name the row was created with; fall back to position
-            // so an unnamed row still receives its card.
+            // so an unnamed row still receives its card. Each registered guest
+            // is consumed once, because two rows can carry the same name — a
+            // plain find() gave both of them the first card and left the second
+            // guest booked under someone else's number.
+            const unclaimed = [...registered];
             const guests = form.guests.map((row: any, i: number) => {
-              const match =
-                registered.find((g: any) => g.issuedto === row.name || g.name === row.name) ??
-                registered[i];
+              const at = unclaimed.findIndex(
+                (g: any) => g.issuedto === row.name || g.name === row.name
+              );
+              const match = at >= 0 ? unclaimed.splice(at, 1)[0] : (registered[i] ?? null);
               return match ? { ...row, cardno: match.cardno } : row;
             });
             resolve({ ...form, guests });

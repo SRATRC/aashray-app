@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Platform, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 
 interface FormDisplayFieldProps {
   text: string;
@@ -22,12 +22,6 @@ const FormDisplayField: React.FC<FormDisplayFieldProps> = ({
   displayViewStyles = '',
   onPress,
 }) => {
-  const shadowStyle = !backgroundColor
-    ? Platform.OS === 'ios'
-      ? styles.iosShadow
-      : styles.androidShadow
-    : {};
-
   const bgStyle = backgroundColor || 'bg-white';
   const border = backgroundColor ? '' : 'border-2 border-gray-200';
 
@@ -37,7 +31,6 @@ const FormDisplayField: React.FC<FormDisplayFieldProps> = ({
       <TouchableOpacity
         onPress={onPress}
         activeOpacity={0.7}
-        style={shadowStyle}
         className={`h-16 w-full flex-row items-center rounded-2xl px-4 ${bgStyle} ${border} ${displayViewStyles}`}>
         <Text
           className={`font-pmedium text-base ${
@@ -50,19 +43,5 @@ const FormDisplayField: React.FC<FormDisplayFieldProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  iosShadow: {
-    shadowColor: '#d1d5db',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 0,
-  },
-  androidShadow: {
-    elevation: 8,
-    shadowColor: 'transparent',
-  },
-});
 
 export default FormDisplayField;

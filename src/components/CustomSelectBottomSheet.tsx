@@ -890,8 +890,10 @@ const CustomSelectBottomSheet = forwardRef<
           disabled={!isLoading && (!options || options.length === 0)}
           style={{
             minHeight: 60,
-            borderWidth: hasInvalidSelection() ? 1 : 0,
-            borderColor: hasInvalidSelection() ? '#EF4444' : 'transparent',
+            // Colour only. An inline style beats a className-derived one in RN,
+            // so setting borderWidth here erased the border-2 above in the
+            // normal state and capped the invalid state at 1px.
+            ...(hasInvalidSelection() ? { borderColor: '#EF4444' } : {}),
             opacity: !isLoading && (!options || options.length === 0) ? 0.6 : 1,
           }}>
           <View className="mr-2 flex-1 flex-row items-center">

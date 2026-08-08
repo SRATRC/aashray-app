@@ -38,6 +38,11 @@ export const VERDICT_STYLE: Record<
 
 interface VerdictPillProps {
   verdict: Verdict;
+  /**
+   * Rendered as "Waitlist · 6" whenever it is positive. Whether a given number
+   * is worth showing is the caller's call, not this component's: a group of one
+   * person is noise, a queue of one person is not. Pass undefined to hide it.
+   */
   count?: number;
   size?: 'sm' | 'md';
 }
@@ -54,7 +59,7 @@ const VerdictPill: React.FC<VerdictPillProps> = ({ verdict, count, size = 'md' }
       <Ionicons name={style.icon} size={isSmall ? 12 : 14} color={style.tint} />
       <Text className={`font-pmedium ${isSmall ? 'text-xs' : 'text-sm'} ${style.text}`}>
         {style.label}
-        {count && count > 1 ? ` · ${count}` : ''}
+        {count != null && count > 0 ? ` · ${count}` : ''}
       </Text>
     </View>
   );
