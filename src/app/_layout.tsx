@@ -54,9 +54,9 @@ Sentry.init({
   tracesSampleRate: 0.2,
   integrations: [
     Sentry.mobileReplayIntegration({
-      maskAllText: true,
-      maskAllImages: true,
-      maskAllVectors: true,
+      maskAllText: false,
+      maskAllImages: false,
+      maskAllVectors: false,
     }),
   ],
 });
