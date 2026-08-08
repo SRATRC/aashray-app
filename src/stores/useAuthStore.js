@@ -1,6 +1,7 @@
 import { MMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import * as Sentry from '@sentry/react-native';
 
 import { wifiCache } from '../utils/wifiCache';
 
@@ -51,3 +52,13 @@ export const useAuthStore = create(
     }
   )
 );
+
+// Fires on every state change, including MMKV rehydration on cold start, so
+// a crash can always be traced back to the member it happened to. cardno is
+// redacted everywhere else (HandleApiCall.js's SENSITIVE_KEYS) because that
+// guards against it turning up unintended inside bulk request/response
+// dumps — this is the one deliberate, minimal exception: Sentry's dedicated
+// user-identity field, with no name/email/phone attached.
+useAuthStore.subscribe((state) => {
+  Sentry.setUser(state.user?.cardno ? { id: state.user.cardno } : null);
+});

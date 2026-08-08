@@ -164,6 +164,12 @@ export default {
           url: 'https://sentry.io/',
           project: 'react-native',
           organization: 'vendz',
+          // Without this, only the JS/Hermes side of a native Android crash
+          // gets symbolicated — ART/libc frames (SIGABRT, native asserts)
+          // stay as raw addresses. This uploads the missing NDK symbols.
+          experimental_android: {
+            enableAndroidGradlePlugin: true,
+          },
         },
       ],
       [
