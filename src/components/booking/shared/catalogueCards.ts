@@ -1,4 +1,4 @@
-import { isShibirFull, isUtsavFull, seatsLeftLabel, waitlistCountOf } from './catalogueStatus';
+import { isShibirFull, isUtsavFull, waitlistCountOf } from './catalogueStatus';
 
 import type { CatalogueMeta } from './CatalogueCard';
 
@@ -16,7 +16,6 @@ export const adhyayanCardProps = (item: any) => ({
   endDate: item?.end_date,
   isWaitlist: isShibirFull(item),
   waitlistCount: waitlistCountOf(item),
-  note: seatsLeftLabel(item),
   meta: [
     { icon: 'person-outline', label: 'Swadhyay Karta', value: item?.speaker },
     ...(item?.location

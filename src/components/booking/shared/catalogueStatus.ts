@@ -15,13 +15,6 @@ export const isShibirFull = (item: any): boolean =>
 
 export const isUtsavFull = (item: any): boolean => item?.utsav_status === status.STATUS_CLOSED;
 
-/** "3 seats left", or nothing when the count is unknown. */
-export const seatsLeftLabel = (item: any): string | undefined => {
-  const seats = Number(item?.available_seats);
-  if (!Number.isFinite(seats) || seats <= 0) return undefined;
-  return `${seats} seat${seats === 1 ? '' : 's'} left`;
-};
-
 /**
  * How many people are already queued, for rendering inside the Waitlist pill.
  *

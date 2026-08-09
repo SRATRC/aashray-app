@@ -8,7 +8,7 @@ import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import AddonItem from '../AddonItem';
 import AddonHeader from '../booking/shared/AddonHeader';
 import CatalogueCard from '../booking/shared/CatalogueCard';
-import { isShibirFull, seatsLeftLabel, waitlistCountOf } from '../booking/shared/catalogueStatus';
+import { isShibirFull, waitlistCountOf } from '../booking/shared/catalogueStatus';
 import * as Haptics from 'expo-haptics';
 
 interface MumukshuAdhyayanAddonProps {
@@ -74,7 +74,6 @@ const MumukshuAdhyayanAddon: React.FC<MumukshuAdhyayanAddonProps> = ({
         endDate={item.end_date}
         isWaitlist={isShibirFull(item)}
         waitlistCount={waitlistCountOf(item)}
-        note={seatsLeftLabel(item)}
         selectable
         selected={isSelected}
         meta={[

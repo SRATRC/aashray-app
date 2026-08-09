@@ -7,7 +7,7 @@ import AddonHeader from '../booking/shared/AddonHeader';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import CatalogueCard from '../booking/shared/CatalogueCard';
-import { isShibirFull, seatsLeftLabel, waitlistCountOf } from '../booking/shared/catalogueStatus';
+import { isShibirFull, waitlistCountOf } from '../booking/shared/catalogueStatus';
 import * as Haptics from 'expo-haptics';
 
 interface AdhyayanAddonProps {
@@ -105,7 +105,6 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
       endDate={item.end_date}
       isWaitlist={isShibirFull(item)}
       waitlistCount={waitlistCountOf(item)}
-      note={seatsLeftLabel(item)}
       selectable
       selected={adhyayanBookingList.some((selected: any) => selected.id === item.id)}
       meta={[

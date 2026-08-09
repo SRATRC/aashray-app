@@ -6,7 +6,7 @@ import { View, Text, SectionList, RefreshControl, ActivityIndicator } from 'reac
 import BookingShell from './shared/BookingShell';
 import CatalogueCard from './shared/CatalogueCard';
 import StepTransition from './shared/StepTransition';
-import { isShibirFull, seatsLeftLabel, waitlistCountOf } from './shared/catalogueStatus';
+import { isShibirFull, waitlistCountOf } from './shared/catalogueStatus';
 import PartySection from './shared/PartySection';
 import useBookingParty from './shared/useBookingParty';
 import useBookingSubmit from './shared/useBookingSubmit';

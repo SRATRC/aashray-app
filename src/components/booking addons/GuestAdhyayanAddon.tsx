@@ -5,7 +5,7 @@ import { useAuthStore, useBookingStore } from '@/src/stores';
 import AddonItem from '../AddonItem';
 import AddonHeader from '../booking/shared/AddonHeader';
 import CatalogueCard from '../booking/shared/CatalogueCard';
-import { isShibirFull, seatsLeftLabel, waitlistCountOf } from '../booking/shared/catalogueStatus';
+import { isShibirFull, waitlistCountOf } from '../booking/shared/catalogueStatus';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
@@ -72,7 +72,6 @@ const GuestAdhyayanAddon: React.FC<GuestAdhyayanAddonProps> = ({
         endDate={item.end_date}
         isWaitlist={isShibirFull(item)}
         waitlistCount={waitlistCountOf(item)}
-        note={seatsLeftLabel(item)}
         selectable
         selected={isSelected}
         meta={[

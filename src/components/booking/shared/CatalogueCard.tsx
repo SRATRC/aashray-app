@@ -30,8 +30,6 @@ interface CatalogueCardProps {
   isWaitlist?: boolean;
   /** How many people are already queued. Rendered inside the pill. */
   waitlistCount?: number;
-  /** Shown next to the pill, e.g. "3 seats left". Absent once full. */
-  note?: string;
   /**
    * True where tapping picks the item instead of opening it. A chevron promises
    * a next screen, so a picker shows a checkbox instead.
@@ -64,7 +62,6 @@ const CatalogueCard: React.FC<CatalogueCardProps> = ({
   meta = [],
   isWaitlist = false,
   waitlistCount,
-  note,
   selectable = false,
   selected = false,
   onPress,
@@ -84,7 +81,6 @@ const CatalogueCard: React.FC<CatalogueCardProps> = ({
             <View />
           )}
           <View className="flex-row items-center gap-x-2">
-            {note ? <Text className="font-pregular text-xs text-gray-500">{note}</Text> : null}
             {isWaitlist ? <VerdictPill verdict="waitlist" count={waitlistCount} size="sm" /> : null}
           </View>
         </View>
