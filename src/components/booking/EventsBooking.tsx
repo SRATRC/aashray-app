@@ -12,6 +12,8 @@ import PartySection from './shared/PartySection';
 import useBookingParty from './shared/useBookingParty';
 import useBookingSubmit from './shared/useBookingSubmit';
 import useResetOnLeave from './shared/useResetOnLeave';
+import { utsavCardProps } from './shared/catalogueCards';
+import UtsavAttendeeFields, { attendeeValid, packageOptions } from './shared/UtsavAttendeeFields';
 
 import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
@@ -29,20 +31,6 @@ import handleAPICall from '@/src/utils/HandleApiCall';
  * mumukshu, so they are written once.
  */
 
-const ARRIVAL = [
-  { key: 'yes', value: 'Yes' },
-  { key: 'no', value: 'No' },
-];
-
-const VOLUNTEER = [
-  { key: 'admin', value: 'Admin' },
-  { key: 'logistics', value: 'Logistics' },
-  { key: 'kitchen', value: 'Kitchen' },
-  { key: 'vv', value: 'Vitraag Vigyaan Bhavan' },
-  { key: 'samadhi', value: 'Samadhi Sthal' },
-  { key: 'none', value: 'Unable to Volunteer' },
-];
-
 const ATTENDEE_DEFAULTS = {
   package: null,
   package_name: '',
@@ -51,33 +39,6 @@ const ATTENDEE_DEFAULTS = {
   volunteer: null,
   other: null,
 };
-
-/** A car number is only needed, and only valid, when arriving by car. */
-const attendeeValid = (row: any) =>
-  Boolean(row.package) &&
-  Boolean(row.arrival) &&
-  !(row.arrival === ARRIVAL[0].key && (!row.carno || row.carno.length !== 10));
-
-/** Everything an utsav shows on a card. Shared by the list and by the recap on
- * step 2, so the two cannot describe the same utsav differently. */
-const cardProps = (item: any) => ({
-  title: item.utsav_name,
-  startDate: item.utsav_start,
-  endDate: item.utsav_end,
-  isWaitlist: isUtsavFull(item),
-  meta: [
-    {
-      icon: 'location-outline' as const,
-      label: 'Location',
-      value: item.utsav_location || 'Not available',
-    },
-    {
-      icon: 'pricetags-outline' as const,
-      label: 'Packages',
-      value: `${item.packages?.length ?? 0} available`,
-    },
-  ],
-});
 
 const EventsBooking = () => {
   const router = useRouter();
@@ -144,71 +105,13 @@ const EventsBooking = () => {
     }, []);
   }, [data?.pages]);
 
-  const packages = useMemo(
-    () =>
-      (selected?.packages || []).map((p: any) => ({
-        key: p.package_id,
-        value: `${p.package_name} · ₹${p.package_amount}`,
-      })),
-    [selected]
-  );
+  const packages = useMemo(() => packageOptions(selected), [selected]);
 
   const isFull = isUtsavFull;
   const { form, audience } = party;
 
   const selfValid = audience === 'self' ? attendeeValid(form) : true;
   const canContinue = party.isPartyValid && selfValid;
-
-  /** Package, arrival and seva. Reused for the member, guests and mumukshus. */
-  const attendeeFields = (row: any, patch: (field: string, value: any) => void, title?: string) => (
-    <View className="mt-4">
-      <FieldGroup title={title}>
-        <CustomSelectBottomSheet
-          variant="row"
-          label="Package"
-          placeholder="Choose"
-          options={packages}
-          selectedValue={row.package}
-          onValueChange={(v: any) => {
-            patch('package', v);
-            patch('package_name', packages.find((p: any) => p.key === v)?.value ?? '');
-          }}
-        />
-        <CustomSelectBottomSheet
-          variant="row"
-          label="Arriving by car?"
-          placeholder="Choose"
-          options={ARRIVAL}
-          selectedValue={row.arrival}
-          onValueChange={(v: any) => {
-            patch('arrival', v);
-            if (v !== ARRIVAL[0].key) patch('carno', '');
-          }}
-        />
-        <CustomSelectBottomSheet
-          variant="row"
-          label="Seva preference"
-          placeholder="Choose"
-          options={VOLUNTEER}
-          selectedValue={row.volunteer}
-          onValueChange={(v: any) => patch('volunteer', v)}
-        />
-      </FieldGroup>
-
-      {row.arrival === ARRIVAL[0].key ? (
-        <View className="mt-4">
-          <FormField
-            text="Car number *"
-            value={row.carno}
-            handleChangeText={(v: string) => patch('carno', v)}
-            placeholder="e.g. MH01AB1234"
-            maxLength={10}
-            autoCapitalize="characters"
-          />
-        </View>
-      ) : null}
-    </View>
-  );
 
   const handleConfirm = () =>
     submit({
@@ -278,7 +181,7 @@ const EventsBooking = () => {
           <View className="px-4">
             {/* The card you tapped, shown again exactly as it was, rather than
                 a thinner hand-written summary that can drift from the list. */}
-            <CatalogueCard {...cardProps(selected)} className="mb-5" />
+            <CatalogueCard {...utsavCardProps(selected)} className="mb-5" />
 
             <PartySection
               audiences={party.audiences}
@@ -286,21 +189,32 @@ const EventsBooking = () => {
               onAudienceChange={party.setAudience}
               guestFormProps={party.guestFormProps}
               mumukshuFormProps={party.mumukshuFormProps}
-              renderGuestExtras={(i) =>
-                attendeeFields(form.guests[i] ?? {}, (field, v) =>
-                  party.guestFormProps.handleGuestFormChange(i, field, v)
-                )
-              }
-              renderMumukshuExtras={(i) =>
-                attendeeFields(form.mumukshus[i] ?? {}, (field, v) =>
-                  party.mumukshuFormProps.handleMumukshuFormChange(i, field, v)
-                )
-              }
+              renderGuestExtras={(i) => (
+                <UtsavAttendeeFields
+                  row={form.guests[i] ?? {}}
+                  packages={packages}
+                  patch={(field, v) => party.guestFormProps.handleGuestFormChange(i, field, v)}
+                />
+              )}
+              renderMumukshuExtras={(i) => (
+                <UtsavAttendeeFields
+                  row={form.mumukshus[i] ?? {}}
+                  packages={packages}
+                  patch={(field, v) =>
+                    party.mumukshuFormProps.handleMumukshuFormChange(i, field, v)
+                  }
+                />
+              )}
             />
 
-            {audience === 'self'
-              ? attendeeFields(form, (field, v) => party.setSharedField(field, v), 'Your details')
-              : null}
+            {audience === 'self' ? (
+              <UtsavAttendeeFields
+                row={form}
+                packages={packages}
+                patch={(field, v) => party.setSharedField(field, v)}
+                title="Your details"
+              />
+            ) : null}
           </View>
         </BookingShell>
       </StepTransition>
@@ -326,7 +240,7 @@ const EventsBooking = () => {
             <Text className="mb-2 mt-4 px-1 font-psemibold text-base text-gray-800">{title}</Text>
           )}
           renderItem={({ item }: any) => (
-            <CatalogueCard {...cardProps(item)} onPress={() => setSelected(item)} />
+            <CatalogueCard {...utsavCardProps(item)} onPress={() => setSelected(item)} />
           )}
           ListEmptyComponent={
             <View className="items-center justify-center pt-24">

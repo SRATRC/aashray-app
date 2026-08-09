@@ -11,6 +11,7 @@ import PartySection from './shared/PartySection';
 import useBookingParty from './shared/useBookingParty';
 import useBookingSubmit from './shared/useBookingSubmit';
 import useResetOnLeave from './shared/useResetOnLeave';
+import { adhyayanCardProps } from './shared/catalogueCards';
 
 import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
@@ -29,24 +30,6 @@ import handleAPICall from '@/src/utils/HandleApiCall';
  * A shibir held away from the Research Centre needs no room or food, so it skips
  * the add-on step. That is a genuine difference in the booking, not in the UI.
  */
-
-/** Everything a shibir shows on a card. Shared by the list and by the recap on
- * step 2, so the two cannot describe the same shibir differently. */
-const cardProps = (item: any) => ({
-  title: item.name,
-  startDate: item.start_date,
-  endDate: item.end_date,
-  isWaitlist: isShibirFull(item),
-  waitlistCount: waitlistCountOf(item),
-  note: seatsLeftLabel(item),
-  meta: [
-    { icon: 'person-outline' as const, label: 'Swadhyay Karta', value: item.speaker },
-    ...(item.location
-      ? [{ icon: 'location-outline' as const, label: 'Location', value: item.location }]
-      : []),
-    { icon: 'card-outline' as const, label: 'Charges', value: `₹${item.amount}` },
-  ],
-});
 
 const AdhyayanBooking = () => {
   const router = useRouter();
@@ -180,7 +163,7 @@ const AdhyayanBooking = () => {
                 a hand-written summary of name and date, which quietly dropped
                 the speaker, the charge and the waitlist state — the three things
                 worth checking before committing. */}
-            <CatalogueCard {...cardProps(selected)} className="mb-5" />
+            <CatalogueCard {...adhyayanCardProps(selected)} className="mb-5" />
 
             <PartySection
               audiences={party.audiences}
@@ -214,7 +197,7 @@ const AdhyayanBooking = () => {
             <Text className="mb-2 mt-4 px-1 font-psemibold text-base text-gray-800">{title}</Text>
           )}
           renderItem={({ item }: any) => (
-            <CatalogueCard {...cardProps(item)} onPress={() => setSelected(item)} />
+            <CatalogueCard {...adhyayanCardProps(item)} onPress={() => setSelected(item)} />
           )}
           ListEmptyComponent={
             <View className="items-center justify-center pt-24">

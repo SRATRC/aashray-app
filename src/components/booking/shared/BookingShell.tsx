@@ -66,6 +66,9 @@ export interface BookingShellProps {
    * the tab already provides both.
    */
   embedded?: boolean;
+  /** Rendered at the trailing edge of the header, e.g. a Share button. Ignored
+   * when `embedded`, which draws no header at all. */
+  headerRight?: React.ReactNode;
   /** Force the action to stay pinned at the bottom. Defaults to pinning when the
    * body does not scroll, or when the footer carries extra content. */
   pinFooter?: boolean;
@@ -211,6 +214,7 @@ const BookingShell: React.FC<BookingShellProps> = ({
   isBusy = false,
   scrollBody = true,
   embedded = false,
+  headerRight,
   pinFooter,
 }) => {
   const router = useRouter();
@@ -263,6 +267,7 @@ const BookingShell: React.FC<BookingShellProps> = ({
               <Text className="mt-0.5 font-pregular text-xs text-gray-400">{caption}</Text>
             ) : null}
           </View>
+          {headerRight ?? null}
         </View>
       )}
 
