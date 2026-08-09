@@ -17,7 +17,7 @@ import { useAuthStore, useBookingStore } from '@/src/stores';
 
 import handleAPICall from '@/src/utils/HandleApiCall';
 import { prepareGuestRequestBody } from '@/src/utils/preparingRequestBody';
-import StayOutcomeBlock from '@/src/components/stay/StayOutcomeBlock';
+import stayOutcomeExtra from '@/src/components/booking/shared/stayOutcomeExtra';
 import { useStayOutcome } from '@/src/components/stay/useStayOutcome';
 import BookingSummary from '@/src/components/booking/shared/BookingSummary';
 import GuestRoomAddon from '@/src/components/booking addons/GuestRoomAddon';
@@ -553,11 +553,25 @@ const GuestAddons = () => {
         <View className="gap-y-6">
           {/* Same card component the review screen uses. There is one way to show
               a booking, so the two screens cannot drift apart. */}
+          {/* The stay outcome goes inside the stay card. As its own block it
+              repeated the card's dates, its verdict pill and its room type, so a
+              single stay was described three times down the page. */}
           <BookingSummary
             data={guestData}
             audience="guest"
             validationData={guestData?.validationData}
             className="px-4"
+            extras={stayOutcomeExtra({
+              data: guestData,
+              outcome: stayOutcome,
+              reason: stayReason,
+              onChangeReason: (text) => {
+                setStayReason(text);
+                if (text.trim()) setShowReasonError(false);
+              },
+              showReasonError,
+              onChangeDates: () => router.back(),
+            })}
           />
 
           {booking === types.EVENT_DETAILS_TYPE ? (
@@ -567,22 +581,6 @@ const GuestAddons = () => {
               overrideStyle="mx-4"
             />
           ) : null}
-
-          {stayOutcome && (
-            <View className="w-full px-4">
-              <StayOutcomeBlock
-                outcome={stayOutcome}
-                variant="full"
-                onChangeDates={() => router.back()}
-                reason={stayReason}
-                onChangeReason={(text) => {
-                  setStayReason(text);
-                  if (text.trim()) setShowReasonError(false);
-                }}
-                showReasonError={showReasonError}
-              />
-            </View>
-          )}
 
           <View className="w-full px-4">
             <SectionHeader

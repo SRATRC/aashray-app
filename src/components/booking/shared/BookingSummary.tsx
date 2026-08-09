@@ -184,6 +184,12 @@ interface BookingSummaryProps {
   audience: Audience;
   /** The /validate answer, so each card can state its own verdict. */
   validationData?: any;
+  /**
+   * Extra detail to render inside one type's card, keyed by booking type. The
+   * stay outcome goes here rather than beside the card: two surfaces both
+   * headed by dates and a verdict pill read as the same thing said twice.
+   */
+  extras?: Record<string, React.ReactNode>;
   className?: string;
 }
 
@@ -191,6 +197,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
   data,
   audience,
   validationData,
+  extras,
   className = '',
 }) => {
   const present = ORDER.filter((key) => data?.[key] && DESCRIPTORS[key]);
@@ -244,6 +251,11 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                 ))}
               </View>
             ) : null}
+
+            {/* Rendered bare: an extra that decides it has nothing to say
+                returns null, and a wrapper here would still draw its divider
+                and padding as an empty strip. The extra owns its own chrome. */}
+            {extras?.[key] ?? null}
           </View>
         );
       })}

@@ -8,13 +8,15 @@ import RazorpayCheckout from 'react-native-razorpay';
 
 import BookingShell from './BookingShell';
 import BookingSummary from './BookingSummary';
+
+import useDelayedFlag from '@/src/hooks/useDelayedFlag';
 import ChargesCard, { payableNow, totalCreditsIn } from './ChargesCard';
 import { AUDIENCE_CONFIG } from './bookingAudience';
 import type { Audience } from './useBookingParty';
 
 import CustomModal from '@/src/components/CustomModal';
 import InternationalPaymentWarning from '@/src/components/InternationalPaymentWarning';
-import StayOutcomeBlock from '@/src/components/stay/StayOutcomeBlock';
+import stayOutcomeExtra from './stayOutcomeExtra';
 import { buildStayOutcome } from '@/src/components/stay/buildStayOutcome';
 import { colors } from '@/src/constants';
 import { useAuthStore, useBookingStore } from '@/src/stores';
@@ -70,6 +72,7 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
     error: validationError,
     refetch,
     isLoading,
+    isFetching,
   } = useQuery<any, Error>({
     queryKey: [`review-${audience}`, user?.cardno, JSON.stringify(data)],
     queryFn: () =>
@@ -134,6 +137,18 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
   const allWaitlisted = stayOutcome?.overall === 'waitlist';
   const isMixed = stayOutcome?.overall === 'mixed';
   const due = payableNow(validationData);
+
+  /**
+   * A re-check, not the first one. `useFocusEffect` refetches every time this
+   * screen regains focus — after the add-on step, after a failed payment — and
+   * React Query's `isLoading` only covers the very first load. So the previous
+   * answer stays on screen while a new /validate is in flight. That is fine to
+   * look at and not fine to pay against: the last room may have gone while the
+   * member was away.
+   */
+  // Same flicker rule as the skeleton: a re-check that lands in 150ms should
+  // not blink the caption and the button on its way past.
+  const isRevalidating = useDelayedFlag(isFetching && !!validationData);
 
   const gate = () => {
     if (cannotBook) return false;
@@ -205,8 +220,11 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
     book(false);
   };
 
+  // A dead button that restates the note above it is not an answer. When the
+  // dates cannot be booked the only useful action is to go change them, so the
+  // primary becomes that instead of a disabled label.
   const primaryLabel = cannotBook
-    ? 'Cannot be booked'
+    ? 'Change dates'
     : allWaitlisted
       ? 'Join waitlist'
       : due > 0
@@ -217,13 +235,15 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
 
   // A waitlisted add-on is stated on its own card and on its charges line, so the
   // footer does not repeat it.
-  const footerNote = cannotBook
-    ? 'These dates cannot be booked. Go back and pick different dates.'
-    : reasonMissing
-      ? 'Add a reason for the extra nights above to continue.'
-      : allWaitlisted
-        ? 'Nothing is charged for a waitlisted stay. A WhatsApp link to pay arrives if an admin confirms it.'
-        : undefined;
+  const footerNote = isRevalidating
+    ? 'Checking these dates are still available…'
+    : cannotBook
+      ? 'These dates cannot be booked.'
+      : reasonMissing
+        ? 'Add a reason for the extra nights above to continue.'
+        : allWaitlisted
+          ? 'Nothing is charged for a waitlisted stay. A WhatsApp link to pay arrives if an admin confirms it.'
+          : undefined;
 
   return (
     <BookingShell
@@ -231,43 +251,49 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
       caption={validationData ? undefined : 'Checking availability'}
       isBusy={isLoading && !validationData}
       primaryLabel={primaryLabel}
-      onPrimary={handlePrimary}
-      primaryDisabled={!validationData || cannotBook || reasonMissing}
-      primaryLoading={isSubmitting}
+      onPrimary={cannotBook ? () => router.back() : handlePrimary}
+      primaryDisabled={!validationData || reasonMissing}
+      primaryLoading={isSubmitting || isRevalidating}
       secondaryLabel={due > 0 ? 'Pay later' : undefined}
       onSecondary={() => {
         if (gate()) setShowPayLater(true);
       }}
       footerNote={footerNote}
-      // What it costs sits with the button that pays it, in one bottom sheet,
-      // so the amount is never scrolled out of view at the moment of paying.
-      footerContent={
-        validationData ? (
-          <>
-            <ChargesCard validationData={validationData} names={names} flush />
+      // Paying is the point of this screen; the action does not scroll away.
+      pinFooter>
+      <View className="gap-y-6 px-4">
+        {/* The stay outcome sits inside the stay card, not above it. As its own
+            block it repeated the card's dates and verdict pill, so the page
+            showed two headings for one stay. */}
+        <BookingSummary
+          data={data}
+          audience={audience}
+          validationData={validationData}
+          extras={stayOutcomeExtra({
+            data,
+            outcome: stayOutcome,
+            reason,
+            onChangeReason: (t) => {
+              setReason(t);
+              if (t.trim()) setShowReasonError(false);
+            },
+            showReasonError,
+          })}
+        />
+
+        {/* Charges read as part of the booking, not as part of the button. In
+            the footer sheet they shared a surface with Pay, which made the
+            breakdown feel like fine print attached to the action. */}
+        {validationData ? (
+          <View>
+            <ChargesCard validationData={validationData} names={names} />
             {totalCreditsIn(validationData) > 0 ? (
               <Text className="mt-2 px-1 font-pregular text-xs leading-5 text-gray-500">
                 Your credits have been applied automatically.
               </Text>
             ) : null}
-          </>
-        ) : null
-      }>
-      <View className="gap-y-6 px-4">
-        {stayOutcome ? (
-          <StayOutcomeBlock
-            outcome={stayOutcome}
-            variant="recap"
-            reason={reason}
-            onChangeReason={(t) => {
-              setReason(t);
-              if (t.trim()) setShowReasonError(false);
-            }}
-            showReasonError={showReasonError}
-          />
+          </View>
         ) : null}
-
-        <BookingSummary data={data} audience={audience} validationData={validationData} />
       </View>
 
       {validationError ? (

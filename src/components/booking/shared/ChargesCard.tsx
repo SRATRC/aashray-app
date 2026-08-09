@@ -44,7 +44,6 @@ export interface ChargesCardProps {
    * Drops the card chrome. Used inside the bottom sheet, which already supplies
    * the white surface — a bordered card on it would be a card inside a card.
    */
-  flush?: boolean;
   className?: string;
 }
 
@@ -70,7 +69,6 @@ const cardnoOf = (row: any): string | undefined => {
 const ChargesCard: React.FC<ChargesCardProps> = ({
   validationData,
   names = {},
-  flush = false,
   className = '',
 }) => {
   // Every booking type in the answer gets a line, including the ones that cost
@@ -111,18 +109,18 @@ const ChargesCard: React.FC<ChargesCardProps> = ({
 
   return (
     <View className={className}>
-      {flush ? null : <SectionHeader title="Charges" className="mb-2" />}
+      <SectionHeader title="Charges" className="mb-2" />
       <View
         className={
-          flush
+          false
             ? ''
             : 'overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm shadow-gray-200'
         }>
         {lines.map((line, i) => (
           <View key={line.key}>
-            {i > 0 ? <View className={`h-px bg-gray-200 ${flush ? '' : 'ml-4'}`} /> : null}
+            {i > 0 ? <View className={`ml-4 h-px bg-gray-200`} /> : null}
             <View
-              className={`flex-row items-start justify-between ${flush ? 'py-2' : 'px-4 py-3.5'}`}>
+              className={`flex-row items-start justify-between ${false ? 'py-2' : 'px-4 py-3.5'}`}>
               <Text className="font-pregular text-base text-gray-700">{line.label}</Text>
               <View className="items-end">
                 {/* A zero has to say why it is a zero. A waitlisted seat costs
@@ -162,7 +160,7 @@ const ChargesCard: React.FC<ChargesCardProps> = ({
             {/* Who is being charged what. Only when there is more than one
                 person, because a single name repeats the line above it. */}
             {line.people.length > 1 ? (
-              <View className={`gap-y-1.5 ${flush ? 'pb-2' : 'px-4 pb-3.5'}`}>
+              <View className={`gap-y-1.5 ${false ? 'pb-2' : 'px-4 pb-3.5'}`}>
                 {line.people.map((p) => (
                   <View key={p.cardno} className="flex-row items-center justify-between gap-x-3">
                     <Text className="flex-1 font-pregular text-xs text-gray-500" numberOfLines={1}>
@@ -185,7 +183,7 @@ const ChargesCard: React.FC<ChargesCardProps> = ({
 
         <View
           className={
-            flush
+            false
               ? 'mt-1 border-t border-gray-200 pt-3'
               : 'border-t border-gray-200 bg-gray-50 px-4 py-3.5'
           }>

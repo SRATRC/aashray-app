@@ -1,11 +1,14 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { View, Text, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import BookingBodySkeleton from './BookingBodySkeleton';
+
 import CustomButton from '@/src/components/CustomButton';
+import useDelayedFlag from '@/src/hooks/useDelayedFlag';
 import { colors } from '@/src/constants';
 import { useBottomTabOverflow } from '@/src/components/TabBarBackground';
 
@@ -49,10 +52,8 @@ export interface BookingShellProps {
    * Content pinned in the bottom sheet directly above the actions, e.g. the
    * charges. Supplying it also pins the sheet instead of letting it scroll.
    */
-  footerContent?: React.ReactNode;
   /** Replaces the whole body with a spinner (validation in flight). */
   isBusy?: boolean;
-  busyLabel?: string;
   /**
    * Set false when the body is itself a list. A list nested in a ScrollView
    * never fires onEndReached and cannot pull to refresh, so it has to own the
@@ -65,6 +66,9 @@ export interface BookingShellProps {
    * the tab already provides both.
    */
   embedded?: boolean;
+  /** Force the action to stay pinned at the bottom. Defaults to pinning when the
+   * body does not scroll, or when the footer carries extra content. */
+  pinFooter?: boolean;
 }
 
 interface FooterProps {
@@ -75,8 +79,6 @@ interface FooterProps {
   secondaryLabel?: string;
   onSecondary?: () => void;
   footerNote?: string;
-  /** Rendered directly above the actions inside the same sheet. */
-  footerContent?: React.ReactNode;
   /**
    * Puts Back beside the primary action instead of in a row of its own. Both
    * controls then sit in the thumb zone, and a whole row is not spent on one
@@ -93,12 +95,10 @@ const FooterBody: React.FC<FooterProps & { pinned?: boolean }> = ({
   secondaryLabel,
   onSecondary,
   footerNote,
-  footerContent,
   onFooterBack,
   pinned = false,
 }) => (
   <View className={pinned ? 'bg-white px-4 pb-3 pt-4' : 'px-4 pb-2 pt-6'}>
-    {footerContent ? <View className="mb-4">{footerContent}</View> : null}
     {footerNote ? (
       <Text className="mb-2.5 font-pregular text-xs leading-5 text-gray-600">{footerNote}</Text>
     ) : null}
@@ -208,11 +208,10 @@ const BookingShell: React.FC<BookingShellProps> = ({
   secondaryLabel,
   onSecondary,
   footerNote,
-  footerContent,
   isBusy = false,
-  busyLabel = 'Checking availability…',
   scrollBody = true,
   embedded = false,
+  pinFooter,
 }) => {
   const router = useRouter();
 
@@ -224,14 +223,22 @@ const BookingShell: React.FC<BookingShellProps> = ({
     secondaryLabel,
     onSecondary,
     footerNote,
-    footerContent,
     // Embedded, Back rides with the primary action. A pushed screen keeps its
     // chevron in the header, beside the title it belongs to.
     onFooterBack: embedded ? onBack : undefined,
   };
 
   // Charges pinned beside the button they pay for cannot scroll out of sight.
-  const pinFooter = !scrollBody || Boolean(footerContent);
+  // Pinning used to be inferred from whether the footer carried extra content,
+  // which was never the real intent — moving the review screen's charges into
+  // the body silently unpinned its Pay button. Callers say so directly now.
+  // The skeleton waits; the footer does not. Gating both on the delayed flag
+  // would render the footer, then take it away when the skeleton arrived, then
+  // bring it back — motion in place of a flicker. The footer stays hidden for
+  // the whole load either way.
+  const showSkeleton = useDelayedFlag(isBusy);
+
+  const shouldPinFooter = pinFooter ?? !scrollBody;
 
   return (
     <SafeAreaView
@@ -273,10 +280,12 @@ const BookingShell: React.FC<BookingShellProps> = ({
       ) : null}
 
       {isBusy ? (
-        <View className="flex-1 items-center justify-center gap-y-3">
-          <ActivityIndicator size="large" color={colors.orange} />
-          <Text className="font-pregular text-sm text-gray-500">{busyLabel}</Text>
-        </View>
+        // Nothing during the delay window. Rendering the real body there built
+        // a scroll view and its cards with no data, only to tear them down when
+        // the skeleton arrived and build them a third time when it landed.
+        showSkeleton ? (
+          BookingBodySkeleton
+        ) : null
       ) : scrollBody ? (
         // The action is the last thing in the content, so it reads as the end of
         // the form rather than a bar floating over it.
@@ -290,8 +299,8 @@ const BookingShell: React.FC<BookingShellProps> = ({
           // middle. With long content the spacer collapses to nothing.
           contentContainerStyle={{ paddingTop: 8, flexGrow: 1 }}>
           {children}
-          {primaryLabel && !pinFooter ? <View className="flex-1" /> : null}
-          {primaryLabel && !pinFooter ? <FooterBody {...footerProps} /> : null}
+          {primaryLabel && !shouldPinFooter ? <View className="flex-1" /> : null}
+          {primaryLabel && !shouldPinFooter ? <FooterBody {...footerProps} /> : null}
           {embedded ? <EmbeddedTailSpace /> : <PushedTailSpace />}
         </KeyboardAwareScrollView>
       ) : (
@@ -300,7 +309,7 @@ const BookingShell: React.FC<BookingShellProps> = ({
 
       {/* A list body owns its own scrolling, and a sheet carrying charges must
           stay in view, so both keep the action pinned. */}
-      {pinFooter && !isBusy && primaryLabel ? (
+      {shouldPinFooter && !isBusy && primaryLabel ? (
         embedded ? (
           <EmbeddedPinnedFooter {...footerProps} />
         ) : (
