@@ -12,22 +12,17 @@ import travel from '../assets/icons/travel.png';
 import charge from '../assets/icons/charge.png';
 import events from '../assets/icons/events.png';
 import id from '../assets/icons/id.png';
-import yellowArrowRight from '../assets/icons/yellow-arrow-right.png';
 import person from '../assets/icons/person.png';
 import description from '../assets/icons/description.png';
 import marker from '../assets/icons/marker.png';
 import request from '../assets/icons/request.png';
 import luggage from '../assets/icons/luggage.png';
-import spice from '../assets/icons/spice.png';
 import roomNumber from '../assets/icons/room_number.png';
-import meal from '../assets/icons/meal.png';
-import hightea from '../assets/icons/hightea.png';
 import cross from '../assets/icons/cross.png';
 import addon from '../assets/icons/addon.png';
 import remove from '../assets/icons/remove.png';
 import transactions from '../assets/icons/transactions.png';
 import profileCircle from '../assets/icons/profileCircle.png';
-import car from '../assets/icons/car.png';
 import department from '../assets/icons/department.png';
 import add from '../assets/icons/add.png';
 import wifiHome from '../assets/icons/wifi-home.png';
@@ -45,7 +40,6 @@ import tick from '../assets/icons/tick.png';
 import contact from '../assets/icons/contact.png';
 import miscellaneousTransaction from '../assets/icons/miscellaneous_transactions.png';
 import rcLinkedin from '../assets/icons/rc-linkedin.png';
-import copy from '../assets/icons/copy.png';
 
 export default {
   logout,
@@ -62,22 +56,17 @@ export default {
   charge,
   events,
   id,
-  yellowArrowRight,
   person,
   description,
   marker,
   request,
   luggage,
-  spice,
   roomNumber,
-  meal,
-  hightea,
   cross,
   addon,
   remove,
   transactions,
   profileCircle,
-  car,
   department,
   add,
   wifiHome,
@@ -95,5 +84,4 @@ export default {
   contact,
   miscellaneousTransaction,
   rcLinkedin,
-  copy,
 };

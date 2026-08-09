@@ -155,7 +155,7 @@ const DESCRIPTORS: Record<
   },
   utsav: {
     title: 'Raj Utsav',
-    icon: 'sparkles-outline',
+    icon: 'flower-outline',
     dates: (s) => dateRange(s.utsav?.utsav_start, s.utsav?.utsav_end),
     rows: (s) => {
       const out: Row[] = [];
