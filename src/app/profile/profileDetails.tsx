@@ -35,7 +35,7 @@ const ProfileDetails = () => {
     setIsSubmitting(true);
 
     const onSuccess = (data: any) => {
-      setUser(data.data);
+      setUser({ ...user, ...data.data });
       router.back();
     };
 
@@ -57,7 +57,7 @@ const ProfileDetails = () => {
   };
 
   return (
-    <SafeAreaView className="h-full bg-white">
+    <SafeAreaView className="h-full bg-gray-50">
       <KeyboardAwareScrollView
         bottomOffset={62}
         style={{ flex: 1 }}

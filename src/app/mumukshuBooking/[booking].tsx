@@ -1,29 +1,29 @@
+import { FontAwesome } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { View, Text, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
-import { dropdowns, types } from '@/src/constants';
-import { FontAwesome } from '@expo/vector-icons';
-import { ShadowBox } from '@/src/components/ShadowBox';
-import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import PageHeader from '@/src/components/PageHeader';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import Callout from '@/src/components/Callout';
+import CustomAlert from '@/src/components/CustomAlert';
 import CustomButton from '@/src/components/CustomButton';
-import MumukshuRoomBookingDetails from '@/src/components/booking details cards/MumukshuRoomBookingDetails';
-import MumukshuAdhyayanBookingDetails from '@/src/components/booking details cards/MumukshuAdhyayanBookingDetails';
-import MumukshuTravelBookingDetails from '@/src/components/booking details cards/MumukshuTravelBookingDetails';
-import MumukshuEventBookingDetails from '@/src/components/booking details cards/MumukshuEventBookingDetails';
-import MumukshuFlatBookingDetails from '@/src/components/booking details cards/MumukshuFlatBookingDetails';
+import CustomModal from '@/src/components/CustomModal';
+import PageHeader from '@/src/components/PageHeader';
+import SectionHeader from '@/src/components/booking/shared/SectionHeader';
+import { ShadowBox } from '@/src/components/ShadowBox';
+import stayOutcomeExtra from '@/src/components/booking/shared/stayOutcomeExtra';
+import { useStayOutcome } from '@/src/components/stay/useStayOutcome';
+import BookingSummary from '@/src/components/booking/shared/BookingSummary';
 import MumukshuRoomAddon from '@/src/components/booking addons/MumukshuRoomAddon';
 import MumukshuFoodAddon from '@/src/components/booking addons/MumukshuFoodAddon';
 import MumukshuAdhyayanAddon from '@/src/components/booking addons/MumukshuAdhyayanAddon';
 import MumukshuTravelAddon from '@/src/components/booking addons/MumukshuTravelAddon';
+import { dropdowns, types } from '@/src/constants';
+import { useAuthStore, useBookingStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
-import CustomModal from '@/src/components/CustomModal';
-import CustomAlert from '@/src/components/CustomAlert';
-import Callout from '@/src/components/Callout';
+import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
 
 const MumukshuAddons = () => {
   const router = useRouter();
@@ -327,8 +327,10 @@ const MumukshuAddons = () => {
             delete cleanedData.utsav;
           }
 
-          // Always remove food addon as it's never a main booking type
-          delete cleanedData.food;
+          // Food is bookable on its own, so on its own screen it is the booking.
+          if (booking !== types.FOOD_DETAILS_TYPE) {
+            delete cleanedData.food;
+          }
 
           return cleanedData;
         });
@@ -340,6 +342,35 @@ const MumukshuAddons = () => {
 
   // Form submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // The verdict for these dates, per person and per segment, shown above the
+  // add-ons so nobody fills these in only to learn later that they are on a
+  // waitlist. /validate is already called on this screen.
+  const stayOutcome = useStayOutcome('mumukshu');
+  const [stayReason, setStayReason] = useState(
+    () =>
+      (mumukshuData as any)?.room?.extra_stay_reason ||
+      (mumukshuData as any)?.flat?.extra_stay_reason ||
+      ''
+  );
+  const [showReasonError, setShowReasonError] = useState(false);
+
+  const reasonMissing = Boolean(stayOutcome?.requiresExtraStayReason && !stayReason.trim());
+  const cannotBookHere = Boolean(
+    stayOutcome?.segments.some((seg) => seg.groups.some((g) => g.verdict === 'unavailable'))
+  );
+
+  // Carry the reason onto the booking so the review screen shows the same text
+  // and the waitlisted booking is submitted with it.
+  const persistStayReason = () => {
+    const reasonText = stayReason.trim();
+    if (!reasonText) return;
+    setMumukshuData((prev: any) => ({
+      ...prev,
+      ...(prev.room ? { room: { ...prev.room, extra_stay_reason: reasonText } } : {}),
+      ...(prev.flat ? { flat: { ...prev.flat, extra_stay_reason: reasonText } } : {}),
+    }));
+  };
 
   // Room form handlers
   const resetRoomForm = useCallback(() => {
@@ -677,113 +708,147 @@ const MumukshuAddons = () => {
   }, [router]);
 
   return (
-    <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
+    <SafeAreaView className="h-full bg-gray-50" edges={['right', 'top', 'left']}>
       <KeyboardAwareScrollView
         bottomOffset={62}
         style={{ flex: 1 }}
         keyboardShouldPersistTaps="handled">
         <PageHeader title="Booking Details" />
 
-        {booking === types.ROOM_DETAILS_TYPE && (
-          <MumukshuRoomBookingDetails containerStyles="mt-2" />
-        )}
-        {booking === types.ADHYAYAN_DETAILS_TYPE && (
-          <MumukshuAdhyayanBookingDetails containerStyles="mt-2" />
-        )}
-        {booking === types.TRAVEL_DETAILS_TYPE && (
-          <MumukshuTravelBookingDetails containerStyles="mt-2" />
-        )}
-        {booking === types.EVENT_DETAILS_TYPE && (
-          <MumukshuEventBookingDetails containerStyles="mt-2" />
-        )}
-        {booking === types.FLAT_DETAILS_TYPE && (
-          <MumukshuFlatBookingDetails containerStyles="mt-2" />
-        )}
-
-        {booking === types.EVENT_DETAILS_TYPE ? (
-          <Callout
-            variant="warning"
-            message="For Early Arrival or Late Departure during events please book your stay, food and travel through add-ons below."
-            overrideStyle="m-4"
+        {/* One gap between every section. Each block used to carry its own
+            margin, and an empty view stood in for one of them. */}
+        <View className="gap-y-6">
+          {/* Same card component the review screen uses. There is one way to show
+              a booking, so the two screens cannot drift apart. */}
+          {/* The stay outcome goes inside the stay card. As its own block it
+              repeated the card's dates, its verdict pill and its room type, so a
+              single stay was described three times down the page. */}
+          <BookingSummary
+            data={mumukshuData}
+            audience="mumukshu"
+            validationData={mumukshuData?.validationData}
+            className="px-4"
+            extras={stayOutcomeExtra({
+              data: mumukshuData,
+              outcome: stayOutcome,
+              reason: stayReason,
+              onChangeReason: (text) => {
+                setStayReason(text);
+                if (text.trim()) setShowReasonError(false);
+              },
+              showReasonError,
+              onChangeDates: () => router.back(),
+            })}
           />
-        ) : (
-          <View className="mt-4" />
-        )}
 
-        <View className="w-full px-4">
-          <Text className="mb-2 font-psemibold text-xl text-secondary">Add Ons</Text>
+          {booking === types.EVENT_DETAILS_TYPE ? (
+            <Callout
+              variant="warning"
+              message="For Early Arrival or Late Departure during events please book your stay, food and travel through add-ons below."
+              overrideStyle="mx-4"
+            />
+          ) : null}
 
-          {/* MUMUKSHU ROOM BOOKING COMPONENT */}
-          {![types.ROOM_DETAILS_TYPE, types.FLAT_DETAILS_TYPE].includes(booking as string) && (
-            <MumukshuRoomAddon
-              roomForm={roomForm}
-              setRoomForm={setRoomForm}
-              addRoomForm={addRoomForm}
-              reomveRoomForm={removeRoomForm}
-              updateRoomForm={updateRoomForm}
-              resetRoomForm={resetRoomForm}
+          <View className="w-full px-4">
+            <SectionHeader
+              title="Add-ons"
+              subtitle="Optional. Anything you add here is booked together with the stay above."
+              className="mb-3"
+            />
+
+            {/* MUMUKSHU ROOM BOOKING COMPONENT */}
+            {![types.ROOM_DETAILS_TYPE, types.FLAT_DETAILS_TYPE].includes(booking as string) && (
+              <MumukshuRoomAddon
+                roomForm={roomForm}
+                setRoomForm={setRoomForm}
+                addRoomForm={addRoomForm}
+                reomveRoomForm={removeRoomForm}
+                updateRoomForm={updateRoomForm}
+                resetRoomForm={resetRoomForm}
+                mumukshu_dropdown={mumukshu_dropdown}
+                isDatePickerVisible={isDatePickerVisible}
+                setDatePickerVisibility={toggleDatePicker}
+                onToggle={(isOpen) => toggleAddon('room', isOpen)}
+              />
+            )}
+
+            {/* MUMUKSHU FOOD BOOKING COMPONENT */}
+            <MumukshuFoodAddon
+              foodForm={foodForm}
+              setFoodForm={setFoodForm}
+              addFoodForm={addFoodForm}
+              resetFoodForm={resetFoodForm}
+              reomveFoodForm={removeFoodForm}
+              updateFoodForm={updateFoodForm}
               mumukshu_dropdown={mumukshu_dropdown}
               isDatePickerVisible={isDatePickerVisible}
               setDatePickerVisibility={toggleDatePicker}
-              onToggle={(isOpen) => toggleAddon('room', isOpen)}
+              onToggle={(isOpen) => toggleAddon('food', isOpen)}
             />
-          )}
 
-          {/* MUMUKSHU FOOD BOOKING COMPONENT */}
-          <MumukshuFoodAddon
-            foodForm={foodForm}
-            setFoodForm={setFoodForm}
-            addFoodForm={addFoodForm}
-            resetFoodForm={resetFoodForm}
-            reomveFoodForm={removeFoodForm}
-            updateFoodForm={updateFoodForm}
-            mumukshu_dropdown={mumukshu_dropdown}
-            isDatePickerVisible={isDatePickerVisible}
-            setDatePickerVisibility={toggleDatePicker}
-            onToggle={(isOpen) => toggleAddon('food', isOpen)}
-          />
+            {/* MUMUKSHU ADHYAYAN BOOKING COMPONENT */}
+            {!(booking === types.ADHYAYAN_DETAILS_TYPE || booking === types.EVENT_DETAILS_TYPE) && (
+              <MumukshuAdhyayanAddon
+                adhyayanForm={adhyayanForm}
+                setAdhyayanForm={setAdhyayanForm}
+                updateAdhyayanForm={updateAdhyayanForm}
+                INITIAL_ADHYAYAN_FORM={createInitialAdhyayanForm()}
+                mumukshu_dropdown={mumukshu_dropdown}
+              />
+            )}
 
-          {/* MUMUKSHU ADHYAYAN BOOKING COMPONENT */}
-          {!(booking === types.ADHYAYAN_DETAILS_TYPE || booking === types.EVENT_DETAILS_TYPE) && (
-            <MumukshuAdhyayanAddon
-              adhyayanForm={adhyayanForm}
-              setAdhyayanForm={setAdhyayanForm}
-              updateAdhyayanForm={updateAdhyayanForm}
-              INITIAL_ADHYAYAN_FORM={createInitialAdhyayanForm()}
-              mumukshu_dropdown={mumukshu_dropdown}
-            />
-          )}
-
-          {/* MUMUKSHU TRAVEL BOOKING COMPONENT */}
-          {booking !== types.TRAVEL_DETAILS_TYPE && (
-            <MumukshuTravelAddon
-              travelForm={travelForm}
-              setTravelForm={setTravelForm}
-              addTravelForm={addTravelForm}
-              updateTravelForm={updateTravelForm}
-              resetTravelForm={resetTravelForm}
-              removeTravelForm={removeTravelForm}
-              mumukshu_dropdown={mumukshu_dropdown}
-              isDatePickerVisible={isDatePickerVisible}
-              setDatePickerVisibility={toggleDatePicker}
-              onToggle={(isOpen) => toggleAddon('travel', isOpen)}
-            />
-          )}
+            {/* MUMUKSHU TRAVEL BOOKING COMPONENT */}
+            {booking !== types.TRAVEL_DETAILS_TYPE && (
+              <MumukshuTravelAddon
+                travelForm={travelForm}
+                setTravelForm={setTravelForm}
+                addTravelForm={addTravelForm}
+                updateTravelForm={updateTravelForm}
+                resetTravelForm={resetTravelForm}
+                removeTravelForm={removeTravelForm}
+                mumukshu_dropdown={mumukshu_dropdown}
+                isDatePickerVisible={isDatePickerVisible}
+                setDatePickerVisibility={toggleDatePicker}
+                onToggle={(isOpen) => toggleAddon('travel', isOpen)}
+              />
+            )}
+          </View>
         </View>
       </KeyboardAwareScrollView>
 
       <ShadowBox className="w-full border-t border-gray-200 bg-white px-4 py-4">
+        {/* A disabled button with no stated cause makes a member tap a dead
+            control. Name the blocker next to it. */}
+        {cannotBookHere && (
+          <Text className="mb-2.5 font-pregular text-xs leading-5 text-gray-600">
+            These dates cannot be booked. Go back and pick different dates.
+          </Text>
+        )}
+        {!cannotBookHere && reasonMissing && (
+          <Text className="mb-2.5 font-pregular text-xs leading-5 text-gray-600">
+            Add a reason for the extra nights above to continue.
+          </Text>
+        )}
         <CustomButton
           text="Continue"
-          handlePress={handleSubmit}
+          handlePress={() => {
+            if (cannotBookHere) return;
+            if (reasonMissing) {
+              setShowReasonError(true);
+              return;
+            }
+            persistStayReason();
+            handleSubmit();
+          }}
           containerStyles="min-h-[52px] mb-8"
           isLoading={isSubmitting}
+          isDisabled={cannotBookHere || reasonMissing}
         />
       </ShadowBox>
 
       {validationDataError && (
         <CustomModal
-          visible={true}
+          visible
           onClose={handleCloseValidationModal}
           message={validationDataError.message}
           btnText="Okay"

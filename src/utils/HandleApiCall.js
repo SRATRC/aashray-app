@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { BASE_URL, DEV_URL } from '../constants';
+import { resolveBaseUrl } from '../constants/backends';
 import { useDevStore } from '../stores';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
@@ -21,16 +21,8 @@ const handleAPICall = async (
   const requestId = generateRequestId();
 
   try {
-    const { useDevBackend, devPrNumber } = useDevStore.getState();
-    let currentBaseUrl = BASE_URL;
-
-    if (useDevBackend) {
-      if (devPrNumber) {
-        currentBaseUrl = `https://aashray-backend-pr-${devPrNumber}.onrender.com/api/v1`;
-      } else {
-        currentBaseUrl = DEV_URL;
-      }
-    }
+    const { backend, qaPrNumber, localPort } = useDevStore.getState();
+    const currentBaseUrl = resolveBaseUrl(backend, qaPrNumber, localPort);
 
     if (!currentBaseUrl) {
       console.error('Base URL is undefined. Check your .env file and constants.');

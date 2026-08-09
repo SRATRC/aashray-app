@@ -2,13 +2,13 @@ import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import CustomButton from '@/src/components/CustomButton';
 
 const PaymentFailed = () => {
   const router = useRouter();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+  const fadeAnim = useState(() => new Animated.Value(0))[0];
+  const slideAnim = useState(() => new Animated.Value(30))[0];
 
   useEffect(() => {
     Animated.parallel([
@@ -26,7 +26,7 @@ const PaymentFailed = () => {
   }, [fadeAnim, slideAnim]);
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <View className="flex-1">
         {/* Content Section */}
         <Animated.View

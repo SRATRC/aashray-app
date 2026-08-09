@@ -17,6 +17,9 @@ import * as Sentry from '@sentry/react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 import { CustomAlert } from '@/src/components/CustomAlert';
+import { nextStayQuery } from '@/src/components/home/NextStayCard';
+import { blockedDatesQuery, initialMonthKey } from '@/src/components/stay/StayCalendar';
+import moment from 'moment';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,9 +50,9 @@ Sentry.init({
   enableTombstone: true,
   integrations: [
     Sentry.mobileReplayIntegration({
-      maskAllText: false,
-      maskAllImages: false,
-      maskAllVectors: false,
+      maskAllText: true,
+      maskAllImages: true,
+      maskAllVectors: true,
     }),
   ],
 });
@@ -110,7 +113,12 @@ const AppNavigator = () => {
   });
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        freezeOnBlur: true,
+        contentStyle: { backgroundColor: '#F9FAFB' },
+      }}>
       <Stack.Protected guard={!authState.userExists}>
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
@@ -139,15 +147,10 @@ const AppNavigator = () => {
 
 const RootLayout = () => {
   const [fontsLoaded, fontError] = useFonts({
-    'Poppins-Black': require('@/src/assets/fonts/Poppins-Black.ttf'),
     'Poppins-Bold': require('@/src/assets/fonts/Poppins-Bold.ttf'),
-    'Poppins-ExtraBold': require('@/src/assets/fonts/Poppins-ExtraBold.ttf'),
-    'Poppins-ExtraLight': require('@/src/assets/fonts/Poppins-ExtraLight.ttf'),
-    'Poppins-Light': require('@/src/assets/fonts/Poppins-Light.ttf'),
     'Poppins-Medium': require('@/src/assets/fonts/Poppins-Medium.ttf'),
     'Poppins-Regular': require('@/src/assets/fonts/Poppins-Regular.ttf'),
     'Poppins-SemiBold': require('@/src/assets/fonts/Poppins-SemiBold.ttf'),
-    'Poppins-Thin': require('@/src/assets/fonts/Poppins-Thin.ttf'),
     'DMSerifDisplay-Regular': require('@/src/assets/fonts/DMSerifDisplay-Regular.ttf'),
     'DMSans-Regular': require('@/src/assets/fonts/DMSans-Regular.ttf'),
     'DMSans-Medium': require('@/src/assets/fonts/DMSans-Medium.ttf'),
@@ -168,10 +171,29 @@ const RootLayout = () => {
     if (fontError) throw fontError;
   }, [fontError]);
 
+  // Warm the two screens a member reaches first: the home stay card, and the
+  // blocked dates the booking calendar needs before it can mark a single day.
+  // Deliberately NOT awaited by hideSplash below — a cold start must never wait
+  // on the network. These are in flight while the splash is still up, so both
+  // screens usually render from cache instead of a shimmer.
+  useEffect(() => {
+    if (!isAuthReady) return;
+    const cardno = useAuthStore.getState().user?.cardno;
+    if (!cardno) return;
+
+    queryClient.prefetchQuery(nextStayQuery(cardno));
+    // Room opens on tomorrow's month, Flat on today's. They differ only on the
+    // last day of a month, and the Set keeps that from costing a second call.
+    const months = new Set([
+      initialMonthKey(),
+      initialMonthKey(moment().format('YYYY-MM-DD')),
+    ]);
+    months.forEach((monthKey) => queryClient.prefetchQuery(blockedDatesQuery(cardno, monthKey)));
+  }, [isAuthReady]);
+
   useEffect(() => {
     async function hideSplash() {
       if (fontsLoaded && isAuthReady) {
-        await new Promise((resolve) => setTimeout(resolve, 200));
         await SplashScreen.hideAsync();
       }
     }
@@ -191,20 +213,18 @@ const RootLayout = () => {
   );
 };
 
-const RootLayoutContent = () => {
-  return (
-    <KeyboardProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <BottomSheetModalProvider>
-          <SystemBars style="dark" />
-          <AppNavigator />
-          <CustomAlert />
-          <UpdateManager />
-          <Toast />
-        </BottomSheetModalProvider>
-      </GestureHandlerRootView>
-    </KeyboardProvider>
-  );
-};
+const RootLayoutContent = () => (
+  <KeyboardProvider>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <BottomSheetModalProvider>
+        <SystemBars style="dark" />
+        <AppNavigator />
+        <CustomAlert />
+        <UpdateManager />
+        <Toast />
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
+  </KeyboardProvider>
+);
 
 export default Sentry.wrap(RootLayout);

@@ -10,6 +10,7 @@ interface CustomButtonProps {
   isDisabled?: boolean;
   bgcolor?: string;
   variant?: 'solid' | 'outline' | 'pill';
+  testID?: string;
 }
 
 const CustomButton: FC<CustomButtonProps> = ({
@@ -21,11 +22,17 @@ const CustomButton: FC<CustomButtonProps> = ({
   isDisabled = false,
   bgcolor = 'bg-secondary',
   variant = 'solid',
+  testID,
 }) => {
+  // Defaults to the visible label so every button is addressable by what it
+  // says, without each caller inventing an id.
+  const id = testID ?? text;
   // pill variant — full-rounded, DM Sans medium, used by login page
   if (variant === 'pill') {
     return (
       <TouchableOpacity
+        testID={id}
+        accessibilityLabel={id}
         onPress={handlePress}
         activeOpacity={0.85}
         disabled={isLoading || isDisabled}
@@ -56,6 +63,8 @@ const CustomButton: FC<CustomButtonProps> = ({
 
   return (
     <TouchableOpacity
+      testID={id}
+      accessibilityLabel={id}
       onPress={handlePress}
       activeOpacity={0.7}
       className={`

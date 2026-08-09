@@ -130,7 +130,9 @@ export const prepareGuestRequestBody = (user, input) => {
             checkin_date: primaryData.startDay,
             checkout_date: primaryData.endDay,
             guestGroup: transformGuestGroup(primaryData.guestGroup),
+            ...(primaryData.extra_stay_reason && { extra_stay_reason: primaryData.extra_stay_reason }),
           },
+          ...(primaryData.extra_stay_reason && { extra_stay_reason: primaryData.extra_stay_reason }),
         };
       case 'food':
         return {
@@ -156,7 +158,9 @@ export const prepareGuestRequestBody = (user, input) => {
             checkin_date: primaryData.startDay,
             checkout_date: primaryData.endDay,
             guests: primaryData.guests,
+            ...(primaryData.extra_stay_reason && { extra_stay_reason: primaryData.extra_stay_reason }),
           },
+          ...(primaryData.extra_stay_reason && { extra_stay_reason: primaryData.extra_stay_reason }),
         };
       case 'utsav':
         return {
@@ -219,6 +223,9 @@ export const prepareGuestRequestBody = (user, input) => {
       })
       .filter(Boolean);
 
+  // No extra_stay_reason here: it is stored on the room or flat entry, and
+  // BookingReviewScreen puts it on the payload this returns. Reading it off the
+  // top-level input never matched anything.
   return {
     cardno: user.cardno,
     primary_booking: primaryBookingDetails(input.primary),
@@ -309,7 +316,9 @@ export const prepareMumukshuRequestBody = (user, input) => {
             checkin_date: primaryData.startDay,
             checkout_date: primaryData.endDay,
             mumukshuGroup: transformMumukshuGroup(primaryData.mumukshuGroup),
+            ...(primaryData.extra_stay_reason && { extra_stay_reason: primaryData.extra_stay_reason }),
           },
+          ...(primaryData.extra_stay_reason && { extra_stay_reason: primaryData.extra_stay_reason }),
         };
       case 'food':
         return {
@@ -343,7 +352,9 @@ export const prepareMumukshuRequestBody = (user, input) => {
             checkin_date: primaryData.startDay,
             checkout_date: primaryData.endDay,
             mumukshus: transformMumukshuGroup(primaryData.mumukshuGroup),
+            ...(primaryData.extra_stay_reason && { extra_stay_reason: primaryData.extra_stay_reason }),
           },
+          ...(primaryData.extra_stay_reason && { extra_stay_reason: primaryData.extra_stay_reason }),
         };
       case 'utsav':
         return {
@@ -426,6 +437,8 @@ export const prepareMumukshuRequestBody = (user, input) => {
         }
       })
       .filter(Boolean);
+  // See prepareGuestRequestBody: the reason is added by the review screen, not
+  // read from the store input.
   return {
     cardno: user.cardno,
     primary_booking: primaryBookingDetails(bookingInput.primary),

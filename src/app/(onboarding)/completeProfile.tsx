@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, Image, TouchableWithoutFeedback } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { images, colors, icons } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
@@ -13,6 +13,7 @@ const CompleteProfile = () => {
   const logout = useAuthStore((state) => state.logout);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const initialFormData: Partial<ProfileFormData> = {
     issuedto: user?.issuedto || '',
@@ -70,20 +71,27 @@ const CompleteProfile = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    // The bottom edge is deliberately not a safe-area edge. As one, the inset
+    // becomes padding on this view, so the scroll view stops above the home
+    // indicator and the page reads as a floating block with a gap under it.
+    // Carrying it as scroll padding instead lets content run to the bottom of
+    // the screen and still clear the indicator when scrolled to the end.
+    <SafeAreaView className="flex-1 bg-gray-50" edges={['top', 'left', 'right']}>
       <KeyboardAwareScrollView
         bottomOffset={62}
         style={{ flex: 1 }}
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 24 }}
         keyboardShouldPersistTaps="handled">
-        <View className="flex-1 px-6 py-6">
+        <View className="flex-1 px-6 pt-6">
           {/* Logo */}
           <View className="items-center">
             <Image source={images.logo} className="h-[60px] w-[60px]" resizeMode="contain" />
           </View>
 
-          {/* Progress Header */}
-          <View className="mt-4 items-center justify-center">
+          {/* Progress Header. mb-6 matches the form's own gap-y-6, so the
+              section headers below keep one rhythm instead of butting straight
+              up against the subtitle. */}
+          <View className="mb-6 mt-4 items-center justify-center">
             <Text className="mb-2 text-sm text-gray-500">Step 2</Text>
             <View
               style={{
@@ -120,8 +128,9 @@ const CompleteProfile = () => {
             showSectionHeaders
           />
 
-          {/* Logout */}
-          <View className="w-full items-center pb-10">
+          {/* Logout. Same gap-y-6 rhythm again, so it does not sit flush against
+              the submit button. Bottom spacing is the scroll view's padding. */}
+          <View className="mt-6 w-full items-center">
             <TouchableWithoutFeedback onPress={handleLogout}>
               <View className="flex flex-row items-center">
                 <Image source={icons.logout} className="h-4 w-4" resizeMode="contain" />

@@ -1,9 +1,24 @@
-import React, { useState } from 'react';
-import { colors } from '../constants';
-import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
+import React, { useMemo, useState } from 'react';
+import { View } from 'react-native';
+import { Calendar } from 'react-native-calendars';
 
-const MIN_DATE = moment(new Date()).add(1, 'days').format('YYYY-MM-DD');
+import { colors } from '../constants';
+
+// Plain date picker for the non-stay flows (food, travel). It has no idea about
+// centre blocks, Utsavs or the member's own bookings, and it must not pretend to:
+// anything that answers "can these dates be booked?" belongs in StayCalendar,
+// which is the single stay picker.
+const getMinDate = () => moment().add(1, 'days').format('YYYY-MM-DD');
+
+const CALENDAR_THEME = {
+  arrowColor: colors.orange,
+  todayTextColor: colors.orange,
+  textDisabledColor: colors.gray_400,
+  // Flush with the page, same as the stay calendar. The library paints its own
+  // white sheet otherwise.
+  calendarBackground: 'transparent',
+};
 
 interface CustomCalenderProps {
   type?: any;
@@ -26,78 +41,71 @@ const CustomCalender: React.FC<CustomCalenderProps> = ({
   setSelectedDay,
   minDate,
 }) => {
-  const [markedDates, setMarkedDates] = useState({});
   const [disableLeftArrow, setDisableLeftArrow] = useState(false);
 
   const handlePeriodPress = (day: any) => {
-    if (startDay && !endDay) {
-      const date: any = {};
-      for (const d = moment(startDay); d.isSameOrBefore(day.dateString); d.add(1, 'days')) {
-        date[d.format('YYYY-MM-DD')] = {
-          color: colors.orange,
-          textColor: 'white',
-        };
-
-        if (d.format('YYYY-MM-DD') === startDay) date[d.format('YYYY-MM-DD')].startingDay = true;
-        if (d.format('YYYY-MM-DD') === day.dateString)
-          date[d.format('YYYY-MM-DD')].endingDay = true;
-      }
-
-      setMarkedDates(date);
+    if (startDay && !endDay && day.dateString >= startDay) {
       setEndDay(day.dateString);
-    } else {
-      setStartDay(day.dateString);
-      setEndDay(null);
-      setMarkedDates({
-        [day.dateString]: {
-          color: colors.orange,
-          textColor: 'white',
-          startingDay: true,
-          endingDay: true,
-        },
-      });
+      return;
     }
+    setStartDay(day.dateString);
+    setEndDay(null);
   };
 
   const handleMonthChange = (month: any) => {
     const currentMonth = moment(month.dateString).startOf('month');
-    const minMonth = moment(minDate ? minDate : MIN_DATE).startOf('month');
-
+    const minMonth = moment(minDate ? minDate : getMinDate()).startOf('month');
     setDisableLeftArrow(currentMonth.isSameOrBefore(minMonth));
   };
 
-  return (
-    <Calendar
-      className="mt-5"
-      minDate={minDate ? minDate : MIN_DATE}
-      initialDate={minDate ? minDate : MIN_DATE}
-      disableArrowLeft={disableLeftArrow}
-      onMonthChange={handleMonthChange}
-      onDayPress={(day: any) => {
-        if (type === 'period') {
-          handlePeriodPress(day);
-        } else {
-          setSelectedDay(day.dateString);
+  const markedDates = useMemo(() => {
+    const marks: Record<string, any> = {};
+
+    if (type === 'period') {
+      if (startDay) {
+        const last = endDay || startDay;
+        const cursor = moment(startDay);
+        while (cursor.isSameOrBefore(last)) {
+          const key = cursor.format('YYYY-MM-DD');
+          marks[key] = {
+            color: colors.orange,
+            textColor: 'white',
+            ...(key === startDay ? { startingDay: true } : {}),
+            ...(key === last ? { endingDay: true } : {}),
+          };
+          cursor.add(1, 'days');
         }
-      }}
-      markedDates={
-        type === 'period'
-          ? markedDates
-          : {
-              [selectedDay]: {
-                textColor: 'white',
-                selected: true,
-                disableTouchEvent: true,
-                selectedColor: colors.orange,
-              },
-            }
       }
-      markingType={type}
-      theme={{
-        arrowColor: colors.orange,
-        todayTextColor: colors.orange,
-      }}
-    />
+      return marks;
+    }
+
+    if (selectedDay) {
+      marks[selectedDay] = {
+        textColor: 'white',
+        selected: true,
+        selectedColor: colors.orange,
+      };
+    }
+    return marks;
+  }, [startDay, endDay, selectedDay, type]);
+
+  return (
+    <View>
+      <Calendar
+        className="mt-5"
+        minDate={minDate ? minDate : getMinDate()}
+        initialDate={minDate ? minDate : getMinDate()}
+        disableArrowLeft={disableLeftArrow}
+        onMonthChange={handleMonthChange}
+        onDayPress={(day: any) => {
+          if (type === 'period') handlePeriodPress(day);
+          else setSelectedDay(day.dateString);
+        }}
+        markedDates={markedDates}
+        markingType={type}
+        theme={CALENDAR_THEME}
+      />
+    </View>
   );
 };
 

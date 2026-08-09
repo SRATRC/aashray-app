@@ -50,7 +50,7 @@ const TemporaryWifiSection: React.FC<TemporaryWifiSectionProps> = ({
   const renderCodeItem = (code: TemporaryWifiCode, index: number) => (
     <View
       key={code.id || index}
-      className="mx-4 mt-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm shadow-gray-200">
+      className="mx-4 mt-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm shadow-gray-200">
       <View className="flex-row items-center justify-between">
         <View className="flex-1">
           <Text className="font-pregular text-xs text-gray-500">Temporary Code</Text>

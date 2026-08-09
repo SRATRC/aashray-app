@@ -9,6 +9,7 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import FormDisplayField from '../FormDisplayField';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
+import AddonHeader from '../booking/shared/AddonHeader';
 import moment from 'moment';
 
 interface MumukshuTravelAddonProps {
@@ -36,10 +37,10 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
   setDatePickerVisibility,
   onToggle,
 }) => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const [activeMumukshuIndex, setActiveMumukshuIndex] = useState(null);
 
-  const [tempTravelDate, setTempTravelDate] = useState(
+  const [tempTravelDate, setTempTravelDate] = useState(() =>
     travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()
   );
 
@@ -68,14 +69,14 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
     );
 
     // Filter out mumukshus that are already selected in other groups
-    return mumukshu_dropdown.filter((mumukshu: any) => !selectedIndices.includes(mumukshu.value));
+    return mumukshu_dropdown.filter((mumukshu: any) => !selectedIndices.includes(mumukshu.key));
   };
 
   const hasAvailableMumukshus = () => {
     // Get all selected mumukshu indices from all groups
     const selectedIndices = travelForm.mumukshuGroup.flatMap((group: any) => group.mumukshuIndices);
     // Check if there are any unselected mumukshus
-    return mumukshu_dropdown.some((mumukshu: any) => !selectedIndices.includes(mumukshu.value));
+    return mumukshu_dropdown.some((mumukshu: any) => !selectedIndices.includes(mumukshu.key));
   };
 
   return (
@@ -85,10 +86,7 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
       }}
       onToggle={onToggle}
       visibleContent={
-        <View className="flex flex-row items-center gap-x-4">
-          <Image source={icons.travel} className="h-10 w-10" resizeMode="contain" />
-          <Text className="font-pmedium">Raj Pravas Booking</Text>
-        </View>
+        <AddonHeader icon={icons.travel} title="Raj Pravas" subtitle="Pickup and drop" />
       }
       containerStyles={'mt-3'}>
       <FormDisplayField
@@ -96,7 +94,6 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
         value={travelForm.date ? moment(travelForm.date).format('Do MMMM YYYY') : ''}
         placeholder="Date"
         otherStyles="mt-7"
-        backgroundColor="bg-gray-100"
         onPress={() => setDatePickerVisibility('travel', true)}
       />
 
@@ -168,7 +165,6 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
               value={assignment.total_people}
               handleChangeText={(e: any) => updateTravelForm(index, 'total_people', e)}
               otherStyles="mt-7"
-              containerStyles="bg-gray-100"
               keyboardType="number-pad"
               placeholder="please specify total people here..."
               inputStyles={'font-pmedium text-black text-lg'}
@@ -244,7 +240,6 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
                 placeholder="Flight/Train Time"
                 otherStyles="mt-5"
                 inputStyles={'font-pmedium text-black text-lg'}
-                backgroundColor="bg-gray-100"
                 onPress={() => {
                   setDatePickerVisibility('travel_time', true);
                   setActiveMumukshuIndex(index);
@@ -298,7 +293,6 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             value={assignment.special_request}
             handleChangeText={(e: any) => updateTravelForm(index, 'special_request', e)}
             otherStyles="mt-7"
-            containerStyles="bg-gray-100"
             keyboardType="default"
             placeholder="Please specify a location if 'Other' is selected, or provide any additional requests here..."
             multiline={true}

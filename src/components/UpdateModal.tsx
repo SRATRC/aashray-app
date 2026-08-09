@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -34,11 +34,11 @@ interface UpdateModalProps {
 
 const UpdateModal: React.FC<UpdateModalProps> = ({ visible, info, onUpdateNow, onDismiss }) => {
   const insets = useSafeAreaInsets();
-  const translateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
-  const iconScale = useRef(new Animated.Value(0.8)).current;
-  const iconRotate = useRef(new Animated.Value(0)).current;
-  const backdropOpacity = useRef(new Animated.Value(0)).current;
-  const contentOpacity = useRef(new Animated.Value(0)).current;
+  const translateY = useState(() => new Animated.Value(SHEET_HEIGHT))[0];
+  const iconScale = useState(() => new Animated.Value(0.8))[0];
+  const iconRotate = useState(() => new Animated.Value(0))[0];
+  const backdropOpacity = useState(() => new Animated.Value(0))[0];
+  const contentOpacity = useState(() => new Animated.Value(0))[0];
 
   useEffect(() => {
     if (visible) {
@@ -110,10 +110,14 @@ const UpdateModal: React.FC<UpdateModalProps> = ({ visible, info, onUpdateNow, o
     });
   };
 
-  const iconRotation = iconRotate.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['-10deg', '0deg'],
-  });
+  const iconRotation = useMemo(
+    () =>
+      iconRotate.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['-10deg', '0deg'],
+      }),
+    [iconRotate]
+  );
 
   const renderContent = () => (
     <Animated.View

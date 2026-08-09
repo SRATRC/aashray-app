@@ -1,7 +1,7 @@
-import { View, TouchableOpacity, Image, Platform } from 'react-native';
+import { View, TouchableOpacity, Image } from 'react-native';
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { icons } from '@/src/constants';
+import { icons, surfaces } from '@/src/constants';
 import * as Haptics from 'expo-haptics';
 
 interface AddonItemProps {
@@ -9,7 +9,6 @@ interface AddonItemProps {
   visibleContent: any;
   containerStyles: any;
   backgroundColor?: any;
-  shadowShown?: any;
   onCollapse: any;
   onToggle?: (isOpen: boolean) => void;
 }
@@ -19,7 +18,6 @@ const AddonItem: React.FC<AddonItemProps> = ({
   visibleContent,
   containerStyles,
   backgroundColor,
-  shadowShown,
   onCollapse,
   onToggle,
 }) => {
@@ -41,15 +39,10 @@ const AddonItem: React.FC<AddonItemProps> = ({
   };
 
   return (
-    <View
-      key={key}
-      className={`mb-5 rounded-2xl p-3 ${
-        shadowShown == false
-          ? ''
-          : Platform.OS === 'ios'
-            ? 'shadow-lg shadow-gray-200'
-            : 'shadow-2xl shadow-gray-400'
-      } ${backgroundColor ? backgroundColor : 'bg-white'}`}>
+    // Same surface as a booking card: a hairline border, no drop shadow. The
+    // shadowed variant made the add-on rows look like a different design from
+    // the cards directly above them.
+    <View key={key} className={`mb-3 p-3 ${surfaces.CARD} ${backgroundColor ?? ''}`}>
       <View className="flex-row justify-between overflow-hidden">
         <View className="flex-1 flex-row items-center gap-x-4">{visibleContent}</View>
         <TouchableOpacity onPress={toggleSelection} className="items-center justify-center">

@@ -5,6 +5,7 @@ import { useAuthStore, useBookingStore } from '@/src/stores';
 import { useUtsavDate } from '@/src/hooks/useUtsavDate';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
+import AddonHeader from '../booking/shared/AddonHeader';
 import FormDisplayField from '../FormDisplayField';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -29,7 +30,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
   const mumukshuData = useBookingStore((state) => state.mumukshuData);
   const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
-  const [tempTravelDate, setTempTravelDate] = useState(
+  const [tempTravelDate, setTempTravelDate] = useState(() =>
     travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()
   );
 
@@ -71,10 +72,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         });
       }}
       visibleContent={
-        <View className="flex flex-row items-center gap-x-4">
-          <Image source={icons.travel} className="h-10 w-10" resizeMode="contain" />
-          <Text className="font-pmedium">Raj Pravas Booking</Text>
-        </View>
+        <AddonHeader icon={icons.travel} title="Raj Pravas" subtitle="Pickup and drop" />
       }
       containerStyles={'mt-3'}>
       <FormDisplayField
@@ -82,7 +80,6 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
         value={travelForm.date ? moment(travelForm.date).format('Do MMMM YYYY') : ''}
         placeholder="Date"
         otherStyles="mt-7"
-        backgroundColor="bg-gray-100"
         onPress={() => setDatePickerVisibility('travel', true)}
       />
       <DateTimePickerModal
@@ -123,7 +120,6 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           value={travelForm.total_people}
           handleChangeText={(e: any) => setTravelForm({ ...travelForm, total_people: e })}
           otherStyles="mt-7"
-          containerStyles="bg-gray-100"
           keyboardType="number-pad"
           placeholder="please specify total people here..."
           inputStyles={'font-pmedium text-black text-lg'}
@@ -207,7 +203,6 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
             placeholder="Flight/Train Time"
             otherStyles="mt-5"
             inputStyles="font-pmedium text-black text-lg"
-            backgroundColor="bg-gray-100"
             onPress={() => setDatePickerVisibility('travel_time', true)}
           />
           <DateTimePickerModal
@@ -266,7 +261,6 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           })
         }
         otherStyles="mt-7"
-        containerStyles="bg-gray-100"
         keyboardType="default"
         placeholder="Please specify a location if 'Other' is selected, or provide any additional requests here..."
         multiline={true}

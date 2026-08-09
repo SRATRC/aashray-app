@@ -119,7 +119,7 @@ const SignIn = () => {
         <FormField
           text="Phone Number"
           value={form.phone}
-          handleChangeText={(e: any) => setForm({ ...form, phone: e })}
+          handleChangeText={(e: any) => setForm((prev) => ({ ...prev, phone: e }))}
           placeholder="10-digit phone number"
           keyboardType="number-pad"
           maxLength={10}
@@ -130,7 +130,7 @@ const SignIn = () => {
         <FormField
           text="Password"
           value={form.password}
-          handleChangeText={(e: any) => setForm({ ...form, password: e })}
+          handleChangeText={(e: any) => setForm((prev) => ({ ...prev, password: e }))}
           placeholder="Enter your password"
           isPassword
           otherStyles="mb-2"

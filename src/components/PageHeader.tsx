@@ -22,10 +22,14 @@ const PageHeader: React.FC<PageHeaderProps> = ({
 }) => {
   const router = useRouter();
 
+  // A screen reached by deep link or notification has nothing behind it, and
+  // router.back() is then a silent no-op that strands the member.
+  const goBack = () => (router.canGoBack() ? router.back() : router.replace('/'));
+
   return (
     <View className="mb-4 mt-6 w-full flex-row items-center gap-x-1 px-2">
       {!hideIcon && (
-        <Pressable onPress={onPress ? onPress : () => router.back()}>
+        <Pressable onPress={onPress ? onPress : goBack}>
           <FontAwesome5
             name={iconName}
             size={iconSize}

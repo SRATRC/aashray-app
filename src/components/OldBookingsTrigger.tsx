@@ -60,7 +60,7 @@ const OldBookingsTrigger: React.FC<Props> = ({ isExpanded, onToggle, compact }) 
     <TouchableOpacity
       onPress={onToggle}
       activeOpacity={0.8}
-      className="mx-1 mt-4 items-center rounded-2xl border border-gray-100 px-6 py-8">
+      className="mx-1 mt-4 items-center rounded-2xl border border-gray-200 bg-white px-6 py-8">
       <CheckmarkIllustration />
       <Text className="mt-4 font-psemibold text-lg text-gray-700">You're all caught up</Text>
       <View className="mt-1 flex-row items-center gap-x-1">

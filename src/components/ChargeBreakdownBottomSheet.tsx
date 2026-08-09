@@ -8,6 +8,12 @@ import {
 } from '@gorhom/bottom-sheet';
 import CustomButton from './CustomButton';
 
+// Module scope: an inline arrow here is a new component type on every render,
+// which makes gorhom remount the backdrop and restart its fade.
+const renderBackdrop = (backdropProps: BottomSheetBackdropProps) => (
+  <BottomSheetBackdrop appearsOnIndex={0} disappearsOnIndex={-1} {...backdropProps} />
+);
+
 export interface ChargeBreakdownItem {
   charge: number;
   availableCredits?: number;
@@ -79,9 +85,7 @@ const ChargeBreakdownBottomSheet = forwardRef<BottomSheetModal, ChargeBreakdownB
       <BottomSheetModal
         snapPoints={snapPoints}
         ref={ref}
-        backdropComponent={(backdropProps: BottomSheetBackdropProps) => (
-          <BottomSheetBackdrop appearsOnIndex={0} disappearsOnIndex={-1} {...backdropProps} />
-        )}
+        backdropComponent={renderBackdrop}
         index={0}
         enablePanDownToClose={true}>
         <BottomSheetScrollView

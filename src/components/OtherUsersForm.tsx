@@ -23,7 +23,7 @@ const OtherUsersForm: React.FC<OtherUsersFormProps> = ({
   removeUserForm,
   children = () => null,
 }) => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   const verifyUser = async (mobno: any) => {
     return new Promise((resolve, reject) => {
@@ -99,7 +99,6 @@ const OtherUsersForm: React.FC<OtherUsersFormProps> = ({
               keyboardType="number-pad"
               placeholder="Enter Phone Number of user"
               maxLength={10}
-              containerStyles="bg-gray-100"
               additionalText={data?.issuedto}
             />
 
@@ -112,7 +111,6 @@ const OtherUsersForm: React.FC<OtherUsersFormProps> = ({
                   handleChangeText={(e: string) => handleUserFormChange(index, 'name', e)}
                   otherStyles="mt-4"
                   inputStyles="font-pmedium text-base text-gray-400"
-                  containerStyles="bg-gray-100"
                   keyboardType="default"
                   placeholder="Name of the User"
                 />

@@ -13,7 +13,7 @@ export function useSteppedFeedback(questions: Question[]) {
   const [answers, setAnswers] = useState<Answers>({});
   const [submitted, setSubmitted] = useState(false);
 
-  const progressAnim = useRef(new Animated.Value(0)).current;
+  const progressAnim = useState(() => new Animated.Value(0))[0];
 
   const animateProgress = useCallback(
     (toIndex: number) => {
@@ -27,8 +27,8 @@ export function useSteppedFeedback(questions: Question[]) {
     [progressAnim, total]
   );
 
-  const translateX = useRef(new Animated.Value(0)).current;
-  const contentOpacity = useRef(new Animated.Value(1)).current;
+  const translateX = useState(() => new Animated.Value(0))[0];
+  const contentOpacity = useState(() => new Animated.Value(1))[0];
 
   const slideTransition = useCallback(
     (direction: 1 | -1, nextIndex: number) => {
@@ -67,7 +67,7 @@ export function useSteppedFeedback(questions: Question[]) {
     [translateX, contentOpacity]
   );
 
-  const buttonOpacity = useRef(new Animated.Value(0.26)).current;
+  const buttonOpacity = useState(() => new Animated.Value(0.26))[0];
 
   const animateButtonOpacity = useCallback(
     (enabled: boolean) => {
@@ -81,7 +81,7 @@ export function useSteppedFeedback(questions: Question[]) {
     [buttonOpacity]
   );
 
-  const successOpacity = useRef(new Animated.Value(0)).current;
+  const successOpacity = useState(() => new Animated.Value(0))[0];
 
   const fadeToSuccess = useCallback(() => {
     setSubmitted(true);

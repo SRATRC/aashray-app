@@ -4,6 +4,7 @@ import { colors, icons, dropdowns } from '@/src/constants';
 import moment from 'moment';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import AddonItem from '../AddonItem';
+import AddonHeader from '../booking/shared/AddonHeader';
 import HorizontalSeparator from '../HorizontalSeparator';
 import FormDisplayField from '../FormDisplayField';
 import Toast from 'react-native-toast-message';
@@ -36,7 +37,7 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
   onToggle,
 }) => {
   // Temporary state to hold the date for the checkin picker
-  const [tempCheckinDate, setTempCheckinDate] = useState(
+  const [tempCheckinDate, setTempCheckinDate] = useState(() =>
     roomForm.startDay ? moment(roomForm.startDay).toDate() : moment().add(1, 'days').toDate()
   );
 
@@ -53,14 +54,14 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
     );
 
     // Filter out mumukshus that are already selected in other groups
-    return mumukshu_dropdown.filter((mumukshu: any) => !selectedIndices.includes(mumukshu.value));
+    return mumukshu_dropdown.filter((mumukshu: any) => !selectedIndices.includes(mumukshu.key));
   };
 
   const hasAvailableMumukshus = () => {
     // Get all selected mumukshu indices from all groups
     const selectedIndices = roomForm.mumukshuGroup.flatMap((group: any) => group.mumukshuIndices);
     // Check if there are any unselected mumukshus
-    return mumukshu_dropdown.some((mumukshu: any) => !selectedIndices.includes(mumukshu.value));
+    return mumukshu_dropdown.some((mumukshu: any) => !selectedIndices.includes(mumukshu.key));
   };
 
   return (
@@ -68,10 +69,7 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
       onCollapse={resetRoomForm}
       onToggle={onToggle}
       visibleContent={
-        <View className="flex flex-row items-center gap-x-4">
-          <Image source={icons.room} className="h-10 w-10" resizeMode="contain" />
-          <Text className="font-pmedium">Raj Sharan Booking</Text>
-        </View>
+        <AddonHeader icon={icons.room} title="Raj Sharan" subtitle="A room for these dates" />
       }
       containerStyles={'mt-3'}>
       <FormDisplayField
@@ -79,7 +77,6 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
         value={roomForm.startDay ? moment(roomForm.startDay).format('Do MMMM YYYY') : ''}
         placeholder="Checkin Date"
         otherStyles="mt-5"
-        backgroundColor="bg-gray-100"
         onPress={() => setDatePickerVisibility('checkin', true)}
       />
       <DateTimePickerModal
@@ -108,7 +105,6 @@ const MumukshuRoomAddon: React.FC<MumukshuRoomAddonProps> = ({
         value={roomForm.endDay ? moment(roomForm.endDay).format('Do MMMM YYYY') : ''}
         placeholder="Checkout Date"
         otherStyles="mt-5"
-        backgroundColor="bg-gray-100"
         onPress={() => {
           if (roomForm.startDay) {
             setDatePickerVisibility('checkout', true);

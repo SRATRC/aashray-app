@@ -7,6 +7,12 @@ import {
   BottomSheetFlatList,
 } from '@gorhom/bottom-sheet';
 
+// Module scope: an inline arrow here is a new component type on every render,
+// which makes gorhom remount the backdrop and restart its fade.
+const renderBackdrop = (backdropProps: BottomSheetBackdropProps) => (
+  <BottomSheetBackdrop appearsOnIndex={0} disappearsOnIndex={-1} {...backdropProps} />
+);
+
 interface BottomSheetFilterProps {
   data: any;
   title: any;
@@ -20,13 +26,7 @@ const BottomSheetFilter = forwardRef<BottomSheetModal, BottomSheetFilterProps>(
     };
 
     return (
-      <BottomSheetModal
-        snapPoints={['40%']}
-        ref={ref}
-        backdropComponent={(backdropProps: BottomSheetBackdropProps) => (
-          <BottomSheetBackdrop appearsOnIndex={0} disappearsOnIndex={-1} {...backdropProps} />
-        )}
-        index={0}>
+      <BottomSheetModal snapPoints={['40%']} ref={ref} backdropComponent={renderBackdrop} index={0}>
         <BottomSheetFlatList
           data={data}
           contentContainerStyle={{

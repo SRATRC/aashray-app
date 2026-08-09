@@ -11,7 +11,7 @@ import CustomModal from '../CustomModal';
 import OldBookingsTrigger from '../OldBookingsTrigger';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
-import { icons, status } from '@/src/constants';
+import { colors, icons, status } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import handleAPICall from '@/src/utils/HandleApiCall';
@@ -21,10 +21,11 @@ import ExpandableItem from '../ExpandableItem';
 import HorizontalSeparator from '../HorizontalSeparator';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import BookingStatusDisplay from '../BookingStatusDisplay';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import moment from 'moment';
 
 const RoomBookingCancellation: React.FC = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -164,10 +165,11 @@ const RoomBookingCancellation: React.FC = () => {
       visibleContent={
         <View className="flex flex-row items-center gap-x-4">
           <Image source={icons.room} className="h-10 w-10" resizeMode="contain" />
-          <View className="flex-col gap-y-2">
+          <View className="min-w-0 flex-1 flex-col gap-y-2">
             <BookingStatusDisplay
               bookingStatus={item.status}
               transactionStatus={item.transaction_status}
+              holdReason={item.hold_reason}
             />
             <Text className="font-pmedium">
               {moment(item.checkin).format('Do MMMM')} -{' '}
@@ -183,6 +185,21 @@ const RoomBookingCancellation: React.FC = () => {
       }
       containerStyles="mt-3">
       <HorizontalSeparator />
+      {/* Every waitlist reason gets its sentence, not just the 9-night one. A
+          member waitlisted because rooms are full previously saw only a pill. */}
+      {item.status === status.STATUS_WAITING && item.hold_reason_message && (
+        <View className="mx-1 mt-3 flex-row items-start gap-x-2 rounded-xl bg-secondary-50 p-3">
+          <MaterialCommunityIcons
+            name="clock-alert-outline"
+            size={16}
+            color={colors.secondary_200}
+            style={{ marginTop: 1 }}
+          />
+          <Text className="flex-1 font-pregular text-xs leading-5 text-gray-700">
+            {item.hold_reason_message}
+          </Text>
+        </View>
+      )}
       <View className="mt-2 flex flex-row items-center gap-x-2 px-2">
         <Image source={icons.ac} className="h-4 w-4" resizeMode="contain" />
         <Text className="font-pregular text-gray-400">Room Type:</Text>

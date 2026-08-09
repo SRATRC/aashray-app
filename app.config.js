@@ -22,22 +22,24 @@ export default {
     name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
-    version: '1.1.53',
+    version: '1.1.58',
     orientation: 'portrait',
     icon: './src/assets/images/icon.png',
-    userInterfaceStyle: 'automatic',
+    userInterfaceStyle: 'light',
     assetBundlePatterns: ['**/*'],
     updates: {
       enabled: true,
       fallbackToCacheTimeout: 0,
     },
+    // appVersion, not sdkVersion: native code changes between builds (razorpay-pod,
+    // minSdkVersion, useFrameworks) while the SDK stays on 56, so an sdkVersion
+    // runtime lets an update built against new native code land on an old binary.
     runtimeVersion: {
-      policy: 'sdkVersion',
+      policy: 'appVersion',
     },
     ios: {
       icon: './src/assets/images/icon.icon',
       supportsTablet: true,
-      package: 'org.vitraagvigyaan.aashray',
       bundleIdentifier: 'org.vitraagvigyaan.aashray',
       associatedDomains: ['applinks:aashray.vitraagvigyaan.org'],
       googleServicesFile: process.env.GOOGLE_SERVICES_PLIST,
@@ -178,10 +180,6 @@ export default {
         {
           backgroundColor: '#ffffff',
           image: './src/assets/images/logo.png',
-          dark: {
-            image: './src/assets/images/logo.png',
-            backgroundColor: '#000000',
-          },
           imageWidth: 200,
         },
       ],
@@ -206,9 +204,9 @@ export default {
       },
     },
     owner: 'vitraagvigyaan',
-  },
-  experiments: {
-    buildCacheProvider: 'eas',
-    reactCompiler: true,
+    experiments: {
+      buildCacheProvider: 'eas',
+      reactCompiler: true,
+    },
   },
 };

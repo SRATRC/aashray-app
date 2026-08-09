@@ -24,7 +24,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
   removeGuestForm,
   children = () => null,
 }) => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   const verifyGuest = async (
     mobno: string
@@ -80,7 +80,9 @@ const GuestForm: React.FC<GuestFormProps> = ({
         }
       }
     });
-  }, [guestQueries.map((q: any) => q.data), guestForm.guests.length]);
+    // Keyed on a primitive: a mapped array literal is a new reference every
+    // render, which made this effect run after every keystroke.
+  }, [guestQueries.map((q: any) => q.data?.data?.cardno).join(','), guestForm.guests.length]);
 
   // Helper function to get API error message
   const getErrorMessage = (error: any) => {
@@ -136,7 +138,6 @@ const GuestForm: React.FC<GuestFormProps> = ({
               keyboardType="number-pad"
               placeholder="Enter Guest Phone Number"
               maxLength={10}
-              containerStyles="bg-gray-100"
               additionalText={guestData?.issuedto}
               error={shouldShowError}
               errorMessage={errorMessage}
@@ -161,7 +162,6 @@ const GuestForm: React.FC<GuestFormProps> = ({
                   handleChangeText={(e: string) => handleGuestFormChange(index, 'name', e)}
                   otherStyles="mt-4"
                   inputStyles="font-pmedium text-base"
-                  containerStyles="bg-gray-100"
                   keyboardType="default"
                   placeholder="Guest Name"
                 />

@@ -1,12 +1,13 @@
-import { View, Text, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, Image, ActivityIndicator } from 'react-native';
 import { icons, types } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore, useBookingStore } from '@/src/stores';
 import AddonItem from '../AddonItem';
+import AddonHeader from '../booking/shared/AddonHeader';
 import handleAPICall from '@/src/utils/HandleApiCall';
-import HorizontalSeparator from '../HorizontalSeparator';
 import CustomEmptyMessage from '../CustomEmptyMessage';
-import moment from 'moment';
+import CatalogueCard from '../booking/shared/CatalogueCard';
+import { isShibirFull, waitlistCountOf } from '../booking/shared/catalogueStatus';
 import * as Haptics from 'expo-haptics';
 
 interface AdhyayanAddonProps {
@@ -94,52 +95,28 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
-  const renderItem = (item: any) => {
-    const isSelected = adhyayanBookingList.some((selected: any) => selected.id === item.id);
-
-    return (
-      <View key={item.id} style={{ marginBottom: 8, width: '100%' }}>
-        <View className="rounded-2xl bg-gray-50 p-2">
-          <View className="flex flex-row items-center justify-between py-2">
-            <Text className="font-pmedium text-base text-secondary">{`${moment(
-              item.start_date
-            ).format('Do MMMM')} - ${moment(item.end_date).format('Do MMMM, YYYY')}`}</Text>
-          </View>
-          <HorizontalSeparator />
-          <View className="flex flex-row gap-x-2 pb-4 pt-2">
-            <Image source={icons.description} className="h-4 w-4" resizeMode="contain" />
-            <Text className="font-pregular text-gray-400">Name: </Text>
-            <Text className="font-pmedium text-black" numberOfLines={1} style={{ flex: 1 }}>
-              {item.name}
-            </Text>
-          </View>
-          <View className="flex flex-row gap-x-2 pb-4">
-            <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
-            <Text className="font-pregular text-gray-400">Swadhyay Karta: </Text>
-            <Text className="font-pmedium text-black" numberOfLines={1} style={{ flex: 1 }}>
-              {item.speaker}
-            </Text>
-          </View>
-          <View className="flex flex-row gap-x-2">
-            <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
-            <Text className="font-pregular text-gray-400">Charges:</Text>
-            <Text className="font-pmedium text-black">₹ {item.amount}</Text>
-          </View>
-          <TouchableOpacity
-            className={`mt-4 w-full items-center justify-center rounded-lg border border-secondary p-2 ${
-              isSelected ? 'bg-secondary' : ''
-            }`}
-            onPress={() => handleToggleSelection(item)}
-            activeOpacity={0.8}>
-            <Text
-              className={`text-md font-pmedium ${isSelected ? 'text-white' : 'text-secondary-100'}`}>
-              {isSelected ? 'Unregister' : 'Register'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
+  // The same card the main Adhyayan screen uses, so a shibir reads identically
+  // in both places — including whether it is full.
+  const renderItem = (item: any) => (
+    <CatalogueCard
+      key={item.id}
+      title={item.name}
+      startDate={item.start_date}
+      endDate={item.end_date}
+      isWaitlist={isShibirFull(item)}
+      waitlistCount={waitlistCountOf(item)}
+      selectable
+      selected={adhyayanBookingList.some((selected: any) => selected.id === item.id)}
+      meta={[
+        { icon: 'person-outline', label: 'Swadhyay Karta', value: item.speaker },
+        ...(item.location
+          ? [{ icon: 'location-outline' as const, label: 'Location', value: item.location }]
+          : []),
+        { icon: 'card-outline', label: 'Charges', value: `₹${item.amount}` },
+      ]}
+      onPress={() => handleToggleSelection(item)}
+    />
+  );
 
   const renderContent = () => {
     // Show empty state if required data is missing
@@ -206,10 +183,7 @@ const AdhyayanAddon: React.FC<AdhyayanAddonProps> = ({
         });
       }}
       visibleContent={
-        <View className="flex flex-row items-center gap-x-4">
-          <Image source={icons.adhyayan} className="h-10 w-10" resizeMode="contain" />
-          <Text className="font-pmedium">Raj Adhyayan Booking</Text>
-        </View>
+        <AddonHeader icon={icons.adhyayan} title="Raj Adhyayan" subtitle="Join a shibir" />
       }
       containerStyles={'mt-3'}>
       {renderContent()}

@@ -20,7 +20,7 @@ import handleAPICall from '@/src/utils/HandleApiCall';
 import moment from 'moment';
 
 const Transactions = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const [selectedChip, setSelectedChip] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
 
