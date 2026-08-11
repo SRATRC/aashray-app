@@ -5,8 +5,6 @@ import {
   RefreshControl,
   ActivityIndicator,
   Image,
-  InteractionManager,
-  Platform,
 } from 'react-native';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,7 +18,6 @@ import PageHeader from '@/src/components/PageHeader';
 import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
 import CustomErrorMessage from '@/src/components/CustomErrorMessage';
 import CustomButton from '@/src/components/CustomButton';
-import CustomModal from '@/src/components/CustomModal';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
@@ -144,7 +141,7 @@ const PendingPayments = () => {
   const [selectedPayments, setSelectedPayments] = useState<Transaction[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showInternationalWarning, setShowInternationalWarning] = useState(false);
+  const [isPaymentInFlight, setIsPaymentInFlight] = useState(false);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['transactions', user.cardno, 'pending,cash pending,failed'],
@@ -322,12 +319,12 @@ const PendingPayments = () => {
   }, [pendingPayments, allSelected, isPaymentAllowed, isTransactionExpired]);
 
   const proceedWithPayment = async () => {
-    // Dismiss the modal first (if shown) to avoid native modal conflicts
-    setShowInternationalWarning(false);
-
-    // Prevent double invocations while in-flight
-    if (isSubmitting) return;
+    if (isPaymentInFlight) return;
+    setIsPaymentInFlight(true);
     setIsSubmitting(true);
+
+    let hasTimedOut = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     try {
       const paymentData = selectedPayments.map((payment) => ({
@@ -347,6 +344,10 @@ const PendingPayments = () => {
         return;
       }
 
+      if (!result.data?.id || result.data.amount == null) {
+        throw new Error('Invalid payment order. Please try again.');
+      }
+
       const options = {
         key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,
         name: 'Vitraag Vigyaan Aashray',
@@ -363,13 +364,21 @@ const PendingPayments = () => {
         theme: { color: colors.orange },
       } as const;
 
-      // Ensure RN Modal has fully dismissed and UI interactions have settled
-      await new Promise<void>((resolve) =>
-        InteractionManager.runAfterInteractions(() => resolve())
-      );
-      await new Promise((resolve) => setTimeout(resolve, Platform.OS === 'android' ? 200 : 100));
+      const razorpayPromise = RazorpayCheckout.open(options);
 
-      await RazorpayCheckout.open(options);
+      timeoutId = setTimeout(() => {
+        hasTimedOut = true;
+        setIsSubmitting(false);
+        Toast.show({
+          type: 'info',
+          text1: 'Payment is taking longer than expected',
+          text2: 'If the payment screen appears, please complete it. Otherwise, try again.',
+          swipeable: false,
+        });
+      }, 10000);
+
+      await razorpayPromise;
+      if (timeoutId) clearTimeout(timeoutId);
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Toast.show({
@@ -377,6 +386,7 @@ const PendingPayments = () => {
         text1: 'Payment successful',
         swipeable: false,
       });
+
       queryClient.invalidateQueries({
         queryKey: ['transactions', user.cardno, 'pending,cash pending,failed'],
         refetchType: 'all',
@@ -384,6 +394,8 @@ const PendingPayments = () => {
       });
       router.replace('/paymentConfirmation');
     } catch (error: any) {
+      if (timeoutId) clearTimeout(timeoutId);
+
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       if (error?.message) {
         Toast.show({
@@ -393,14 +405,20 @@ const PendingPayments = () => {
           swipeable: false,
         });
       }
-      router.replace('/paymentFailed');
+
+      if (!hasTimedOut) {
+        router.replace('/paymentFailed');
+      }
     } finally {
-      setIsSubmitting(false);
+      setIsPaymentInFlight(false);
+      if (!hasTimedOut) {
+        setIsSubmitting(false);
+      }
     }
   };
 
   const handleProceedToPayment = async () => {
-    if (isSubmitting) return; // guard
+    if (isPaymentInFlight || isSubmitting) return;
 
     if (!isPaymentAllowed) {
       Toast.show({
@@ -435,13 +453,6 @@ const PendingPayments = () => {
       return;
     }
 
-    // Show warning for international users
-    if (isInternationalUser) {
-      setShowInternationalWarning(true);
-      return;
-    }
-
-    // Proceed directly for Indian users
     await proceedWithPayment();
   };
 
@@ -817,8 +828,8 @@ const PendingPayments = () => {
                   International Payment Notice
                 </Text>
                 <Text className="font-pregular text-xs text-amber-700">
-                  You are attempting to make a payment from {user.country}. Unfortunately, we do not
-                  accept payments from outside India.
+                  We do not support international cards. If you intend to pay using an Indian bank
+                  account, you may proceed.
                 </Text>
               </View>
             </View>
@@ -931,52 +942,12 @@ const PendingPayments = () => {
                 containerStyles="min-h-[48px]"
                 textStyles="font-psemibold text-sm text-white"
                 isLoading={isSubmitting}
+                isDisabled={isPaymentInFlight}
               />
             </View>
           </View>
         </View>
       )}
-
-      <CustomModal
-        visible={showInternationalWarning}
-        onClose={() => setShowInternationalWarning(false)}
-        title="Warning"
-        showActionButton={false}>
-        <View>
-          <View className="mb-4">
-            <View className="mb-4 items-center">
-              <View className="mb-3 h-16 w-16 items-center justify-center rounded-full bg-amber-100">
-                <Ionicons name="warning" size={32} color="#F59E0B" />
-              </View>
-            </View>
-
-            <Text className="mb-3 text-center font-pregular text-sm text-gray-700">
-              You are attempting to make a payment from{' '}
-              <Text className="font-psemibold">{user.country}</Text>.
-            </Text>
-
-            <View className="rounded-lg bg-amber-50 p-3">
-              <Text className="mb-2 font-pmedium text-xs text-amber-900">
-                Important Information:
-              </Text>
-              <Text className="mb-1 font-pregular text-xs text-amber-800">
-                We currently do not support international payments. If you intend to pay using an
-                Indian bank account, you may proceed with the payment.
-              </Text>
-            </View>
-          </View>
-
-          <View className="gap-y-3">
-            <CustomButton
-              text="I Understand, Proceed"
-              handlePress={proceedWithPayment}
-              containerStyles="min-h-[44px]"
-              textStyles="font-psemibold text-sm text-white"
-              isLoading={isSubmitting}
-            />
-          </View>
-        </View>
-      </CustomModal>
     </SafeAreaView>
   );
 };
