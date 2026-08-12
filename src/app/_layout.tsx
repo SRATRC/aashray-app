@@ -42,9 +42,16 @@ Notifications.setNotificationHandler({
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
-  replaysSessionSampleRate: 0.1,
+  environment: __DEV__ ? 'development' : 'production',
+  // Free plan gets 50 replays/month total. Sampling 10% of all sessions blew
+  // through that in about a day on healthy, error-free sessions. Only record
+  // a replay when there's actually an error to look at.
+  replaysSessionSampleRate: 0,
   replaysOnErrorSampleRate: 1.0,
   enableTombstone: true,
+  // Free plan gets 10,000 performance spans/month. 20% keeps normal usage
+  // comfortably inside that; raise it once real volume is visible in Sentry.
+  tracesSampleRate: 0.2,
   integrations: [
     Sentry.mobileReplayIntegration({
       maskAllText: false,
