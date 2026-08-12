@@ -22,7 +22,7 @@ export default {
     name: 'Aashray',
     scheme: 'aashray',
     slug: 'aashray',
-    version: '1.1.58',
+    version: '1.1.59',
     orientation: 'portrait',
     icon: './src/assets/images/icon.png',
     userInterfaceStyle: 'light',
@@ -62,7 +62,6 @@ export default {
         'android.permission.READ_MEDIA_IMAGES',
         'android.permission.READ_MEDIA_VIDEO',
       ],
-      edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: true,
       adaptiveIcon: {
         foregroundImage: './src/assets/images/adaptive-icon.png',
@@ -152,6 +151,20 @@ export default {
         {
           android: {
             minSdkVersion: 26,
+            enableProguardInReleaseBuilds: true,
+            enableShrinkResourcesInReleaseBuilds: true,
+            extraProguardRules: `
+-keepattributes *Annotation*
+-dontwarn com.razorpay.**
+-keep class com.razorpay.** {*;}
+-optimizations !method/inlining/
+-keepclasseswithmembers class * {
+  public void onPayment*(...);
+}
+-keepclassmembers class * {
+  @android.webkit.JavascriptInterface <methods>;
+}
+            `,
           },
           ios: {
             useFrameworks: 'static',
@@ -166,6 +179,12 @@ export default {
           url: 'https://sentry.io/',
           project: 'react-native',
           organization: 'vendz',
+          // Without this, only the JS/Hermes side of a native Android crash
+          // gets symbolicated — ART/libc frames (SIGABRT, native asserts)
+          // stay as raw addresses. This uploads the missing NDK symbols.
+          experimental_android: {
+            enableAndroidGradlePlugin: true,
+          },
         },
       ],
       [
