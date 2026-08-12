@@ -240,7 +240,11 @@ const PendingPayments = () => {
   }, [totalNonExpiredAmount]);
 
   const isInternationalUser = useMemo(() => {
-    return user.country !== 'India';
+    return (
+      String(user.country || '')
+        .trim()
+        .toLowerCase() !== 'india'
+    );
   }, [user.country]);
 
   const categoryStats = useMemo(() => {
