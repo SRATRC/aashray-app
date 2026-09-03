@@ -21,7 +21,15 @@ npm run format      # ESLint --fix + Prettier --write
 npm run prebuild    # expo prebuild (native code generation)
 ```
 
-No test framework is configured. There are no tests to run.
+Unit tests for pure utilities live in `tests/` and run on Node's built-in
+runner — no Jest, no RN mocks:
+
+```bash
+npm run test:unit     # node --test tests/*.test.js
+```
+
+They may only import dependency-free modules from `src/utils/`. There is no
+component/render test framework.
 
 ## Metro dies on save
 
