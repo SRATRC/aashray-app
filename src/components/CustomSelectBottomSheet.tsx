@@ -149,12 +149,16 @@ const SelectItem = memo(
       </TouchableOpacity>
     );
   },
-  // Explicit comparison function to ensure we correctly handle selection state changes
+  // Explicit comparison function to ensure we correctly handle selection state
+  // changes. `onSelect` is deliberately excluded — rows keep their first
+  // closure — so the closure must never go stale: renderItem routes it through
+  // handleSelectRef, which always reads the latest handler.
   (prevProps, nextProps) => {
     return (
       prevProps.isSelected === nextProps.isSelected &&
       prevProps.multiSelect === nextProps.multiSelect &&
-      prevProps.item.key === nextProps.item.key
+      prevProps.item.key === nextProps.item.key &&
+      prevProps.item.value === nextProps.item.value
     );
   }
 );
@@ -280,15 +284,21 @@ const CustomSelectBottomSheet = forwardRef<
     // its own KeyboardProvider below, so the root one needs no disabling.
     const { height: keyboardHeight, progress } = useKeyboardAnimation();
 
-    // Track keyboard visibility
+    // Track keyboard visibility only while this sheet is open. Closed select
+    // controls should not keep a listener on the shared keyboard animation.
     useEffect(() => {
+      if (!modalVisible) {
+        setIsKeyboardVisible(false);
+        return undefined;
+      }
+
       const unsubscribe = progress.addListener(({ value }) => {
         setIsKeyboardVisible(value > 0);
       });
       return () => {
         progress.removeListener(unsubscribe);
       };
-    }, [progress]);
+    }, [modalVisible, progress]);
 
     // Update filtered options when options change
     useEffect(() => {
@@ -491,6 +501,15 @@ const CustomSelectBottomSheet = forwardRef<
       closeBottomSheet();
     }, [tempSelectedValues, onValuesChange, closeBottomSheet]);
 
+    // SelectItem's memo comparator ignores `onSelect`, so a row can retain its
+    // first closure for its whole life. Reading the handler through a ref keeps
+    // that retained closure pointing at the current onValueChange /
+    // saveKeyInsteadOfValue instead of whatever they were on first render.
+    const handleSelectRef = useRef(handleSelect);
+    useEffect(() => {
+      handleSelectRef.current = handleSelect;
+    }, [handleSelect]);
+
     // Optimized isSelected function
     const isSelected = useCallback(
       (item: Option): boolean => {
@@ -507,7 +526,7 @@ const CustomSelectBottomSheet = forwardRef<
           <SelectItem
             item={item}
             isSelected={isSelected(item)}
-            onSelect={() => handleSelect(item)}
+            onSelect={() => handleSelectRef.current(item)}
             multiSelect={multiSelect}
           />
         );
@@ -678,6 +697,10 @@ const CustomSelectBottomSheet = forwardRef<
 
     // Use keyExtractor for optimized list rendering
     const keyExtractor = useCallback((item: Option) => item.key.toString(), []);
+    const listExtraData = useMemo(
+      () => [tempSelectedValues, selectedValue],
+      [tempSelectedValues, selectedValue]
+    );
 
     const renderSheet = () => (
       <Modal
@@ -798,7 +821,7 @@ const CustomSelectBottomSheet = forwardRef<
                         // first option opens flush against the header.
                         onEndReachedThreshold={0.5}
                         removeClippedSubviews
-                        extraData={[tempSelectedValues, selectedValue]} // Add this to ensure list updates when selection changes
+                        extraData={listExtraData}
                       />
                     </View>
                   )}
@@ -874,7 +897,7 @@ const CustomSelectBottomSheet = forwardRef<
               />
             </View>
           </TouchableOpacity>
-          {renderSheet()}
+          {modalVisible ? renderSheet() : null}
         </View>
       );
     }
@@ -930,7 +953,7 @@ const CustomSelectBottomSheet = forwardRef<
           )}
         </TouchableOpacity>
 
-        {renderSheet()}
+        {modalVisible ? renderSheet() : null}
       </View>
     );
   }

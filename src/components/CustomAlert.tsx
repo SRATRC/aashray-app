@@ -18,10 +18,14 @@ interface AlertState {
   message?: string;
   buttons?: AlertButton[];
   options?: AlertOptions;
+  /** Identifies which alert() call this state belongs to, so a close aimed at
+   * an earlier alert cannot dismiss a newer one shown in the meantime. */
+  id?: number;
 }
 
 class CustomAlertService {
   private static changeListener: ((state: AlertState) => void) | null = null;
+  private static nextId = 0;
   private static currentState: AlertState = {
     visible: false,
     title: '',
@@ -31,23 +35,27 @@ class CustomAlertService {
     this.changeListener = listener;
   }
 
-  static alert(
-    title: string,
-    message?: string,
-    buttons?: AlertButton[],
-    options?: AlertOptions
-  ) {
+  static alert(title: string, message?: string, buttons?: AlertButton[], options?: AlertOptions) {
+    this.nextId += 1;
     this.currentState = {
       visible: true,
       title,
       message,
       buttons,
       options,
+      id: this.nextId,
     };
     this.changeListener?.(this.currentState);
   }
 
-  static close() {
+  /**
+   * Close the alert identified by `token`, or whatever is open when no token
+   * is given. A button's onPress may itself call alert() — the follow-up
+   * confirmation pattern — and the token stops the original button's cleanup
+   * close from tearing down that replacement alert.
+   */
+  static close(token?: number) {
+    if (token !== undefined && token !== this.currentState.id) return;
     this.currentState = {
       ...this.currentState,
       visible: false,
@@ -75,16 +83,20 @@ export const CustomAlert = () => {
   };
 
   const handleButtonPress = async (btn: AlertButton) => {
+    // Capture which alert this button belongs to before awaiting: onPress can
+    // open a new alert, and this close must not dismiss that one.
+    const token = state.id;
     if (btn.onPress) {
       await btn.onPress();
     }
-    CustomAlertService.close();
+    CustomAlertService.close(token);
   };
 
   if (!state.visible) return null;
 
   // Default button if none provided
-  const buttons = state.buttons && state.buttons.length > 0 ? state.buttons : [{ text: 'OK', style: 'default' }];
+  const buttons: AlertButton[] =
+    state.buttons && state.buttons.length > 0 ? state.buttons : [{ text: 'OK', style: 'default' }];
 
   return (
     <Modal
@@ -105,26 +117,25 @@ export const CustomAlert = () => {
             shadowOpacity: 0.15,
             shadowRadius: 8,
           }}>
-          
           {/* Content */}
           <View className="mb-8">
             <Text className="mb-2 text-left font-psemibold text-xl text-gray-900">
               {state.title}
             </Text>
-            
+
             {state.message && (
-              <Text className="text-left font-pregular text-base text-gray-600 leading-6">
+              <Text className="text-left font-pregular text-base leading-6 text-gray-600">
                 {state.message}
               </Text>
             )}
           </View>
 
           {/* Buttons */}
-          <View className="flex-row justify-end gap-3 flex-wrap">
+          <View className="flex-row flex-wrap justify-end gap-3">
             {buttons.map((btn, index) => {
               const isDestructive = btn.style === 'destructive';
               const isCancel = btn.style === 'cancel';
-              
+
               // Cancel / Secondary: Text Button
               if (isCancel) {
                 return (
@@ -132,8 +143,7 @@ export const CustomAlert = () => {
                     key={index}
                     onPress={() => handleButtonPress(btn)}
                     activeOpacity={0.6}
-                    className="px-4 py-2 rounded-lg"
-                  >
+                    className="rounded-lg px-4 py-2">
                     <Text className="font-pmedium text-base text-gray-500">
                       {btn.text || 'Cancel'}
                     </Text>
@@ -148,13 +158,10 @@ export const CustomAlert = () => {
                   onPress={() => handleButtonPress(btn)}
                   activeOpacity={0.8}
                   className={`
-                    px-5 py-2 rounded-lg items-center justify-center
+                    items-center justify-center rounded-lg px-5 py-2
                     ${isDestructive ? 'bg-red-500' : 'bg-secondary'}
-                  `}
-                >
-                  <Text className="font-psemibold text-base text-white">
-                    {btn.text || 'OK'}
-                  </Text>
+                  `}>
+                  <Text className="font-psemibold text-base text-white">{btn.text || 'OK'}</Text>
                 </TouchableOpacity>
               );
             })}

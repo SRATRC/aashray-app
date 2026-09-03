@@ -46,6 +46,7 @@ const fetchCountries = () => {
       null,
       null,
       (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
+      () => {},
       () => reject(new Error('Failed to fetch countries'))
     );
   });
@@ -59,6 +60,7 @@ const fetchStates = (country: string) => {
       null,
       null,
       (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
+      () => {},
       () => reject(new Error('Failed to fetch states'))
     );
   });
@@ -72,6 +74,7 @@ const fetchCities = (country: string, state: string) => {
       null,
       null,
       (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
+      () => {},
       () => reject(new Error('Failed to fetch cities'))
     );
   });
@@ -85,6 +88,7 @@ const fetchCentres = () => {
       null,
       null,
       (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
+      () => {},
       () => reject(new Error('Failed to fetch centres'))
     );
   });
@@ -155,27 +159,43 @@ const ProfileForm = ({
   };
 
   // Queries
-  const { data: countries, isLoading: isCountriesLoading }: any = useQuery({
+  const {
+    data: countries,
+    isLoading: isCountriesLoading,
+    refetch: refetchCountries,
+  }: any = useQuery({
     queryKey: ['countries'],
     queryFn: fetchCountries,
     staleTime: 1000 * 60 * 30,
   });
 
-  const { data: states, isLoading: isStatesLoading }: any = useQuery({
+  const {
+    data: states,
+    isLoading: isStatesLoading,
+    refetch: refetchStates,
+  }: any = useQuery({
     queryKey: ['states', selectedCountry],
     queryFn: () => fetchStates(selectedCountry),
     enabled: !!selectedCountry,
     staleTime: 1000 * 60 * 30,
   });
 
-  const { data: cities, isLoading: isCitiesLoading }: any = useQuery({
+  const {
+    data: cities,
+    isLoading: isCitiesLoading,
+    refetch: refetchCities,
+  }: any = useQuery({
     queryKey: ['cities', selectedCountry, selectedState],
     queryFn: () => fetchCities(selectedCountry, selectedState),
     enabled: !!selectedState,
     staleTime: 1000 * 60 * 30,
   });
 
-  const { data: centres, isLoading: isCentresLoading }: any = useQuery({
+  const {
+    data: centres,
+    isLoading: isCentresLoading,
+    refetch: refetchCentres,
+  }: any = useQuery({
     queryKey: ['centres'],
     queryFn: fetchCentres,
     staleTime: 1000 * 60 * 30,
@@ -340,7 +360,9 @@ const ProfileForm = ({
             searchPlaceholder="Search Centres..."
             noResultsText="No Centres Found"
             isLoading={isCentresLoading}
-            onRetry={fetchCentres}
+            // Refetch through the query so the result lands in the cache the
+            // sheet reads — calling the raw fetcher discarded its response.
+            onRetry={() => refetchCentres()}
             saveKeyInsteadOfValue={false}
           />
           <FieldRowError
@@ -377,7 +399,7 @@ const ProfileForm = ({
             searchPlaceholder="Search Countries..."
             noResultsText="No Countries Found"
             isLoading={isCountriesLoading}
-            onRetry={fetchCountries}
+            onRetry={() => refetchCountries()}
             saveKeyInsteadOfValue={false}
           />
           <FieldRowError
@@ -401,7 +423,7 @@ const ProfileForm = ({
               searchPlaceholder="Search States..."
               noResultsText="No States Found"
               isLoading={isStatesLoading}
-              onRetry={() => fetchStates(selectedCountry)}
+              onRetry={() => refetchStates()}
               saveKeyInsteadOfValue={false}
             />
             <FieldRowError
@@ -425,7 +447,7 @@ const ProfileForm = ({
               searchPlaceholder="Search Cities..."
               noResultsText="No Cities Found"
               isLoading={isCitiesLoading}
-              onRetry={() => fetchCities(selectedCountry, selectedState)}
+              onRetry={() => refetchCities()}
               saveKeyInsteadOfValue={false}
             />
             <FieldRowError

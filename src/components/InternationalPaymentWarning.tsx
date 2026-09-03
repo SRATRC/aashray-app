@@ -19,13 +19,12 @@ const InternationalPaymentWarning = ({
 }: InternationalPaymentWarningProps) => (
   <CustomModal visible={visible} onClose={onClose} title="Warning" showActionButton={false}>
     <View className="mb-4">
-      <View className="mb-3 h-16 w-16 self-center items-center justify-center rounded-full bg-amber-100">
+      <View className="mb-3 h-16 w-16 items-center justify-center self-center rounded-full bg-amber-100">
         <Ionicons name="warning" size={32} color="#F59E0B" />
       </View>
 
       <Text className="mb-3 text-center font-pregular text-sm text-gray-700">
-        You are attempting to make a payment from{' '}
-        <Text className="font-psemibold">{country}</Text>.
+        You are attempting to make a payment from <Text className="font-psemibold">{country}</Text>.
       </Text>
 
       <View className="mb-4 rounded-lg bg-amber-50 p-3">

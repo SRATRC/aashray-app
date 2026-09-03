@@ -192,7 +192,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
                   {
                     text: 'Cancel',
                     style: 'cancel',
-                    onPress: () => { },
+                    onPress: () => {},
                   },
                   {
                     text: 'Reset',

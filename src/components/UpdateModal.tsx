@@ -94,6 +94,15 @@ const UpdateModal: React.FC<UpdateModalProps> = ({ visible, info, onUpdateNow, o
   const handleClose = () => {
     if (info.mandatory) return;
 
+    // iOS presents as a native pageSheet: translateY/backdropOpacity are not in
+    // its layout, so running the Android exit animation only delayed onDismiss
+    // by 300ms with nothing visibly happening. Dismiss immediately and let the
+    // native slide-out play when `visible` flips.
+    if (Platform.OS === 'ios') {
+      onDismiss?.();
+      return;
+    }
+
     Animated.parallel([
       Animated.timing(translateY, {
         toValue: SHEET_HEIGHT,

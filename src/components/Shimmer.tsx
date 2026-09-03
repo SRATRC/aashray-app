@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, ViewStyle } from 'react-native';
+import { DimensionValue, View, ViewStyle } from 'react-native';
 
 type ShimmerProps = {
-  width?: number | string;
-  height?: number | string;
+  width?: DimensionValue;
+  height?: DimensionValue;
   borderRadius?: number;
   className?: string;
   style?: ViewStyle;
@@ -22,7 +22,7 @@ export const Shimmer: React.FC<ShimmerProps> = ({
 
 // Preset: Single line of text
 export const ShimmerLine: React.FC<{
-  width?: number | string;
+  width?: DimensionValue;
   height?: number;
   className?: string;
 }> = ({ width = '100%', height = 16, className = '' }) => (
@@ -39,7 +39,7 @@ export const ShimmerCircle: React.FC<{
 
 // Preset: Box (cards, images, text areas)
 export const ShimmerBox: React.FC<{
-  width?: number | string;
+  width?: DimensionValue;
   height?: number;
   borderRadius?: number;
   className?: string;
@@ -62,7 +62,7 @@ export const ShimmerStars: React.FC<{
 
 // Preset: Form field (label + input)
 export const ShimmerFormField: React.FC<{
-  labelWidth?: string;
+  labelWidth?: DimensionValue;
   inputHeight?: number;
   className?: string;
 }> = ({ labelWidth = '75%', inputHeight = 48, className = '' }) => (
@@ -74,7 +74,7 @@ export const ShimmerFormField: React.FC<{
 
 // Preset: Text area field
 export const ShimmerTextArea: React.FC<{
-  labelWidth?: string;
+  labelWidth?: DimensionValue;
   height?: number;
   className?: string;
 }> = ({ labelWidth = '75%', height = 96, className = '' }) => (

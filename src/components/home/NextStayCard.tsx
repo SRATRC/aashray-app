@@ -27,16 +27,17 @@ interface StayBooking {
   roomno?: string;
   roomtype?: string;
   status?: string;
+  transaction_status?: string;
 }
 
 const ROOM_LABEL: Record<string, string> = { ac: 'AC room', nac: 'Non-AC room', NA: 'Day visit' };
 
-const fetchStays = (cardno: string): Promise<StayBooking[]> =>
+const fetchStays = (cardno: string, upcoming = false): Promise<StayBooking[]> =>
   new Promise((resolve, reject) => {
     handleAPICall(
       'GET',
       '/stay/bookings',
-      { cardno, page: 1 },
+      { cardno, page: 1, ...(upcoming ? { upcoming: true } : {}) },
       null,
       (res: any) => resolve(Array.isArray(res) ? res : (res?.data ?? [])),
       () => {},
@@ -47,9 +48,9 @@ const fetchStays = (cardno: string): Promise<StayBooking[]> =>
 
 /** Key and fetcher together, so the launch prefetch in `app/_layout.tsx` cannot
  * warm a key this card does not read. */
-export const nextStayQuery = (cardno: string) => ({
-  queryKey: ['nextStay', cardno],
-  queryFn: () => fetchStays(cardno),
+export const nextStayQuery = (cardno: string, upcoming = false) => ({
+  queryKey: ['nextStay', cardno, upcoming ? 'upcoming' : 'all'],
+  queryFn: () => fetchStays(cardno, upcoming),
 });
 
 const verdictOf = (booking: StayBooking): Verdict =>
@@ -80,7 +81,7 @@ const NextStayCard: React.FC<{ className?: string }> = ({ className = '' }) => {
   const cardno = user?.cardno;
 
   const { data, isPending } = useQuery({
-    ...nextStayQuery(cardno),
+    ...nextStayQuery(cardno, true),
     enabled: Boolean(cardno),
   });
 
