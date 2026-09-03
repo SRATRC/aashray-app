@@ -110,7 +110,9 @@ const handleAPICall = async (
       params,
       data,
       headers,
-      // timeout: 10000,
+      // Generous enough for image uploads on a slow connection, but bounded:
+      // without it a hung request pins submit spinners forever.
+      timeout: 30000,
       validateStatus: () => true,
     });
 
@@ -124,7 +126,8 @@ const handleAPICall = async (
       throw err;
     }
   } catch (error) {
-    const correlationId = error.correlationId || error.response?.headers?.['x-request-id'] || requestId;
+    const correlationId =
+      error.correlationId || error.response?.headers?.['x-request-id'] || requestId;
     const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
     const status = error.response?.status ?? error.status;
     // validateStatus: () => true means axios never rejects on its own, so

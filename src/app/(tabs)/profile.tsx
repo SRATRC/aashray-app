@@ -54,8 +54,7 @@ const Profile: React.FC = () => {
   const { setEnabled } = useKeyboardController();
 
   const { pickAndUpload, isUploading, uploadProgress, uploadError } = useQuickImagePicker();
-  const { backend, setBackend, qaPrNumber, setQaPrNumber, localPort, setLocalPort } =
-    useDevStore();
+  const { backend, setBackend, qaPrNumber, setQaPrNumber, localPort, setLocalPort } = useDevStore();
 
   const router: any = useRouter();
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);

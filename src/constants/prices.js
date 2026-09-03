@@ -11,5 +11,5 @@ export default {
   TRAVEL_COST,
   BREAKFAST_PRICE,
   LUNCH_PRICE,
-  DINNER_PRICE
+  DINNER_PRICE,
 };

@@ -27,7 +27,8 @@ import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
 
 const MumukshuAddons = () => {
   const router = useRouter();
-  const { booking } = useLocalSearchParams();
+  const { booking: bookingParam } = useLocalSearchParams<{ booking?: string | string[] }>();
+  const booking = typeof bookingParam === 'string' ? bookingParam : bookingParam?.[0] || '';
 
   const user = useAuthStore((state) => state.user);
   const mumukshuData = useBookingStore((state) => state.mumukshuData);
@@ -264,12 +265,18 @@ const MumukshuAddons = () => {
     setDatePickerVisibility((prev) => ({ ...prev, [pickerType]: isVisible }));
   }, []);
 
-  // API validation state and handler
+  // API validation state and handler. Without a primary booking the builder
+  // throws (`Unsupported primary booking type: undefined`), and this memo runs
+  // during render — guard it the same way the self screen does.
   const transformedData = useMemo(() => {
+    if (!user?.cardno || !mumukshuData?.primary) return null;
     return prepareMumukshuRequestBody(user, mumukshuData);
   }, [user, mumukshuData]);
 
   const fetchValidation = useCallback(async () => {
+    if (!transformedData) {
+      throw new Error('Booking data is incomplete');
+    }
     return new Promise((resolve, reject) => {
       handleAPICall(
         'POST',
@@ -295,10 +302,10 @@ const MumukshuAddons = () => {
     data: validationData,
     refetch: refetchValidation,
   } = useQuery({
-    queryKey: ['mumukshuValidations', user.cardno, JSON.stringify(mumukshuData)],
+    queryKey: ['mumukshuValidations', user.cardno, JSON.stringify(transformedData)],
     queryFn: fetchValidation,
     retry: false,
-    enabled: !!user.cardno && Object.keys(mumukshuData).length > 0,
+    enabled: Boolean(transformedData),
   });
 
   // Force refetch validation when screen comes into focus and clean up addons
@@ -307,35 +314,34 @@ const MumukshuAddons = () => {
       if (user.cardno) {
         // Clean up addon data when coming back from mumukshu booking confirmation
         // Only keep the main booking data based on the booking type
+        let cleaned = false;
         setMumukshuData((prev: any) => {
           // Only proceed if there's existing data
           if (Object.keys(prev).length === 0) return prev;
 
           const cleanedData = { ...prev };
+          const drop = (key: string) => {
+            if (key in cleanedData) {
+              delete cleanedData[key];
+              cleaned = true;
+            }
+          };
 
           // Remove addon data based on what's NOT the main booking type
-          if (booking !== types.ROOM_DETAILS_TYPE) {
-            delete cleanedData.room;
-          }
-          if (booking !== types.ADHYAYAN_DETAILS_TYPE) {
-            delete cleanedData.adhyayan;
-          }
-          if (booking !== types.TRAVEL_DETAILS_TYPE) {
-            delete cleanedData.travel;
-          }
-          if (booking !== types.EVENT_DETAILS_TYPE) {
-            delete cleanedData.utsav;
-          }
+          if (booking !== types.ROOM_DETAILS_TYPE) drop('room');
+          if (booking !== types.ADHYAYAN_DETAILS_TYPE) drop('adhyayan');
+          if (booking !== types.TRAVEL_DETAILS_TYPE) drop('travel');
+          if (booking !== types.EVENT_DETAILS_TYPE) drop('utsav');
 
           // Food is bookable on its own, so on its own screen it is the booking.
-          if (booking !== types.FOOD_DETAILS_TYPE) {
-            delete cleanedData.food;
-          }
+          if (booking !== types.FOOD_DETAILS_TYPE) drop('food');
 
-          return cleanedData;
+          return cleaned ? cleanedData : prev;
         });
 
-        refetchValidation();
+        // A cleanup that changed the store also changed the validation query
+        // key, which fetches on its own; refetching here too doubles the POST.
+        if (!cleaned) refetchValidation();
       }
     }, [user.cardno, refetchValidation, booking, setMumukshuData])
   );
@@ -707,6 +713,17 @@ const MumukshuAddons = () => {
     router.back();
   }, [router]);
 
+  const stayExtra = stayOutcomeExtra({
+    data: mumukshuData,
+    outcome: stayOutcome,
+    reason: stayReason,
+    onChangeReason: (text) => {
+      setStayReason(text);
+      if (text.trim()) setShowReasonError(false);
+    },
+    showReasonError,
+  });
+
   return (
     <SafeAreaView className="h-full bg-gray-50" edges={['right', 'top', 'left']}>
       <KeyboardAwareScrollView
@@ -728,17 +745,8 @@ const MumukshuAddons = () => {
             audience="mumukshu"
             validationData={mumukshuData?.validationData}
             className="px-4"
-            extras={stayOutcomeExtra({
-              data: mumukshuData,
-              outcome: stayOutcome,
-              reason: stayReason,
-              onChangeReason: (text) => {
-                setStayReason(text);
-                if (text.trim()) setShowReasonError(false);
-              },
-              showReasonError,
-              onChangeDates: () => router.back(),
-            })}
+            extras={stayExtra?.extras}
+            hideVerdictFor={stayExtra?.hideVerdictFor}
           />
 
           {booking === types.EVENT_DETAILS_TYPE ? (

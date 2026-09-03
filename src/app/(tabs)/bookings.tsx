@@ -1,26 +1,62 @@
-import React, { useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useLocalSearchParams } from 'expo-router';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { types } from '@/src/constants';
-import { useQueryClient } from '@tanstack/react-query';
-import RoomBookingCancellation from '@/src/components/cancel booking/RoomBookingCancellation';
-import FoodBookingCancellation from '@/src/components/cancel booking/FoodBookingCancellation';
-import TravelBookingCancellation from '@/src/components/cancel booking/TravelBookingCancellation';
+
+import BookingTypeTabs from '@/src/components/booking/shared/BookingTypeTabs';
 import AdhyayanBookingCancellation from '@/src/components/cancel booking/AdhyayanBookingCancellation';
 import EventBookingCancellation from '@/src/components/cancel booking/EventBookingCancellation';
-import BookingTypeTabs from '@/src/components/booking/shared/BookingTypeTabs';
+import FoodBookingCancellation from '@/src/components/cancel booking/FoodBookingCancellation';
+import RoomBookingCancellation from '@/src/components/cancel booking/RoomBookingCancellation';
+import TravelBookingCancellation from '@/src/components/cancel booking/TravelBookingCancellation';
+import { types } from '@/src/constants';
+
+const typeFromParam = (param: string | string[] | undefined) => {
+  if (typeof param !== 'string') return null;
+  switch (param.toLowerCase()) {
+    case 'room':
+      return types.booking_type_room;
+    case 'food':
+      return types.booking_type_food;
+    case 'adhyayan':
+    case 'shibir':
+      return types.booking_type_adhyayan;
+    case 'travel':
+      return types.booking_type_travel;
+    case 'event':
+    case 'utsav':
+      return types.booking_type_event;
+    default:
+      return null;
+  }
+};
 
 const BookingCategories = () => {
   const queryClient = useQueryClient();
-  const [selectedChip, setSelectedChip] = useState<string>(types.booking_type_adhyayan);
+  const { type } = useLocalSearchParams();
 
-  const CHIPS = [
-    types.booking_type_adhyayan,
-    types.booking_type_room,
-    types.booking_type_food,
-    types.booking_type_travel,
-    types.booking_type_event,
-  ];
+  const CHIPS = useMemo(
+    () => [
+      types.booking_type_adhyayan,
+      types.booking_type_room,
+      types.booking_type_food,
+      types.booking_type_travel,
+      types.booking_type_event,
+    ],
+    []
+  );
+
+  const [selectedChip, setSelectedChip] = useState<string>(
+    typeFromParam(type) ?? types.booking_type_adhyayan
+  );
+
+  useEffect(() => {
+    const next = typeFromParam(type);
+    if (next && next !== selectedChip) {
+      setSelectedChip(next);
+    }
+  }, [type]);
 
   const handleChipClick = (chipTitle: string) => {
     setSelectedChip(chipTitle);
@@ -58,7 +94,7 @@ const BookingCategories = () => {
 
   return (
     <View className="w-full flex-1">
-      <BookingTypeTabs types={CHIPS} selected={selectedChip} onSelect={setSelectedChip} />
+      <BookingTypeTabs types={CHIPS} selected={selectedChip} onSelect={handleChipClick} />
 
       {selectedChip === types.booking_type_room && <RoomBookingCancellation />}
       {selectedChip === types.booking_type_food && <FoodBookingCancellation />}

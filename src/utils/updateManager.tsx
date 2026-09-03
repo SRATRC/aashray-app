@@ -46,11 +46,14 @@ const fetchUpdateInfo = async (): Promise<{
     // BASE_URL directly, so a dev on QA or Local still had update checks
     // answered by production.
     const { backend, qaPrNumber, localPort } = useDevStore.getState();
-    const res = await axios.get<ApiResponse>(`${resolveBaseUrl(backend, qaPrNumber, localPort)}/updates`, {
-      params: { os: Platform.OS },
-      timeout: 8000,
-      validateStatus: () => true,
-    });
+    const res = await axios.get<ApiResponse>(
+      `${resolveBaseUrl(backend, qaPrNumber, localPort)}/updates`,
+      {
+        params: { os: Platform.OS },
+        timeout: 8000,
+        validateStatus: () => true,
+      }
+    );
     if (res.status !== 200 || !res.data?.data?.latestVersion) {
       return { info: null };
     }

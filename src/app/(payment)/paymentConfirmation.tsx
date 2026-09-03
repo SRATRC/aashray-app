@@ -4,11 +4,10 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icons, quotes } from '@/src/constants';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAuthStore } from '@/src/stores';
 import CustomButton from '@/src/components/CustomButton';
+import { invalidatePostBookingQueries } from '@/src/utils/queryInvalidation';
 
 const PaymentConfirmation = () => {
-  const user = useAuthStore((state) => state.user);
   const router = useRouter();
   const fadeAnim = useState(() => new Animated.Value(0))[0];
   const slideAnim = useState(() => new Animated.Value(30))[0];
@@ -16,10 +15,8 @@ const PaymentConfirmation = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    queryClient.invalidateQueries({
-      queryKey: ['pendingPayments', user.cardno],
-    });
-  }, [queryClient, user.cardno]);
+    invalidatePostBookingQueries(queryClient);
+  }, [queryClient]);
 
   useEffect(() => {
     Animated.parallel([

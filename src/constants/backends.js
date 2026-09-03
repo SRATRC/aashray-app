@@ -45,9 +45,7 @@ const localUrl = (port) =>
 export const resolveBaseUrl = (backend, qaPrNumber, localPort) => {
   if (backend === 'local') return localUrl(localPort);
   if (backend === 'qa') {
-    return qaPrNumber
-      ? `https://aashray-backend-pr-${qaPrNumber}.onrender.com/api/v1`
-      : QA_URL;
+    return qaPrNumber ? `https://aashray-backend-pr-${qaPrNumber}.onrender.com/api/v1` : QA_URL;
   }
   return PROD_URL;
 };

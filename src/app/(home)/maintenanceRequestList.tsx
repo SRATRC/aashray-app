@@ -39,7 +39,7 @@ const DEPARTMENT_LIST = [
   { key: 'Maintenance', value: 'Maintenance' },
 ];
 
-const maintenanceRequestList = () => {
+const MaintenanceRequestList = () => {
   const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
 
@@ -327,4 +327,4 @@ const maintenanceRequestList = () => {
   );
 };
 
-export default maintenanceRequestList;
+export default MaintenanceRequestList;

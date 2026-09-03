@@ -57,7 +57,7 @@ const MenuPage = () => {
     enabled: !!user?.cardno,
   });
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const today = new Date();
     const tomorrow = new Date(today);
@@ -69,11 +69,15 @@ const MenuPage = () => {
     if (isToday) return { display: 'Today', isToday: true };
     if (isTomorrow) return { display: 'Tomorrow', isToday: false };
 
-    const options = { weekday: 'long', month: 'short', day: 'numeric' };
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+    };
     return { display: date.toLocaleDateString('en-US', options), isToday: false };
   };
 
-  const getMealAccent = (mealType) => {
+  const getMealAccent = (mealType: string) => {
     switch (mealType.toLowerCase()) {
       case 'breakfast':
         return '#F59E0B';

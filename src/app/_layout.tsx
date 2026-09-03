@@ -188,13 +188,10 @@ const RootLayout = () => {
     const cardno = useAuthStore.getState().user?.cardno;
     if (!cardno) return;
 
-    queryClient.prefetchQuery(nextStayQuery(cardno));
+    queryClient.prefetchQuery(nextStayQuery(cardno, true));
     // Room opens on tomorrow's month, Flat on today's. They differ only on the
     // last day of a month, and the Set keeps that from costing a second call.
-    const months = new Set([
-      initialMonthKey(),
-      initialMonthKey(moment().format('YYYY-MM-DD')),
-    ]);
+    const months = new Set([initialMonthKey(), initialMonthKey(moment().format('YYYY-MM-DD'))]);
     months.forEach((monthKey) => queryClient.prefetchQuery(blockedDatesQuery(cardno, monthKey)));
   }, [isAuthReady]);
 

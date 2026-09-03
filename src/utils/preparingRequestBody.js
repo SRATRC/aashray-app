@@ -130,9 +130,13 @@ export const prepareGuestRequestBody = (user, input) => {
             checkin_date: primaryData.startDay,
             checkout_date: primaryData.endDay,
             guestGroup: transformGuestGroup(primaryData.guestGroup),
-            ...(primaryData.extra_stay_reason && { extra_stay_reason: primaryData.extra_stay_reason }),
+            ...(primaryData.extra_stay_reason && {
+              extra_stay_reason: primaryData.extra_stay_reason,
+            }),
           },
-          ...(primaryData.extra_stay_reason && { extra_stay_reason: primaryData.extra_stay_reason }),
+          ...(primaryData.extra_stay_reason && {
+            extra_stay_reason: primaryData.extra_stay_reason,
+          }),
         };
       case 'food':
         return {
@@ -158,9 +162,13 @@ export const prepareGuestRequestBody = (user, input) => {
             checkin_date: primaryData.startDay,
             checkout_date: primaryData.endDay,
             guests: primaryData.guests,
-            ...(primaryData.extra_stay_reason && { extra_stay_reason: primaryData.extra_stay_reason }),
+            ...(primaryData.extra_stay_reason && {
+              extra_stay_reason: primaryData.extra_stay_reason,
+            }),
           },
-          ...(primaryData.extra_stay_reason && { extra_stay_reason: primaryData.extra_stay_reason }),
+          ...(primaryData.extra_stay_reason && {
+            extra_stay_reason: primaryData.extra_stay_reason,
+          }),
         };
       case 'utsav':
         return {
@@ -248,7 +256,8 @@ export const prepareMumukshuRequestBody = (user, input) => {
   const transformMumukshuGroup = (mumukshuGroup) =>
     mumukshuGroup.map((group) => {
       const transformed = {};
-      if (group.cardno) return group.cardno;
+      const isTravelLeg = group.pickup || group.drop;
+      if (group.cardno && !isTravelLeg && !group.mumukshus) return group.cardno;
       if (group.roomType) transformed.roomType = group.roomType;
       if (group.floorType && group.floorType !== 'n') transformed.floorType = group.floorType;
       if (group.mumukshus) {
@@ -284,6 +293,8 @@ export const prepareMumukshuRequestBody = (user, input) => {
           if (mumukshuWithTotalPeople)
             transformed.total_people = mumukshuWithTotalPeople.total_people;
         }
+      } else if (group.cardno) {
+        transformed.mumukshus = [group.cardno];
       }
       if (group.pickup) transformed.pickup_point = group.pickup;
       if (group.drop) transformed.drop_point = group.drop;
@@ -316,9 +327,13 @@ export const prepareMumukshuRequestBody = (user, input) => {
             checkin_date: primaryData.startDay,
             checkout_date: primaryData.endDay,
             mumukshuGroup: transformMumukshuGroup(primaryData.mumukshuGroup),
-            ...(primaryData.extra_stay_reason && { extra_stay_reason: primaryData.extra_stay_reason }),
+            ...(primaryData.extra_stay_reason && {
+              extra_stay_reason: primaryData.extra_stay_reason,
+            }),
           },
-          ...(primaryData.extra_stay_reason && { extra_stay_reason: primaryData.extra_stay_reason }),
+          ...(primaryData.extra_stay_reason && {
+            extra_stay_reason: primaryData.extra_stay_reason,
+          }),
         };
       case 'food':
         return {
@@ -352,9 +367,13 @@ export const prepareMumukshuRequestBody = (user, input) => {
             checkin_date: primaryData.startDay,
             checkout_date: primaryData.endDay,
             mumukshus: transformMumukshuGroup(primaryData.mumukshuGroup),
-            ...(primaryData.extra_stay_reason && { extra_stay_reason: primaryData.extra_stay_reason }),
+            ...(primaryData.extra_stay_reason && {
+              extra_stay_reason: primaryData.extra_stay_reason,
+            }),
           },
-          ...(primaryData.extra_stay_reason && { extra_stay_reason: primaryData.extra_stay_reason }),
+          ...(primaryData.extra_stay_reason && {
+            extra_stay_reason: primaryData.extra_stay_reason,
+          }),
         };
       case 'utsav':
         return {

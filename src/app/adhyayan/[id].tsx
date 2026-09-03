@@ -97,7 +97,8 @@ const AdhyayanDetails = () => {
                       {
                         cardno: user.cardno,
                         mobno: user.mobno,
-                        issuedto: user.name,
+                        // The display name lives on `issuedto`; `user.name` does not exist.
+                        issuedto: user.issuedto,
                         gender: user.gender,
                         res_status: user.res_status,
                       },

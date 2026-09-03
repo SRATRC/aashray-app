@@ -1,25 +1,27 @@
-import React, { useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
   Image,
   ImageBackground,
+  RefreshControl,
   ScrollView,
   ImageSourcePropType,
   ActivityIndicator,
   Platform,
-  TouchableOpacity,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { icons, images, quotes } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
+
 import { useBottomTabOverflow } from '@/src/components/TabBarBackground';
 import HomeSection from '@/src/components/home/HomeSection';
-import NextStayCard from '@/src/components/home/NextStayCard';
+import PendingPaymentAlert from '@/src/components/home/PendingPaymentAlert';
 import ShortcutRow from '@/src/components/home/ShortcutRow';
 import SocialRow from '@/src/components/home/SocialRow';
-import PendingPaymentAlert from '@/src/components/home/PendingPaymentAlert';
+import UpcomingBookingsCarousel from '@/src/components/home/UpcomingBookingsCarousel';
+import { icons, images, quotes } from '@/src/constants';
+import { useAuthStore } from '@/src/stores';
 
 const QuotesBanner = ({ user, images }: any) => {
   const randomQuote = useMemo(() => {
@@ -59,10 +61,34 @@ const QuotesBanner = ({ user, images }: any) => {
   );
 };
 
+// The home queries never refetch on their own: the global defaults disable
+// refetch on mount/focus/reconnect and this tab stays mounted for the whole
+// session. Pull-to-refresh is the member's manual way to get fresh data.
+const HOME_QUERY_KEYS = [
+  ['nextStay'],
+  ['homeAdhyayans'],
+  ['homeTravels'],
+  ['homeUtsavs'],
+  ['pendingPayments'],
+];
+
 const Home: React.FC = () => {
   const user = useAuthStore((state) => state.user);
   const router: any = useRouter();
   const tabBarHeight = useBottomTabOverflow();
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all(
+        HOME_QUERY_KEYS.map((queryKey) => queryClient.invalidateQueries({ queryKey }))
+      );
+    } finally {
+      setRefreshing(false);
+    }
+  }, [queryClient]);
 
   if (!user || !user.issuedto) {
     return (
@@ -77,6 +103,7 @@ const Home: React.FC = () => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         className="flex-1"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         contentContainerStyle={{
           paddingBottom: (Platform.OS === 'ios' ? tabBarHeight : 0) + 48,
         }}>
@@ -94,8 +121,9 @@ const Home: React.FC = () => {
         {/* Your booking. Urgent first, then the stay itself. */}
         <View className="mt-6 w-full gap-y-3 px-4">
           <PendingPaymentAlert />
-          <NextStayCard />
         </View>
+
+        <UpcomingBookingsCarousel className="mt-3" />
 
         <HomeSection title="At the centre" className="mt-8 w-full">
           <ShortcutRow

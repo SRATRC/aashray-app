@@ -28,7 +28,9 @@ import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
 const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string) => {
   const selfMumukshu = {
     cardno: user.cardno,
-    issuedto: user.name || `${user.firstname} ${user.lastname}`.trim(),
+    // The auth user's display name lives on `issuedto` — there is no `name`,
+    // `firstname` or `lastname` on the profile payload.
+    issuedto: user.issuedto,
   };
 
   switch (formType) {
@@ -93,7 +95,8 @@ const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string)
 };
 
 const BookingDetails = () => {
-  const { booking } = useLocalSearchParams();
+  const { booking: bookingParam } = useLocalSearchParams<{ booking?: string | string[] }>();
+  const booking = typeof bookingParam === 'string' ? bookingParam : bookingParam?.[0] || '';
   const user = useAuthStore((state) => state.user);
   const mumukshuData = useBookingStore((state) => state.mumukshuData);
   const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
@@ -107,7 +110,11 @@ const BookingDetails = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isValidating, setIsValidating] = useState(false);
+
+  const validationPayload = useMemo(() => {
+    if (!user?.cardno || !mumukshuData?.primary) return null;
+    return prepareMumukshuRequestBody(user, mumukshuData);
+  }, [user, mumukshuData]);
 
   // The verdict for these dates, per person and per segment. Shown here — above
   // the add-ons — so nobody fills in food and travel only to learn on the
@@ -205,42 +212,41 @@ const BookingDetails = () => {
     [setFormValues]
   );
 
-  // Validation API call with proper error handling - now using mumukshu endpoint
+  // Validation API call with proper error handling - now using mumukshu endpoint.
+  // React Query already deduplicates concurrent fetches of the same key; the
+  // old isValidating guard here was a no-op (its try/finally reset the flag
+  // synchronously, before the promise settled) and gating `enabled` on it
+  // would have cancelled the query mid-flight if it ever had worked.
   const fetchValidation = useCallback(async () => {
-    if (!user?.cardno || isValidating) {
+    if (!validationPayload) {
       throw new Error('User not authenticated or validation in progress');
     }
 
-    // Prevent multiple simultaneous validations
-    setIsValidating(true);
+    return new Promise((resolve, reject) => {
+      handleAPICall(
+        'POST',
+        '/mumukshu/validate',
+        null,
+        validationPayload,
+        (res: any) => {
+          setMumukshuData((prev: any) => ({ ...prev, validationData: res.data }));
+          resolve(res.data);
+        },
+        () => {},
+        (errorDetails) => reject(new Error(errorDetails.message))
+      );
+    });
+  }, [validationPayload, setMumukshuData]);
 
-    try {
-      const payload = prepareMumukshuRequestBody(user, mumukshuData);
-
-      return new Promise((resolve, reject) => {
-        handleAPICall(
-          'POST',
-          '/mumukshu/validate',
-          null,
-          payload,
-          (res: any) => {
-            setMumukshuData((prev: any) => ({ ...prev, validationData: res.data }));
-            resolve(res.data);
-          },
-          () => {},
-          (errorDetails) => reject(new Error(errorDetails.message))
-        );
-      });
-    } finally {
-      setIsValidating(false);
-    }
-  }, [user, mumukshuData, setMumukshuData, isValidating]);
-
-  const { error: validationDataError, refetch: refetchValidation } = useQuery({
-    queryKey: ['mumukshuValidations', user?.cardno, JSON.stringify(mumukshuData)],
+  const {
+    error: validationDataError,
+    isLoading: isValidationLoading,
+    refetch: refetchValidation,
+  } = useQuery({
+    queryKey: ['mumukshuValidations', user?.cardno, JSON.stringify(validationPayload)],
     queryFn: fetchValidation,
     retry: false,
-    enabled: !!(user?.cardno && Object.keys(mumukshuData).length > 0 && !isValidating),
+    enabled: Boolean(validationPayload),
     staleTime: 1000 * 10,
   });
 
@@ -252,35 +258,32 @@ const BookingDetails = () => {
       // and cancelled a timeout id captured from an earlier render, so the real
       // timeout outlived the screen and wiped add-ons that Continue had just
       // written — an add-on chosen on a second visit vanished from the charges.
+      let cleaned = false;
       setMumukshuData((prev: any) => {
         const cleanedData = { ...prev };
+        const drop = (key: string) => {
+          if (key in cleanedData) {
+            delete cleanedData[key];
+            cleaned = true;
+          }
+        };
 
         // Drop anything that is not this screen's own booking. Whatever the
         // member picks here is written back by Continue.
-        if (booking !== types.ROOM_DETAILS_TYPE) {
-          delete cleanedData.room;
-        }
-        if (booking !== types.TRAVEL_DETAILS_TYPE) {
-          delete cleanedData.travel;
-        }
-        if (booking !== types.ADHYAYAN_DETAILS_TYPE) {
-          delete cleanedData.adhyayan;
-        }
-        if (booking !== types.EVENT_DETAILS_TYPE) {
-          delete cleanedData.utsav;
-        }
+        if (booking !== types.ROOM_DETAILS_TYPE) drop('room');
+        if (booking !== types.TRAVEL_DETAILS_TYPE) drop('travel');
+        if (booking !== types.ADHYAYAN_DETAILS_TYPE) drop('adhyayan');
+        if (booking !== types.EVENT_DETAILS_TYPE) drop('utsav');
         // Food is bookable on its own, so on its own screen it is the booking.
-        if (booking !== types.FOOD_DETAILS_TYPE) {
-          delete cleanedData.food;
-        }
+        if (booking !== types.FOOD_DETAILS_TYPE) drop('food');
 
-        return cleanedData;
+        return cleaned ? cleanedData : prev;
       });
 
-      if (!isValidating) {
-        refetchValidation();
-      }
-    }, [user?.cardno, refetchValidation, booking, setMumukshuData, isValidating])
+      // A cleanup that changed the store also changed the validation query key,
+      // which fetches on its own; refetching here too would double the POST.
+      if (!cleaned) refetchValidation();
+    }, [user?.cardno, refetchValidation, booking, setMumukshuData])
   );
 
   // Validation functions with proper error handling
@@ -289,7 +292,7 @@ const BookingDetails = () => {
   }, [forms.room]);
 
   const validateFoodForm = useCallback(() => {
-    const requiredFields = ['startDay', 'endDay', 'meals'];
+    const requiredFields: Array<'startDay' | 'endDay' | 'meals'> = ['startDay', 'endDay', 'meals'];
     return requiredFields.every(
       (field) =>
         forms.food[field] &&
@@ -415,13 +418,11 @@ const BookingDetails = () => {
   ]);
 
   const handleCloseValidationModal = useCallback(() => {
-    // Reset validation state when closing modal
-    setIsValidating(false);
     router.back();
   }, [router]);
 
   const renderAddons = () => {
-    if (isValidating) {
+    if (isValidationLoading) {
       return (
         <View className="flex items-center justify-center py-8">
           <ActivityIndicator size="large" />
@@ -475,6 +476,17 @@ const BookingDetails = () => {
     );
   };
 
+  const stayExtra = stayOutcomeExtra({
+    data: mumukshuData,
+    outcome: stayOutcome,
+    reason: extraStayReason,
+    onChangeReason: (text) => {
+      setExtraStayReason(text);
+      if (text.trim()) setShowReasonError(false);
+    },
+    showReasonError,
+  });
+
   return (
     <SafeAreaView className="h-full bg-gray-50" edges={['right', 'top', 'left']}>
       <KeyboardAwareScrollView
@@ -498,17 +510,8 @@ const BookingDetails = () => {
             audience="self"
             validationData={mumukshuData?.validationData}
             className="px-4"
-            extras={stayOutcomeExtra({
-              data: mumukshuData,
-              outcome: stayOutcome,
-              reason: extraStayReason,
-              onChangeReason: (text) => {
-                setExtraStayReason(text);
-                if (text.trim()) setShowReasonError(false);
-              },
-              showReasonError,
-              onChangeDates: () => router.back(),
-            })}
+            extras={stayExtra?.extras}
+            hideVerdictFor={stayExtra?.hideVerdictFor}
           />
 
           {booking === types.EVENT_DETAILS_TYPE ? (

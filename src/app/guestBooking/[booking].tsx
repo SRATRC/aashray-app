@@ -60,7 +60,8 @@ const createInitialAdhyayanForm = (existingData: any = null) => ({
 });
 
 const GuestAddons = () => {
-  const { booking } = useLocalSearchParams();
+  const { booking: bookingParam } = useLocalSearchParams<{ booking?: string | string[] }>();
+  const booking = typeof bookingParam === 'string' ? bookingParam : bookingParam?.[0] || '';
 
   const user = useAuthStore((state) => state.user);
   const guestData = useBookingStore((state) => state.guestData);
@@ -212,13 +213,19 @@ const GuestAddons = () => {
     setDatePickerVisibility((prev) => ({ ...prev, [pickerType]: isVisible }));
   }, []);
 
-  // Prepare API payload
+  // Prepare API payload. Without a primary booking the builder throws
+  // (`Unsupported primary booking type: undefined`), and this memo runs during
+  // render — guard it the same way the self screen does.
   const transformedData = useMemo(() => {
+    if (!user?.cardno || !guestData?.primary) return null;
     return prepareGuestRequestBody(user, guestData);
   }, [user, guestData]);
 
   // Validation API call
   const fetchValidation = useCallback(async () => {
+    if (!transformedData) {
+      throw new Error('Booking data is incomplete');
+    }
     return new Promise((resolve, reject) => {
       handleAPICall(
         'POST',
@@ -242,10 +249,10 @@ const GuestAddons = () => {
     data: validationData,
     refetch: refetchValidation,
   } = useQuery({
-    queryKey: ['guestValidations', user.cardno, JSON.stringify(guestData)],
+    queryKey: ['guestValidations', user.cardno, JSON.stringify(transformedData)],
     queryFn: fetchValidation,
     retry: false,
-    enabled: !!user.cardno && Object.keys(guestData).length > 0,
+    enabled: Boolean(transformedData),
   });
 
   // Force refetch validation when screen comes into focus and clean up addons
@@ -254,35 +261,34 @@ const GuestAddons = () => {
       if (user.cardno) {
         // Clean up addon data when coming back from guest booking confirmation
         // Only keep the main booking data based on the booking type
+        let cleaned = false;
         setGuestData((prev: any) => {
           // Only proceed if there's existing data
           if (Object.keys(prev).length === 0) return prev;
 
           const cleanedData = { ...prev };
+          const drop = (key: string) => {
+            if (key in cleanedData) {
+              delete cleanedData[key];
+              cleaned = true;
+            }
+          };
 
           // Remove addon data based on what's NOT the main booking type
-          if (booking !== types.ROOM_DETAILS_TYPE) {
-            delete cleanedData.room;
-          }
-          if (booking !== types.ADHYAYAN_DETAILS_TYPE) {
-            delete cleanedData.adhyayan;
-          }
-          if (booking !== types.EVENT_DETAILS_TYPE) {
-            delete cleanedData.utsav;
-          }
-          if (booking !== types.FLAT_DETAILS_TYPE) {
-            delete cleanedData.flat;
-          }
+          if (booking !== types.ROOM_DETAILS_TYPE) drop('room');
+          if (booking !== types.ADHYAYAN_DETAILS_TYPE) drop('adhyayan');
+          if (booking !== types.EVENT_DETAILS_TYPE) drop('utsav');
+          if (booking !== types.FLAT_DETAILS_TYPE) drop('flat');
 
           // Food is bookable on its own, so on its own screen it is the booking.
-          if (booking !== types.FOOD_DETAILS_TYPE) {
-            delete cleanedData.food;
-          }
+          if (booking !== types.FOOD_DETAILS_TYPE) drop('food');
 
-          return cleanedData;
+          return cleaned ? cleanedData : prev;
         });
 
-        refetchValidation();
+        // A cleanup that changed the store also changed the validation query
+        // key, which fetches on its own; refetching here too doubles the POST.
+        if (!cleaned) refetchValidation();
       }
     }, [user.cardno, refetchValidation, booking, setGuestData])
   );
@@ -540,6 +546,17 @@ const GuestAddons = () => {
     router.back();
   }, [router]);
 
+  const stayExtra = stayOutcomeExtra({
+    data: guestData,
+    outcome: stayOutcome,
+    reason: stayReason,
+    onChangeReason: (text) => {
+      setStayReason(text);
+      if (text.trim()) setShowReasonError(false);
+    },
+    showReasonError,
+  });
+
   return (
     <SafeAreaView className="h-full bg-gray-50" edges={['right', 'top', 'left']}>
       <KeyboardAwareScrollView
@@ -561,17 +578,8 @@ const GuestAddons = () => {
             audience="guest"
             validationData={guestData?.validationData}
             className="px-4"
-            extras={stayOutcomeExtra({
-              data: guestData,
-              outcome: stayOutcome,
-              reason: stayReason,
-              onChangeReason: (text) => {
-                setStayReason(text);
-                if (text.trim()) setShowReasonError(false);
-              },
-              showReasonError,
-              onChangeDates: () => router.back(),
-            })}
+            extras={stayExtra?.extras}
+            hideVerdictFor={stayExtra?.hideVerdictFor}
           />
 
           {booking === types.EVENT_DETAILS_TYPE ? (

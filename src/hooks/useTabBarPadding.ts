@@ -7,6 +7,6 @@ import { useBottomTabOverflow } from '@/src/components/TabBarBackground';
  */
 export const useTabBarPadding = () => {
   const tabBarHeight = useBottomTabOverflow();
-  
+
   return Platform.OS === 'ios' ? tabBarHeight + 20 : 20;
 };
