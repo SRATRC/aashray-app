@@ -226,16 +226,16 @@ const EventBookingCancellation = () => {
             <View className="mt-5 flex-row gap-x-3 px-1">
               {/* Cancel Booking — only BEFORE event */}
               {canCancel && (
-                  <CustomButton
-                    text="Cancel Booking"
-                    containerStyles={'py-3 flex-1'}
-                    textStyles={'text-sm text-white'}
-                    handlePress={() => {
-                      setSelectedBooking(item);
-                      setShowCancelModal(true);
-                    }}
-                  />
-                )}
+                <CustomButton
+                  text="Cancel Booking"
+                  containerStyles={'py-3 flex-1'}
+                  textStyles={'text-sm text-white'}
+                  handlePress={() => {
+                    setSelectedBooking(item);
+                    setShowCancelModal(true);
+                  }}
+                />
+              )}
 
               {/* Give Feedback */}
               {item?.showFeedback && !item?.hasSubmittedFeedback && !bookedForSomeone && (

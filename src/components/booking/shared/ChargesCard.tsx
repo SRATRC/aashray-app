@@ -66,6 +66,36 @@ const cardnoOf = (row: any): string | undefined => {
   return value == null ? undefined : String(value);
 };
 
+/** One row per person, even when a split stay gave them more than one backend
+ * row (a two single-night booking is two `roomDetails` rows for the same
+ * person) — otherwise the same name lists twice with nothing telling them
+ * apart. Waitlisted only holds if every one of their rows is. */
+const peopleOf = (rows: any[], names: Record<string, string>) => {
+  const byCardno = new Map<
+    string,
+    { cardno: string; name: string; charge: number; credits: number; waitlisted: boolean }
+  >();
+
+  for (const r of rows) {
+    const cardno = cardnoOf(r);
+    if (!cardno) continue;
+    const charge = Number(r?.charge) || 0;
+    const credits = Number(r?.availableCredits) || 0;
+    const waitlisted = isWaitlistedRow(r);
+
+    const existing = byCardno.get(cardno);
+    if (existing) {
+      existing.charge += charge;
+      existing.credits += credits;
+      existing.waitlisted = existing.waitlisted && waitlisted;
+    } else {
+      byCardno.set(cardno, { cardno, name: names[cardno] ?? cardno, charge, credits, waitlisted });
+    }
+  }
+
+  return Array.from(byCardno.values());
+};
+
 const ChargesCard: React.FC<ChargesCardProps> = ({
   validationData,
   names = {},
@@ -87,15 +117,7 @@ const ChargesCard: React.FC<ChargesCardProps> = ({
           waitlisted: rows.some(isWaitlistedRow),
           // One row per person, so a group booking shows who is being charged
           // what instead of only a combined figure.
-          people: rows
-            .filter((r) => cardnoOf(r))
-            .map((r) => ({
-              cardno: cardnoOf(r)!,
-              name: names[cardnoOf(r)!] ?? cardnoOf(r)!,
-              charge: Number(r?.charge) || 0,
-              credits: Number(r?.availableCredits) || 0,
-              waitlisted: isWaitlistedRow(r),
-            })),
+          people: peopleOf(rows, names),
         };
       }).filter((l) => l.rows.length > 0),
     [validationData, names]
@@ -110,17 +132,11 @@ const ChargesCard: React.FC<ChargesCardProps> = ({
   return (
     <View className={className}>
       <SectionHeader title="Charges" className="mb-2" />
-      <View
-        className={
-          false
-            ? ''
-            : 'overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm shadow-gray-200'
-        }>
+      <View className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm shadow-gray-200">
         {lines.map((line, i) => (
           <View key={line.key}>
             {i > 0 ? <View className={`ml-4 h-px bg-gray-200`} /> : null}
-            <View
-              className={`flex-row items-start justify-between ${false ? 'py-2' : 'px-4 py-3.5'}`}>
+            <View className="flex-row items-start justify-between px-4 py-3.5">
               <Text className="font-pregular text-base text-gray-700">{line.label}</Text>
               <View className="items-end">
                 {/* A zero has to say why it is a zero. A waitlisted seat costs
@@ -160,7 +176,7 @@ const ChargesCard: React.FC<ChargesCardProps> = ({
             {/* Who is being charged what. Only when there is more than one
                 person, because a single name repeats the line above it. */}
             {line.people.length > 1 ? (
-              <View className={`gap-y-1.5 ${false ? 'pb-2' : 'px-4 pb-3.5'}`}>
+              <View className="gap-y-1.5 px-4 pb-3.5">
                 {line.people.map((p) => (
                   <View key={p.cardno} className="flex-row items-center justify-between gap-x-3">
                     <Text className="flex-1 font-pregular text-xs text-gray-500" numberOfLines={1}>
@@ -181,12 +197,7 @@ const ChargesCard: React.FC<ChargesCardProps> = ({
           </View>
         ))}
 
-        <View
-          className={
-            false
-              ? 'mt-1 border-t border-gray-200 pt-3'
-              : 'border-t border-gray-200 bg-gray-50 px-4 py-3.5'
-          }>
+        <View className="border-t border-gray-200 bg-gray-50 px-4 py-3.5">
           {credits > 0 ? (
             <>
               <View className="mb-1 flex-row items-center justify-between">

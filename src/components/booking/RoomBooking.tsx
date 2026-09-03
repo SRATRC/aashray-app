@@ -65,9 +65,24 @@ const RoomBooking = () => {
     }, [])
   );
 
-  const { form, audience, user } = party;
+  const { form, audience, user, setSharedField, setSharedFields } = party;
   const startDay = form.startDay;
   const endDay = form.endDay;
+
+  // Stable identities so the memoized StayCalendar is not re-rendered by every
+  // keystroke in the party forms below. The party setters are themselves stable.
+  const handleStartDayChange = useCallback(
+    (d: string) => setSharedFields({ startDay: d, endDay: '' }),
+    [setSharedFields]
+  );
+  const handleEndDayChange = useCallback(
+    (d: string | null) => setSharedField('endDay', d),
+    [setSharedField]
+  );
+  const handleSelectedDayChange = useCallback(
+    (d: string) => setSharedFields({ startDay: d, endDay: d }),
+    [setSharedFields]
+  );
 
   // A day visit is one date, so checkin and checkout are the same day.
   const checkout = dayVisit ? startDay : endDay;
@@ -177,7 +192,10 @@ const RoomBooking = () => {
           value={dayVisit ? 'day' : 'range'}
           onChange={(k) => {
             setDayVisit(k === 'day');
-            party.setSharedFields({ startDay: '', endDay: '' });
+            // Room choice resets with the dates: "No room" (roomType 'NA') only
+            // exists for a day visit, and it used to survive the switch back to
+            // a range — a multi-night stay silently submitted with no room.
+            party.setSharedFields({ startDay: '', endDay: '', ...ROOM_DEFAULTS });
             setResetKey((v) => v + 1);
           }}
         />
@@ -186,11 +204,11 @@ const RoomBooking = () => {
           key={`${dayVisit ? 'single' : 'period'}-${resetKey}`}
           mode={dayVisit ? 'single' : 'period'}
           startDay={startDay}
-          setStartDay={(d: string) => party.setSharedFields({ startDay: d, endDay: '' })}
+          setStartDay={handleStartDayChange}
           endDay={endDay}
-          setEndDay={(d: string | null) => party.setSharedField('endDay', d)}
+          setEndDay={handleEndDayChange}
           selectedDay={startDay}
-          setSelectedDay={(d: string) => party.setSharedFields({ startDay: d, endDay: d })}
+          setSelectedDay={handleSelectedDayChange}
         />
 
         <PartySection

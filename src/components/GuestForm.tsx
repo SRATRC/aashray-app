@@ -14,7 +14,136 @@ interface GuestFormProps {
   addGuestForm: any;
   removeGuestForm: any;
   children?: any;
+  /**
+   * A primitive derived from anything the per-row `children` extras read BESIDES
+   * the row itself (a locations list, a package list). Rows are memoized and
+   * deliberately ignore the `children` function's identity — so when only such
+   * outside state changes, this key changing is what re-renders them. Callers
+   * whose extras depend only on the row can omit it.
+   */
+  extrasKey?: unknown;
 }
+
+interface GuestRowProps {
+  guest: any;
+  index: number;
+  queryData: any;
+  isLoading: boolean;
+  isError: boolean;
+  error: any;
+  handleGuestFormChange: any;
+  removeGuestForm: any;
+  children: any;
+  extrasKey?: unknown;
+}
+
+const getErrorMessage = (error: any) => error?.message || 'Unable to verify this phone number';
+
+const GuestRow = React.memo<GuestRowProps>(
+  ({
+    guest,
+    index,
+    queryData,
+    isLoading: isVerifyGuestsLoading,
+    isError: isVerifyGuestsError,
+    error,
+    handleGuestFormChange,
+    removeGuestForm,
+    children,
+  }) => {
+    const guestData = queryData?.data;
+    const isNewGuest = queryData?.isNewGuest;
+    const shouldShowError = isVerifyGuestsError;
+    const errorMessage = shouldShowError ? getErrorMessage(error) : undefined;
+    const shouldShowAdditionalFields =
+      (isNewGuest || (!guestData && !isVerifyGuestsLoading && !isVerifyGuestsError)) &&
+      guest.mobno?.length === 10;
+
+    return (
+      <View className="mt-8">
+        <View className="flex flex-row justify-between">
+          <Text className="font-psemibold text-base text-black underline">
+            Details for Guest - {index + 1}
+          </Text>
+          {index !== 0 && (
+            <TouchableOpacity className="mr-3 bg-white" onPress={() => removeGuestForm(index)}>
+              <Image source={icons.remove} className="h-5 w-5" resizeMode="contain" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <FormField
+          text="Phone Number"
+          value={guest.mobno}
+          handleChangeText={(e: string) => handleGuestFormChange(index, 'mobno', e)}
+          otherStyles="mt-7"
+          inputStyles="font-pmedium text-base"
+          keyboardType="number-pad"
+          placeholder="Enter Guest Phone Number"
+          maxLength={10}
+          additionalText={guestData?.issuedto}
+          error={shouldShowError}
+          errorMessage={errorMessage}
+          isLoading={isVerifyGuestsLoading}
+        />
+
+        {isNewGuest && (
+          <View className="mt-2 rounded bg-blue-50 p-2">
+            <Text className="text-sm text-blue-700">
+              Guest not found. Please fill in the details to create a new guest.
+            </Text>
+          </View>
+        )}
+
+        {shouldShowAdditionalFields && (
+          <View>
+            <FormField
+              text="Guest Name"
+              value={guest.name}
+              autoCorrect={false}
+              handleChangeText={(e: string) => handleGuestFormChange(index, 'name', e)}
+              otherStyles="mt-4"
+              inputStyles="font-pmedium text-base"
+              keyboardType="default"
+              placeholder="Guest Name"
+            />
+
+            <CustomSelectBottomSheet
+              className="mt-7"
+              label="Gender"
+              placeholder="Select Gender"
+              options={dropdowns.GENDER_LIST}
+              selectedValue={guest.gender}
+              onValueChange={(val) => handleGuestFormChange(index, 'gender', val)}
+            />
+
+            <CustomSelectBottomSheet
+              className="mt-7"
+              label="Guest Type"
+              placeholder="Select Guest Type"
+              options={dropdowns.GUEST_TYPE_LIST}
+              selectedValue={guest.type}
+              onValueChange={(val) => handleGuestFormChange(index, 'type', val)}
+            />
+          </View>
+        )}
+        {children(index)}
+      </View>
+    );
+  },
+  (previous, next) =>
+    previous.guest === next.guest &&
+    previous.index === next.index &&
+    previous.queryData === next.queryData &&
+    previous.isLoading === next.isLoading &&
+    previous.isError === next.isError &&
+    previous.error === next.error &&
+    previous.handleGuestFormChange === next.handleGuestFormChange &&
+    previous.removeGuestForm === next.removeGuestForm &&
+    // `children` is deliberately NOT compared (it is a fresh closure every
+    // render); extrasKey stands in for whatever outside state it reads.
+    previous.extrasKey === next.extrasKey
+);
 
 const GuestForm: React.FC<GuestFormProps> = ({
   guestForm,
@@ -23,6 +152,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
   addGuestForm,
   removeGuestForm,
   children = () => null,
+  extrasKey,
 }) => {
   const user = useAuthStore((state) => state.user);
 
@@ -70,9 +200,14 @@ const GuestForm: React.FC<GuestFormProps> = ({
         if (shouldUpdate) {
           setGuestForm((prevForm: any) => {
             const updatedGuests = [...prevForm.guests];
+            // The fetched record wins (same order OtherMumukshuForm uses): the
+            // row's template still carries empty strings for name/gender, and
+            // spreading the row last clobbered the verified guest's data with
+            // them. Only the phone number stays as typed — it is what found
+            // the record.
             updatedGuests[index] = {
-              ...query.data.data,
               ...updatedGuests[index],
+              ...query.data.data,
               mobno: updatedGuests[index].mobno,
             };
             return { ...prevForm, guests: updatedGuests };
@@ -84,109 +219,25 @@ const GuestForm: React.FC<GuestFormProps> = ({
     // render, which made this effect run after every keystroke.
   }, [guestQueries.map((q: any) => q.data?.data?.cardno).join(','), guestForm.guests.length]);
 
-  // Helper function to get API error message
-  const getErrorMessage = (error: any) => {
-    if (error?.message) {
-      return error.message;
-    }
-    return 'Unable to verify this phone number';
-  };
-
   return (
     <View>
       {guestForm.guests.map((guest: any, index: number) => {
-        const {
-          data,
-          isLoading: isVerifyGuestsLoading,
-          isError: isVerifyGuestsError,
-          error,
-        } = guest.mobno?.length === 10
-          ? guestQueries[index]
-          : { data: null, isLoading: false, isError: false, error: null };
-
-        const guestData = data?.data;
-        const isNewGuest = data?.isNewGuest;
-        const shouldShowError = isVerifyGuestsError;
-        const errorMessage = shouldShowError ? getErrorMessage(error) : undefined;
-
-        // Show additional fields when:
-        // 1. Guest not found (new guest) - isNewGuest is true
-        // 2. No existing guest data and not loading and no API error
-        const shouldShowAdditionalFields =
-          (isNewGuest || (!guestData && !isVerifyGuestsLoading && !isVerifyGuestsError)) &&
-          guest.mobno?.length === 10;
+        const query = guest.mobno?.length === 10 ? guestQueries[index] : undefined;
 
         return (
-          <View key={index} className="mt-8">
-            <View className="flex flex-row justify-between">
-              <Text className="font-psemibold text-base text-black underline">
-                Details for Guest - {index + 1}
-              </Text>
-              {index !== 0 && (
-                <TouchableOpacity className="mr-3 bg-white" onPress={() => removeGuestForm(index)}>
-                  <Image source={icons.remove} className="h-5 w-5" resizeMode="contain" />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <FormField
-              text="Phone Number"
-              value={guest.mobno}
-              handleChangeText={(e: string) => handleGuestFormChange(index, 'mobno', e)}
-              otherStyles="mt-7"
-              inputStyles="font-pmedium text-base"
-              keyboardType="number-pad"
-              placeholder="Enter Guest Phone Number"
-              maxLength={10}
-              additionalText={guestData?.issuedto}
-              error={shouldShowError}
-              errorMessage={errorMessage}
-              isLoading={isVerifyGuestsLoading}
-            />
-
-            {/* Show info message for new guest */}
-            {isNewGuest && (
-              <View className="mt-2 rounded bg-blue-50 p-2">
-                <Text className="text-sm text-blue-700">
-                  Guest not found. Please fill in the details to create a new guest.
-                </Text>
-              </View>
-            )}
-
-            {shouldShowAdditionalFields && (
-              <View>
-                <FormField
-                  text="Guest Name"
-                  value={guest.name}
-                  autoCorrect={false}
-                  handleChangeText={(e: string) => handleGuestFormChange(index, 'name', e)}
-                  otherStyles="mt-4"
-                  inputStyles="font-pmedium text-base"
-                  keyboardType="default"
-                  placeholder="Guest Name"
-                />
-
-                <CustomSelectBottomSheet
-                  className="mt-7"
-                  label="Gender"
-                  placeholder="Select Gender"
-                  options={dropdowns.GENDER_LIST}
-                  selectedValue={guest.gender}
-                  onValueChange={(val) => handleGuestFormChange(index, 'gender', val)}
-                />
-
-                <CustomSelectBottomSheet
-                  className="mt-7"
-                  label="Guest Type"
-                  placeholder="Select Guest Type"
-                  options={dropdowns.GUEST_TYPE_LIST}
-                  selectedValue={guest.type}
-                  onValueChange={(val) => handleGuestFormChange(index, 'type', val)}
-                />
-              </View>
-            )}
-            {children(index)}
-          </View>
+          <GuestRow
+            key={index}
+            guest={guest}
+            index={index}
+            queryData={query?.data}
+            isLoading={query?.isLoading ?? false}
+            isError={query?.isError ?? false}
+            error={query?.error}
+            handleGuestFormChange={handleGuestFormChange}
+            removeGuestForm={removeGuestForm}
+            children={children}
+            extrasKey={extrasKey}
+          />
         );
       })}
       <TouchableOpacity

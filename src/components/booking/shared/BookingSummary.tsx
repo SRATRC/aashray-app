@@ -190,6 +190,13 @@ interface BookingSummaryProps {
    * headed by dates and a verdict pill read as the same thing said twice.
    */
   extras?: Record<string, React.ReactNode>;
+  /**
+   * Booking types whose card badge should stay hidden because their `extras`
+   * entry already states the verdict in more detail — a split or non-confirmed
+   * stay says "Waitlist" once per date segment, so the one card-level badge
+   * above it would just be that same word said again first.
+   */
+  hideVerdictFor?: string[];
   className?: string;
 }
 
@@ -198,6 +205,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
   audience,
   validationData,
   extras,
+  hideVerdictFor,
   className = '',
 }) => {
   const present = ORDER.filter((key) => data?.[key] && DESCRIPTORS[key]);
@@ -211,7 +219,9 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         const dates = d.dates(slice);
         const rows = d.rows(slice);
         const people = peopleCount(slice, audience);
-        const verdict = verdictForType(validationData, key);
+        const verdict = hideVerdictFor?.includes(key)
+          ? undefined
+          : verdictForType(validationData, key);
 
         return (
           <View

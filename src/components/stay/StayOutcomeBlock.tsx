@@ -1,6 +1,6 @@
 import moment from 'moment';
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text } from 'react-native';
 
 import FormField from '../FormField';
 import VerdictPill from './VerdictPill';
@@ -38,9 +38,24 @@ interface StayOutcomeBlockProps {
   onChangeReason?: (text: string) => void;
   showReasonError?: boolean;
   containerStyles?: string;
-  // Shown as a way out when the dates cannot be booked at all.
-  onChangeDates?: () => void;
 }
+
+/**
+ * Whether this block would render anything at all — a plain, unsplit, fully
+ * confirmed stay has nothing to add to the card's own verdict pill above it.
+ * Exported so a caller can decide, before this ever renders, whether that
+ * pill is still the only place the verdict is said (and so must stay) or
+ * whether this block is about to say it again in more detail (and so the
+ * pill above should step aside instead of repeating it).
+ */
+export const outcomeHasDetail = (outcome: StayOutcome | null | undefined): boolean => {
+  if (!outcome) return false;
+  const allConfirmed = outcome.overall === 'confirmed';
+  const anyNeedsReason = outcome.segments.some((seg) =>
+    seg.groups.some((g) => g.people.some((p) => p.requiresExtraStayReason))
+  );
+  return !(allConfirmed && !outcome.isSplit && !anyNeedsReason);
+};
 
 const StayOutcomeBlock: React.FC<StayOutcomeBlockProps> = ({
   outcome,
@@ -49,24 +64,16 @@ const StayOutcomeBlock: React.FC<StayOutcomeBlockProps> = ({
   onChangeReason,
   showReasonError = false,
   containerStyles = '',
-  onChangeDates,
 }) => {
-  const allConfirmed = outcome.overall === 'confirmed';
+  // Nothing to say. The card already carries an "Available" pill, so a block
+  // repeating it is noise.
+  if (!outcomeHasDetail(outcome)) return null;
+
   // A reason for extra nights is collected here, so it has to render even when
   // every night is available.
   const anyNeedsReason = outcome.segments.some((seg) =>
     seg.groups.some((g) => g.people.some((p) => p.requiresExtraStayReason))
   );
-  // Any row that cannot be booked drives the whole block, because the member has
-  // to change the dates before anything else on the screen matters.
-  const hasUnavailable = outcome.segments.some((seg) =>
-    seg.groups.some((g) => g.verdict === 'unavailable')
-  );
-
-  // Nothing to say. The card already carries an "Available" pill, so a block
-  // repeating it is noise.
-  if (allConfirmed && !outcome.isSplit && !anyNeedsReason) return null;
-
   // Only a split stay has segments that differ, and only then does naming each
   // one tell you anything the card above has not.
   const isSplit = outcome.segments.length > 1;
@@ -74,36 +81,49 @@ const StayOutcomeBlock: React.FC<StayOutcomeBlockProps> = ({
   // said the verdict. With a party it is the point.
   const namesPeople = outcome.peopleCount > 1;
 
+  // The "why" sentence moves out of the segment list and into one shared note
+  // below it. Inline, it showed up under some segments and not others (a
+  // confirmed segment has nothing to explain), which read as an inconsistency
+  // rather than a difference in outcome — and a hold reason repeated across two
+  // segments (two single-night boundary stays, say) said the same thing twice.
+  const reasonMessages: string[] = [];
+  const seenReasons = new Set<string>();
+  for (const segment of outcome.segments) {
+    for (const group of segment.groups) {
+      const message = group.people[0]?.reasonMessage;
+      if (message && !seenReasons.has(message)) {
+        seenReasons.add(message);
+        reasonMessages.push(message);
+      }
+    }
+  }
+
   const renderPeopleGroup = (
     verdict: Verdict,
     people: OutcomeSegment['groups'][number]['people'],
+    showBadge: boolean,
     isLast: boolean
   ) => {
     const first = people[0];
-    const needsReason = people.some((p) => p.requiresExtraStayReason);
 
     return (
       <View
         key={`${verdict}-${first.cardno}`}
-        className={isLast ? '' : 'mb-3 border-b border-dashed border-gray-200 pb-3'}>
-        {namesPeople ? (
-          <View className="mb-1.5 flex-row items-center gap-x-2">
+        className={isLast ? '' : 'mb-2 border-b border-dashed border-gray-200 pb-2'}>
+        <View className="flex-row items-center gap-x-2">
+          {showBadge && (
             <VerdictPill
               verdict={verdict}
               count={people.length > 1 ? people.length : undefined}
               size="sm"
             />
+          )}
+          {namesPeople && (
             <Text className="flex-1 font-pmedium text-sm text-gray-800" numberOfLines={1}>
               {people.map((p) => p.name).join(', ')}
             </Text>
-          </View>
-        ) : null}
-
-        {first.reasonMessage && (
-          <Text className="font-pregular text-xs leading-5 text-gray-600">
-            {first.reasonMessage}
-          </Text>
-        )}
+          )}
+        </View>
 
         {first.windowNights != null && first.windowLimit != null && (
           <Text className="mt-1.5 font-pregular text-xs text-gray-500">
@@ -111,77 +131,90 @@ const StayOutcomeBlock: React.FC<StayOutcomeBlockProps> = ({
             days · limit <Text className="font-psemibold text-gray-700">{first.windowLimit}</Text>
           </Text>
         )}
+      </View>
+    );
+  };
 
-        {needsReason && onChangeReason && (
-          <View className="mt-3">
-            <FormField
-              text="Why do you need the extra nights? *"
-              value={reason}
-              handleChangeText={onChangeReason}
-              placeholder="e.g. Attending shibir with family"
-              multiline
-              numberOfLines={2}
-              error={showReasonError}
-              errorMessage="Add a reason so an admin can review this stay."
-            />
+  const renderSegment = (segment: OutcomeSegment, index: number) => {
+    // A segment usually carries one verdict. Only a mixed party (some
+    // confirmed, some waitlisted, same dates) has more than one — then the
+    // header names every verdict present instead of just the first.
+    const verdicts = Array.from(new Set(segment.groups.map((g) => g.verdict)));
+
+    return (
+      <View key={`${segment.start}-${segment.end}`}>
+        {index > 0 && (
+          <View className="flex-row items-stretch gap-x-3 py-2.5 pl-5">
+            <View className="w-px bg-gray-300" />
+            <View className="flex-1 py-1">
+              <Text className="font-pmedium text-xs text-gray-700">
+                {utsavName} · {gapLabel(outcome.segments[index - 1].end, segment.start)}
+              </Text>
+              <Text className="mt-0.5 font-pregular text-xs text-gray-500">
+                Not part of this stay
+              </Text>
+            </View>
           </View>
+        )}
+
+        {isSplit ? (
+          <View className="mb-2 flex-row items-center justify-between gap-x-2">
+            <Text className="font-psemibold text-base text-gray-900">
+              {segment.isDayVisit
+                ? moment(segment.start).format('D MMM')
+                : `${shortDate(segment.start)} → ${shortDate(segment.end)} · ${segment.nights} night${segment.nights === 1 ? '' : 's'}`}
+            </Text>
+            <View className="flex-row items-center gap-x-1.5">
+              {verdicts.map((v) => (
+                <VerdictPill key={v} verdict={v} size="sm" />
+              ))}
+            </View>
+          </View>
+        ) : null}
+
+        {segment.groups.map((group, i) =>
+          renderPeopleGroup(
+            group.verdict,
+            group.people,
+            // The header just showed every verdict in this segment, so a
+            // second badge per group below it would repeat it — unless the
+            // segment isn't split (no header to carry it) or it holds more
+            // than one verdict (the header's pills alone don't say which
+            // names go with which one).
+            !isSplit || segment.groups.length > 1,
+            i === segment.groups.length - 1
+          )
         )}
       </View>
     );
   };
 
-  const renderSegment = (segment: OutcomeSegment, index: number) => (
-    <View key={`${segment.start}-${segment.end}`}>
-      {index > 0 && (
-        <View className="flex-row items-stretch gap-x-3 py-2.5 pl-5">
-          <View className="w-px bg-gray-300" />
-          <View className="flex-1 py-1">
-            <Text className="font-pmedium text-xs text-gray-700">
-              {utsavName} · {gapLabel(outcome.segments[index - 1].end, segment.start)}
-            </Text>
-            <Text className="mt-0.5 font-pregular text-xs text-gray-500">
-              Not part of this stay
-            </Text>
-          </View>
-        </View>
-      )}
-
-      {isSplit ? (
-        <Text className="mb-3 font-psemibold text-base text-gray-900">
-          {segment.isDayVisit
-            ? moment(segment.start).format('D MMM')
-            : `${shortDate(segment.start)} → ${shortDate(segment.end)}`}
-        </Text>
-      ) : null}
-
-      {segment.groups.map((group, i) =>
-        renderPeopleGroup(group.verdict, group.people, i === segment.groups.length - 1)
-      )}
-    </View>
-  );
-
   return (
     <View className={containerStyles}>
       {outcome.segments.map(renderSegment)}
 
-      {outcome.overall === 'mixed' && (
-        <Text className="mt-3 font-pregular text-xs leading-5 text-gray-500">
-          You pay only for the available nights now. Waitlisted nights cost nothing until an admin
-          approves them. You will get a WhatsApp link to pay if that happens.
-        </Text>
+      {reasonMessages.length > 0 && (
+        <View className="mt-3 gap-y-1.5">
+          {reasonMessages.map((message) => (
+            <Text key={message} className="font-pregular text-xs leading-5 text-gray-600">
+              {message}
+            </Text>
+          ))}
+        </View>
       )}
 
-      {hasUnavailable && (
+      {anyNeedsReason && onChangeReason && (
         <View className="mt-3">
-          <Text className="font-pregular text-xs leading-5 text-gray-500">
-            A date that cannot be booked never goes on the waitlist, because nothing would ever
-            promote it. Pick different dates.
-          </Text>
-          {onChangeDates && (
-            <TouchableOpacity onPress={onChangeDates} className="mt-2.5 self-start">
-              <Text className="font-pmedium text-sm text-secondary-200">Change dates</Text>
-            </TouchableOpacity>
-          )}
+          <FormField
+            text="Why do you need the extra nights? *"
+            value={reason}
+            handleChangeText={onChangeReason}
+            placeholder="e.g. Attending shibir with family"
+            multiline
+            numberOfLines={2}
+            error={showReasonError}
+            errorMessage="Add a reason so an admin can review this stay."
+          />
         </View>
       )}
     </View>

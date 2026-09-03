@@ -22,12 +22,16 @@ export interface TravelLeg {
   arrival_time?: string;
 }
 
-/** A station or airport pickup needs a time, so the bus can meet the train. */
+/** A station or airport pickup needs a time, so the bus can meet the train.
+ * Checked against BOTH location lists: on Utsav days the screen offers
+ * EVENT_LOCATION_LIST, where some station labels differ (Kurla), and checking
+ * only LOCATION_LIST silently stopped asking for the time on those days. */
+const TIMED_LOCATIONS = [...dropdowns.LOCATION_LIST, ...dropdowns.EVENT_LOCATION_LIST];
 export const requiresArrivalTime = (pickup?: string, drop?: string) => {
   const isTimed = (value?: string) =>
     Boolean(
       value &&
-        dropdowns.LOCATION_LIST.some(
+        TIMED_LOCATIONS.some(
           (l: any) =>
             l.value === value &&
             (l.key.toLowerCase().includes('railway') || l.key.toLowerCase().includes('airport'))

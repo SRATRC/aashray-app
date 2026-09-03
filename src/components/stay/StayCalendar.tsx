@@ -2,9 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQueries } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import moment from 'moment';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text } from 'react-native';
-import { Calendar } from 'react-native-calendars';
+import { Calendar, DateData } from 'react-native-calendars';
 
 import { colors } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
@@ -66,7 +66,32 @@ const CALENDAR_THEME = {
   calendarBackground: 'transparent',
 };
 
+const MARKING_STYLE = { color: colors.orange, textColor: colors.white };
+
 const fmt = (d: string) => moment(d).format('D MMM');
+
+/** "15 Aug" for one day, "15 Aug – 18 Aug" for a run. */
+const describeSpan = (span: { start: string; end: string }) =>
+  span.start === span.end ? fmt(span.start) : `${fmt(span.start)} – ${fmt(span.end)}`;
+
+/**
+ * The one sentence for a closure, so both call sites word it the same way.
+ *
+ * `utsavName` is often empty and the names arrive inside `reason` instead,
+ * which the backend sends as a finished sentence ("The centre is closed on
+ * these dates: Advocates & Mumbai Youth Forum"). Appending that whole string
+ * said the same thing twice, so keep only the part after the last colon —
+ * a reason with no colon ("Maintenance") passes through unchanged.
+ */
+const describeClosure = (
+  span: { start: string; end: string; names: string[] },
+  reason?: string
+) => {
+  const cause = span.names.length ? span.names.join(' & ') : reason?.split(':').pop()?.trim();
+  return cause
+    ? `The centre is closed on ${describeSpan(span)} for ${cause}.`
+    : `The centre is closed on ${describeSpan(span)}.`;
+};
 
 /** One month of answers, plus the next, so paging forward is usually a cache hit. */
 const fetchBlockedDates = (cardno: string, monthKey: string): Promise<DayMap> =>
@@ -127,9 +152,16 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
 }) => {
   const [disableLeftArrow, setDisableLeftArrow] = useState(false);
   const [note, setNote] = useState<{ tone: 'info' | 'blocked'; text: string } | null>(null);
+  const [visibleMonth, setVisibleMonth] = useState<string>(initialMonthKey(minDate));
 
   const user = useAuthStore((state: any) => state.user);
   const cardno = user?.cardno;
+
+  const effectiveMinDate = useMemo(() => minDate || getMinDate(), [minDate]);
+
+  useEffect(() => {
+    setVisibleMonth(initialMonthKey(minDate));
+  }, [minDate]);
 
   // Which months have been looked at. The answers themselves live in the query
   // cache, so leaving the screen and coming back does not refetch them.
@@ -214,31 +246,6 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
     [effectiveMap]
   );
 
-  /** "15 Aug" for one day, "15 Aug – 18 Aug" for a run. */
-  const describeSpan = (span: { start: string; end: string }) =>
-    span.start === span.end ? fmt(span.start) : `${fmt(span.start)} – ${fmt(span.end)}`;
-
-  /**
-   * The one sentence for a closure, so both call sites word it the same way.
-   *
-   * `utsavName` is often empty and the names arrive inside `reason` instead,
-   * which the backend sends as a finished sentence ("The centre is closed on
-   * these dates: Advocates & Mumbai Youth Forum"). Appending that whole string
-   * said the same thing twice, so keep only the part after the last colon —
-   * a reason with no colon ("Maintenance") passes through unchanged.
-   */
-  const describeClosure = (
-    span: { start: string; end: string; names: string[] },
-    reason?: string
-  ) => {
-    const cause = span.names.length
-      ? span.names.join(' & ')
-      : reason?.split(':').pop()?.trim();
-    return cause
-      ? `The centre is closed on ${describeSpan(span)} for ${cause}.`
-      : `The centre is closed on ${describeSpan(span)}.`;
-  };
-
   const utsavSpanInside = useCallback(
     (from: string, to: string) => {
       const days: string[] = [];
@@ -260,79 +267,112 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
 
   /** A note appears in place with no other movement on screen, so it lands with
    * a light tap to say something answered the press. Clearing one is silent. */
-  const showNote = (next: { tone: 'info' | 'blocked'; text: string } | null) => {
+  const showNote = useCallback((next: { tone: 'info' | 'blocked'; text: string } | null) => {
     if (next) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setNote(next);
-  };
+  }, []);
 
-  const handleDayPress = (day: any) => {
-    const key = day.dateString;
-    const info = effectiveMap[key];
+  const handleDayPress = useCallback(
+    (day: any) => {
+      const key = day.dateString;
+      const info = effectiveMap[key];
 
-    // A blocked day explains itself in place. No toast: a toast disappears
-    // before it is read, and two of them stack.
-    if (isBlocking(info)) {
-      const span = blockedSpanFrom(key);
-      showNote({
-        tone: 'blocked',
-        text: describeClosure(span, info?.reason),
-      });
-      return;
-    }
+      // A blocked day explains itself in place. No toast: a toast disappears
+      // before it is read, and two of them stack.
+      if (isBlocking(info)) {
+        const span = blockedSpanFrom(key);
+        showNote({
+          tone: 'blocked',
+          text: describeClosure(span, info?.reason),
+        });
+        return;
+      }
 
-    if (mode === 'single') {
-      showNote(null);
-      setSelectedDay?.(key);
-      return;
-    }
+      if (mode === 'single') {
+        showNote(null);
+        setSelectedDay?.(key);
+        return;
+      }
 
-    if (!startDay || endDay) {
-      showNote(null);
-      setStartDay?.(key);
-      setEndDay?.(null);
-      return;
-    }
+      if (!startDay || endDay) {
+        showNote(null);
+        setStartDay?.(key);
+        setEndDay?.(null);
+        return;
+      }
 
-    if (key < startDay) {
-      showNote(null);
-      setStartDay?.(key);
-      setEndDay?.(null);
-      return;
-    }
+      if (key < startDay) {
+        showNote(null);
+        setStartDay?.(key);
+        setEndDay?.(null);
+        return;
+      }
 
-    // A range that would cross a blocked day CLAMPS to the last selectable day
-    // and says so. The old behavior threw the end date away with a toast, which
-    // made the member guess where the wall was.
-    const blocker = firstBlockingFrom(startDay);
-    if (blocker && blocker.date <= key) {
-      const clamped = lastSelectableFrom(startDay);
-      const span = blockedSpanFrom(blocker.date);
-      setEndDay?.(clamped);
-      showNote({
-        tone: 'blocked',
-        text: describeClosure(span, blocker.info?.reason),
-      });
-      return;
-    }
+      // A range that would cross a blocked day CLAMPS to the last selectable day
+      // and says so. The old behavior threw the end date away with a toast, which
+      // made the member guess where the wall was. When the wall is the very next
+      // day the clamp would collapse to the check-in itself — a 0-night stay the
+      // member never asked for — so the checkout stays unpicked instead.
+      const blocker = firstBlockingFrom(startDay);
+      if (blocker && blocker.date <= key) {
+        const clamped = lastSelectableFrom(startDay);
+        const span = blockedSpanFrom(blocker.date);
+        setEndDay?.(clamped !== startDay ? clamped : null);
+        showNote({
+          tone: 'blocked',
+          text: describeClosure(span, blocker.info?.reason),
+        });
+        return;
+      }
 
-    setEndDay?.(key);
-    const utsav = utsavSpanInside(startDay, key);
-    showNote(
-      utsav
-        ? {
-            tone: 'info',
-            text: `Your stay will split around ${utsav.name}, ${fmt(utsav.start)} – ${fmt(
-              utsav.end
-            )}. You will get two bookings.`,
-          }
-        : null
-    );
-  };
+      setEndDay?.(key);
+      const utsav = utsavSpanInside(startDay, key);
+      showNote(
+        utsav
+          ? {
+              tone: 'info',
+              text: `Your stay will split around ${utsav.name}, ${fmt(utsav.start)} – ${fmt(
+                utsav.end
+              )}. You will get two bookings.`,
+            }
+          : null
+      );
+    },
+    [
+      effectiveMap,
+      mode,
+      startDay,
+      endDay,
+      setSelectedDay,
+      setStartDay,
+      setEndDay,
+      blockedSpanFrom,
+      firstBlockingFrom,
+      lastSelectableFrom,
+      utsavSpanInside,
+      showNote,
+    ]
+  );
+
+  // Only look at days inside the visible month plus a small buffer. Walking
+  // every cached month makes the calendar library slow as the member pages
+  // through months, and the legend below should only promise what's on screen.
+  const visibleRange = useMemo(() => {
+    const start = moment(`${visibleMonth}-01`, 'YYYY-MM-DD')
+      .subtract(7, 'days')
+      .format('YYYY-MM-DD');
+    const end = moment(`${visibleMonth}-01`, 'YYYY-MM-DD')
+      .add(1, 'month')
+      .add(7, 'days')
+      .format('YYYY-MM-DD');
+    return { start, end };
+  }, [visibleMonth]);
 
   const markedDates = useMemo(() => {
     const marks: Record<string, any> = {};
 
     for (const [date, info] of Object.entries(effectiveMap)) {
+      if (date < visibleRange.start || date > visibleRange.end) continue;
       if (isBlocking(info)) {
         marks[date] = { disabled: true, disableTouchEvent: false };
       } else if (kindOf(info) === 'utsav_in') {
@@ -347,8 +387,7 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
         // library renders, and the cell height changes with it.
         marks[selectedDay] = {
           ...(marks[selectedDay] || {}),
-          color: colors.orange,
-          textColor: colors.white,
+          ...MARKING_STYLE,
           startingDay: true,
           endingDay: true,
         };
@@ -363,8 +402,7 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
         const key = cursor.format('YYYY-MM-DD');
         marks[key] = {
           ...(marks[key] || {}),
-          color: colors.orange,
-          textColor: colors.white,
+          ...MARKING_STYLE,
           ...(key === startDay ? { startingDay: true } : {}),
           ...(key === last ? { endingDay: true } : {}),
         };
@@ -372,40 +410,47 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
       }
     }
     return marks;
-  }, [effectiveMap, startDay, endDay, selectedDay, mode]);
+  }, [effectiveMap, startDay, endDay, selectedDay, mode, visibleRange]);
 
   const legendNeeds = useMemo(() => {
     let blocking = false;
     let utsavIn = false;
-    for (const info of Object.values(effectiveMap)) {
+    for (const [date, info] of Object.entries(effectiveMap)) {
+      if (date < visibleRange.start || date > visibleRange.end) continue;
       if (isBlocking(info)) blocking = true;
       else if (kindOf(info) === 'utsav_in') utsavIn = true;
       if (blocking && utsavIn) break;
     }
     return { blocking, utsavIn };
-  }, [effectiveMap]);
+  }, [effectiveMap, visibleRange]);
   const hasBlocking = legendNeeds.blocking;
   const hasUtsavIn = legendNeeds.utsavIn;
 
-  const handleMonthChange = (month: any) => {
-    const current = moment(month.dateString).startOf('month');
-    const min = moment(minDate || getMinDate()).startOf('month');
-    setDisableLeftArrow(current.isSameOrBefore(min));
-    rememberMonth(month.dateString);
-  };
+  const handleMonthChange = useCallback(
+    (month: DateData) => {
+      const current = moment(month.dateString).startOf('month');
+      const min = moment(effectiveMinDate).startOf('month');
+      setDisableLeftArrow(current.isSameOrBefore(min));
+      setVisibleMonth(month.dateString.substring(0, 7));
+      rememberMonth(month.dateString);
+    },
+    [effectiveMinDate, rememberMonth]
+  );
 
   return (
     <View>
       <Calendar
         className="mt-5"
-        minDate={minDate || getMinDate()}
-        initialDate={minDate || getMinDate()}
+        minDate={effectiveMinDate}
+        initialDate={effectiveMinDate}
         disableArrowLeft={disableLeftArrow}
         onMonthChange={handleMonthChange}
         onDayPress={handleDayPress}
         markedDates={markedDates}
         markingType="period"
         theme={CALENDAR_THEME}
+        hideExtraDays
+        disableAllTouchEventsForDisabledDays={false}
       />
 
       {note && (
@@ -468,4 +513,7 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
   );
 };
 
-export default StayCalendar;
+// Memoized: the booking screens hold their whole form at the top, so every
+// keystroke in a party form re-renders them. With stable callbacks from the
+// callers this keeps the month grid out of that churn.
+export default React.memo(StayCalendar);

@@ -86,11 +86,7 @@ const FoodBooking = () => {
         : undefined;
 
   /** Meal preferences. Reused for the member, each guest and each mumukshu. */
-  const mealFields = (
-    value: any,
-    onChange: (field: string, v: any) => void,
-    title?: string
-  ) => (
+  const mealFields = (value: any, onChange: (field: string, v: any) => void, title?: string) => (
     <FieldGroup title={title} className="mt-4">
       <CustomSelectBottomSheet
         variant="row"
@@ -195,10 +191,7 @@ const FoodBooking = () => {
       primaryLoading={isSubmitting}
       footerNote={footerNote}>
       <View className="px-4">
-        <Callout
-          variant="warning"
-          message="Meals must be booked before 11 AM the day before."
-        />
+        <Callout variant="warning" message="Meals must be booked before 11 AM the day before." />
 
         <CustomCalender
           key={resetKey}

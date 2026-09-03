@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { DimensionValue, View } from 'react-native';
 
 import { Shimmer, ShimmerCircle, ShimmerLine, ShimmerContainer } from '@/src/components/Shimmer';
 import { surfaces } from '@/src/constants';
@@ -19,11 +19,11 @@ import { surfaces } from '@/src/constants';
 
 /** Matches BookingSummary's rows exactly — same divider, same `py-3`. A taller
  * placeholder would reintroduce the jump this exists to prevent. */
-const RowsSkeleton: React.FC<{ rows: number; labelWidth: string; valueWidth: string }> = ({
-  rows,
-  labelWidth,
-  valueWidth,
-}) => (
+const RowsSkeleton: React.FC<{
+  rows: number;
+  labelWidth: DimensionValue;
+  valueWidth: DimensionValue;
+}> = ({ rows, labelWidth, valueWidth }) => (
   <View className="border-t border-gray-200">
     {Array.from({ length: rows }).map((_, i) => (
       <View key={i}>

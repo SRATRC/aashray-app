@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import Toast from 'react-native-toast-message';
 
 import type { Audience } from './useBookingParty';
 
@@ -69,31 +70,67 @@ export function useBookingSubmit() {
                 name: g.issuedto || g.name,
               }))
             );
-            // Match on the name the row was created with; fall back to position
-            // so an unnamed row still receives its card. Each registered guest
-            // is consumed once, because two rows can carry the same name — a
-            // plain find() gave both of them the first card and left the second
-            // guest booked under someone else's number.
+            // The backend answers REORDERED — existing-card guests first, then
+            // newly created ones (createGuestsHelper returns
+            // [...registeredGuests, ...guestsToCreate]) — so position means
+            // nothing. Every response row keeps the mobno the row was sent
+            // with, so match on that, most specific rule first; each response
+            // guest is consumed once so duplicates cannot share a card. A row
+            // that cannot be matched is a hard stop: guessing here books
+            // somebody under someone else's card.
             const unclaimed = [...registered];
-            const guests = form.guests.map((row: any, i: number) => {
-              const at = unclaimed.findIndex(
-                (g: any) => g.issuedto === row.name || g.name === row.name
-              );
-              const match = at >= 0 ? unclaimed.splice(at, 1)[0] : (registered[i] ?? null);
-              return match ? { ...row, cardno: match.cardno } : row;
-            });
+            const claim = (pred: (g: any) => boolean) => {
+              const at = unclaimed.findIndex(pred);
+              return at >= 0 ? unclaimed.splice(at, 1)[0] : null;
+            };
+            const sameMobno = (g: any, row: any) =>
+              g?.mobno != null && row?.mobno != null && String(g.mobno) === String(row.mobno);
+
+            const guests: any[] = [];
+            for (const row of form.guests) {
+              const match =
+                (row.cardno ? claim((g) => String(g?.cardno) === String(row.cardno)) : null) ||
+                claim(
+                  (g) => sameMobno(g, row) && (g.issuedto === row.name || g.name === row.name)
+                ) ||
+                claim((g) => sameMobno(g, row));
+              if (!match) {
+                reject(
+                  new Error(
+                    `Could not confirm the details for ${
+                      row.name || row.issuedto || 'one of your guests'
+                    }. Please check the guest details and try again.`
+                  )
+                );
+                return;
+              }
+              guests.push({ ...row, cardno: match.cardno });
+            }
             resolve({ ...form, guests });
           },
           () => {},
-          (err: any) => reject(new Error(err?.message || 'Could not save guest details'))
+          (err: any) =>
+            // handleAPICall has already toasted API failures; tag the error so
+            // submit() below does not report it a second time.
+            reject(
+              Object.assign(new Error(err?.message || 'Could not save guest details'), {
+                alreadyToasted: true,
+              })
+            )
         );
       }),
     [user?.cardno, setGuestInfo]
   );
 
+  // Synchronous re-entry guard: two taps landing before React re-renders both
+  // read the stale `isSubmitting` captured at render, so state alone cannot
+  // stop the second one.
+  const inFlight = useRef(false);
+
   const submit = useCallback(
     async ({ bookingType, audience, form, buildPayload, onDone }: SubmitArgs) => {
-      if (isSubmitting) return;
+      if (inFlight.current) return;
+      inFlight.current = true;
       setIsSubmitting(true);
       try {
         let resolvedForm = form;
@@ -126,18 +163,24 @@ export function useBookingSubmit() {
         } else {
           router.push(`/${STACK[audience]}/${bookingType}`);
         }
+      } catch (error: any) {
+        // Without this, a registration failure or a buildPayload throw escaped
+        // as an unhandled rejection: the spinner stopped and nothing said why.
+        // API errors were already toasted by handleAPICall and carry the tag.
+        if (!error?.alreadyToasted) {
+          Toast.show({
+            type: 'error',
+            text1: 'Could not continue',
+            text2: error?.message || 'Something went wrong. Please try again.',
+            swipeable: false,
+          });
+        }
       } finally {
+        inFlight.current = false;
         setIsSubmitting(false);
       }
     },
-    [
-      isSubmitting,
-      registerGuests,
-      setMumukshuInfo,
-      updateGuestBooking,
-      updateMumukshuBooking,
-      router,
-    ]
+    [registerGuests, setMumukshuInfo, updateGuestBooking, updateMumukshuBooking, router]
   );
 
   return { submit, isSubmitting, setIsSubmitting };

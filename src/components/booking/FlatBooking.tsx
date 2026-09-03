@@ -36,7 +36,19 @@ const FlatBooking = () => {
     }, [])
   );
 
-  const { form, audience } = party;
+  const { form, audience, setSharedField, setSharedFields } = party;
+
+  // Stable identities so the memoized StayCalendar is not re-rendered by every
+  // keystroke in the party forms below. The party setters are themselves stable.
+  const handleStartDayChange = useCallback(
+    (d: string) => setSharedFields({ startDay: d, endDay: '' }),
+    [setSharedFields]
+  );
+  const handleEndDayChange = useCallback(
+    (d: string | null) => setSharedField('endDay', d),
+    [setSharedField]
+  );
+
   const nights =
     form.startDay && form.endDay ? moment(form.endDay).diff(moment(form.startDay), 'days') : 0;
 
@@ -84,9 +96,9 @@ const FlatBooking = () => {
           key={resetKey}
           mode="period"
           startDay={form.startDay}
-          setStartDay={(d: string) => party.setSharedFields({ startDay: d, endDay: '' })}
+          setStartDay={handleStartDayChange}
           endDay={form.endDay}
-          setEndDay={(d: string | null) => party.setSharedField('endDay', d)}
+          setEndDay={handleEndDayChange}
           minDate={moment().format('YYYY-MM-DD')}
         />
 

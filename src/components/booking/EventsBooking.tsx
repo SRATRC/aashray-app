@@ -1,27 +1,29 @@
+import { SectionList, type SectionListRef } from '@legendapp/list/section-list';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
-import { View, Text, SectionList, RefreshControl, ActivityIndicator } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, RefreshControl, ActivityIndicator } from 'react-native';
 
 import BookingShell from './shared/BookingShell';
 import CatalogueCard from './shared/CatalogueCard';
-import StepTransition from './shared/StepTransition';
-import { isUtsavFull } from './shared/catalogueStatus';
 import FieldGroup from './shared/FieldGroup';
 import PartySection from './shared/PartySection';
+import StepTransition from './shared/StepTransition';
+import UtsavAttendeeFields, { attendeeValid, packageOptions } from './shared/UtsavAttendeeFields';
+import { utsavCardProps } from './shared/catalogueCards';
+import { isUtsavFull } from './shared/catalogueStatus';
 import useBookingParty from './shared/useBookingParty';
 import useBookingSubmit from './shared/useBookingSubmit';
 import useResetOnLeave from './shared/useResetOnLeave';
-import { utsavCardProps } from './shared/catalogueCards';
-import UtsavAttendeeFields, { attendeeValid, packageOptions } from './shared/UtsavAttendeeFields';
 
 import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
-import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
 import FormField from '@/src/components/FormField';
 import { types } from '@/src/constants';
+import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import { useAuthStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import { formatSectionMonth } from '@/src/utils/formatSectionMonth';
 
 /**
  * Raj Utsav. Pick an utsav, then say who is attending and how.
@@ -47,6 +49,11 @@ const EventsBooking = () => {
   const [selected, setSelected] = useState<any>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const tabBarPadding = useTabBarPadding();
+
+  // Going back to step 1 remounts the list (StepTransition's whole trick), so
+  // the scroll position has to be captured on tap and restored by hand.
+  const listRef = useRef<SectionListRef>(null);
+  const savedPositionRef = useRef<{ sectionIndex: number; itemIndex: number } | null>(null);
 
   const party = useBookingParty({
     guestTemplate: { name: '', gender: '', mobno: '', type: '', ...ATTENDEE_DEFAULTS },
@@ -157,6 +164,47 @@ const EventsBooking = () => {
           : undefined,
     });
 
+  const renderSectionHeader = useCallback(
+    ({ section }: any) => (
+      <Text className="mb-2 mt-4 px-1 font-psemibold text-base text-gray-800">
+        {formatSectionMonth(section?.title, section?.data?.[0]?.utsav_start)}
+      </Text>
+    ),
+    []
+  );
+
+  const handleSelectItem = useCallback(
+    (item: any, section: any) => {
+      const sectionIndex = sections.indexOf(section);
+      const itemIndex = section?.data?.indexOf(item) ?? 0;
+      if (sectionIndex !== -1) {
+        savedPositionRef.current = { sectionIndex, itemIndex };
+      }
+      setSelected(item);
+    },
+    [sections]
+  );
+
+  const renderItem = useCallback(
+    ({ item, section }: any) => (
+      <CatalogueCard {...utsavCardProps(item)} onPress={() => handleSelectItem(item, section)} />
+    ),
+    [handleSelectItem]
+  );
+
+  // Restore the position the member was at when they tapped an utsav, since
+  // coming back to this step remounts the list from scratch.
+  useEffect(() => {
+    if (selected) return;
+    const saved = savedPositionRef.current;
+    if (!saved) return;
+    savedPositionRef.current = null;
+    const frame = requestAnimationFrame(() => {
+      listRef.current?.scrollToLocation({ ...saved, animated: false });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [selected]);
+
   // Step 2: who is attending, and how.
   if (selected) {
     return (
@@ -205,6 +253,10 @@ const EventsBooking = () => {
                   }
                 />
               )}
+              // The extras read `packages`, derived from the selected utsav.
+              // The memoized rows ignore the render function's identity, so
+              // this key is what re-renders them if the package list changes.
+              extrasKey={packages}
             />
 
             {audience === 'self' ? (
@@ -231,17 +283,14 @@ const EventsBooking = () => {
         progress={sections.length > 0 || isLoading ? { current: 1, total: 2 } : undefined}
         scrollBody={false}>
         <SectionList
+          ref={listRef}
           sections={sections}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: tabBarPadding + 24 }}
           showsVerticalScrollIndicator={false}
           stickySectionHeadersEnabled={false}
-          keyExtractor={(item: any, index) => item?.utsav_id?.toString() || index.toString()}
-          renderSectionHeader={({ section: { title } }: any) => (
-            <Text className="mb-2 mt-4 px-1 font-psemibold text-base text-gray-800">{title}</Text>
-          )}
-          renderItem={({ item }: any) => (
-            <CatalogueCard {...utsavCardProps(item)} onPress={() => setSelected(item)} />
-          )}
+          keyExtractor={(item: any) => item?.utsav_id?.toString()}
+          renderSectionHeader={renderSectionHeader}
+          renderItem={renderItem}
           ListEmptyComponent={
             <View className="items-center justify-center pt-24">
               {isError ? (

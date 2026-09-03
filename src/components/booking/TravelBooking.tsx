@@ -65,9 +65,10 @@ const TravelBooking = () => {
   const { form, audience, user } = party;
 
   // Utsav days run a different set of pickup points.
+  const isEventDate = isUtsavDate(form.date);
   const locations = useMemo(
-    () => (isUtsavDate(form.date) ? dropdowns.EVENT_LOCATION_LIST : dropdowns.LOCATION_LIST),
-    [isUtsavDate, form.date]
+    () => (isEventDate ? dropdowns.EVENT_LOCATION_LIST : dropdowns.LOCATION_LIST),
+    [isEventDate]
   );
 
   const selfProblem = audience === 'self' ? describeLegProblem(form) : undefined;
@@ -125,7 +126,10 @@ const TravelBooking = () => {
             selectedValue={leg.type}
             saveKeyInsteadOfValue={false}
             onValueChange={(v: any) =>
-              patch({ type: v, ...(requiresTotalPeople({ type: v }) ? {} : { total_people: null }) })
+              patch({
+                type: v,
+                ...(requiresTotalPeople({ type: v }) ? {} : { total_people: null }),
+              })
             }
           />
           <CustomSelectBottomSheet
@@ -235,14 +239,13 @@ const TravelBooking = () => {
               );
             })
           }
+          // legFields reads `locations`, which flips with the date. Without this
+          // the memoized rows kept showing the previous day's pickup list.
+          extrasKey={isEventDate}
         />
 
         {audience === 'self'
-          ? legFields(
-              form,
-              (changes) => party.setSharedFields(changes),
-              'Your journey'
-            )
+          ? legFields(form, (changes) => party.setSharedFields(changes), 'Your journey')
           : null}
       </View>
     </BookingShell>

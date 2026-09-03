@@ -136,7 +136,7 @@ export default function FoodBookingCancellation() {
         lastPage?.length ? (pages?.length || 0) + 1 : undefined,
     });
 
-  const fetchGuests = async () => {
+  const fetchGuests = async (): Promise<any[]> => {
     return new Promise((resolve, reject) => {
       handleAPICall(
         'GET',
@@ -149,7 +149,7 @@ export default function FoodBookingCancellation() {
     });
   };
 
-  const { data: guestList, isLoading: isLoadingGuest } = useQuery({
+  const { data: guestList, isLoading: isLoadingGuest } = useQuery<any[]>({
     queryKey: ['foodGuestList', user.cardno],
     queryFn: fetchGuests,
     staleTime: 1000 * 60 * 60 * 2,

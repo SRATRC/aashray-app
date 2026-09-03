@@ -1,6 +1,6 @@
 import React from 'react';
 
-import StayOutcomeBlock from '@/src/components/stay/StayOutcomeBlock';
+import StayOutcomeBlock, { outcomeHasDetail } from '@/src/components/stay/StayOutcomeBlock';
 import type { StayOutcome } from '@/src/components/stay/stayOutcome.types';
 
 /**
@@ -20,7 +20,14 @@ interface StayOutcomeExtraArgs {
   reason?: string;
   onChangeReason?: (text: string) => void;
   showReasonError?: boolean;
-  onChangeDates?: () => void;
+}
+
+export interface StayOutcomeExtraResult {
+  extras: Record<string, React.ReactNode>;
+  /** Pass straight through to `BookingSummary`'s `hideVerdictFor`. This block
+   * is about to say the same verdict in more detail, so the card's own pill
+   * stepping aside is part of the same decision, not a second one. */
+  hideVerdictFor: string[];
 }
 
 export default function stayOutcomeExtra({
@@ -29,20 +36,23 @@ export default function stayOutcomeExtra({
   reason,
   onChangeReason,
   showReasonError,
-  onChangeDates,
-}: StayOutcomeExtraArgs): Record<string, React.ReactNode> | undefined {
+}: StayOutcomeExtraArgs): StayOutcomeExtraResult | undefined {
   if (!outcome) return undefined;
 
+  const key = data?.flat ? 'flat' : 'room';
+
   return {
-    [data?.flat ? 'flat' : 'room']: (
-      <StayOutcomeBlock
-        outcome={outcome}
-        containerStyles="border-t border-gray-200 px-4 py-3"
-        reason={reason}
-        onChangeReason={onChangeReason}
-        showReasonError={showReasonError}
-        onChangeDates={onChangeDates}
-      />
-    ),
+    extras: {
+      [key]: (
+        <StayOutcomeBlock
+          outcome={outcome}
+          containerStyles="border-t border-gray-200 px-4 py-3"
+          reason={reason}
+          onChangeReason={onChangeReason}
+          showReasonError={showReasonError}
+        />
+      ),
+    },
+    hideVerdictFor: outcomeHasDetail(outcome) ? [key] : [],
   };
 }

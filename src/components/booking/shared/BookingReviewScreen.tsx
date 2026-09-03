@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text } from 'react-native';
 // @ts-ignore — react-native-razorpay ships no type declarations
 import RazorpayCheckout from 'react-native-razorpay';
@@ -10,7 +10,7 @@ import BookingShell from './BookingShell';
 import BookingSummary from './BookingSummary';
 
 import useDelayedFlag from '@/src/hooks/useDelayedFlag';
-import ChargesCard, { payableNow, totalCreditsIn } from './ChargesCard';
+import ChargesCard, { payableNow, totalCreditsIn, waitlistedTypesIn } from './ChargesCard';
 import { AUDIENCE_CONFIG } from './bookingAudience';
 import type { Audience } from './useBookingParty';
 
@@ -21,6 +21,7 @@ import { buildStayOutcome } from '@/src/components/stay/buildStayOutcome';
 import { colors } from '@/src/constants';
 import { useAuthStore, useBookingStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import { buildBookingValidationKey } from '@/src/utils/buildBookingValidationKey';
 import isInternationalUser from '@/src/utils/isInternationalUser';
 
 /**
@@ -59,14 +60,6 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
 
   const basePayload = useMemo(() => config.buildPayload(user, data), [config, user, data]);
 
-  const payload = useMemo(
-    () => ({
-      ...basePayload,
-      ...(reason.trim() ? { extra_stay_reason: reason.trim() } : {}),
-    }),
-    [basePayload, reason]
-  );
-
   const {
     data: validationData,
     error: validationError,
@@ -74,28 +67,60 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
     isLoading,
     isFetching,
   } = useQuery<any, Error>({
-    queryKey: [`review-${audience}`, user?.cardno, JSON.stringify(data)],
+    // The extra-stay reason is deliberately NOT part of the validated payload or
+    // its key. Availability does not depend on the reason, and keying on it made
+    // every keystroke in the reason field a fresh /validate whose pending state
+    // unmounted the very field being typed into. The reason joins the payload
+    // only at booking time, in book() below.
+    queryKey: buildBookingValidationKey({ audience, cardno: user?.cardno, data: basePayload }),
     queryFn: () =>
       new Promise((resolve, reject) => {
         handleAPICall(
           'POST',
           config.validateUrl,
           null,
-          payload,
-          (res: any) => {
-            setData((prev: any) => ({ ...prev, validationData: res.data }));
-            resolve(res.data);
-          },
+          basePayload,
+          (res: any) => resolve(res.data),
           () => {},
-          (err: any) => reject(new Error(err?.message))
+          (err: any) =>
+            reject(new Error(err?.message || 'Could not check availability. Please try again.')),
+          // No toast: the error modal below is this screen's one report of it.
+          false
         );
       }),
     retry: false,
     enabled: !!user?.cardno,
+    // Availability must be fresh every time this screen is entered — the app's
+    // global 5-minute staleTime would happily pay against a cached answer.
+    // This still fetches only ONCE on mount; the focus refetch below covers
+    // returns to an already-mounted screen.
+    staleTime: 0,
+    refetchOnMount: 'always',
+    // A key change (store data edited on the way back in) keeps the previous
+    // answer on screen while the re-check runs instead of blanking the body.
+    placeholderData: keepPreviousData,
   });
 
+  // The store copy of the answer is written from the query's settled data, not
+  // from inside queryFn: a queryFn side effect also runs for responses React
+  // Query has already discarded (an overlapping refetch resolving late), which
+  // could persist a stale answer. `validationData` here is always the latest.
+  useEffect(() => {
+    if (validationData) {
+      setData((prev: any) => ({ ...prev, validationData }));
+    }
+  }, [validationData, setData]);
+
+  // Re-check on every RETURN to this screen — after the add-on step, after a
+  // failed payment. The first focus is skipped: useQuery already fetches on
+  // mount, and a second concurrent /validate bought nothing but a race.
+  const focusedOnce = useRef(false);
   useFocusEffect(
     useCallback(() => {
+      if (!focusedOnce.current) {
+        focusedOnce.current = true;
+        return;
+      }
       if (user?.cardno) refetch();
     }, [user?.cardno, refetch])
   );
@@ -135,8 +160,13 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
     stayOutcome?.segments.some((s) => s.groups.some((g) => g.verdict === 'unavailable'))
   );
   const allWaitlisted = stayOutcome?.overall === 'waitlist';
-  const isMixed = stayOutcome?.overall === 'mixed';
   const due = payableNow(validationData);
+  // Waitlisted across the whole booking, not just the stay — an Utsav or food
+  // add-on can be waitlisted (or payable) independently of the room.
+  const hasWaitlistedPortion =
+    allWaitlisted ||
+    stayOutcome?.overall === 'mixed' ||
+    waitlistedTypesIn(validationData).length > 0;
 
   /**
    * A re-check, not the first one. `useFocusEffect` refetches every time this
@@ -164,15 +194,25 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
   // therefore re-enable while the sheet was still opening, and a second tap
   // placed a second order. This holds the button until Razorpay settles.
   const paying = useRef(false);
+  // Synchronous re-entry guard. The disabled state alone is not enough: two
+  // taps landing before React re-renders both see an enabled button, and each
+  // would place an order.
+  const inFlight = useRef(false);
 
   const book = async (payLater: boolean) => {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setIsSubmitting(true);
     paying.current = false;
     await handleAPICall(
       'POST',
       config.bookingUrl,
       null,
-      payLater ? { ...payload, pay_later: true } : payload,
+      {
+        ...basePayload,
+        ...(reason.trim() ? { extra_stay_reason: reason.trim() } : {}),
+        ...(payLater ? { pay_later: true } : {}),
+      },
       (res: any) => {
         // A booking with nothing left to charge comes back with no order.
         if (payLater || !res?.order?.id) {
@@ -202,11 +242,15 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
           })
           .finally(() => {
             paying.current = false;
+            inFlight.current = false;
             setIsSubmitting(false);
           });
       },
       () => {
-        if (!paying.current) setIsSubmitting(false);
+        if (!paying.current) {
+          inFlight.current = false;
+          setIsSubmitting(false);
+        }
       }
     );
   };
@@ -223,14 +267,18 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
   // A dead button that restates the note above it is not an answer. When the
   // dates cannot be booked the only useful action is to go change them, so the
   // primary becomes that instead of a disabled label.
+  //
+  // A real amount due always wins over "Join waitlist": a waitlisted stay next
+  // to a payable Utsav still has ₹ to pay right now, and a button that says
+  // "Join waitlist" while it silently charges a card is the bug this fixes.
   const primaryLabel = cannotBook
     ? 'Change dates'
-    : allWaitlisted
-      ? 'Join waitlist'
-      : due > 0
-        ? isMixed
-          ? `Pay ${money(due)} now`
-          : `Pay ${money(due)}`
+    : due > 0
+      ? hasWaitlistedPortion
+        ? `Pay ${money(due)} now`
+        : `Pay ${money(due)}`
+      : allWaitlisted
+        ? 'Join waitlist'
         : 'Confirm booking';
 
   // A waitlisted add-on is stated on its own card and on its charges line, so the
@@ -241,9 +289,22 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
       ? 'These dates cannot be booked.'
       : reasonMissing
         ? 'Add a reason for the extra nights above to continue.'
-        : allWaitlisted
+        : due === 0 && hasWaitlistedPortion
           ? 'Nothing is charged for a waitlisted stay. A WhatsApp link to pay arrives if an admin confirms it.'
-          : undefined;
+          : due > 0 && hasWaitlistedPortion
+            ? 'The waitlisted portion is not charged yet. A WhatsApp link to pay arrives if an admin confirms it.'
+            : undefined;
+
+  const stayExtra = stayOutcomeExtra({
+    data,
+    outcome: stayOutcome,
+    reason,
+    onChangeReason: (t) => {
+      setReason(t);
+      if (t.trim()) setShowReasonError(false);
+    },
+    showReasonError,
+  });
 
   return (
     <BookingShell
@@ -269,16 +330,8 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
           data={data}
           audience={audience}
           validationData={validationData}
-          extras={stayOutcomeExtra({
-            data,
-            outcome: stayOutcome,
-            reason,
-            onChangeReason: (t) => {
-              setReason(t);
-              if (t.trim()) setShowReasonError(false);
-            },
-            showReasonError,
-          })}
+          extras={stayExtra?.extras}
+          hideVerdictFor={stayExtra?.hideVerdictFor}
         />
 
         {/* Charges read as part of the booking, not as part of the button. In
@@ -300,7 +353,7 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
         <CustomModal
           visible
           onClose={() => router.back()}
-          message={validationError.message}
+          message={validationError.message || 'Could not check availability. Please try again.'}
           btnText="Okay"
         />
       ) : null}

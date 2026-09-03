@@ -25,6 +25,13 @@ interface PartySectionProps {
   /** Per-row extra inputs, e.g. room type for each guest. */
   renderGuestExtras?: (index: number) => React.ReactNode;
   renderMumukshuExtras?: (index: number) => React.ReactNode;
+  /**
+   * A primitive derived from anything the extras read besides their own row —
+   * a locations list, a package list. The memoized rows ignore the render
+   * function's identity, so this key changing is what re-renders them when only
+   * that outside state changed (see GuestForm / OtherMumukshuForm).
+   */
+  extrasKey?: unknown;
   /** Shown under the switch when the audience is Myself and nothing else is asked. */
   selfNote?: string;
   className?: string;
@@ -38,6 +45,7 @@ const PartySection: React.FC<PartySectionProps> = ({
   mumukshuFormProps,
   renderGuestExtras,
   renderMumukshuExtras,
+  extrasKey,
   selfNote,
   className = '',
 }) => {
@@ -90,13 +98,13 @@ const PartySection: React.FC<PartySectionProps> = ({
       ) : null}
 
       {audience === 'guest' ? (
-        <GuestForm {...guestFormProps}>
+        <GuestForm {...guestFormProps} extrasKey={extrasKey}>
           {renderGuestExtras ? (index: number) => renderGuestExtras(index) : undefined}
         </GuestForm>
       ) : null}
 
       {audience === 'mumukshu' ? (
-        <OtherMumukshuForm {...mumukshuFormProps}>
+        <OtherMumukshuForm {...mumukshuFormProps} extrasKey={extrasKey}>
           {renderMumukshuExtras ? (index: number) => renderMumukshuExtras(index) : undefined}
         </OtherMumukshuForm>
       ) : null}

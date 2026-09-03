@@ -14,7 +14,90 @@ interface OtherMumukshuFormProps {
   addMumukshuForm: any;
   removeMumukshuForm: any;
   children?: any;
+  /**
+   * A primitive derived from anything the per-row `children` extras read BESIDES
+   * the row itself (a locations list, a package list). Rows are memoized and
+   * deliberately ignore the `children` function's identity — so when only such
+   * outside state changes, this key changing is what re-renders them. Callers
+   * whose extras depend only on the row can omit it.
+   */
+  extrasKey?: unknown;
 }
+
+interface MumukshuRowProps {
+  mumukshu: any;
+  index: number;
+  queryData: any;
+  isLoading: boolean;
+  isError: boolean;
+  error: any;
+  handleMumukshuFormChange: any;
+  removeMumukshuForm: any;
+  children: any;
+  extrasKey?: unknown;
+}
+
+const getErrorMessage = (error: any) => error?.message || 'Unable to verify this phone number';
+
+const MumukshuRow = React.memo<MumukshuRowProps>(
+  ({
+    mumukshu,
+    index,
+    queryData,
+    isLoading: isVerifyMumukshusLoading,
+    isError: isVerifyMumukshusError,
+    error,
+    handleMumukshuFormChange,
+    removeMumukshuForm,
+    children,
+  }) => {
+    const shouldShowError = isVerifyMumukshusError;
+    const errorMessage = shouldShowError ? getErrorMessage(error) : undefined;
+
+    return (
+      <View className="mt-8">
+        <View className="flex flex-row justify-between">
+          <Text className="font-psemibold text-base text-black underline">
+            Details for Mumukshu - {index + 1}
+          </Text>
+          {index !== 0 && (
+            <TouchableOpacity className="mr-3 bg-white" onPress={() => removeMumukshuForm(index)}>
+              <Image source={icons.remove} className="h-5 w-5" resizeMode="contain" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <FormField
+          text="Phone Number"
+          value={mumukshu.mobno}
+          handleChangeText={(e: any) => handleMumukshuFormChange(index, 'mobno', e)}
+          otherStyles="mt-7"
+          inputStyles="font-pmedium text-base"
+          keyboardType="number-pad"
+          placeholder="Enter Mumukshu's Phone Number"
+          maxLength={10}
+          additionalText={queryData?.issuedto}
+          error={shouldShowError}
+          errorMessage={errorMessage}
+          isLoading={isVerifyMumukshusLoading}
+        />
+        {children(index)}
+      </View>
+    );
+  },
+  (previous, next) =>
+    previous.mumukshu === next.mumukshu &&
+    previous.index === next.index &&
+    previous.queryData === next.queryData &&
+    previous.isLoading === next.isLoading &&
+    previous.isError === next.isError &&
+    previous.error === next.error &&
+    previous.handleMumukshuFormChange === next.handleMumukshuFormChange &&
+    previous.removeMumukshuForm === next.removeMumukshuForm &&
+    // `children` is deliberately NOT compared (it is a fresh closure every
+    // render); extrasKey stands in for whatever outside state it reads.
+    previous.extrasKey === next.extrasKey
+);
 
 const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
   mumukshuForm,
@@ -23,6 +106,7 @@ const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
   addMumukshuForm,
   removeMumukshuForm,
   children = () => null,
+  extrasKey,
 }) => {
   const user = useAuthStore((state) => state.user);
 
@@ -83,69 +167,25 @@ const OtherMumukshuForm: React.FC<OtherMumukshuFormProps> = ({
     // render, which made this effect run after every keystroke.
   }, [mumukshuQueries.map((q: any) => q.data?.cardno).join(','), mumukshuForm.mumukshus.length]);
 
-  // Helper function to get API error message
-  const getErrorMessage = (error: any) => {
-    if (error?.message) {
-      return error.message;
-    }
-    return 'Unable to verify this phone number';
-  };
-
   return (
     <View>
-      {mumukshuForm.mumukshus.map((mumukshu: any, index: any) => {
-        const {
-          data,
-          isLoading: isVerifyMumukshusLoading,
-          isError: isVerifyMumukshusError,
-          error,
-        } = mumukshu.mobno?.length === 10
-          ? mumukshuQueries[index]
-          : { data: null, isLoading: false, isError: false, error: null };
-
-        // Only show API errors, not validation errors
-        const shouldShowError = isVerifyMumukshusError;
-
-        const errorMessage = shouldShowError ? getErrorMessage(error) : undefined;
+      {mumukshuForm.mumukshus.map((mumukshu: any, index: number) => {
+        const query = mumukshu.mobno?.length === 10 ? mumukshuQueries[index] : undefined;
 
         return (
-          <View key={index} className="mt-8">
-            <View className="flex flex-row justify-between">
-              <Text className="font-psemibold text-base text-black underline">
-                Details for Mumukshu - {index + 1}
-              </Text>
-              {index !== 0 && (
-                <TouchableOpacity
-                  className="mr-3 bg-white"
-                  onPress={() => removeMumukshuForm(index)}>
-                  <Image source={icons.remove} className="h-5 w-5" resizeMode="contain" />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <FormField
-              text="Phone Number"
-              value={mumukshu.mobno}
-              handleChangeText={(e: any) => {
-                // const cleaned = cleanPhoneNumber(e);
-                // if (cleaned.length <= 10) {
-                //   handleMumukshuFormChange(index, 'mobno', cleaned);
-                // }
-                handleMumukshuFormChange(index, 'mobno', e);
-              }}
-              otherStyles="mt-7"
-              inputStyles="font-pmedium text-base"
-              keyboardType="number-pad"
-              placeholder="Enter Mumukshu's Phone Number"
-              // maxLength={20}
-              maxLength={10}
-              additionalText={data?.issuedto}
-              error={shouldShowError}
-              errorMessage={errorMessage}
-              isLoading={isVerifyMumukshusLoading}
-            />
-            {children(index)}
-          </View>
+          <MumukshuRow
+            key={index}
+            mumukshu={mumukshu}
+            index={index}
+            queryData={query?.data}
+            isLoading={query?.isLoading ?? false}
+            isError={query?.isError ?? false}
+            error={query?.error}
+            handleMumukshuFormChange={handleMumukshuFormChange}
+            removeMumukshuForm={removeMumukshuForm}
+            children={children}
+            extrasKey={extrasKey}
+          />
         );
       })}
       <TouchableOpacity
