@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { Modal, View, Text, TouchableOpacity } from 'react-native';
 
 interface AlertButton {
   text?: string;

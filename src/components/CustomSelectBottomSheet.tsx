@@ -282,7 +282,7 @@ const CustomSelectBottomSheet = forwardRef<
     // No setEnabled here. It toggles the ROOT KeyboardProvider's context, which
     // re-renders every screen in the app — twice per open/close. The modal has
     // its own KeyboardProvider below, so the root one needs no disabling.
-    const { height: keyboardHeight, progress } = useKeyboardAnimation();
+    const { progress } = useKeyboardAnimation();
 
     // Track keyboard visibility only while this sheet is open. Closed select
     // controls should not keep a listener on the shared keyboard animation.
@@ -308,22 +308,23 @@ const CustomSelectBottomSheet = forwardRef<
     }, [options]);
 
     // Use debounce for search to avoid performance issues with large lists
-    const debouncedSearch = useCallback(
-      debounce((query: string) => {
-        if (!options) return;
+    const debouncedSearch = useMemo(
+      () =>
+        debounce((query: string) => {
+          if (!options) return;
 
-        setIsSearching(true);
-        if (!query.trim()) {
-          setFilteredOptions(options);
-        } else {
-          const lowerQuery = query.toLowerCase().trim();
-          const filtered = options.filter((opt) =>
-            opt.value.toString().toLowerCase().includes(lowerQuery)
-          );
-          setFilteredOptions(filtered);
-        }
-        setIsSearching(false);
-      }, 300),
+          setIsSearching(true);
+          if (!query.trim()) {
+            setFilteredOptions(options);
+          } else {
+            const lowerQuery = query.toLowerCase().trim();
+            const filtered = options.filter((opt) =>
+              opt.value.toString().toLowerCase().includes(lowerQuery)
+            );
+            setFilteredOptions(filtered);
+          }
+          setIsSearching(false);
+        }, 300),
       [options]
     );
 

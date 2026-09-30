@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -110,6 +110,14 @@ const BookingDetails = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Continue writes the add-ons into the store and opens the review screen.
+  // This screen stays mounted underneath, and the store change gives it a new
+  // validation key, so without this it would re-check availability a second
+  // time behind the review screen (which runs its own check). `leaving` turns
+  // this screen's check off from the moment Continue succeeds until it is
+  // focused again; `submitLock` swallows a second tap in the same frame.
+  const [leaving, setLeaving] = useState(false);
+  const submitLock = useRef(false);
 
   const validationPayload = useMemo(() => {
     if (!user?.cardno || !mumukshuData?.primary) return null;
@@ -246,13 +254,17 @@ const BookingDetails = () => {
     queryKey: ['mumukshuValidations', user?.cardno, JSON.stringify(validationPayload)],
     queryFn: fetchValidation,
     retry: false,
-    enabled: Boolean(validationPayload),
+    enabled: Boolean(validationPayload) && !leaving,
     staleTime: 1000 * 10,
   });
 
   useFocusEffect(
     useCallback(() => {
       if (!user?.cardno) return;
+
+      // Back on this screen: allow Continue and the availability check again.
+      submitLock.current = false;
+      setLeaving(false);
 
       // Runs on entry, not on a timer. The old version deferred this by 100ms
       // and cancelled a timeout id captured from an earlier render, so the real
@@ -319,7 +331,7 @@ const BookingDetails = () => {
 
   // Optimized form submission
   const handleSubmit = useCallback(async () => {
-    if (isSubmitting) return;
+    if (submitLock.current || isSubmitting) return;
 
     if (cannotBookHere) return;
     if (reasonMissing) {
@@ -327,6 +339,7 @@ const BookingDetails = () => {
       return;
     }
 
+    submitLock.current = true;
     setIsSubmitting(true);
     let hasValidationError = false;
 
@@ -355,7 +368,8 @@ const BookingDetails = () => {
         validations.push(['room', mumukshuRoomData]);
       }
 
-      if (addonOpen.food) {
+      // A food booking IS the food. An add-on here would overwrite it.
+      if (booking !== types.FOOD_DETAILS_TYPE && addonOpen.food) {
         if (!validateFoodForm()) {
           CustomAlert.alert('Please fill all the required food fields');
           hasValidationError = true;
@@ -393,12 +407,16 @@ const BookingDetails = () => {
 
       // Navigate if no validation errors
       if (!hasValidationError) {
+        setLeaving(true);
         router.push('/booking/bookingReview');
       }
     } catch (error) {
       console.error('Error during submission:', error);
       CustomAlert.alert('An error occurred. Please try again.');
+      hasValidationError = true;
     } finally {
+      // Stay locked after a successful Continue until the screen is focused again.
+      if (hasValidationError) submitLock.current = false;
       setIsSubmitting(false);
     }
   }, [
@@ -445,13 +463,15 @@ const BookingDetails = () => {
         )}
 
         {/* FOOD BOOKING COMPONENT */}
-        <FoodAddon
-          foodForm={forms.food}
-          setFoodForm={(formData: any) => setFormValues('food', formData)}
-          isDatePickerVisible={isDatePickerVisible}
-          setDatePickerVisibility={toggleDatePicker}
-          onToggle={(isOpen) => toggleAddon('food', isOpen)}
-        />
+        {booking !== types.FOOD_DETAILS_TYPE && (
+          <FoodAddon
+            foodForm={forms.food}
+            setFoodForm={(formData: any) => setFormValues('food', formData)}
+            isDatePickerVisible={isDatePickerVisible}
+            setDatePickerVisibility={toggleDatePicker}
+            onToggle={(isOpen) => toggleAddon('food', isOpen)}
+          />
+        )}
 
         {/* ADHYAYAN BOOKING COMPONENT */}
         {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking) && (

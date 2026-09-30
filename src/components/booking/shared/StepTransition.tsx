@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import Animated, {
   Easing,
   ReduceMotion,
@@ -77,16 +77,21 @@ const StepTransition: React.FC<StepTransitionProps> = ({ stepKey, direction, chi
   // it is the right place to remember that the screen has already been on
   // screen once. Arriving on the tab is not a step change, and animating it
   // made every visit to Raj Adhyayan open with a fade it had not earned.
-  // A ref, not state: `Step` reads this only when it mounts, so flipping it
-  // needs no re-render. As state it re-rendered this screen and its whole list
-  // right after first paint, for no visual change.
-  const hasMounted = useRef(false);
-  useEffect(() => {
-    hasMounted.current = true;
-  }, []);
+  // `Step` reads `animate` only when it mounts, and it mounts anew exactly when
+  // `stepKey` changes. So "has been on screen once" is "the key has changed at
+  // least once". Noticing the change during render (React's documented
+  // derive-state-from-props pattern) sets this before the first paint of the new
+  // step, adds no extra render after first paint, and reads no ref while
+  // rendering.
+  const [seenKey, setSeenKey] = useState(stepKey);
+  const [animate, setAnimate] = useState(false);
+  if (seenKey !== stepKey) {
+    setSeenKey(stepKey);
+    setAnimate(true);
+  }
 
   return (
-    <Step key={stepKey} direction={direction} animate={hasMounted.current}>
+    <Step key={stepKey} direction={direction} animate={animate}>
       {children}
     </Step>
   );

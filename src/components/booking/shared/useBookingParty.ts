@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { status } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
@@ -41,6 +41,19 @@ interface UseBookingPartyOptions {
 const DEFAULT_GUEST = { name: '', gender: '', mobno: '', type: '' };
 const DEFAULT_MUMUKSHU = { cardno: '', mobno: '' };
 
+// What a phone lookup fills in. If the phone number changes, none of it is
+// about the same person any more; the attendee answers (package, arrival...) stay.
+const IDENTITY_KEYS = ['cardno', 'issuedto', 'name', 'gender', 'type', 'res_status', 'mobno'];
+
+const withPhoneChange = (row: any, template: Record<string, any>, value: any) => {
+  if (!row.cardno) return { ...row, mobno: value };
+  const kept: Record<string, any> = {};
+  for (const key of Object.keys(row)) {
+    if (!IDENTITY_KEYS.includes(key) && key in template) kept[key] = row[key];
+  }
+  return { ...template, ...kept, mobno: value };
+};
+
 const tenDigits = (v: any) => Boolean(v) && String(v).length === 10;
 
 export function useBookingParty({
@@ -54,32 +67,40 @@ export function useBookingParty({
   const user = useAuthStore((s: any) => s.user);
 
   // A card issued to a guest may only ever book for itself.
+  // `allow` is usually an inline array, a new identity every render. Its
+  // contents are what matter, so key on the joined string.
+  const allowKey = allow.join(',');
   const audiences = useMemo<Audience[]>(
-    () => (user?.res_status === status.STATUS_GUEST ? ['self'] : allow),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user?.res_status, allow.join(',')]
+    () =>
+      user?.res_status === status.STATUS_GUEST ? ['self'] : (allowKey.split(',') as Audience[]),
+    [user?.res_status, allowKey]
   );
 
   const [audience, setAudience] = useState<Audience>(audiences[0]);
 
-  const initialGuest = useMemo(
-    () => ({ ...shared, guests: [{ ...guestTemplate }] }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
-  const initialMumukshu = useMemo(
-    () => ({ ...shared, mumukshus: [{ ...mumukshuTemplate }] }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
+  // The templates and shared fields are usually inline objects, a new identity
+  // every render, so the callbacks below must not depend on them. They read the
+  // latest values through this ref instead. It is written in an effect (never
+  // during render) and only read inside event handlers, after commit.
+  const latest = useRef({ shared, guestTemplate, mumukshuTemplate });
+  useEffect(() => {
+    latest.current = { shared, guestTemplate, mumukshuTemplate };
+  });
 
-  const [guestForm, setGuestForm] = useState<any>(initialGuest);
-  const [mumukshuForm, setMumukshuForm] = useState<any>(initialMumukshu);
-  const [selfForm, setSelfForm] = useState<any>({ ...shared });
+  // Lazy initialisers: run once, on the first render only.
+  const [guestForm, setGuestForm] = useState<any>(() => ({
+    ...shared,
+    guests: [{ ...guestTemplate }],
+  }));
+  const [mumukshuForm, setMumukshuForm] = useState<any>(() => ({
+    ...shared,
+    mumukshus: [{ ...mumukshuTemplate }],
+  }));
+  const [selfForm, setSelfForm] = useState<any>(() => ({ ...shared }));
 
   const addGuestForm = useCallback(() => {
-    setGuestForm((prev: any) => ({ ...prev, guests: [...prev.guests, { ...guestTemplate }] }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const template = latest.current.guestTemplate;
+    setGuestForm((prev: any) => ({ ...prev, guests: [...prev.guests, { ...template }] }));
   }, []);
 
   const removeGuestForm = useCallback((index: number) => {
@@ -90,20 +111,25 @@ export function useBookingParty({
   }, []);
 
   const handleGuestFormChange = useCallback((index: number, field: string, value: any) => {
+    const template = latest.current.guestTemplate;
     setGuestForm((prev: any) => ({
       ...prev,
       guests: prev.guests.map((row: any, i: number) =>
-        i === index ? { ...row, [field]: value } : row
+        i !== index
+          ? row
+          : field === 'mobno' && value !== row.mobno
+            ? withPhoneChange(row, template, value)
+            : { ...row, [field]: value }
       ),
     }));
   }, []);
 
   const addMumukshuForm = useCallback(() => {
+    const template = latest.current.mumukshuTemplate;
     setMumukshuForm((prev: any) => ({
       ...prev,
-      mumukshus: [...prev.mumukshus, { ...mumukshuTemplate }],
+      mumukshus: [...prev.mumukshus, { ...template }],
     }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const removeMumukshuForm = useCallback((index: number) => {
@@ -114,10 +140,15 @@ export function useBookingParty({
   }, []);
 
   const handleMumukshuFormChange = useCallback((index: number, field: string, value: any) => {
+    const template = latest.current.mumukshuTemplate;
     setMumukshuForm((prev: any) => ({
       ...prev,
       mumukshus: prev.mumukshus.map((row: any, i: number) =>
-        i === index ? { ...row, [field]: value } : row
+        i !== index
+          ? row
+          : field === 'mobno' && value !== row.mobno
+            ? withPhoneChange(row, template, value)
+            : { ...row, [field]: value }
       ),
     }));
   }, []);
@@ -142,11 +173,11 @@ export function useBookingParty({
   }, []);
 
   const reset = useCallback(() => {
-    setGuestForm({ ...shared, guests: [{ ...guestTemplate }] });
-    setMumukshuForm({ ...shared, mumukshus: [{ ...mumukshuTemplate }] });
-    setSelfForm({ ...shared });
+    const current = latest.current;
+    setGuestForm({ ...current.shared, guests: [{ ...current.guestTemplate }] });
+    setMumukshuForm({ ...current.shared, mumukshus: [{ ...current.mumukshuTemplate }] });
+    setSelfForm({ ...current.shared });
     setAudience(audiences[0]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audiences]);
 
   // A guest row identified by an existing card only needs a phone number; a new

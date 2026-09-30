@@ -1,8 +1,7 @@
-import { FontAwesome } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { View, Text, Alert } from 'react-native';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -74,15 +73,18 @@ const GuestAddons = () => {
     food: false,
   });
 
-  // Get all guests from existing data
+  // Get all guests from existing data. Food and flat bookings keep their guests
+  // too — without them a food booking had an empty guest list for add-ons.
   const guests = useMemo(() => {
     return (
       guestData.room?.guestGroup?.flatMap((group: any) => group.guests) ||
       guestData.adhyayan?.guestGroup ||
       guestData.utsav?.guests ||
+      guestData.flat?.guests ||
+      guestData.food?.guestGroup?.flatMap((group: any) => group.guests) ||
       []
     );
-  }, [guestData.room, guestData.adhyayan, guestData.utsav]);
+  }, [guestData.room, guestData.adhyayan, guestData.utsav, guestData.flat, guestData.food]);
 
   // Create dropdown options for guests
   const guest_dropdown = useMemo(() => {
@@ -213,6 +215,15 @@ const GuestAddons = () => {
     setDatePickerVisibility((prev) => ({ ...prev, [pickerType]: isVisible }));
   }, []);
 
+  // Continue writes the add-ons into the store and opens the review screen.
+  // This screen stays mounted underneath, and the store change gives it a new
+  // validation key, so without `leaving` it would re-check availability a second
+  // time behind the review screen (which runs its own check). `submitLock`
+  // swallows a second tap in the same frame. Both reset when this screen is
+  // focused again.
+  const [leaving, setLeaving] = useState(false);
+  const submitLock = useRef(false);
+
   // Prepare API payload. Without a primary booking the builder throws
   // (`Unsupported primary booking type: undefined`), and this memo runs during
   // render — guard it the same way the self screen does.
@@ -242,23 +253,19 @@ const GuestAddons = () => {
     });
   }, [transformedData, setGuestData]);
 
-  const {
-    isLoading: isValidationDataLoading,
-    isError: isValidationDataError,
-    error: validationDataError,
-    data: validationData,
-    refetch: refetchValidation,
-  } = useQuery({
+  const { error: validationDataError, refetch: refetchValidation } = useQuery({
     queryKey: ['guestValidations', user.cardno, JSON.stringify(transformedData)],
     queryFn: fetchValidation,
     retry: false,
-    enabled: Boolean(transformedData),
+    enabled: Boolean(transformedData) && !leaving,
   });
 
   // Force refetch validation when screen comes into focus and clean up addons
   useFocusEffect(
     useCallback(() => {
       if (user.cardno) {
+        submitLock.current = false;
+        setLeaving(false);
         // Clean up addon data when coming back from guest booking confirmation
         // Only keep the main booking data based on the booking type
         let cleaned = false;
@@ -490,6 +497,9 @@ const GuestAddons = () => {
 
   // Handle form submission
   const handleSubmit = useCallback(() => {
+    if (submitLock.current) return;
+    submitLock.current = true;
+    let failed = true;
     setIsSubmitting(true);
     // try/finally, because every validation failure returns early. Without it
     // isSubmitting stayed true, CustomButton stayed disabled, and the member
@@ -505,7 +515,8 @@ const GuestAddons = () => {
       }
 
       // Validate and set Food Form data
-      if (addonOpen.food) {
+      // A food booking IS the food. An add-on here would overwrite it.
+      if (booking !== types.FOOD_DETAILS_TYPE && addonOpen.food) {
         if (!validateFoodForm()) {
           CustomAlert.alert('Please fill all the food booking fields');
           return;
@@ -522,8 +533,12 @@ const GuestAddons = () => {
         setGuestData((prev: any) => ({ ...prev, adhyayan: adhyayanForm }));
       }
 
+      failed = false;
+      setLeaving(true);
       router.push('/guestBooking/bookingReview');
     } finally {
+      // Stay locked after a successful Continue until the screen is focused again.
+      if (failed) submitLock.current = false;
       setIsSubmitting(false);
     }
   }, [
@@ -614,18 +629,20 @@ const GuestAddons = () => {
             )}
 
             {/* GUEST FOOD BOOKING COMPONENT */}
-            <GuestFoodAddon
-              foodForm={foodForm}
-              setFoodForm={setFoodForm}
-              addFoodForm={addFoodForm}
-              resetFoodForm={resetFoodForm}
-              reomveFoodForm={removeFoodForm}
-              updateFoodForm={updateFoodForm}
-              guest_dropdown={guest_dropdown}
-              isDatePickerVisible={isDatePickerVisible}
-              setDatePickerVisibility={toggleDatePicker}
-              onToggle={(isOpen) => toggleAddon('food', isOpen)}
-            />
+            {booking !== types.FOOD_DETAILS_TYPE && (
+              <GuestFoodAddon
+                foodForm={foodForm}
+                setFoodForm={setFoodForm}
+                addFoodForm={addFoodForm}
+                resetFoodForm={resetFoodForm}
+                reomveFoodForm={removeFoodForm}
+                updateFoodForm={updateFoodForm}
+                guest_dropdown={guest_dropdown}
+                isDatePickerVisible={isDatePickerVisible}
+                setDatePickerVisibility={toggleDatePicker}
+                onToggle={(isOpen) => toggleAddon('food', isOpen)}
+              />
+            )}
 
             {/* GUEST ADHYAYAN BOOKING COMPONENT */}
             {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking) && (

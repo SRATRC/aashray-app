@@ -1,14 +1,14 @@
-import { useFocusEffect } from 'expo-router';
 import moment from 'moment';
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text } from 'react-native';
 
 import BookingShell from './shared/BookingShell';
-import FieldGroup, { FieldRow } from './shared/FieldGroup';
+import FieldGroup from './shared/FieldGroup';
 import ModeSwitch from './shared/ModeSwitch';
 import PartySection from './shared/PartySection';
 import useBookingParty from './shared/useBookingParty';
 import useBookingSubmit from './shared/useBookingSubmit';
+import useResetOnLeave from './shared/useResetOnLeave';
 
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
 import StayCalendar from '@/src/components/stay/StayCalendar';
@@ -57,13 +57,10 @@ const RoomBooking = () => {
 
   const { submit, isSubmitting } = useBookingSubmit();
 
-  useFocusEffect(
-    useCallback(() => {
-      party.reset();
-      setResetKey((k) => k + 1);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
-  );
+  useResetOnLeave(() => {
+    party.reset();
+    setResetKey((k) => k + 1);
+  });
 
   const { form, audience, user, setSharedField, setSharedFields } = party;
   const startDay = form.startDay;
@@ -132,7 +129,7 @@ const RoomBooking = () => {
                 {
                   cardno: user.cardno,
                   mobno: user.mobno,
-                  issuedto: user.name,
+                  issuedto: user.issuedto,
                   gender: user.gender,
                   res_status: user.res_status,
                   roomType: f.roomType,

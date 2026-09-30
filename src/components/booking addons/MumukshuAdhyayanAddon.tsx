@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import React, { useCallback } from 'react';
-import { View, Text, Image, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator } from 'react-native';
 
 import AddonItem from '../AddonItem';
 import CustomEmptyMessage from '../CustomEmptyMessage';

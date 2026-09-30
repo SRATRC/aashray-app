@@ -20,7 +20,12 @@ export default function useResetOnLeave(reset: () => void) {
   // callers pass an inline arrow, and re-subscribing on every render would
   // cancel a pending reset each time the screen re-rendered.
   const resetRef = useRef(reset);
-  resetRef.current = reset;
+  // Written in an effect, not during render: a ref must not change while React
+  // is rendering (the React Compiler refuses such a component). The reset only
+  // ever runs after a navigation, long after this effect has committed.
+  useEffect(() => {
+    resetRef.current = reset;
+  });
 
   const pending = useRef<{ cancel: () => void } | null>(null);
 

@@ -10,7 +10,7 @@ import FlatBooking from '@/src/components/booking/FlatBooking';
 import FoodBooking from '@/src/components/booking/FoodBooking';
 import RoomBooking from '@/src/components/booking/RoomBooking';
 import TravelBooking from '@/src/components/booking/TravelBooking';
-import { colors, types } from '@/src/constants';
+import { types } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
 
 /**
@@ -44,9 +44,12 @@ const BookNow: React.FC = () => {
     return user?.isFlatOwner ? [...base, types.booking_type_flat] : base;
   }, [user?.isFlatOwner]);
 
-  const [active, setActive] = useState<string>(
-    () => TYPE_BY_KEY[String(type ?? '')] ?? types.booking_type_adhyayan
-  );
+  // ?type=flat only opens the flat form for a flat owner; anyone else lands on
+  // the default tab instead of a form the backend would refuse.
+  const [active, setActive] = useState<string>(() => {
+    const requested = TYPE_BY_KEY[String(type ?? '')];
+    return requested && tabs.includes(requested) ? requested : types.booking_type_adhyayan;
+  });
 
   // A later deep link should move the picker even if the tab is already mounted.
   useEffect(() => {
@@ -72,7 +75,9 @@ const BookNow: React.FC = () => {
 
       <View className="flex-1">
         {active === types.booking_type_room ? <RoomBooking /> : null}
-        {active === types.booking_type_flat ? <FlatBooking /> : null}
+        {active === types.booking_type_flat && tabs.includes(types.booking_type_flat) ? (
+          <FlatBooking />
+        ) : null}
         {active === types.booking_type_food ? <FoodBooking /> : null}
         {active === types.booking_type_travel ? <TravelBooking /> : null}
         {active === types.booking_type_adhyayan ? <AdhyayanBooking /> : null}

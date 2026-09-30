@@ -6,7 +6,11 @@ import { View, Text, Pressable } from 'react-native';
 
 import { colors, surfaces } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import {
+  fetchPendingPayments,
+  isTransactionExpiredAt,
+  pendingPaymentsQueryKey,
+} from '@/src/utils/pendingPayments';
 
 /**
  * An unpaid booking, on the home screen.
@@ -17,25 +21,6 @@ import handleAPICall from '@/src/utils/HandleApiCall';
  * Info". It renders nothing when there is nothing to pay.
  */
 
-interface Transaction {
-  amount?: number | string;
-  status?: string;
-}
-
-const fetchPending = (cardno: string): Promise<Transaction[]> =>
-  new Promise((resolve, reject) => {
-    handleAPICall(
-      'GET',
-      '/profile/transactions',
-      { cardno, page: 1, page_size: 100, status: 'pending,cash pending,failed' },
-      null,
-      (res: any) => resolve(res?.data ?? (Array.isArray(res) ? res : [])),
-      () => {},
-      () => reject(new Error('Failed to fetch transactions')),
-      false
-    );
-  });
-
 const money = (n: number) => `₹${n.toLocaleString('en-IN')}`;
 
 const PendingPaymentAlert: React.FC<{ className?: string }> = ({ className = '' }) => {
@@ -44,12 +29,15 @@ const PendingPaymentAlert: React.FC<{ className?: string }> = ({ className = '' 
   const cardno = user?.cardno;
 
   const { data } = useQuery({
-    queryKey: ['pendingPayments', cardno],
-    queryFn: () => fetchPending(cardno),
+    queryKey: pendingPaymentsQueryKey(cardno),
+    queryFn: () => fetchPendingPayments(cardno),
     enabled: Boolean(cardno),
   });
 
-  const pending = data ?? [];
+  // An expired payment can no longer be paid (the backend cancels the booking
+  // after 24h), so it is neither counted nor added to the total due.
+  const now = Date.now();
+  const pending = (data ?? []).filter((t) => !isTransactionExpiredAt(t, now, user?.country));
   const total = pending.reduce((sum, t) => sum + (Number(t?.amount) || 0), 0);
 
   if (pending.length === 0) return null;

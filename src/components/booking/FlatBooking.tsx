@@ -1,4 +1,3 @@
-import { useFocusEffect } from 'expo-router';
 import moment from 'moment';
 import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
@@ -7,6 +6,7 @@ import BookingShell from './shared/BookingShell';
 import PartySection from './shared/PartySection';
 import useBookingParty from './shared/useBookingParty';
 import useBookingSubmit from './shared/useBookingSubmit';
+import useResetOnLeave from './shared/useResetOnLeave';
 
 import StayCalendar from '@/src/components/stay/StayCalendar';
 import { types } from '@/src/constants';
@@ -28,13 +28,10 @@ const FlatBooking = () => {
   });
   const { submit, isSubmitting } = useBookingSubmit();
 
-  useFocusEffect(
-    useCallback(() => {
-      party.reset();
-      setResetKey((k) => k + 1);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
-  );
+  useResetOnLeave(() => {
+    party.reset();
+    setResetKey((k) => k + 1);
+  });
 
   const { form, audience, setSharedField, setSharedFields } = party;
 

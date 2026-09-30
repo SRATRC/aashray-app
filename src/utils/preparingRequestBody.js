@@ -161,7 +161,8 @@ export const prepareGuestRequestBody = (user, input) => {
           details: {
             checkin_date: primaryData.startDay,
             checkout_date: primaryData.endDay,
-            guests: primaryData.guests,
+            // The backend validates cards, not guest objects.
+            guests: primaryData.guests.map((guest) => guest.cardno),
             ...(primaryData.extra_stay_reason && {
               extra_stay_reason: primaryData.extra_stay_reason,
             }),
@@ -299,10 +300,7 @@ export const prepareMumukshuRequestBody = (user, input) => {
       if (group.pickup) transformed.pickup_point = group.pickup;
       if (group.drop) transformed.drop_point = group.drop;
       if (group.arrival_time) transformed.arrival_time = group.arrival_time;
-      if (group.adhyayan)
-        group.adhyayan == 'No'
-          ? (transformed.leaving_post_adhyayan = 0)
-          : (transformed.leaving_post_adhyayan = 1);
+      if (group.adhyayan) transformed.leaving_post_adhyayan = group.adhyayan == 'No' ? 0 : 1;
       if (group.luggage) {
         transformed.luggage = group.luggage.length > 0 ? group.luggage.join(', ') : '';
       }

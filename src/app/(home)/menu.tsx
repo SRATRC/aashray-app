@@ -45,7 +45,6 @@ const MenuPage = () => {
   const {
     isLoading,
     isError,
-    error,
     data: menuData,
     refetch,
     isRefetching,

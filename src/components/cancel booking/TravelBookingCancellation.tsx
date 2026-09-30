@@ -24,6 +24,7 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import BookingStatusDisplay from '../BookingStatusDisplay';
 import moment from 'moment';
+import { invalidatePostBookingQueries } from '@/src/utils/queryInvalidation';
 
 const TravelBookingCancellation = () => {
   const user = useAuthStore((state) => state.user);
@@ -56,25 +57,17 @@ const TravelBookingCancellation = () => {
     });
   };
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    status: queryStatus,
-    isLoading,
-    isError,
-    refetch,
-  }: any = useInfiniteQuery({
-    queryKey: ['travelBooking', user.cardno],
-    queryFn: fetchTravels,
-    initialPageParam: 1,
-    staleTime: 1000 * 60 * 5,
-    getNextPageParam: (lastPage: any, pages: any) => {
-      if (!lastPage || !Array.isArray(lastPage) || lastPage.length === 0) return undefined;
-      return (pages?.length || 0) + 1;
-    },
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch }: any =
+    useInfiniteQuery({
+      queryKey: ['travelBooking', user.cardno],
+      queryFn: fetchTravels,
+      initialPageParam: 1,
+      staleTime: 1000 * 60 * 5,
+      getNextPageParam: (lastPage: any, pages: any) => {
+        if (!lastPage || !Array.isArray(lastPage) || lastPage.length === 0) return undefined;
+        return (pages?.length || 0) + 1;
+      },
+    });
 
   const cancelBookingMutation = useMutation({
     mutationFn: (bookingid) => {
@@ -95,6 +88,8 @@ const TravelBookingCancellation = () => {
       });
     },
     onSuccess: (_, bookingid) => {
+      // Freed dates, seats and dues show up on home, blocked dates and the other lists.
+      invalidatePostBookingQueries(queryClient);
       queryClient.setQueryData(['travelBooking', user.cardno], (oldData: any) => {
         if (!oldData || !oldData.pages) return oldData;
 

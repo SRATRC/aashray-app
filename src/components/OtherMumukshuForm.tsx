@@ -5,7 +5,6 @@ import { useQueries } from '@tanstack/react-query';
 import { useAuthStore } from '@/src/stores';
 import FormField from './FormField';
 import handleAPICall from '../utils/HandleApiCall';
-import { cleanPhoneNumber } from '../utils/phoneUtils';
 
 interface OtherMumukshuFormProps {
   mumukshuForm: any;

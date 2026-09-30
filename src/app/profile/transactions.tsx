@@ -21,7 +21,7 @@ import moment from 'moment';
 
 const Transactions = () => {
   const user = useAuthStore((state) => state.user);
-  const [selectedChip, setSelectedChip] = useState('all');
+  const [selectedChip] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchTransactions = async ({ pageParam = 1 }) => {

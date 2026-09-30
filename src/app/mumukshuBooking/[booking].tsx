@@ -1,8 +1,7 @@
-import { FontAwesome } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { useState, useMemo, useCallback, useEffect } from 'react';
-import { View, Text, Alert } from 'react-native';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -265,6 +264,15 @@ const MumukshuAddons = () => {
     setDatePickerVisibility((prev) => ({ ...prev, [pickerType]: isVisible }));
   }, []);
 
+  // Continue writes the add-ons into the store and opens the review screen.
+  // This screen stays mounted underneath, and the store change gives it a new
+  // validation key, so without `leaving` it would re-check availability a second
+  // time behind the review screen (which runs its own check). `submitLock`
+  // swallows a second tap in the same frame. Both reset when this screen is
+  // focused again.
+  const [leaving, setLeaving] = useState(false);
+  const submitLock = useRef(false);
+
   // API validation state and handler. Without a primary booking the builder
   // throws (`Unsupported primary booking type: undefined`), and this memo runs
   // during render — guard it the same way the self screen does.
@@ -295,23 +303,19 @@ const MumukshuAddons = () => {
     });
   }, [transformedData, setMumukshuData]);
 
-  const {
-    isLoading: isValidationDataLoading,
-    isError: isValidationDataError,
-    error: validationDataError,
-    data: validationData,
-    refetch: refetchValidation,
-  } = useQuery({
+  const { error: validationDataError, refetch: refetchValidation } = useQuery({
     queryKey: ['mumukshuValidations', user.cardno, JSON.stringify(transformedData)],
     queryFn: fetchValidation,
     retry: false,
-    enabled: Boolean(transformedData),
+    enabled: Boolean(transformedData) && !leaving,
   });
 
   // Force refetch validation when screen comes into focus and clean up addons
   useFocusEffect(
     useCallback(() => {
       if (user.cardno) {
+        submitLock.current = false;
+        setLeaving(false);
         // Clean up addon data when coming back from mumukshu booking confirmation
         // Only keep the main booking data based on the booking type
         let cleaned = false;
@@ -639,6 +643,8 @@ const MumukshuAddons = () => {
 
   // Form submission handler
   const handleSubmit = useCallback(() => {
+    if (submitLock.current) return;
+    submitLock.current = true;
     setIsSubmitting(true);
     let hasValidationError = false;
 
@@ -654,7 +660,8 @@ const MumukshuAddons = () => {
       }
 
       // Validate and set Food Form data
-      if (addonOpen.food) {
+      // A food booking IS the food. An add-on here would overwrite it.
+      if (booking !== types.FOOD_DETAILS_TYPE && addonOpen.food) {
         if (!validateFoodForm()) {
           CustomAlert.alert('Please fill all the food booking fields');
           hasValidationError = true;
@@ -685,9 +692,12 @@ const MumukshuAddons = () => {
 
       // If no validation errors, navigate to confirmation page
       if (!hasValidationError) {
+        setLeaving(true);
         router.push('/mumukshuBooking/bookingReview');
       }
     } finally {
+      // Stay locked after a successful Continue until the screen is focused again.
+      if (hasValidationError) submitLock.current = false;
       setIsSubmitting(false);
     }
   }, [
@@ -781,18 +791,20 @@ const MumukshuAddons = () => {
             )}
 
             {/* MUMUKSHU FOOD BOOKING COMPONENT */}
-            <MumukshuFoodAddon
-              foodForm={foodForm}
-              setFoodForm={setFoodForm}
-              addFoodForm={addFoodForm}
-              resetFoodForm={resetFoodForm}
-              reomveFoodForm={removeFoodForm}
-              updateFoodForm={updateFoodForm}
-              mumukshu_dropdown={mumukshu_dropdown}
-              isDatePickerVisible={isDatePickerVisible}
-              setDatePickerVisibility={toggleDatePicker}
-              onToggle={(isOpen) => toggleAddon('food', isOpen)}
-            />
+            {booking !== types.FOOD_DETAILS_TYPE && (
+              <MumukshuFoodAddon
+                foodForm={foodForm}
+                setFoodForm={setFoodForm}
+                addFoodForm={addFoodForm}
+                resetFoodForm={resetFoodForm}
+                reomveFoodForm={removeFoodForm}
+                updateFoodForm={updateFoodForm}
+                mumukshu_dropdown={mumukshu_dropdown}
+                isDatePickerVisible={isDatePickerVisible}
+                setDatePickerVisibility={toggleDatePicker}
+                onToggle={(isOpen) => toggleAddon('food', isOpen)}
+              />
+            )}
 
             {/* MUMUKSHU ADHYAYAN BOOKING COMPONENT */}
             {!(booking === types.ADHYAYAN_DETAILS_TYPE || booking === types.EVENT_DETAILS_TYPE) && (

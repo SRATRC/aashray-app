@@ -6,10 +6,13 @@ import { View, Text, RefreshControl, ActivityIndicator } from 'react-native';
 
 import BookingShell from './shared/BookingShell';
 import CatalogueCard from './shared/CatalogueCard';
-import FieldGroup from './shared/FieldGroup';
 import PartySection from './shared/PartySection';
 import StepTransition from './shared/StepTransition';
-import UtsavAttendeeFields, { attendeeValid, packageOptions } from './shared/UtsavAttendeeFields';
+import UtsavAttendeeFields, {
+  ATTENDEE_DEFAULTS,
+  attendeeValid,
+  packageOptions,
+} from './shared/UtsavAttendeeFields';
 import { utsavCardProps } from './shared/catalogueCards';
 import { isUtsavFull } from './shared/catalogueStatus';
 import useBookingParty from './shared/useBookingParty';
@@ -17,8 +20,6 @@ import useBookingSubmit from './shared/useBookingSubmit';
 import useResetOnLeave from './shared/useResetOnLeave';
 
 import CustomEmptyMessage from '@/src/components/CustomEmptyMessage';
-import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
-import FormField from '@/src/components/FormField';
 import { types } from '@/src/constants';
 import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import { useAuthStore } from '@/src/stores';
@@ -32,15 +33,6 @@ import { formatSectionMonth } from '@/src/utils/formatSectionMonth';
  * can help with. Those questions are the same for the member, a guest and a
  * mumukshu, so they are written once.
  */
-
-const ATTENDEE_DEFAULTS = {
-  package: null,
-  package_name: '',
-  arrival: null,
-  carno: '',
-  volunteer: null,
-  other: null,
-};
 
 const EventsBooking = () => {
   const router = useRouter();
@@ -137,7 +129,7 @@ const EventsBooking = () => {
                       {
                         cardno: user.cardno,
                         mobno: user.mobno,
-                        issuedto: user.name,
+                        issuedto: user.issuedto,
                         gender: user.gender,
                         res_status: user.res_status,
                         package: f.package,

@@ -24,6 +24,7 @@ import BottomSheetFilter from '../BottomSheetFilter';
 import moment from 'moment';
 import * as Haptics from 'expo-haptics';
 import { ShadowBox } from '../ShadowBox';
+import { invalidatePostBookingQueries } from '@/src/utils/queryInvalidation';
 
 const FOOD_TYPE_LIST = [
   { key: 'breakfast', value: 'Breakfast' },
@@ -149,7 +150,7 @@ export default function FoodBookingCancellation() {
     });
   };
 
-  const { data: guestList, isLoading: isLoadingGuest } = useQuery<any[]>({
+  const { data: guestList } = useQuery<any[]>({
     queryKey: ['foodGuestList', user.cardno],
     queryFn: fetchGuests,
     staleTime: 1000 * 60 * 60 * 2,
@@ -170,16 +171,7 @@ export default function FoodBookingCancellation() {
     },
     onSuccess: () => {
       setSelectedItems([]);
-      queryClient.invalidateQueries({
-        queryKey: [
-          'foodBooking',
-          user.cardno,
-          filter.date,
-          filter.meal?.key,
-          filter.spice?.key,
-          filter.bookedFor?.key,
-        ],
-      });
+      invalidatePostBookingQueries(queryClient);
     },
   });
 

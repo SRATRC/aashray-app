@@ -120,6 +120,10 @@ export const initialMonthKey = (minDate?: string) =>
     .startOf('month')
     .format('YYYY-MM');
 
+/** Merges each requested month's answer into one day map; a later month wins on overlap. */
+const mergeMonthResults = (results: { data?: DayMap }[]): DayMap =>
+  Object.assign({}, ...results.map((r) => r.data || {})) as DayMap;
+
 /** Key and fetcher together — see the note on `nextStayQuery`. */
 export const blockedDatesQuery = (cardno: string, monthKey: string) => ({
   queryKey: ['blockedDates', cardno, monthKey],
@@ -167,21 +171,17 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
   // cache, so leaving the screen and coming back does not refetch them.
   const [months, setMonths] = useState<string[]>(() => [initialMonthKey(minDate)]);
 
-  const results = useQueries({
+  // A month request covers the next one too, so consecutive months overlap and
+  // the later answer simply wins. `combine` merges them inside React Query, which
+  // only re-runs it when a month's result changes; the merged map is therefore as
+  // stable as the data (no hand-keyed memo with a suppressed hooks lint).
+  const dayMap = useQueries({
     queries: months.map((monthKey) => ({
       ...blockedDatesQuery(cardno, monthKey),
       enabled: Boolean(cardno) && !dayMapOverride,
     })),
+    combine: mergeMonthResults,
   });
-
-  // A month request covers the next one too, so consecutive months overlap and
-  // the later answer simply wins.
-  const signature = results.map((r) => r.dataUpdatedAt).join(',');
-  const dayMap = useMemo(
-    () => Object.assign({}, ...results.map((r) => r.data || {})) as DayMap,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [signature]
-  );
 
   const effectiveMap = dayMapOverride ?? dayMap;
 
@@ -189,22 +189,6 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
     const monthKey = moment(anchorDateString).startOf('month').format('YYYY-MM');
     setMonths((prev) => (prev.includes(monthKey) ? prev : [...prev, monthKey]));
   }, []);
-
-  // Last selectable day before the first blocking day at or after `from`.
-  const lastSelectableFrom = useCallback(
-    (from: string) => {
-      const cursor = moment(from);
-      let last = from;
-      for (let i = 0; i < 120; i += 1) {
-        cursor.add(1, 'days');
-        const key = cursor.format('YYYY-MM-DD');
-        if (isBlocking(effectiveMap[key])) return last;
-        last = key;
-      }
-      return last;
-    },
-    [effectiveMap]
-  );
 
   const firstBlockingFrom = useCallback(
     (from: string) => {
@@ -277,9 +261,17 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
       const key = day.dateString;
       const info = effectiveMap[key];
 
+      // The first blocked day after check-in is a valid CHECKOUT: the stay ends
+      // that morning, so only the nights before it are booked (the backend checks
+      // the half-open range [checkin, checkout)). Only that one day; anything
+      // past it would cross the block.
+      const pickingCheckout = mode === 'period' && Boolean(startDay) && !endDay && key > startDay!;
+      const isFirstBlockerCheckout =
+        pickingCheckout && isBlocking(info) && firstBlockingFrom(startDay!)?.date === key;
+
       // A blocked day explains itself in place. No toast: a toast disappears
       // before it is read, and two of them stack.
-      if (isBlocking(info)) {
+      if (isBlocking(info) && !isFirstBlockerCheckout) {
         const span = blockedSpanFrom(key);
         showNote({
           tone: 'blocked',
@@ -308,16 +300,14 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
         return;
       }
 
-      // A range that would cross a blocked day CLAMPS to the last selectable day
-      // and says so. The old behavior threw the end date away with a toast, which
-      // made the member guess where the wall was. When the wall is the very next
-      // day the clamp would collapse to the check-in itself — a 0-night stay the
-      // member never asked for — so the checkout stays unpicked instead.
+      // A range that would cross a blocked day CLAMPS to the last valid checkout
+      // and says so. That is the first blocked day itself: the member leaves the
+      // morning it closes. The old behavior threw the end date away with a toast,
+      // which made the member guess where the wall was.
       const blocker = firstBlockingFrom(startDay);
-      if (blocker && blocker.date <= key) {
-        const clamped = lastSelectableFrom(startDay);
+      if (blocker && blocker.date < key) {
         const span = blockedSpanFrom(blocker.date);
-        setEndDay?.(clamped !== startDay ? clamped : null);
+        setEndDay?.(blocker.date);
         showNote({
           tone: 'blocked',
           text: describeClosure(span, blocker.info?.reason),
@@ -348,7 +338,6 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
       setEndDay,
       blockedSpanFrom,
       firstBlockingFrom,
-      lastSelectableFrom,
       utsavSpanInside,
       showNote,
     ]
@@ -405,6 +394,8 @@ const StayCalendar: React.FC<StayCalendarProps> = ({
           ...MARKING_STYLE,
           ...(key === startDay ? { startingDay: true } : {}),
           ...(key === last ? { endingDay: true } : {}),
+          // A checkout that lands on the first blocked day is chosen, not closed.
+          ...(key === endDay ? { disabled: false } : {}),
         };
         cursor.add(1, 'days');
       }

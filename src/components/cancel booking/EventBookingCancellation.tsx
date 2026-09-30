@@ -23,6 +23,7 @@ import CustomEmptyMessage from '../CustomEmptyMessage';
 import BookingStatusDisplay from '../BookingStatusDisplay';
 import moment from 'moment';
 import { useRouter } from 'expo-router';
+import { invalidatePostBookingQueries } from '@/src/utils/queryInvalidation';
 
 const EventBookingCancellation = () => {
   const user = useAuthStore((state) => state.user);
@@ -86,6 +87,8 @@ const EventBookingCancellation = () => {
       });
     },
     onSuccess: (_, { bookingid }) => {
+      // Freed dates, seats and dues show up on home, blocked dates and the other lists.
+      invalidatePostBookingQueries(queryClient);
       queryClient.setQueryData(['utsavBooking', user?.cardno], (oldData: any) => {
         if (!oldData || !oldData.pages) return oldData;
 

@@ -51,6 +51,16 @@ const scrubSensitiveData = (value) => {
   return value;
 };
 
+// Default request timeout. Bounded so a hung request cannot pin a spinner.
+export const DEFAULT_TIMEOUT_MS = 30000;
+// Booking and payment calls create money-bearing records and the backend may
+// wait on WhatsApp/Razorpay before answering, so they get a much longer window.
+export const LONG_TIMEOUT_MS = 120000;
+
+// axios reports a client-side timeout as ECONNABORTED (or ETIMEDOUT).
+export const isTimeoutError = (error) =>
+  error?.code === 'ECONNABORTED' || error?.code === 'ETIMEDOUT';
+
 const handleAPICall = async (
   method,
   endpoint,
@@ -58,8 +68,9 @@ const handleAPICall = async (
   body,
   successCallback,
   finallyCallback = () => {},
-  errorCallback = (error) => {},
-  allowToast = true
+  errorCallback = (_error) => {},
+  allowToast = true,
+  { timeout = DEFAULT_TIMEOUT_MS } = {}
 ) => {
   const requestId = generateRequestId();
 
@@ -110,9 +121,9 @@ const handleAPICall = async (
       params,
       data,
       headers,
-      // Generous enough for image uploads on a slow connection, but bounded:
-      // without it a hung request pins submit spinners forever.
-      timeout: 30000,
+      // Bounded: without it a hung request pins submit spinners forever.
+      // Callers with slow-but-legitimate requests pass a longer `timeout`.
+      timeout,
       validateStatus: () => true,
     });
 
@@ -137,6 +148,7 @@ const handleAPICall = async (
     const errorDetails = {
       message: errorMessage,
       status,
+      isTimeout: isTimeoutError(error),
       data: responseData,
       correlationId,
       originalError: error,

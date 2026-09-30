@@ -9,6 +9,7 @@ import BookingShell from '@/src/components/booking/shared/BookingShell';
 import CatalogueCard from '@/src/components/booking/shared/CatalogueCard';
 import PartySection from '@/src/components/booking/shared/PartySection';
 import UtsavAttendeeFields, {
+  ATTENDEE_DEFAULTS,
   attendeeValid,
   packageOptions,
 } from '@/src/components/booking/shared/UtsavAttendeeFields';
@@ -35,7 +36,13 @@ const UtsavDetails = () => {
   const { id } = useLocalSearchParams();
   const user = useAuthStore((state: any) => state.user);
 
-  const party = useBookingParty();
+  const party = useBookingParty({
+    guestTemplate: { name: '', gender: '', mobno: '', type: '', ...ATTENDEE_DEFAULTS },
+    mumukshuTemplate: { cardno: '', mobno: '', ...ATTENDEE_DEFAULTS },
+    shared: { ...ATTENDEE_DEFAULTS },
+    validateGuestRow: attendeeValid,
+    validateMumukshuRow: attendeeValid,
+  });
   const { submit, isSubmitting } = useBookingSubmit();
   const { form, audience } = party;
 

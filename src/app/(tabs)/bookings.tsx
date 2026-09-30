@@ -34,7 +34,9 @@ const typeFromParam = (param: string | string[] | undefined) => {
 
 const BookingCategories = () => {
   const queryClient = useQueryClient();
-  const { type } = useLocalSearchParams();
+  // `ts` changes on every deep link, so tapping the same card twice still reapplies
+  // the tab after the member has switched chips by hand.
+  const { type, ts } = useLocalSearchParams();
 
   const CHIPS = useMemo(
     () => [
@@ -53,10 +55,8 @@ const BookingCategories = () => {
 
   useEffect(() => {
     const next = typeFromParam(type);
-    if (next && next !== selectedChip) {
-      setSelectedChip(next);
-    }
-  }, [type]);
+    if (next) setSelectedChip(next);
+  }, [type, ts]);
 
   const handleChipClick = (chipTitle: string) => {
     setSelectedChip(chipTitle);
@@ -80,7 +80,7 @@ const BookingCategories = () => {
             await queryClient.invalidateQueries({ queryKey: ['adhyayanBooking'] });
             break;
           case types.booking_type_event:
-            await queryClient.invalidateQueries({ queryKey: ['eventBooking'] });
+            await queryClient.invalidateQueries({ queryKey: ['utsavBooking'] });
             break;
           default:
             break;

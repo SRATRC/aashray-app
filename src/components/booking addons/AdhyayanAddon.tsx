@@ -1,4 +1,4 @@
-import { View, Text, Image, ActivityIndicator } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { icons, types } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore, useBookingStore } from '@/src/stores';

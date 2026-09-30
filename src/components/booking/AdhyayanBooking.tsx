@@ -9,7 +9,7 @@ import CatalogueCard from './shared/CatalogueCard';
 import PartySection from './shared/PartySection';
 import StepTransition from './shared/StepTransition';
 import { adhyayanCardProps } from './shared/catalogueCards';
-import { isShibirFull, waitlistCountOf } from './shared/catalogueStatus';
+import { isShibirFull } from './shared/catalogueStatus';
 import useBookingParty from './shared/useBookingParty';
 import useBookingSubmit from './shared/useBookingSubmit';
 import useResetOnLeave from './shared/useResetOnLeave';
@@ -120,7 +120,7 @@ const AdhyayanBooking = () => {
                       {
                         cardno: user.cardno,
                         mobno: user.mobno,
-                        issuedto: user.name,
+                        issuedto: user.issuedto,
                         gender: user.gender,
                         res_status: user.res_status,
                       },

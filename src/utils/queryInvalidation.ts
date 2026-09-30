@@ -16,17 +16,20 @@ const POST_BOOKING_QUERY_KEYS: string[][] = [
   ['homeAdhyayans'],
   ['homeTravels'],
   ['homeUtsavs'],
-  ['pendingPayments'],
   // Bookings tab lists
   ['roomBooking'],
   ['foodBooking'],
   ['travelBooking'],
   ['adhyayanBooking'],
-  ['eventBooking'],
-  // Transaction history and the pending payments screen
+  ['utsavBooking'],
+  // Transaction history, the pending payments screen and the home alert (one
+  // shared query, see utils/pendingPayments)
   ['transactions'],
+  // Room availability shown on the stay calendar
+  ['blockedDates'],
 ];
 
+/** Also the right call after a cancellation: it frees dates, seats and dues too. */
 export const invalidatePostBookingQueries = (queryClient: QueryClient): Promise<unknown> =>
   Promise.all(
     POST_BOOKING_QUERY_KEYS.map((queryKey) =>

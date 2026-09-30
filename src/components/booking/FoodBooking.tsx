@@ -1,6 +1,5 @@
-import { useFocusEffect } from 'expo-router';
 import moment from 'moment';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
 import BookingShell from './shared/BookingShell';
@@ -8,13 +7,12 @@ import FieldGroup from './shared/FieldGroup';
 import PartySection from './shared/PartySection';
 import useBookingParty from './shared/useBookingParty';
 import useBookingSubmit from './shared/useBookingSubmit';
+import useResetOnLeave from './shared/useResetOnLeave';
 
 import Callout from '@/src/components/Callout';
 import CustomCalender from '@/src/components/CustomCalender';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
-import InternationalPaymentWarning from '@/src/components/InternationalPaymentWarning';
 import { dropdowns, types } from '@/src/constants';
-import isInternationalUser from '@/src/utils/isInternationalUser';
 
 /**
  * Raj Prasad. Dates, who is eating, and what they eat.
@@ -37,8 +35,6 @@ const foodMinDate = () =>
 
 const FoodBooking = () => {
   const [resetKey, setResetKey] = useState(0);
-  const [showInternationalWarning, setShowInternationalWarning] = useState(false);
-  const pendingAction = useRef<(() => void) | null>(null);
 
   const party = useBookingParty({
     guestTemplate: { name: '', gender: '', mobno: '', type: '', ...MEAL_DEFAULTS },
@@ -50,13 +46,10 @@ const FoodBooking = () => {
 
   const { submit, isSubmitting } = useBookingSubmit();
 
-  useFocusEffect(
-    useCallback(() => {
-      party.reset();
-      setResetKey((k) => k + 1);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
-  );
+  useResetOnLeave(() => {
+    party.reset();
+    setResetKey((k) => k + 1);
+  });
 
   const { form, audience, user } = party;
 
@@ -155,7 +148,7 @@ const FoodBooking = () => {
                 {
                   cardno: user.cardno,
                   mobno: user.mobno,
-                  issuedto: user.name,
+                  issuedto: user.issuedto,
                   meals: f.meals,
                   spicy: f.spicy,
                   hightea: f.hightea,
@@ -169,16 +162,9 @@ const FoodBooking = () => {
       },
     });
 
-  // International cards are warned before a booking is created, because a
-  // foreign card can fail at the gateway after the booking exists.
-  const handleContinue = () => {
-    if (isInternationalUser(user)) {
-      pendingAction.current = runSubmit;
-      setShowInternationalWarning(true);
-      return;
-    }
-    runSubmit();
-  };
+  // The international-card warning is shown once, on the review screen, right
+  // before payment is created (and only when something is due).
+  const handleContinue = runSubmit;
 
   return (
     <BookingShell
@@ -226,17 +212,6 @@ const FoodBooking = () => {
           ? mealFields(form, (field, v) => party.setSharedField(field, v), 'Your meals')
           : null}
       </View>
-
-      <InternationalPaymentWarning
-        visible={showInternationalWarning}
-        country={user?.country}
-        onClose={() => setShowInternationalWarning(false)}
-        onProceed={() => {
-          setShowInternationalWarning(false);
-          pendingAction.current?.();
-          pendingAction.current = null;
-        }}
-      />
     </BookingShell>
   );
 };

@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -20,7 +20,10 @@ import stayOutcomeExtra from './stayOutcomeExtra';
 import { buildStayOutcome } from '@/src/components/stay/buildStayOutcome';
 import { colors } from '@/src/constants';
 import { useAuthStore, useBookingStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import Toast from 'react-native-toast-message';
+
+import handleAPICall, { LONG_TIMEOUT_MS } from '@/src/utils/HandleApiCall';
+import { invalidatePostBookingQueries } from '@/src/utils/queryInvalidation';
 import { buildBookingValidationKey } from '@/src/utils/buildBookingValidationKey';
 import isInternationalUser from '@/src/utils/isInternationalUser';
 
@@ -40,6 +43,7 @@ const money = (n: number) => `₹${n.toLocaleString('en-IN')}`;
 
 const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const user = useAuthStore((s: any) => s.user);
   const config = AUDIENCE_CONFIG[audience];
 
@@ -179,9 +183,12 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
   // Same flicker rule as the skeleton: a re-check that lands in 150ms should
   // not blink the caption and the button on its way past.
   const isRevalidating = useDelayedFlag(isFetching && !!validationData);
+  // The visible caption/spinner is delayed to avoid flicker, but the button must
+  // not be: a tap in that first ~250ms would pay against the stale answer.
+  const rechecking = isFetching && !!validationData;
 
   const gate = () => {
-    if (cannotBook) return false;
+    if (cannotBook || rechecking) return false;
     if (reasonMissing) {
       setShowReasonError(true);
       return false;
@@ -211,7 +218,6 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
       {
         ...basePayload,
         ...(reason.trim() ? { extra_stay_reason: reason.trim() } : {}),
-        ...(payLater ? { pay_later: true } : {}),
       },
       (res: any) => {
         // A booking with nothing left to charge comes back with no order.
@@ -251,7 +257,35 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
           inFlight.current = false;
           setIsSubmitting(false);
         }
-      }
+      },
+      (err: any) => {
+        // No answer within the long window does NOT mean the booking failed: the
+        // backend may have created it and be stuck sending WhatsApp. Sending the
+        // member back to the form to retry could double-book, so send them to
+        // pending payments, where a created booking shows up and can be paid.
+        if (!err?.isTimeout) {
+          Toast.show({
+            type: 'error',
+            text1: 'An error occurred!',
+            text2: err?.message,
+            swipeable: false,
+            text1Style: { color: 'red' },
+            text2Style: { color: 'black', fontWeight: 'bold', fontSize: 14 },
+          });
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          return;
+        }
+        Toast.show({
+          type: 'info',
+          text1: 'Still processing your booking',
+          text2: 'Check Pending payments to see whether it went through.',
+        });
+        invalidatePostBookingQueries(queryClient);
+        router.replace('/pendingPayments');
+      },
+      // Toast is handled above so a timeout is not reported as a generic error.
+      false,
+      { timeout: LONG_TIMEOUT_MS }
     );
   };
 
@@ -313,7 +347,7 @@ const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) =
       isBusy={isLoading && !validationData}
       primaryLabel={primaryLabel}
       onPrimary={cannotBook ? () => router.back() : handlePrimary}
-      primaryDisabled={!validationData || reasonMissing}
+      primaryDisabled={!validationData || reasonMissing || rechecking}
       primaryLoading={isSubmitting || isRevalidating}
       secondaryLabel={due > 0 ? 'Pay later' : undefined}
       onSecondary={() => {

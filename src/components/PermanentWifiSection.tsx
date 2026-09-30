@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@/src/constants';
@@ -59,7 +59,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
     });
   };
 
-  const [deviceType, setDeviceType] = React.useState('');
+  const [, setDeviceType] = React.useState('');
   const bottomSheetRef = React.useRef<CustomSelectBottomSheetRef>(null);
 
   const deviceTypeOptions = [

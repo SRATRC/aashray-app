@@ -23,6 +23,7 @@ import CustomEmptyMessage from '../CustomEmptyMessage';
 import CustomModal from '../CustomModal';
 import OldBookingsTrigger from '../OldBookingsTrigger';
 import moment from 'moment';
+import { invalidatePostBookingQueries } from '@/src/utils/queryInvalidation';
 
 const AdhyayanBookingCancellation = () => {
   const user = useAuthStore((state) => state.user);
@@ -52,25 +53,17 @@ const AdhyayanBookingCancellation = () => {
     });
   };
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    status: queryStatus,
-    isLoading,
-    isError,
-    refetch,
-  }: any = useInfiniteQuery({
-    queryKey: ['adhyayanBooking', user.cardno],
-    queryFn: fetchAdhyayans,
-    initialPageParam: 1,
-    staleTime: 1000 * 60 * 5,
-    getNextPageParam: (lastPage: any, pages: any) => {
-      if (!lastPage || !Array.isArray(lastPage) || lastPage.length === 0) return undefined;
-      return (pages?.length || 0) + 1;
-    },
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch }: any =
+    useInfiniteQuery({
+      queryKey: ['adhyayanBooking', user.cardno],
+      queryFn: fetchAdhyayans,
+      initialPageParam: 1,
+      staleTime: 1000 * 60 * 5,
+      getNextPageParam: (lastPage: any, pages: any) => {
+        if (!lastPage || !Array.isArray(lastPage) || lastPage.length === 0) return undefined;
+        return (pages?.length || 0) + 1;
+      },
+    });
 
   const cancelBookingMutation = useMutation<any, any, any>({
     mutationFn: ({ cardno, bookingid }) => {
@@ -89,6 +82,8 @@ const AdhyayanBookingCancellation = () => {
       });
     },
     onSuccess: (_, { bookingid }) => {
+      // Freed dates, seats and dues show up on home, blocked dates and the other lists.
+      invalidatePostBookingQueries(queryClient);
       queryClient.setQueryData(['adhyayanBooking', user.cardno], (oldData: any) => {
         if (!oldData || !oldData.pages) return oldData;
 

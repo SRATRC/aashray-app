@@ -23,6 +23,7 @@ import CustomEmptyMessage from '../CustomEmptyMessage';
 import BookingStatusDisplay from '../BookingStatusDisplay';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import moment from 'moment';
+import { invalidatePostBookingQueries } from '@/src/utils/queryInvalidation';
 
 const RoomBookingCancellation: React.FC = () => {
   const user = useAuthStore((state) => state.user);
@@ -74,6 +75,8 @@ const RoomBookingCancellation: React.FC = () => {
       });
     },
     onSuccess: (_, { bookingid, bookedFor }) => {
+      // Freed dates, seats and dues show up on home, blocked dates and the other lists.
+      invalidatePostBookingQueries(queryClient);
       queryClient.setQueryData(['roomBooking', user.cardno], (oldData: any) => {
         if (!oldData) return oldData;
 

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { View, Text, Image } from 'react-native';
 import { icons, dropdowns } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
 import AddonItem from '../AddonItem';
@@ -30,7 +29,7 @@ const RoomAddon: React.FC<RoomAddonProps> = ({
   const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
   // Temporary state to hold the date for the checkin picker
-  const [tempCheckinDate, setTempCheckinDate] = useState(() =>
+  const [tempCheckinDate] = useState(() =>
     roomForm.startDay ? moment(roomForm.startDay).toDate() : moment().add(1, 'days').toDate()
   );
 

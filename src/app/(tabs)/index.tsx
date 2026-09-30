@@ -69,7 +69,7 @@ const HOME_QUERY_KEYS = [
   ['homeAdhyayans'],
   ['homeTravels'],
   ['homeUtsavs'],
-  ['pendingPayments'],
+  ['transactions'],
 ];
 
 const Home: React.FC = () => {

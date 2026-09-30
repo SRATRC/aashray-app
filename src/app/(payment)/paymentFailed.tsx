@@ -3,12 +3,22 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import CustomButton from '@/src/components/CustomButton';
+import { invalidatePostBookingQueries } from '@/src/utils/queryInvalidation';
 
 const PaymentFailed = () => {
   const router = useRouter();
   const fadeAnim = useState(() => new Animated.Value(0))[0];
   const slideAnim = useState(() => new Animated.Value(30))[0];
+
+  const queryClient = useQueryClient();
+
+  // The booking was created before the payment failed, so it now sits in
+  // Pending payments; the home alert and the lists must show it.
+  useEffect(() => {
+    invalidatePostBookingQueries(queryClient);
+  }, [queryClient]);
 
   useEffect(() => {
     Animated.parallel([

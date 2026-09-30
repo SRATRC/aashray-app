@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { View, Text, Image } from 'react-native';
 import { icons, dropdowns } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -30,7 +29,7 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
   const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
   // Temporary state to hold the date for the checkin picker
-  const [tempFoodStartDate, setTempFoodStartDate] = useState(() =>
+  const [tempFoodStartDate] = useState(() =>
     foodForm.startDay ? moment(foodForm.startDay).toDate() : moment().add(1, 'days').toDate()
   );
 

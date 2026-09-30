@@ -28,6 +28,16 @@ export const VOLUNTEER = [
   { key: 'none', value: 'Unable to Volunteer' },
 ];
 
+/** The blank answers for one attendee; every party row and the member's own form start here. */
+export const ATTENDEE_DEFAULTS = {
+  package: null,
+  package_name: '',
+  arrival: null,
+  carno: '',
+  volunteer: null,
+  other: null,
+};
+
 /** A car number is only needed, and only valid, when arriving by car. */
 export const attendeeValid = (row: any) =>
   Boolean(row?.package) &&

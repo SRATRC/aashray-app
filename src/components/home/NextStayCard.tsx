@@ -8,8 +8,10 @@ import { View, Text, Pressable } from 'react-native';
 import VerdictPill from '@/src/components/stay/VerdictPill';
 import type { Verdict } from '@/src/components/stay/stayOutcome.types';
 import { colors, status, surfaces } from '@/src/constants';
+import useToday from '@/src/hooks/useToday';
 import { useAuthStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import { isActiveBooking, isOwnBooking } from '@/src/utils/ownBookings';
 
 /**
  * The member's next stay. The one thing the home screen leads with.
@@ -28,6 +30,8 @@ interface StayBooking {
   roomtype?: string;
   status?: string;
   transaction_status?: string;
+  /** The guest the stay is for; the member may have booked it for someone else. */
+  bookedFor?: string | number;
 }
 
 const ROOM_LABEL: Record<string, string> = { ac: 'AC room', nac: 'Non-AC room', NA: 'Day visit' };
@@ -85,18 +89,21 @@ const NextStayCard: React.FC<{ className?: string }> = ({ className = '' }) => {
     enabled: Boolean(cardno),
   });
 
+  // Rebuilds the pick (and so the "tomorrow" wording) when the day changes.
+  const todayKey = useToday();
+
   const next = React.useMemo(() => {
-    const today = moment().startOf('day');
+    const today = moment(todayKey).startOf('day');
     return (data ?? [])
       .filter(
         (b) =>
           b?.checkout &&
           moment(b.checkout).isSameOrAfter(today) &&
-          b.status !== status.STATUS_CANCELLED &&
-          b.status !== status.STATUS_ADMIN_CANCELLED
+          isOwnBooking(b, cardno) &&
+          isActiveBooking(b)
       )
       .sort((a, b) => moment(a.checkin).valueOf() - moment(b.checkin).valueOf())[0];
-  }, [data]);
+  }, [data, todayKey, cardno]);
 
   // `isPending` rather than `isLoading`. While the query is disabled — the auth
   // store hydrates from storage a beat after mount, so there is no cardno yet —

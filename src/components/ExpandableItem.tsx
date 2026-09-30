@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, TouchableOpacity, Image } from 'react-native';
 import { useState } from 'react';
 import { icons, surfaces } from '../constants';
 import * as Haptics from 'expo-haptics';

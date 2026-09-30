@@ -16,8 +16,10 @@ import {
 
 import { nextStayQuery } from '@/src/components/home/NextStayCard';
 import { colors, status, surfaces } from '@/src/constants';
+import useToday from '@/src/hooks/useToday';
 import { useAuthStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import { isActiveBooking, isOwnBooking } from '@/src/utils/ownBookings';
 import shouldShowRoomNumberRule from '@/src/utils/shouldShowRoomNumber';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -140,14 +142,6 @@ const fetchUtsavs = (cardno: string): Promise<any[]> =>
     );
   });
 
-const isActive = (item: any) => {
-  const itemStatus = item.status?.toLowerCase();
-  return (
-    itemStatus !== status.STATUS_CANCELLED.toLowerCase() &&
-    itemStatus !== status.STATUS_ADMIN_CANCELLED.toLowerCase()
-  );
-};
-
 const formatDateRange = (start: string, end?: string) => {
   const s = moment(start);
   const e = end ? moment(end) : s;
@@ -243,12 +237,21 @@ const UpcomingBookingsCarousel: React.FC<{ className?: string }> = ({ className 
     travelQuery.isLoading ||
     utsavQuery.isLoading;
 
+  // Labels like "tomorrow" are computed from the date, so the list is rebuilt
+  // when the day changes.
+  const todayKey = useToday();
+
   const bookings = useMemo<UpcomingBooking[]>(() => {
-    const today = moment().startOf('day');
+    const today = moment(todayKey).startOf('day');
     const list: UpcomingBooking[] = [];
 
     (staysQuery.data ?? [])
-      .filter((item) => isActive(item) && moment(item.checkout).isSameOrAfter(today))
+      .filter(
+        (item) =>
+          isOwnBooking(item, cardno) &&
+          isActiveBooking(item) &&
+          moment(item.checkout).isSameOrAfter(today)
+      )
       .forEach((item) => {
         const isFlat = item.roomtype === 'flat';
         const nights = Math.max(
@@ -282,7 +285,12 @@ const UpcomingBookingsCarousel: React.FC<{ className?: string }> = ({ className 
       });
 
     (adhyayanQuery.data ?? [])
-      .filter((item) => isActive(item) && moment(item.end_date).isSameOrAfter(today))
+      .filter(
+        (item) =>
+          isOwnBooking(item, cardno) &&
+          isActiveBooking(item) &&
+          moment(item.end_date).isSameOrAfter(today)
+      )
       .forEach((item) => {
         list.push({
           id: `shibir-${item.bookingid}`,
@@ -299,7 +307,12 @@ const UpcomingBookingsCarousel: React.FC<{ className?: string }> = ({ className 
       });
 
     (travelQuery.data ?? [])
-      .filter((item) => isActive(item) && moment(item.date).isSameOrAfter(today))
+      .filter(
+        (item) =>
+          isOwnBooking(item, cardno) &&
+          isActiveBooking(item) &&
+          moment(item.date).isSameOrAfter(today)
+      )
       .forEach((item) => {
         const routeLabel =
           item.pickup_point === 'Research Centre'
@@ -322,7 +335,8 @@ const UpcomingBookingsCarousel: React.FC<{ className?: string }> = ({ className 
     (utsavQuery.data ?? [])
       .filter(
         (item) =>
-          isActive(item) &&
+          isOwnBooking(item, cardno) &&
+          isActiveBooking(item) &&
           moment(item.package_end || item.utsav_end_date || item.package_start).isSameOrAfter(today)
       )
       .forEach((item) => {
@@ -343,7 +357,7 @@ const UpcomingBookingsCarousel: React.FC<{ className?: string }> = ({ className 
       });
 
     return list.sort((a, b) => a.sortDate.valueOf() - b.sortDate.valueOf()).slice(0, 10);
-  }, [staysQuery.data, adhyayanQuery.data, travelQuery.data, utsavQuery.data]);
+  }, [staysQuery.data, adhyayanQuery.data, travelQuery.data, utsavQuery.data, cardno, todayKey]);
 
   // Fires once per settled page instead of on every scroll frame, so swiping
   // never queues per-frame setState work on the JS thread.
@@ -373,7 +387,7 @@ const UpcomingBookingsCarousel: React.FC<{ className?: string }> = ({ className 
       travel: 'travel',
       event: 'event',
     };
-    return { pathname: '/bookings', params: { type: typeMap[item.type] } };
+    return { pathname: '/bookings', params: { type: typeMap[item.type], ts: String(Date.now()) } };
   };
 
   const renderItem = ({ item }: { item: UpcomingBooking }) => (

@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { icons, colors, dropdowns } from '@/src/constants';
-import { useAuthStore } from '@/src/stores';
 import { useUtsavDate } from '@/src/hooks/useUtsavDate';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
@@ -37,10 +36,9 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
   setDatePickerVisibility,
   onToggle,
 }) => {
-  const user = useAuthStore((state) => state.user);
   const [activeMumukshuIndex, setActiveMumukshuIndex] = useState(null);
 
-  const [tempTravelDate, setTempTravelDate] = useState(() =>
+  const [tempTravelDate] = useState(() =>
     travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()
   );
 

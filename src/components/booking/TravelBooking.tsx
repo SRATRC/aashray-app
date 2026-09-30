@@ -1,6 +1,5 @@
-import { useFocusEffect } from 'expo-router';
 import moment from 'moment';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
 import BookingShell from './shared/BookingShell';
@@ -16,6 +15,7 @@ import {
 } from './shared/travelRules';
 import useBookingParty from './shared/useBookingParty';
 import useBookingSubmit from './shared/useBookingSubmit';
+import useResetOnLeave from './shared/useResetOnLeave';
 
 import CustomCalender from '@/src/components/CustomCalender';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
@@ -54,13 +54,10 @@ const TravelBooking = () => {
 
   const { submit, isSubmitting } = useBookingSubmit();
 
-  useFocusEffect(
-    useCallback(() => {
-      party.reset();
-      setResetKey((k) => k + 1);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
-  );
+  useResetOnLeave(() => {
+    party.reset();
+    setResetKey((k) => k + 1);
+  });
 
   const { form, audience, user } = party;
 

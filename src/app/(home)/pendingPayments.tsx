@@ -26,8 +26,13 @@ import CustomErrorMessage from '@/src/components/CustomErrorMessage';
 import PageHeader from '@/src/components/PageHeader';
 import { colors, icons, status } from '@/src/constants';
 import { useAuthStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
+import handleAPICall, { LONG_TIMEOUT_MS } from '@/src/utils/HandleApiCall';
 import checkIsInternationalUser from '@/src/utils/isInternationalUser';
+import {
+  fetchPendingPayments,
+  isTransactionExpiredAt,
+  pendingPaymentsQueryKey,
+} from '@/src/utils/pendingPayments';
 import { invalidatePostBookingQueries } from '@/src/utils/queryInvalidation';
 import shouldShowRoomNumberRule from '@/src/utils/shouldShowRoomNumber';
 
@@ -48,16 +53,6 @@ interface Transaction {
   roomno?: string | null;
   roomtype?: string | null;
   stay?: string | null;
-}
-
-interface ApiResponse {
-  message: string;
-  data: Transaction[];
-  pagination: {
-    page: number;
-    pageSize: number;
-    hasMore: boolean;
-  };
 }
 
 const computeTimeRemaining = (createdAt: string, now = Date.now()) => {
@@ -117,14 +112,6 @@ const paymentClock = {
 const paymentMinuteClock = {
   getSnapshot: () => Math.floor(paymentClockNow / 60000),
   subscribe: paymentClock.subscribe,
-};
-
-const isTransactionExpiredAt = (transaction: Transaction, nowMs: number) => {
-  // Cash pending payments never expire
-  if (transaction.status === 'cash pending') {
-    return false;
-  }
-  return moment.utc(nowMs).isAfter(moment.utc(transaction.createdAt).add(24, 'hours'));
 };
 
 const PaymentTimer = ({ createdAt }: { createdAt: string }) => {
@@ -658,28 +645,8 @@ const PendingPayments = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['transactions', user.cardno, 'pending,cash pending,failed'],
-    queryFn: async () => {
-      return new Promise<Transaction[]>((resolve, reject) => {
-        handleAPICall(
-          'GET',
-          '/profile/transactions',
-          {
-            cardno: user.cardno,
-            page: 1,
-            page_size: 100,
-            status: 'pending,cash pending,failed',
-          },
-          null,
-          (res: ApiResponse) => {
-            // Handle the new API response structure
-            resolve(Array.isArray(res.data) ? res.data : []);
-          },
-          () => {},
-          (error) => reject(new Error(error?.message || 'Failed to fetch pending payments'))
-        );
-      });
-    },
+    queryKey: pendingPaymentsQueryKey(user.cardno),
+    queryFn: () => fetchPendingPayments<Transaction>(user.cardno),
     staleTime: 1000 * 60 * 30,
     refetchOnMount: 'always',
   });
@@ -699,17 +666,14 @@ const PendingPayments = () => {
             resolve(res);
           },
           () => {},
-          (error) => reject(new Error(error?.message || 'Failed to process payment'))
+          (error) => reject(new Error(error?.message || 'Failed to process payment')),
+          true,
+          { timeout: LONG_TIMEOUT_MS }
         );
       });
     },
     onSuccess: () => {
       setSelectedPayments([]);
-      // Both this screen's ['transactions', ...] key and the home alert's
-      // ['pendingPayments', ...] key describe the same server state; the
-      // zero-amount path returns without navigating, so nothing else
-      // invalidates the home alert if we don't do it here.
-      invalidatePostBookingQueries(queryClient);
     },
   });
 
@@ -733,8 +697,8 @@ const PendingPayments = () => {
   );
 
   const isTransactionExpired = useCallback(
-    (transaction: Transaction) => isTransactionExpiredAt(transaction, clockMinute * 60000),
-    [clockMinute]
+    (transaction: Transaction) => isTransactionExpiredAt(transaction, clockMinute * 60000, user?.country),
+    [clockMinute, user?.country]
   );
 
   // Calculate total of non-expired payments
@@ -852,6 +816,9 @@ const PendingPayments = () => {
           swipeable: false,
         });
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        // Nothing to pay means no navigation to the confirmation screen, which
+        // is what refreshes the app after a real payment. Do it here instead.
+        invalidatePostBookingQueries(queryClient);
         return;
       }
 
@@ -885,7 +852,7 @@ const PendingPayments = () => {
         text1: 'Payment successful',
         swipeable: false,
       });
-      invalidatePostBookingQueries(queryClient);
+      // The confirmation screen refreshes the app, once.
       router.replace('/paymentConfirmation');
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
