@@ -9,7 +9,8 @@
     "prebuild": "expo prebuild",
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\" && prettier -c \"**/*.{js,jsx,ts,tsx,json}\"",
     "format": "eslint \"**/*.{js,jsx,ts,tsx}\" --fix && prettier \"**/*.{js,jsx,ts,tsx,json}\" --write",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "lint:undef": "eslint --quiet --ext .js,.jsx src \"*.js\""
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.16",
@@ -91,7 +92,30 @@
   },
   "eslintConfig": {
     "extends": "universe/native",
-    "root": true
+    "root": true,
+    "overrides": [
+      {
+        "files": [
+          "*.js",
+          "*.jsx"
+        ],
+        "env": {
+          "browser": true,
+          "node": true,
+          "es2022": true
+        },
+        "globals": {
+          "__DEV__": "readonly",
+          "ErrorUtils": "readonly",
+          "HermesInternal": "readonly",
+          "expo": "readonly",
+          "nativeFabricUIManager": "readonly"
+        },
+        "rules": {
+          "no-undef": "error"
+        }
+      }
+    ]
   },
   "private": true
 }
