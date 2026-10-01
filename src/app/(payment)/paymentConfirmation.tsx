@@ -1,23 +1,22 @@
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icons, quotes } from '@/src/constants';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAuthStore } from '@/src/stores';
 import CustomButton from '@/src/components/CustomButton';
+import { invalidatePostBookingQueries } from '@/src/utils/queryInvalidation';
 
 const PaymentConfirmation = () => {
-  const { user } = useAuthStore();
   const router = useRouter();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+  const fadeAnim = useState(() => new Animated.Value(0))[0];
+  const slideAnim = useState(() => new Animated.Value(30))[0];
 
   const queryClient = useQueryClient();
 
-  queryClient.invalidateQueries({
-    queryKey: ['pendingPayments', user.cardno],
-  });
+  useEffect(() => {
+    invalidatePostBookingQueries(queryClient);
+  }, [queryClient]);
 
   useEffect(() => {
     Animated.parallel([
@@ -40,7 +39,7 @@ const PaymentConfirmation = () => {
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <View className="flex-1">
         <Animated.View
           className="flex-1 px-6"

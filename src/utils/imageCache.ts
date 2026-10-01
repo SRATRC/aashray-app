@@ -63,14 +63,14 @@ const downloadAndCacheImage = async (url: string): Promise<string> => {
 // Get image, either from cache or download it
 const getCachedImageUri = async (url: string): Promise<string> => {
   if (!url) return '';
-  
+
   try {
     // First try to get from cache
     const cachedImage = await getCachedImage(url);
     if (cachedImage) {
       return cachedImage;
     }
-    
+
     // If not in cache, download and cache it
     return await downloadAndCacheImage(url);
   } catch (error) {
@@ -82,7 +82,7 @@ const getCachedImageUri = async (url: string): Promise<string> => {
 // Invalidate a specific cached image
 export const invalidateCachedImage = async (url: string): Promise<void> => {
   if (!url) return;
-  
+
   try {
     const filename = getImageFilename(url);
     const fileInfo = await FileSystem.getInfoAsync(filename);

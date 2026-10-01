@@ -11,6 +11,10 @@ const TabsLayout: React.FC = () => {
     <>
       <Tabs
         screenOptions={{
+          // A tab you are not looking at must not re-render. Without this the
+          // Book Now calendar re-rendered 31 times while Profile Details was on
+          // screen, redrawing all 42 day cells each time.
+          freezeOnBlur: true,
           tabBarShowLabel: true,
           tabBarActiveTintColor: '#FFA001',
           tabBarInactiveTintColor: '#9E9E9E',

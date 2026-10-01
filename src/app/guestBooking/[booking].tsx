@@ -1,27 +1,28 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { View, Text, Alert } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { dropdowns, types } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
-import { prepareGuestRequestBody } from '@/src/utils/preparingRequestBody';
-import { FontAwesome } from '@expo/vector-icons';
-import { ShadowBox } from '@/src/components/ShadowBox';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { View, Text } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import Callout from '@/src/components/Callout';
+import CustomAlert from '@/src/components/CustomAlert';
 import CustomButton from '@/src/components/CustomButton';
 import PageHeader from '@/src/components/PageHeader';
-import GuestRoomBookingDetails from '@/src/components/booking details cards/GuestRoomBookingDetails';
-import GuestAdhyayanBookingDetails from '@/src/components/booking details cards/GuestAdhyayanBookingDetails';
-import GuestFlatBookingDetails from '@/src/components/booking details cards/GuestFlatBookingDetails';
+import SectionHeader from '@/src/components/booking/shared/SectionHeader';
+import { ShadowBox } from '@/src/components/ShadowBox';
+import { dropdowns, types } from '@/src/constants';
+import { useAuthStore, useBookingStore } from '@/src/stores';
+
+import handleAPICall from '@/src/utils/HandleApiCall';
+import { prepareGuestRequestBody } from '@/src/utils/preparingRequestBody';
+import stayOutcomeExtra from '@/src/components/booking/shared/stayOutcomeExtra';
+import { useStayOutcome } from '@/src/components/stay/useStayOutcome';
+import BookingSummary from '@/src/components/booking/shared/BookingSummary';
 import GuestRoomAddon from '@/src/components/booking addons/GuestRoomAddon';
 import GuestFoodAddon from '@/src/components/booking addons/GuestFoodAddon';
 import GuestAdhyayanAddon from '@/src/components/booking addons/GuestAdhyayanAddon';
-import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '@/src/components/CustomModal';
-import GuestEventBookingDetails from '@/src/components/booking details cards/GuestEventBookingDetails';
-import CustomAlert from '@/src/components/CustomAlert';
-import Callout from '@/src/components/Callout';
 
 // Define initial form structures
 const createInitialRoomForm = (existingData: any = null) => ({
@@ -58,7 +59,8 @@ const createInitialAdhyayanForm = (existingData: any = null) => ({
 });
 
 const GuestAddons = () => {
-  const { booking } = useLocalSearchParams();
+  const { booking: bookingParam } = useLocalSearchParams<{ booking?: string | string[] }>();
+  const booking = typeof bookingParam === 'string' ? bookingParam : bookingParam?.[0] || '';
 
   const user = useAuthStore((state) => state.user);
   const guestData = useBookingStore((state) => state.guestData);
@@ -66,22 +68,23 @@ const GuestAddons = () => {
 
   const router = useRouter();
 
-  console.log('GUEST DATA: ', JSON.stringify(guestData));
-
   const [addonOpen, setAddonOpen] = useState({
     room: false,
     food: false,
   });
 
-  // Get all guests from existing data
+  // Get all guests from existing data. Food and flat bookings keep their guests
+  // too — without them a food booking had an empty guest list for add-ons.
   const guests = useMemo(() => {
     return (
       guestData.room?.guestGroup?.flatMap((group: any) => group.guests) ||
       guestData.adhyayan?.guestGroup ||
       guestData.utsav?.guests ||
+      guestData.flat?.guests ||
+      guestData.food?.guestGroup?.flatMap((group: any) => group.guests) ||
       []
     );
-  }, [guestData.room, guestData.adhyayan, guestData.utsav]);
+  }, [guestData.room, guestData.adhyayan, guestData.utsav, guestData.flat, guestData.food]);
 
   // Create dropdown options for guests
   const guest_dropdown = useMemo(() => {
@@ -212,13 +215,28 @@ const GuestAddons = () => {
     setDatePickerVisibility((prev) => ({ ...prev, [pickerType]: isVisible }));
   }, []);
 
-  // Prepare API payload
+  // Continue writes the add-ons into the store and opens the review screen.
+  // This screen stays mounted underneath, and the store change gives it a new
+  // validation key, so without `leaving` it would re-check availability a second
+  // time behind the review screen (which runs its own check). `submitLock`
+  // swallows a second tap in the same frame. Both reset when this screen is
+  // focused again.
+  const [leaving, setLeaving] = useState(false);
+  const submitLock = useRef(false);
+
+  // Prepare API payload. Without a primary booking the builder throws
+  // (`Unsupported primary booking type: undefined`), and this memo runs during
+  // render — guard it the same way the self screen does.
   const transformedData = useMemo(() => {
+    if (!user?.cardno || !guestData?.primary) return null;
     return prepareGuestRequestBody(user, guestData);
   }, [user, guestData]);
 
   // Validation API call
   const fetchValidation = useCallback(async () => {
+    if (!transformedData) {
+      throw new Error('Booking data is incomplete');
+    }
     return new Promise((resolve, reject) => {
       handleAPICall(
         'POST',
@@ -235,52 +253,49 @@ const GuestAddons = () => {
     });
   }, [transformedData, setGuestData]);
 
-  const {
-    isLoading: isValidationDataLoading,
-    isError: isValidationDataError,
-    error: validationDataError,
-    data: validationData,
-    refetch: refetchValidation,
-  } = useQuery({
-    queryKey: ['guestValidations', user.cardno, JSON.stringify(guestData)],
+  const { error: validationDataError, refetch: refetchValidation } = useQuery({
+    queryKey: ['guestValidations', user.cardno, JSON.stringify(transformedData)],
     queryFn: fetchValidation,
     retry: false,
-    enabled: !!user.cardno && Object.keys(guestData).length > 0,
+    enabled: Boolean(transformedData) && !leaving,
   });
 
   // Force refetch validation when screen comes into focus and clean up addons
   useFocusEffect(
     useCallback(() => {
       if (user.cardno) {
+        submitLock.current = false;
+        setLeaving(false);
         // Clean up addon data when coming back from guest booking confirmation
         // Only keep the main booking data based on the booking type
+        let cleaned = false;
         setGuestData((prev: any) => {
           // Only proceed if there's existing data
           if (Object.keys(prev).length === 0) return prev;
 
           const cleanedData = { ...prev };
+          const drop = (key: string) => {
+            if (key in cleanedData) {
+              delete cleanedData[key];
+              cleaned = true;
+            }
+          };
 
           // Remove addon data based on what's NOT the main booking type
-          if (booking !== types.ROOM_DETAILS_TYPE) {
-            delete cleanedData.room;
-          }
-          if (booking !== types.ADHYAYAN_DETAILS_TYPE) {
-            delete cleanedData.adhyayan;
-          }
-          if (booking !== types.EVENT_DETAILS_TYPE) {
-            delete cleanedData.utsav;
-          }
-          if (booking !== types.FLAT_DETAILS_TYPE) {
-            delete cleanedData.flat;
-          }
+          if (booking !== types.ROOM_DETAILS_TYPE) drop('room');
+          if (booking !== types.ADHYAYAN_DETAILS_TYPE) drop('adhyayan');
+          if (booking !== types.EVENT_DETAILS_TYPE) drop('utsav');
+          if (booking !== types.FLAT_DETAILS_TYPE) drop('flat');
 
-          // Always remove food addon as it's never a main booking type
-          delete cleanedData.food;
+          // Food is bookable on its own, so on its own screen it is the booking.
+          if (booking !== types.FOOD_DETAILS_TYPE) drop('food');
 
-          return cleanedData;
+          return cleaned ? cleanedData : prev;
         });
 
-        refetchValidation();
+        // A cleanup that changed the store also changed the validation query
+        // key, which fetches on its own; refetching here too doubles the POST.
+        if (!cleaned) refetchValidation();
       }
     }, [user.cardno, refetchValidation, booking, setGuestData])
   );
@@ -451,47 +466,81 @@ const GuestAddons = () => {
   // Form submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // The verdict for these dates, per person and per segment, shown above the
+  // add-ons so nobody fills these in only to learn later that they are on a
+  // waitlist. /validate is already called on this screen.
+  const stayOutcome = useStayOutcome('guest');
+  const [stayReason, setStayReason] = useState(
+    () =>
+      (guestData as any)?.room?.extra_stay_reason ||
+      (guestData as any)?.flat?.extra_stay_reason ||
+      ''
+  );
+  const [showReasonError, setShowReasonError] = useState(false);
+
+  const reasonMissing = Boolean(stayOutcome?.requiresExtraStayReason && !stayReason.trim());
+  const cannotBookHere = Boolean(
+    stayOutcome?.segments.some((seg) => seg.groups.some((g) => g.verdict === 'unavailable'))
+  );
+
+  // Carry the reason onto the booking so the review screen shows the same text
+  // and the waitlisted booking is submitted with it.
+  const persistStayReason = () => {
+    const reasonText = stayReason.trim();
+    if (!reasonText) return;
+    setGuestData((prev: any) => ({
+      ...prev,
+      ...(prev.room ? { room: { ...prev.room, extra_stay_reason: reasonText } } : {}),
+      ...(prev.flat ? { flat: { ...prev.flat, extra_stay_reason: reasonText } } : {}),
+    }));
+  };
+
   // Handle form submission
   const handleSubmit = useCallback(() => {
+    if (submitLock.current) return;
+    submitLock.current = true;
+    let failed = true;
     setIsSubmitting(true);
-    let hasValidationError = false;
-
-    // Validate and set Room Form data
-    if (booking !== types.ROOM_DETAILS_TYPE && addonOpen.room) {
-      if (!validateRoomForm()) {
-        CustomAlert.alert('Please fill all the room booking fields');
-        hasValidationError = true;
-        return;
+    // try/finally, because every validation failure returns early. Without it
+    // isSubmitting stayed true, CustomButton stayed disabled, and the member
+    // could not retry without leaving the screen.
+    try {
+      // Validate and set Room Form data
+      if (booking !== types.ROOM_DETAILS_TYPE && addonOpen.room) {
+        if (!validateRoomForm()) {
+          CustomAlert.alert('Please fill all the room booking fields');
+          return;
+        }
+        setGuestData((prev: any) => ({ ...prev, room: roomForm }));
       }
-      setGuestData((prev: any) => ({ ...prev, room: roomForm }));
-    }
 
-    // Validate and set Food Form data
-    if (addonOpen.food) {
-      if (!validateFoodForm()) {
-        CustomAlert.alert('Please fill all the food booking fields');
-        hasValidationError = true;
-        return;
+      // Validate and set Food Form data
+      // A food booking IS the food. An add-on here would overwrite it.
+      if (booking !== types.FOOD_DETAILS_TYPE && addonOpen.food) {
+        if (!validateFoodForm()) {
+          CustomAlert.alert('Please fill all the food booking fields');
+          return;
+        }
+        setGuestData((prev: any) => ({ ...prev, food: foodForm }));
       }
-      setGuestData((prev: any) => ({ ...prev, food: foodForm }));
-    }
 
-    // Validate and set Adhyayan Form data
-    if (booking !== types.ADHYAYAN_DETAILS_TYPE && isAdhyayanFormEmpty()) {
-      if (!validateAdhyayanForm()) {
-        CustomAlert.alert('Please fill all the adhyayan booking fields');
-        hasValidationError = true;
-        return;
+      // Validate and set Adhyayan Form data
+      if (booking !== types.ADHYAYAN_DETAILS_TYPE && isAdhyayanFormEmpty()) {
+        if (!validateAdhyayanForm()) {
+          CustomAlert.alert('Please fill all the adhyayan booking fields');
+          return;
+        }
+        setGuestData((prev: any) => ({ ...prev, adhyayan: adhyayanForm }));
       }
-      setGuestData((prev: any) => ({ ...prev, adhyayan: adhyayanForm }));
-    }
 
-    // If no validation errors, navigate to confirmation page
-    if (!hasValidationError) {
+      failed = false;
+      setLeaving(true);
       router.push('/guestBooking/bookingReview');
+    } finally {
+      // Stay locked after a successful Continue until the screen is focused again.
+      if (failed) submitLock.current = false;
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   }, [
     booking,
     isRoomFormEmpty,
@@ -512,91 +561,136 @@ const GuestAddons = () => {
     router.back();
   }, [router]);
 
+  const stayExtra = stayOutcomeExtra({
+    data: guestData,
+    outcome: stayOutcome,
+    reason: stayReason,
+    onChangeReason: (text) => {
+      setStayReason(text);
+      if (text.trim()) setShowReasonError(false);
+    },
+    showReasonError,
+  });
+
   return (
-    <SafeAreaView className="h-full bg-white" edges={['right', 'top', 'left']}>
+    <SafeAreaView className="h-full bg-gray-50" edges={['right', 'top', 'left']}>
       <KeyboardAwareScrollView
         bottomOffset={62}
         style={{ flex: 1 }}
         keyboardShouldPersistTaps="handled">
         <PageHeader title="Guest Booking Details" />
 
-        {booking === types.EVENT_DETAILS_TYPE && (
-          <GuestEventBookingDetails containerStyles="mt-2" />
-        )}
-        {booking === types.FLAT_DETAILS_TYPE && <GuestFlatBookingDetails containerStyles="mt-2" />}
-        {booking === types.ROOM_DETAILS_TYPE && <GuestRoomBookingDetails containerStyles="mt-2" />}
-        {booking === types.ADHYAYAN_DETAILS_TYPE && (
-          <GuestAdhyayanBookingDetails containerStyles="mt-2" />
-        )}
-
-        {booking === types.EVENT_DETAILS_TYPE ? (
-          <Callout
-            variant="warning"
-            message="For Early Arrival or Late Departure during events please book your stay, food and travel through add-ons below."
-            overrideStyle="m-4"
-          />
-        ) : (
-          <View className="mt-4" />
-        )}
-
-        <View className="w-full px-4">
-          <Text className="mb-2 font-psemibold text-xl text-secondary">Add Ons</Text>
-
-          {/* GUEST ROOM BOOKING COMPONENT */}
-          {![types.ROOM_DETAILS_TYPE, types.FLAT_DETAILS_TYPE].includes(booking) && (
-            <GuestRoomAddon
-              roomForm={roomForm}
-              setRoomForm={setRoomForm}
-              addRoomForm={addRoomForm}
-              reomveRoomForm={removeRoomForm}
-              updateRoomForm={updateRoomForm}
-              INITIAL_ROOM_FORM={createInitialRoomForm()}
-              guest_dropdown={guest_dropdown}
-              isDatePickerVisible={isDatePickerVisible}
-              setDatePickerVisibility={toggleDatePicker}
-              onToggle={(isOpen) => toggleAddon('room', isOpen)}
-            />
-          )}
-
-          {/* GUEST FOOD BOOKING COMPONENT */}
-          <GuestFoodAddon
-            foodForm={foodForm}
-            setFoodForm={setFoodForm}
-            addFoodForm={addFoodForm}
-            resetFoodForm={resetFoodForm}
-            reomveFoodForm={removeFoodForm}
-            updateFoodForm={updateFoodForm}
-            guest_dropdown={guest_dropdown}
-            isDatePickerVisible={isDatePickerVisible}
-            setDatePickerVisibility={toggleDatePicker}
-            onToggle={(isOpen) => toggleAddon('food', isOpen)}
+        {/* One gap between every section. Each block used to carry its own
+            margin, and an empty view stood in for one of them. */}
+        <View className="gap-y-6">
+          {/* Same card component the review screen uses. There is one way to show
+              a booking, so the two screens cannot drift apart. */}
+          {/* The stay outcome goes inside the stay card. As its own block it
+              repeated the card's dates, its verdict pill and its room type, so a
+              single stay was described three times down the page. */}
+          <BookingSummary
+            data={guestData}
+            audience="guest"
+            validationData={guestData?.validationData}
+            className="px-4"
+            extras={stayExtra?.extras}
+            hideVerdictFor={stayExtra?.hideVerdictFor}
           />
 
-          {/* GUEST ADHYAYAN BOOKING COMPONENT */}
-          {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking) && (
-            <GuestAdhyayanAddon
-              adhyayanForm={adhyayanForm}
-              setAdhyayanForm={setAdhyayanForm}
-              updateAdhyayanForm={updateAdhyayanForm}
-              INITIAL_ADHYAYAN_FORM={createInitialAdhyayanForm()}
-              guest_dropdown={guest_dropdown}
+          {booking === types.EVENT_DETAILS_TYPE ? (
+            <Callout
+              variant="warning"
+              message="For Early Arrival or Late Departure during events please book your stay, food and travel through add-ons below."
+              overrideStyle="mx-4"
             />
-          )}
+          ) : null}
+
+          <View className="w-full px-4">
+            <SectionHeader
+              title="Add-ons"
+              subtitle="Optional. Anything you add here is booked together with the stay above."
+              className="mb-3"
+            />
+
+            {/* GUEST ROOM BOOKING COMPONENT */}
+            {![types.ROOM_DETAILS_TYPE, types.FLAT_DETAILS_TYPE].includes(booking) && (
+              <GuestRoomAddon
+                roomForm={roomForm}
+                setRoomForm={setRoomForm}
+                addRoomForm={addRoomForm}
+                reomveRoomForm={removeRoomForm}
+                updateRoomForm={updateRoomForm}
+                INITIAL_ROOM_FORM={createInitialRoomForm()}
+                guest_dropdown={guest_dropdown}
+                isDatePickerVisible={isDatePickerVisible}
+                setDatePickerVisibility={toggleDatePicker}
+                onToggle={(isOpen) => toggleAddon('room', isOpen)}
+              />
+            )}
+
+            {/* GUEST FOOD BOOKING COMPONENT */}
+            {booking !== types.FOOD_DETAILS_TYPE && (
+              <GuestFoodAddon
+                foodForm={foodForm}
+                setFoodForm={setFoodForm}
+                addFoodForm={addFoodForm}
+                resetFoodForm={resetFoodForm}
+                reomveFoodForm={removeFoodForm}
+                updateFoodForm={updateFoodForm}
+                guest_dropdown={guest_dropdown}
+                isDatePickerVisible={isDatePickerVisible}
+                setDatePickerVisibility={toggleDatePicker}
+                onToggle={(isOpen) => toggleAddon('food', isOpen)}
+              />
+            )}
+
+            {/* GUEST ADHYAYAN BOOKING COMPONENT */}
+            {![types.ADHYAYAN_DETAILS_TYPE, types.EVENT_DETAILS_TYPE].includes(booking) && (
+              <GuestAdhyayanAddon
+                adhyayanForm={adhyayanForm}
+                setAdhyayanForm={setAdhyayanForm}
+                updateAdhyayanForm={updateAdhyayanForm}
+                INITIAL_ADHYAYAN_FORM={createInitialAdhyayanForm()}
+                guest_dropdown={guest_dropdown}
+              />
+            )}
+          </View>
         </View>
       </KeyboardAwareScrollView>
 
       <ShadowBox className="w-full border-t border-gray-200 bg-white px-4 py-4">
+        {/* A disabled button with no stated cause makes a member tap a dead
+            control. Name the blocker next to it. */}
+        {cannotBookHere && (
+          <Text className="mb-2.5 font-pregular text-xs leading-5 text-gray-600">
+            These dates cannot be booked. Go back and pick different dates.
+          </Text>
+        )}
+        {!cannotBookHere && reasonMissing && (
+          <Text className="mb-2.5 font-pregular text-xs leading-5 text-gray-600">
+            Add a reason for the extra nights above to continue.
+          </Text>
+        )}
         <CustomButton
           text="Continue"
-          handlePress={handleSubmit}
+          handlePress={() => {
+            if (cannotBookHere) return;
+            if (reasonMissing) {
+              setShowReasonError(true);
+              return;
+            }
+            persistStayReason();
+            handleSubmit();
+          }}
           containerStyles="min-h-[52px] mb-8"
           isLoading={isSubmitting}
+          isDisabled={cannotBookHere || reasonMissing}
         />
       </ShadowBox>
 
       {validationDataError && (
         <CustomModal
-          visible={true}
+          visible
           onClose={handleCloseValidationModal}
           message={validationDataError.message}
           btnText="Okay"

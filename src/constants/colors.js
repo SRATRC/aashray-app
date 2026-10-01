@@ -5,6 +5,7 @@ const secondary_200 = '#FF8E01';
 
 const gray_100 = '#FAFAFC';
 const gray_200 = '#E5E7EB';
+const gray_300 = '#D1D5DB';
 const gray_400 = '#9CA3AF';
 const gray_500 = '#6B7280';
 const gray_600 = '#4B5563';
@@ -19,6 +20,9 @@ const black_200 = '#232533';
 const white = '#FFFFFF';
 const white_100 = '#F5F5F5';
 
+const red_100 = '#FFF1F1';
+const red_200 = '#EB5757';
+
 const zinc_100 = '#f4f4f5';
 
 export default {
@@ -28,6 +32,7 @@ export default {
   secondary_200,
   gray_100,
   gray_200,
+  gray_300,
   gray_400,
   gray_500,
   gray_600,
@@ -39,5 +44,7 @@ export default {
   black_200,
   white,
   white_100,
+  red_100,
+  red_200,
   zinc_100,
 };

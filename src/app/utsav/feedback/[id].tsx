@@ -119,7 +119,7 @@ const UtsavFeedbackScreen: React.FC = () => {
 
   if (validationError) {
     return (
-      <View className="flex-1 bg-white">
+      <View className="flex-1 bg-gray-50">
         <CustomErrorMessage errorTitle="Access Denied" errorMessage={validationError} />
       </View>
     );

@@ -1,0 +1,420 @@
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text } from 'react-native';
+// @ts-ignore — react-native-razorpay ships no type declarations
+import RazorpayCheckout from 'react-native-razorpay';
+
+import BookingShell from './BookingShell';
+import BookingSummary from './BookingSummary';
+
+import useDelayedFlag from '@/src/hooks/useDelayedFlag';
+import ChargesCard, { payableNow, totalCreditsIn, waitlistedTypesIn } from './ChargesCard';
+import { AUDIENCE_CONFIG } from './bookingAudience';
+import type { Audience } from './useBookingParty';
+
+import CustomModal from '@/src/components/CustomModal';
+import InternationalPaymentWarning from '@/src/components/InternationalPaymentWarning';
+import stayOutcomeExtra from './stayOutcomeExtra';
+import { buildStayOutcome } from '@/src/components/stay/buildStayOutcome';
+import { colors } from '@/src/constants';
+import { useAuthStore, useBookingStore } from '@/src/stores';
+import Toast from 'react-native-toast-message';
+
+import handleAPICall, { LONG_TIMEOUT_MS } from '@/src/utils/HandleApiCall';
+import { invalidatePostBookingQueries } from '@/src/utils/queryInvalidation';
+import { buildBookingValidationKey } from '@/src/utils/buildBookingValidationKey';
+import isInternationalUser from '@/src/utils/isInternationalUser';
+
+/**
+ * Review and pay. One screen for every booking type and every audience.
+ *
+ * This replaces three near-identical screens of roughly 750 lines each. What
+ * actually varied between them was the endpoint pair and the payload builder,
+ * which now live in AUDIENCE_CONFIG.
+ */
+
+interface BookingReviewScreenProps {
+  audience: Audience;
+}
+
+const money = (n: number) => `₹${n.toLocaleString('en-IN')}`;
+
+const BookingReviewScreen: React.FC<BookingReviewScreenProps> = ({ audience }) => {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const user = useAuthStore((s: any) => s.user);
+  const config = AUDIENCE_CONFIG[audience];
+
+  const data = useBookingStore((s: any) => s[config.store]);
+  const setData = useBookingStore((s: any) =>
+    config.store === 'guestData' ? s.setGuestData : s.setMumukshuData
+  );
+  const guestInfo = useBookingStore((s: any) => s.guestInfo);
+  const mumukshuInfo = useBookingStore((s: any) => s.mumukshuInfo);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPayLater, setShowPayLater] = useState(false);
+  const [showInternational, setShowInternational] = useState(false);
+  const [reason, setReason] = useState(
+    () => data?.room?.extra_stay_reason || data?.flat?.extra_stay_reason || ''
+  );
+  const [showReasonError, setShowReasonError] = useState(false);
+
+  const basePayload = useMemo(() => config.buildPayload(user, data), [config, user, data]);
+
+  const {
+    data: validationData,
+    error: validationError,
+    refetch,
+    isLoading,
+    isFetching,
+  } = useQuery<any, Error>({
+    // The extra-stay reason is deliberately NOT part of the validated payload or
+    // its key. Availability does not depend on the reason, and keying on it made
+    // every keystroke in the reason field a fresh /validate whose pending state
+    // unmounted the very field being typed into. The reason joins the payload
+    // only at booking time, in book() below.
+    queryKey: buildBookingValidationKey({ audience, cardno: user?.cardno, data: basePayload }),
+    queryFn: () =>
+      new Promise((resolve, reject) => {
+        handleAPICall(
+          'POST',
+          config.validateUrl,
+          null,
+          basePayload,
+          (res: any) => resolve(res.data),
+          () => {},
+          (err: any) =>
+            reject(new Error(err?.message || 'Could not check availability. Please try again.')),
+          // No toast: the error modal below is this screen's one report of it.
+          false
+        );
+      }),
+    retry: false,
+    enabled: !!user?.cardno,
+    // Availability must be fresh every time this screen is entered — the app's
+    // global 5-minute staleTime would happily pay against a cached answer.
+    // This still fetches only ONCE on mount; the focus refetch below covers
+    // returns to an already-mounted screen.
+    staleTime: 0,
+    refetchOnMount: 'always',
+    // A key change (store data edited on the way back in) keeps the previous
+    // answer on screen while the re-check runs instead of blanking the body.
+    placeholderData: keepPreviousData,
+  });
+
+  // The store copy of the answer is written from the query's settled data, not
+  // from inside queryFn: a queryFn side effect also runs for responses React
+  // Query has already discarded (an overlapping refetch resolving late), which
+  // could persist a stale answer. `validationData` here is always the latest.
+  useEffect(() => {
+    if (validationData) {
+      setData((prev: any) => ({ ...prev, validationData }));
+    }
+  }, [validationData, setData]);
+
+  // Re-check on every RETURN to this screen — after the add-on step, after a
+  // failed payment. The first focus is skipped: useQuery already fetches on
+  // mount, and a second concurrent /validate bought nothing but a race.
+  const focusedOnce = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (!focusedOnce.current) {
+        focusedOnce.current = true;
+        return;
+      }
+      if (user?.cardno) refetch();
+    }, [user?.cardno, refetch])
+  );
+
+  // cardno -> display name, for the per-person stay verdict.
+  const names = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (user?.cardno) map[String(user.cardno)] = 'You';
+    for (const e of (guestInfo as any[]) || []) {
+      if (e?.cardno) map[String(e.cardno)] = e.name || String(e.cardno);
+    }
+    for (const e of (mumukshuInfo as any[]) || []) {
+      if (e?.cardno) map[String(e.cardno)] = e.name || String(e.cardno);
+    }
+    return map;
+  }, [user?.cardno, guestInfo, mumukshuInfo]);
+
+  const stayOutcome = useMemo(() => {
+    const rows = validationData?.roomDetails?.length
+      ? validationData.roomDetails
+      : validationData?.flatDetails || [];
+    const stay = data?.room || data?.flat;
+    return buildStayOutcome(
+      rows,
+      names,
+      stay?.startDay ? { start: stay.startDay, end: stay.endDay || stay.startDay } : undefined
+    );
+  }, [validationData, names, data]);
+
+  const needsReason = Boolean(
+    validationData?.roomDetails?.some((r: any) => r.requiresExtraStayReason) ||
+      validationData?.flatDetails?.some((f: any) => f.requiresExtraStayReason)
+  );
+  const reasonMissing = needsReason && !reason.trim();
+
+  const cannotBook = Boolean(
+    stayOutcome?.segments.some((s) => s.groups.some((g) => g.verdict === 'unavailable'))
+  );
+  const allWaitlisted = stayOutcome?.overall === 'waitlist';
+  const due = payableNow(validationData);
+  // Waitlisted across the whole booking, not just the stay — an Utsav or food
+  // add-on can be waitlisted (or payable) independently of the room.
+  const hasWaitlistedPortion =
+    allWaitlisted ||
+    stayOutcome?.overall === 'mixed' ||
+    waitlistedTypesIn(validationData).length > 0;
+
+  /**
+   * A re-check, not the first one. `useFocusEffect` refetches every time this
+   * screen regains focus — after the add-on step, after a failed payment — and
+   * React Query's `isLoading` only covers the very first load. So the previous
+   * answer stays on screen while a new /validate is in flight. That is fine to
+   * look at and not fine to pay against: the last room may have gone while the
+   * member was away.
+   */
+  // Same flicker rule as the skeleton: a re-check that lands in 150ms should
+  // not blink the caption and the button on its way past.
+  const isRevalidating = useDelayedFlag(isFetching && !!validationData);
+  // The visible caption/spinner is delayed to avoid flicker, but the button must
+  // not be: a tap in that first ~250ms would pay against the stale answer.
+  const rechecking = isFetching && !!validationData;
+
+  const gate = () => {
+    if (cannotBook || rechecking) return false;
+    if (reasonMissing) {
+      setShowReasonError(true);
+      return false;
+    }
+    return true;
+  };
+
+  // handleAPICall runs its finally the moment the success callback returns, and
+  // the callback fires the Razorpay sheet without awaiting it. The button would
+  // therefore re-enable while the sheet was still opening, and a second tap
+  // placed a second order. This holds the button until Razorpay settles.
+  const paying = useRef(false);
+  // Synchronous re-entry guard. The disabled state alone is not enough: two
+  // taps landing before React re-renders both see an enabled button, and each
+  // would place an order.
+  const inFlight = useRef(false);
+
+  const book = async (payLater: boolean) => {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setIsSubmitting(true);
+    paying.current = false;
+    await handleAPICall(
+      'POST',
+      config.bookingUrl,
+      null,
+      {
+        ...basePayload,
+        ...(reason.trim() ? { extra_stay_reason: reason.trim() } : {}),
+      },
+      (res: any) => {
+        // A booking with nothing left to charge comes back with no order.
+        if (payLater || !res?.order?.id) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          router.replace('/bookingConfirmation');
+          return;
+        }
+        paying.current = true;
+        RazorpayCheckout.open({
+          key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID,
+          name: 'Vitraag Vigyaan Aashray',
+          image: 'https://vitraagvigyaan.org/img/logo.png',
+          description: 'Payment for Vitraag Vigyaan Aashray',
+          amount: `${res.order.amount}`,
+          currency: 'INR',
+          order_id: `${res.order.id}`,
+          prefill: { email: user.email, contact: user.mobno, name: user.issuedto },
+          theme: { color: colors.orange },
+        })
+          .then(() => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            router.replace('/paymentConfirmation');
+          })
+          .catch(() => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            router.replace('/paymentFailed');
+          })
+          .finally(() => {
+            paying.current = false;
+            inFlight.current = false;
+            setIsSubmitting(false);
+          });
+      },
+      () => {
+        if (!paying.current) {
+          inFlight.current = false;
+          setIsSubmitting(false);
+        }
+      },
+      (err: any) => {
+        // No answer within the long window does NOT mean the booking failed: the
+        // backend may have created it and be stuck sending WhatsApp. Sending the
+        // member back to the form to retry could double-book, so send them to
+        // pending payments, where a created booking shows up and can be paid.
+        if (!err?.isTimeout) {
+          Toast.show({
+            type: 'error',
+            text1: 'An error occurred!',
+            text2: err?.message,
+            swipeable: false,
+            text1Style: { color: 'red' },
+            text2Style: { color: 'black', fontWeight: 'bold', fontSize: 14 },
+          });
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          return;
+        }
+        Toast.show({
+          type: 'info',
+          text1: 'Still processing your booking',
+          text2: 'Check Pending payments to see whether it went through.',
+        });
+        invalidatePostBookingQueries(queryClient);
+        router.replace('/pendingPayments');
+      },
+      // Toast is handled above so a timeout is not reported as a generic error.
+      false,
+      { timeout: LONG_TIMEOUT_MS }
+    );
+  };
+
+  const handlePrimary = () => {
+    if (!gate()) return;
+    if (due > 0 && isInternationalUser(user)) {
+      setShowInternational(true);
+      return;
+    }
+    book(false);
+  };
+
+  // A dead button that restates the note above it is not an answer. When the
+  // dates cannot be booked the only useful action is to go change them, so the
+  // primary becomes that instead of a disabled label.
+  //
+  // A real amount due always wins over "Join waitlist": a waitlisted stay next
+  // to a payable Utsav still has ₹ to pay right now, and a button that says
+  // "Join waitlist" while it silently charges a card is the bug this fixes.
+  const primaryLabel = cannotBook
+    ? 'Change dates'
+    : due > 0
+      ? hasWaitlistedPortion
+        ? `Pay ${money(due)} now`
+        : `Pay ${money(due)}`
+      : allWaitlisted
+        ? 'Join waitlist'
+        : 'Confirm booking';
+
+  // A waitlisted add-on is stated on its own card and on its charges line, so the
+  // footer does not repeat it.
+  const footerNote = isRevalidating
+    ? 'Checking these dates are still available…'
+    : cannotBook
+      ? 'These dates cannot be booked.'
+      : reasonMissing
+        ? 'Add a reason for the extra nights above to continue.'
+        : due === 0 && hasWaitlistedPortion
+          ? 'Nothing is charged for a waitlisted stay. A WhatsApp link to pay arrives if an admin confirms it.'
+          : due > 0 && hasWaitlistedPortion
+            ? 'The waitlisted portion is not charged yet. A WhatsApp link to pay arrives if an admin confirms it.'
+            : undefined;
+
+  const stayExtra = stayOutcomeExtra({
+    data,
+    outcome: stayOutcome,
+    reason,
+    onChangeReason: (t) => {
+      setReason(t);
+      if (t.trim()) setShowReasonError(false);
+    },
+    showReasonError,
+  });
+
+  return (
+    <BookingShell
+      title="Review booking"
+      caption={validationData ? undefined : 'Checking availability'}
+      isBusy={isLoading && !validationData}
+      primaryLabel={primaryLabel}
+      onPrimary={cannotBook ? () => router.back() : handlePrimary}
+      primaryDisabled={!validationData || reasonMissing || rechecking}
+      primaryLoading={isSubmitting || isRevalidating}
+      secondaryLabel={due > 0 ? 'Pay later' : undefined}
+      onSecondary={() => {
+        if (gate()) setShowPayLater(true);
+      }}
+      footerNote={footerNote}
+      // Paying is the point of this screen; the action does not scroll away.
+      pinFooter>
+      <View className="gap-y-6 px-4">
+        {/* The stay outcome sits inside the stay card, not above it. As its own
+            block it repeated the card's dates and verdict pill, so the page
+            showed two headings for one stay. */}
+        <BookingSummary
+          data={data}
+          audience={audience}
+          validationData={validationData}
+          extras={stayExtra?.extras}
+          hideVerdictFor={stayExtra?.hideVerdictFor}
+        />
+
+        {/* Charges read as part of the booking, not as part of the button. In
+            the footer sheet they shared a surface with Pay, which made the
+            breakdown feel like fine print attached to the action. */}
+        {validationData ? (
+          <View>
+            <ChargesCard validationData={validationData} names={names} />
+            {totalCreditsIn(validationData) > 0 ? (
+              <Text className="mt-2 px-1 font-pregular text-xs leading-5 text-gray-500">
+                Your credits have been applied automatically.
+              </Text>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
+
+      {validationError ? (
+        <CustomModal
+          visible
+          onClose={() => router.back()}
+          message={validationError.message || 'Could not check availability. Please try again.'}
+          btnText="Okay"
+        />
+      ) : null}
+
+      <CustomModal
+        visible={showPayLater}
+        onClose={() => setShowPayLater(false)}
+        title="Pay later"
+        message="Your booking is held for 24 hours. If payment does not arrive by then, it is cancelled automatically."
+        btnText="I understand, proceed"
+        btnOnPress={() => {
+          setShowPayLater(false);
+          book(true);
+        }}
+      />
+
+      <InternationalPaymentWarning
+        visible={showInternational}
+        country={user?.country}
+        onClose={() => setShowInternational(false)}
+        onProceed={() => {
+          setShowInternational(false);
+          book(false);
+        }}
+      />
+    </BookingShell>
+  );
+};
+
+export default BookingReviewScreen;

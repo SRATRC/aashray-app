@@ -24,6 +24,7 @@ import BottomSheetFilter from '../BottomSheetFilter';
 import moment from 'moment';
 import * as Haptics from 'expo-haptics';
 import { ShadowBox } from '../ShadowBox';
+import { invalidatePostBookingQueries } from '@/src/utils/queryInvalidation';
 
 const FOOD_TYPE_LIST = [
   { key: 'breakfast', value: 'Breakfast' },
@@ -35,21 +36,21 @@ const SPICE_LIST = [
   { key: 'false', value: 'Non Spicy' },
 ];
 
+const CancellationNote = () => (
+  <View className="mb-2 flex-row items-start gap-x-3 rounded-lg border border-amber-300 bg-amber-50 p-3">
+    <FontAwesome name="info-circle" size={16} color="#b45309" style={{ alignSelf: 'center' }} />
+    <Text className="flex-1 font-pregular text-sm text-amber-800">
+      Bookings can be cancelled before 8 PM of each day for the next day's meals.
+    </Text>
+  </View>
+);
+
 export default function FoodBookingCancellation() {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const tabBarPadding = useTabBarPadding();
   const tabBarHeight = useBottomTabOverflow();
-
-  const CancellationNote = () => (
-    <View className="mb-2 flex-row items-start gap-x-3 rounded-lg border border-amber-300 bg-amber-50 p-3">
-      <FontAwesome name="info-circle" size={16} color="#b45309" style={{ alignSelf: 'center' }} />
-      <Text className="flex-1 font-pregular text-sm text-amber-800">
-        Bookings can be cancelled before 8 PM of each day for the next day's meals.
-      </Text>
-    </View>
-  );
 
   const [filter, setFilter] = useState<any>({
     date: null,
@@ -136,7 +137,7 @@ export default function FoodBookingCancellation() {
         lastPage?.length ? (pages?.length || 0) + 1 : undefined,
     });
 
-  const fetchGuests = async () => {
+  const fetchGuests = async (): Promise<any[]> => {
     return new Promise((resolve, reject) => {
       handleAPICall(
         'GET',
@@ -149,7 +150,7 @@ export default function FoodBookingCancellation() {
     });
   };
 
-  const { data: guestList, isLoading: isLoadingGuest } = useQuery({
+  const { data: guestList } = useQuery<any[]>({
     queryKey: ['foodGuestList', user.cardno],
     queryFn: fetchGuests,
     staleTime: 1000 * 60 * 60 * 2,
@@ -170,16 +171,7 @@ export default function FoodBookingCancellation() {
     },
     onSuccess: () => {
       setSelectedItems([]);
-      queryClient.invalidateQueries({
-        queryKey: [
-          'foodBooking',
-          user.cardno,
-          filter.date,
-          filter.meal?.key,
-          filter.spice?.key,
-          filter.bookedFor?.key,
-        ],
-      });
+      invalidatePostBookingQueries(queryClient);
     },
   });
 

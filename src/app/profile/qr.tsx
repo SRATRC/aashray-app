@@ -7,7 +7,7 @@ import QRCodeStyled from 'react-native-qrcode-styled';
 import PageHeader from '@/src/components/PageHeader';
 
 const QrScreen = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   const closeModal = () => {
     router.back();

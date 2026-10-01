@@ -23,9 +23,10 @@ import CustomEmptyMessage from '../CustomEmptyMessage';
 import BookingStatusDisplay from '../BookingStatusDisplay';
 import moment from 'moment';
 import { useRouter } from 'expo-router';
+import { invalidatePostBookingQueries } from '@/src/utils/queryInvalidation';
 
 const EventBookingCancellation = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -86,6 +87,8 @@ const EventBookingCancellation = () => {
       });
     },
     onSuccess: (_, { bookingid }) => {
+      // Freed dates, seats and dues show up on home, blocked dates and the other lists.
+      invalidatePostBookingQueries(queryClient);
       queryClient.setQueryData(['utsavBooking', user?.cardno], (oldData: any) => {
         if (!oldData || !oldData.pages) return oldData;
 
@@ -175,7 +178,7 @@ const EventBookingCancellation = () => {
         visibleContent={
           <View className="flex-1 flex-shrink flex-row items-center gap-x-4">
             <Image source={icons.events} className="h-10 w-10 items-center" resizeMode="contain" />
-            <View className="flex-col gap-y-2">
+            <View className="min-w-0 flex-1 flex-col gap-y-2">
               <BookingStatusDisplay
                 bookingStatus={item.status}
                 transactionStatus={item.transaction_status}
@@ -226,16 +229,16 @@ const EventBookingCancellation = () => {
             <View className="mt-5 flex-row gap-x-3 px-1">
               {/* Cancel Booking — only BEFORE event */}
               {canCancel && (
-                  <CustomButton
-                    text="Cancel Booking"
-                    containerStyles={'py-3 flex-1'}
-                    textStyles={'text-sm text-white'}
-                    handlePress={() => {
-                      setSelectedBooking(item);
-                      setShowCancelModal(true);
-                    }}
-                  />
-                )}
+                <CustomButton
+                  text="Cancel Booking"
+                  containerStyles={'py-3 flex-1'}
+                  textStyles={'text-sm text-white'}
+                  handlePress={() => {
+                    setSelectedBooking(item);
+                    setShowCancelModal(true);
+                  }}
+                />
+              )}
 
               {/* Give Feedback */}
               {item?.showFeedback && !item?.hasSubmittedFeedback && !bookedForSomeone && (

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, Image } from 'react-native';
 import { icons, dropdowns } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import FormDisplayField from '../FormDisplayField';
 import AddonItem from '../AddonItem';
+import AddonHeader from '../booking/shared/AddonHeader';
 import Toast from 'react-native-toast-message';
 import moment from 'moment';
 import * as Haptics from 'expo-haptics';
@@ -29,7 +29,7 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
   const setMumukshuData = useBookingStore((state) => state.setMumukshuData);
 
   // Temporary state to hold the date for the checkin picker
-  const [tempFoodStartDate, setTempFoodStartDate] = useState(
+  const [tempFoodStartDate] = useState(() =>
     foodForm.startDay ? moment(foodForm.startDay).toDate() : moment().add(1, 'days').toDate()
   );
 
@@ -62,10 +62,7 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
       }}
       onToggle={onToggle}
       visibleContent={
-        <View className="flex flex-row items-center gap-x-4">
-          <Image source={icons.food} className="h-10 w-10" resizeMode="contain" />
-          <Text className="font-pmedium">Raj Prasad Booking</Text>
-        </View>
+        <AddonHeader icon={icons.food} title="Raj Prasad" subtitle="Meals during your stay" />
       }
       containerStyles={'mt-3'}>
       <FormDisplayField
@@ -73,7 +70,6 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
         value={foodForm.startDay ? moment(foodForm.startDay).format('Do MMMM YYYY') : ''}
         placeholder="Start Date"
         otherStyles="mt-5"
-        backgroundColor="bg-gray-100"
         onPress={() => setDatePickerVisibility('foodStart', true)}
       />
       <DateTimePickerModal
@@ -109,7 +105,6 @@ const FoodAddon: React.FC<FoodAddonProps> = ({
         value={foodForm.endDay ? moment(foodForm.endDay).format('Do MMMM YYYY') : ''}
         placeholder="End Date"
         otherStyles="mt-5"
-        backgroundColor="bg-gray-100"
         onPress={() => {
           if (foodForm.startDay) {
             setDatePickerVisibility('foodEnd', true);

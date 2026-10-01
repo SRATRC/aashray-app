@@ -1,0 +1,510 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useQueries } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
+import moment from 'moment';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { View, Text } from 'react-native';
+import { Calendar, DateData } from 'react-native-calendars';
+
+import { colors } from '@/src/constants';
+import { useAuthStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
+
+// The calendar answers exactly one question: can these dates be booked at all?
+// It never guesses at availability, because a free bed depends on room type,
+// floor and gender — all picked after the dates. Everything it shows as
+// untappable is a hard no that no waitlist job would ever promote.
+export type DayKind = 'closed' | 'utsav_out' | 'utsav_in' | 'own';
+
+export interface DayInfo {
+  /**
+   * The precise cause. Sent by backends that know about attendance and the
+   * member's own bookings.
+   */
+  kind?: DayKind;
+  /**
+   * Legacy field, still sent by the deployed backend: 'block' means nobody can
+   * stay, 'utsav' means a festival overlaps with no attendance information.
+   */
+  type?: DayKind | 'block' | 'utsav';
+  reason?: string;
+  utsavName?: string;
+}
+
+export type DayMap = Record<string, DayInfo>;
+
+/**
+ * Resolves a day to its cause, whichever shape the backend speaks.
+ *
+ * A backend that only sends `type` cannot tell us whether the member attends an
+ * overlapping Utsav, so 'utsav' maps to utsav_in — selectable, which is how the
+ * app behaved before and is the safe direction: the booking call still rejects a
+ * non-attendee. 'block' maps to closed, which is untappable.
+ */
+const kindOf = (info?: DayInfo): DayKind | undefined => {
+  if (!info) return undefined;
+  if (info.kind) return info.kind;
+  if (info.type === 'block') return 'closed';
+  if (info.type === 'utsav') return 'utsav_in';
+  return info.type as DayKind | undefined;
+};
+
+const BLOCKING: DayKind[] = ['closed', 'utsav_out', 'own'];
+const isBlocking = (info?: DayInfo) => {
+  const k = kindOf(info);
+  return Boolean(k && BLOCKING.includes(k));
+};
+
+const getMinDate = () => moment().add(1, 'days').format('YYYY-MM-DD');
+
+const CALENDAR_THEME = {
+  arrowColor: colors.orange,
+  todayTextColor: colors.orange,
+  textDisabledColor: colors.gray_400,
+  // The library paints its own white sheet, which read as a card floating on
+  // the page. The calendar is the page here, so it sits flush with it.
+  calendarBackground: 'transparent',
+};
+
+const MARKING_STYLE = { color: colors.orange, textColor: colors.white };
+
+const fmt = (d: string) => moment(d).format('D MMM');
+
+/** "15 Aug" for one day, "15 Aug – 18 Aug" for a run. */
+const describeSpan = (span: { start: string; end: string }) =>
+  span.start === span.end ? fmt(span.start) : `${fmt(span.start)} – ${fmt(span.end)}`;
+
+/**
+ * The one sentence for a closure, so both call sites word it the same way.
+ *
+ * `utsavName` is often empty and the names arrive inside `reason` instead,
+ * which the backend sends as a finished sentence ("The centre is closed on
+ * these dates: Advocates & Mumbai Youth Forum"). Appending that whole string
+ * said the same thing twice, so keep only the part after the last colon —
+ * a reason with no colon ("Maintenance") passes through unchanged.
+ */
+const describeClosure = (
+  span: { start: string; end: string; names: string[] },
+  reason?: string
+) => {
+  const cause = span.names.length ? span.names.join(' & ') : reason?.split(':').pop()?.trim();
+  return cause
+    ? `The centre is closed on ${describeSpan(span)} for ${cause}.`
+    : `The centre is closed on ${describeSpan(span)}.`;
+};
+
+/** One month of answers, plus the next, so paging forward is usually a cache hit. */
+const fetchBlockedDates = (cardno: string, monthKey: string): Promise<DayMap> =>
+  new Promise((resolve, reject) => {
+    const anchor = moment(monthKey, 'YYYY-MM').startOf('month');
+    handleAPICall(
+      'GET',
+      '/stay/blocked-dates',
+      {
+        from: anchor.format('YYYY-MM-DD'),
+        to: anchor.clone().add(1, 'month').endOf('month').format('YYYY-MM-DD'),
+        cardno,
+      },
+      null,
+      (res: any) => resolve((res?.data || {}) as DayMap),
+      () => {},
+      () => reject(new Error('Failed to fetch blocked dates')),
+      false
+    );
+  });
+
+/** The month the calendar opens on. Exported so the launch prefetch asks for the
+ * same one the screen will. */
+export const initialMonthKey = (minDate?: string) =>
+  moment(minDate || getMinDate())
+    .startOf('month')
+    .format('YYYY-MM');
+
+/** Merges each requested month's answer into one day map; a later month wins on overlap. */
+const mergeMonthResults = (results: { data?: DayMap }[]): DayMap =>
+  Object.assign({}, ...results.map((r) => r.data || {})) as DayMap;
+
+/** Key and fetcher together — see the note on `nextStayQuery`. */
+export const blockedDatesQuery = (cardno: string, monthKey: string) => ({
+  queryKey: ['blockedDates', cardno, monthKey],
+  queryFn: () => fetchBlockedDates(cardno, monthKey),
+});
+
+interface StayCalendarProps {
+  mode?: 'period' | 'single';
+  startDay?: string;
+  setStartDay?: (day: string) => void;
+  endDay?: string | null;
+  setEndDay?: (day: string | null) => void;
+  selectedDay?: string;
+  setSelectedDay?: (day: string) => void;
+  minDate?: string;
+  // Injectable so the prototype and tests can drive it without the network.
+  dayMapOverride?: DayMap;
+}
+
+const StayCalendar: React.FC<StayCalendarProps> = ({
+  mode = 'period',
+  startDay,
+  setStartDay,
+  endDay,
+  setEndDay,
+  selectedDay,
+  setSelectedDay,
+  minDate,
+  dayMapOverride,
+}) => {
+  const [disableLeftArrow, setDisableLeftArrow] = useState(false);
+  const [note, setNote] = useState<{ tone: 'info' | 'blocked'; text: string } | null>(null);
+  const [visibleMonth, setVisibleMonth] = useState<string>(initialMonthKey(minDate));
+
+  const user = useAuthStore((state: any) => state.user);
+  const cardno = user?.cardno;
+
+  const effectiveMinDate = useMemo(() => minDate || getMinDate(), [minDate]);
+
+  useEffect(() => {
+    setVisibleMonth(initialMonthKey(minDate));
+  }, [minDate]);
+
+  // Which months have been looked at. The answers themselves live in the query
+  // cache, so leaving the screen and coming back does not refetch them.
+  const [months, setMonths] = useState<string[]>(() => [initialMonthKey(minDate)]);
+
+  // A month request covers the next one too, so consecutive months overlap and
+  // the later answer simply wins. `combine` merges them inside React Query, which
+  // only re-runs it when a month's result changes; the merged map is therefore as
+  // stable as the data (no hand-keyed memo with a suppressed hooks lint).
+  const dayMap = useQueries({
+    queries: months.map((monthKey) => ({
+      ...blockedDatesQuery(cardno, monthKey),
+      enabled: Boolean(cardno) && !dayMapOverride,
+    })),
+    combine: mergeMonthResults,
+  });
+
+  const effectiveMap = dayMapOverride ?? dayMap;
+
+  const rememberMonth = useCallback((anchorDateString: string) => {
+    const monthKey = moment(anchorDateString).startOf('month').format('YYYY-MM');
+    setMonths((prev) => (prev.includes(monthKey) ? prev : [...prev, monthKey]));
+  }, []);
+
+  const firstBlockingFrom = useCallback(
+    (from: string) => {
+      const cursor = moment(from);
+      for (let i = 0; i < 120; i += 1) {
+        cursor.add(1, 'days');
+        const key = cursor.format('YYYY-MM-DD');
+        if (isBlocking(effectiveMap[key])) return { date: key, info: effectiveMap[key] };
+      }
+      return null;
+    },
+    [effectiveMap]
+  );
+
+  /**
+   * The run of consecutive unbookable days starting at `from`, with the names of
+   * whatever closes them.
+   *
+   * The backend reason says "closed on these dates" without giving any, which
+   * leaves the member to hunt for the wall on the calendar. The day map already
+   * holds the dates, so name them.
+   */
+  const blockedSpanFrom = useCallback(
+    (from: string) => {
+      const cursor = moment(from);
+      const names: string[] = [];
+      let end = from;
+      for (let i = 0; i < 120; i += 1) {
+        const key = cursor.format('YYYY-MM-DD');
+        const info = effectiveMap[key];
+        if (!isBlocking(info)) break;
+        end = key;
+        const name = info?.utsavName;
+        if (name && !names.includes(name)) names.push(name);
+        cursor.add(1, 'days');
+      }
+      return { start: from, end, names };
+    },
+    [effectiveMap]
+  );
+
+  const utsavSpanInside = useCallback(
+    (from: string, to: string) => {
+      const days: string[] = [];
+      const cursor = moment(from);
+      while (cursor.isSameOrBefore(to)) {
+        const key = cursor.format('YYYY-MM-DD');
+        if (kindOf(effectiveMap[key]) === 'utsav_in') days.push(key);
+        cursor.add(1, 'days');
+      }
+      if (days.length === 0) return null;
+      return {
+        start: days[0],
+        end: days[days.length - 1],
+        name: effectiveMap[days[0]]?.utsavName || 'Utsav',
+      };
+    },
+    [effectiveMap]
+  );
+
+  /** A note appears in place with no other movement on screen, so it lands with
+   * a light tap to say something answered the press. Clearing one is silent. */
+  const showNote = useCallback((next: { tone: 'info' | 'blocked'; text: string } | null) => {
+    if (next) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setNote(next);
+  }, []);
+
+  const handleDayPress = useCallback(
+    (day: any) => {
+      const key = day.dateString;
+      const info = effectiveMap[key];
+
+      // The first blocked day after check-in is a valid CHECKOUT: the stay ends
+      // that morning, so only the nights before it are booked (the backend checks
+      // the half-open range [checkin, checkout)). Only that one day; anything
+      // past it would cross the block.
+      const pickingCheckout = mode === 'period' && Boolean(startDay) && !endDay && key > startDay!;
+      const isFirstBlockerCheckout =
+        pickingCheckout && isBlocking(info) && firstBlockingFrom(startDay!)?.date === key;
+
+      // A blocked day explains itself in place. No toast: a toast disappears
+      // before it is read, and two of them stack.
+      if (isBlocking(info) && !isFirstBlockerCheckout) {
+        const span = blockedSpanFrom(key);
+        showNote({
+          tone: 'blocked',
+          text: describeClosure(span, info?.reason),
+        });
+        return;
+      }
+
+      if (mode === 'single') {
+        showNote(null);
+        setSelectedDay?.(key);
+        return;
+      }
+
+      if (!startDay || endDay) {
+        showNote(null);
+        setStartDay?.(key);
+        setEndDay?.(null);
+        return;
+      }
+
+      if (key < startDay) {
+        showNote(null);
+        setStartDay?.(key);
+        setEndDay?.(null);
+        return;
+      }
+
+      // A range that would cross a blocked day CLAMPS to the last valid checkout
+      // and says so. That is the first blocked day itself: the member leaves the
+      // morning it closes. The old behavior threw the end date away with a toast,
+      // which made the member guess where the wall was.
+      const blocker = firstBlockingFrom(startDay);
+      if (blocker && blocker.date < key) {
+        const span = blockedSpanFrom(blocker.date);
+        setEndDay?.(blocker.date);
+        showNote({
+          tone: 'blocked',
+          text: describeClosure(span, blocker.info?.reason),
+        });
+        return;
+      }
+
+      setEndDay?.(key);
+      const utsav = utsavSpanInside(startDay, key);
+      showNote(
+        utsav
+          ? {
+              tone: 'info',
+              text: `Your stay will split around ${utsav.name}, ${fmt(utsav.start)} – ${fmt(
+                utsav.end
+              )}. You will get two bookings.`,
+            }
+          : null
+      );
+    },
+    [
+      effectiveMap,
+      mode,
+      startDay,
+      endDay,
+      setSelectedDay,
+      setStartDay,
+      setEndDay,
+      blockedSpanFrom,
+      firstBlockingFrom,
+      utsavSpanInside,
+      showNote,
+    ]
+  );
+
+  // Only look at days inside the visible month plus a small buffer. Walking
+  // every cached month makes the calendar library slow as the member pages
+  // through months, and the legend below should only promise what's on screen.
+  const visibleRange = useMemo(() => {
+    const start = moment(`${visibleMonth}-01`, 'YYYY-MM-DD')
+      .subtract(7, 'days')
+      .format('YYYY-MM-DD');
+    const end = moment(`${visibleMonth}-01`, 'YYYY-MM-DD')
+      .add(1, 'month')
+      .add(7, 'days')
+      .format('YYYY-MM-DD');
+    return { start, end };
+  }, [visibleMonth]);
+
+  const markedDates = useMemo(() => {
+    const marks: Record<string, any> = {};
+
+    for (const [date, info] of Object.entries(effectiveMap)) {
+      if (date < visibleRange.start || date > visibleRange.end) continue;
+      if (isBlocking(info)) {
+        marks[date] = { disabled: true, disableTouchEvent: false };
+      } else if (kindOf(info) === 'utsav_in') {
+        marks[date] = { marked: true, dotColor: colors.orange };
+      }
+    }
+
+    if (mode === 'single') {
+      if (selectedDay) {
+        // Marked as a one-day period rather than `selected`, so both modes use
+        // the same marking type. Switching type swaps the day component the
+        // library renders, and the cell height changes with it.
+        marks[selectedDay] = {
+          ...(marks[selectedDay] || {}),
+          ...MARKING_STYLE,
+          startingDay: true,
+          endingDay: true,
+        };
+      }
+      return marks;
+    }
+
+    if (startDay) {
+      const last = endDay || startDay;
+      const cursor = moment(startDay);
+      while (cursor.isSameOrBefore(last)) {
+        const key = cursor.format('YYYY-MM-DD');
+        marks[key] = {
+          ...(marks[key] || {}),
+          ...MARKING_STYLE,
+          ...(key === startDay ? { startingDay: true } : {}),
+          ...(key === last ? { endingDay: true } : {}),
+          // A checkout that lands on the first blocked day is chosen, not closed.
+          ...(key === endDay ? { disabled: false } : {}),
+        };
+        cursor.add(1, 'days');
+      }
+    }
+    return marks;
+  }, [effectiveMap, startDay, endDay, selectedDay, mode, visibleRange]);
+
+  const legendNeeds = useMemo(() => {
+    let blocking = false;
+    let utsavIn = false;
+    for (const [date, info] of Object.entries(effectiveMap)) {
+      if (date < visibleRange.start || date > visibleRange.end) continue;
+      if (isBlocking(info)) blocking = true;
+      else if (kindOf(info) === 'utsav_in') utsavIn = true;
+      if (blocking && utsavIn) break;
+    }
+    return { blocking, utsavIn };
+  }, [effectiveMap, visibleRange]);
+  const hasBlocking = legendNeeds.blocking;
+  const hasUtsavIn = legendNeeds.utsavIn;
+
+  const handleMonthChange = useCallback(
+    (month: DateData) => {
+      const current = moment(month.dateString).startOf('month');
+      const min = moment(effectiveMinDate).startOf('month');
+      setDisableLeftArrow(current.isSameOrBefore(min));
+      setVisibleMonth(month.dateString.substring(0, 7));
+      rememberMonth(month.dateString);
+    },
+    [effectiveMinDate, rememberMonth]
+  );
+
+  return (
+    <View>
+      <Calendar
+        className="mt-5"
+        minDate={effectiveMinDate}
+        initialDate={effectiveMinDate}
+        disableArrowLeft={disableLeftArrow}
+        onMonthChange={handleMonthChange}
+        onDayPress={handleDayPress}
+        markedDates={markedDates}
+        markingType="period"
+        theme={CALENDAR_THEME}
+        hideExtraDays
+        disableAllTouchEventsForDisabledDays={false}
+      />
+
+      {note && (
+        <View
+          className={`mt-3 flex-row items-start gap-x-3 rounded-xl border px-3.5 py-3.5 ${
+            note.tone === 'blocked'
+              ? 'border-red-200 bg-red-100'
+              : 'border-secondary bg-secondary-50'
+          }`}>
+          <Ionicons
+            name={note.tone === 'blocked' ? 'alert-circle' : 'git-branch'}
+            size={20}
+            color={note.tone === 'blocked' ? colors.red_200 : colors.secondary_200}
+            style={{ marginTop: 1 }}
+          />
+          <View className="flex-1">
+            <Text
+              className={`font-psemibold text-sm ${
+                note.tone === 'blocked' ? 'text-red-200' : 'text-gray-900'
+              }`}>
+              {note.tone === 'blocked' ? 'These dates are not available' : 'Your stay will split'}
+            </Text>
+            <Text className="mt-0.5 font-pregular text-xs leading-5 text-gray-700">
+              {note.text}
+            </Text>
+          </View>
+        </View>
+      )}
+
+      {/* Only legend the states actually on screen. A key for "Utsav you attend"
+          when no Utsav falls in the visible months is noise the member has to
+          rule out. Each swatch imitates the real day treatment: a dimmed number
+          for a day that cannot be booked, a tinted cell for an attended Utsav. */}
+      {(hasBlocking || hasUtsavIn) && (
+        <View className="mt-3 flex-row flex-wrap items-center justify-center gap-x-5 gap-y-1.5">
+          {hasBlocking && (
+            <View className="flex-row items-center gap-x-2">
+              <View
+                className="h-4 w-4 rounded-md"
+                style={{
+                  backgroundColor: colors.gray_200,
+                  borderWidth: 1,
+                  borderColor: colors.gray_300,
+                }}
+              />
+              <Text className="font-pregular text-xs text-gray-500">Cannot be booked</Text>
+            </View>
+          )}
+          {hasUtsavIn && (
+            <View className="flex-row items-center gap-x-2">
+              <View className="h-4 w-4 items-center justify-center">
+                <View className="h-2 w-2 rounded-full" style={{ backgroundColor: colors.orange }} />
+              </View>
+              <Text className="font-pregular text-xs text-gray-500">Utsav you attend</Text>
+            </View>
+          )}
+        </View>
+      )}
+    </View>
+  );
+};
+
+// Memoized: the booking screens hold their whole form at the top, so every
+// keystroke in a party form re-renders them. With stable callbacks from the
+// callers this keeps the month grid out of that churn.
+export default React.memo(StayCalendar);

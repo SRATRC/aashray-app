@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@/src/constants';
@@ -59,7 +59,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
     });
   };
 
-  const [deviceType, setDeviceType] = React.useState('');
+  const [, setDeviceType] = React.useState('');
   const bottomSheetRef = React.useRef<CustomSelectBottomSheetRef>(null);
 
   const deviceTypeOptions = [
@@ -192,7 +192,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
                   {
                     text: 'Cancel',
                     style: 'cancel',
-                    onPress: () => { },
+                    onPress: () => {},
                   },
                   {
                     text: 'Reset',
@@ -279,7 +279,7 @@ const PermanentWifiSection: React.FC<PermanentWifiSectionProps> = ({
   const renderWifiItem = (item: PermanentWifiData, index: number) => (
     <View
       key={item.id || index}
-      className="mb-4 rounded-xl border border-gray-100 bg-white p-5 shadow-sm shadow-gray-200">
+      className="mb-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm shadow-gray-200">
       {item.status !== 'approved' && renderStatusBadge(item.status, index)}
 
       {item.status === 'approved' && item.code && renderApprovedCode(item)}

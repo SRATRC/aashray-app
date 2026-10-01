@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Image, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
 import React, { useState } from 'react';
 import { colors, icons } from '../constants';
 
@@ -23,7 +23,6 @@ interface FormFieldProps {
   error?: boolean;
   errorMessage?: string;
   isLoading?: boolean;
-  useNeomorphic?: boolean;
   variant?: 'default' | 'clean';
 }
 
@@ -48,10 +47,10 @@ const FormField: React.FC<FormFieldProps> = ({
   error = false,
   errorMessage,
   isLoading = false,
-  useNeomorphic = false,
   variant = 'default',
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   // clean variant
   if (variant === 'clean') {
@@ -97,9 +96,11 @@ const FormField: React.FC<FormFieldProps> = ({
     );
   }
 
-  // default variant
+  // default variant. Every state uses border-2 so the box never changes width
+  // when it swaps between idle / focused / verifying / error — a 1px-to-2px
+  // border change reflows the field and its contents on each transition.
   const getContainerStyles = () => {
-    let baseStyles = `w-full flex-row items-center gap-x-2 rounded-2xl px-4 focus:border-2 ${
+    let baseStyles = `w-full flex-row items-center gap-x-2 rounded-2xl px-4 ${
       multiline ? 'h-auto py-3' : 'h-16'
     }`;
 
@@ -108,19 +109,12 @@ const FormField: React.FC<FormFieldProps> = ({
     } else if (isLoading) {
       baseStyles += ' border-2 border-blue-300 bg-blue-50';
     } else {
-      baseStyles += ' focus:border-secondary';
       if (containerStyles) {
         baseStyles += ` ${containerStyles}`;
-      } else if (useNeomorphic) {
-        baseStyles +=
-          Platform.OS === 'ios'
-            ? ' bg-white border border-gray-200 shadow-md shadow-gray-300'
-            : ' bg-white border border-gray-200 shadow-lg shadow-gray-400';
       } else {
-        baseStyles +=
-          Platform.OS === 'ios'
-            ? ' bg-white border border-gray-100 shadow-sm shadow-gray-200'
-            : ' bg-white border border-gray-100 shadow-sm shadow-gray-300';
+        // border-gray-100 is within a shade of the page behind it, so the field
+        // had no visible edge and read as part of the background.
+        baseStyles += ' bg-white border-2 border-gray-200';
       }
     }
 
@@ -130,7 +124,13 @@ const FormField: React.FC<FormFieldProps> = ({
   return (
     <View className={`gap-y-2 ${otherStyles}`}>
       <Text className="font-pmedium text-base text-gray-600">{text}</Text>
-      <View className={getContainerStyles()}>
+      {/* The focus ring is applied via `style`, never by changing `className`.
+          A class change on this View makes NativeWind rebuild its host
+          component, which remounts the TextInput below and drops focus — the
+          input would focus and immediately blur on tap. */}
+      <View
+        className={getContainerStyles()}
+        style={isFocused && !error && !isLoading ? { borderColor: colors.orange } : undefined}>
         {prefix && <Text className="font-pmedium text-base text-gray-400">{prefix}</Text>}
         <TextInput
           className={`flex-1 ${inputStyles ? inputStyles : 'font-pregular text-base'} ${
@@ -140,6 +140,8 @@ const FormField: React.FC<FormFieldProps> = ({
           placeholder={placeholder}
           placeholderTextColor={error ? '#EF4444' : '#9CA3AF'}
           onChangeText={handleChangeText}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           keyboardType={keyboardType}
           maxLength={maxLength}
           autoCapitalize={autoCapitalize}
@@ -178,4 +180,4 @@ const FormField: React.FC<FormFieldProps> = ({
   );
 };
 
-export default FormField;
+export default React.memo(FormField);

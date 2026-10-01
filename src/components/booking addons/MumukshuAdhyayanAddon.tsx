@@ -1,14 +1,18 @@
-import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
-import { icons } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
-import { useAuthStore, useBookingStore } from '@/src/stores';
-import handleAPICall from '@/src/utils/HandleApiCall';
-import HorizontalSeparator from '../HorizontalSeparator';
+import * as Haptics from 'expo-haptics';
+import React, { useCallback } from 'react';
+import { View, Text, FlatList, ActivityIndicator } from 'react-native';
+
+import AddonItem from '../AddonItem';
 import CustomEmptyMessage from '../CustomEmptyMessage';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
-import AddonItem from '../AddonItem';
-import moment from 'moment';
-import * as Haptics from 'expo-haptics';
+import AddonHeader from '../booking/shared/AddonHeader';
+import CatalogueCard from '../booking/shared/CatalogueCard';
+import { isShibirFull, waitlistCountOf } from '../booking/shared/catalogueStatus';
+
+import { icons } from '@/src/constants';
+import { useAuthStore, useBookingStore } from '@/src/stores';
+import handleAPICall from '@/src/utils/HandleApiCall';
 
 interface MumukshuAdhyayanAddonProps {
   adhyayanForm: any;
@@ -61,72 +65,54 @@ const MumukshuAdhyayanAddon: React.FC<MumukshuAdhyayanAddonProps> = ({
     retry: false,
   });
 
-  const renderItem = ({ item }: any) => {
-    const isSelected = adhyayanForm.adhyayan?.id == item.id;
+  // The same card the main Adhyayan screen uses, so a shibir reads identically
+  // in both places — including whether it is full.
+  const renderItem = useCallback(
+    ({ item }: any) => {
+      const isSelected = adhyayanForm.adhyayan?.id == item.id;
 
-    return (
-      <View className="mb-2 w-full rounded-2xl bg-gray-50 p-2">
-        <View className="flex flex-row items-center justify-between py-2">
-          <Text className="font-pmedium text-base text-secondary">{`${moment(
-            item.start_date
-          ).format('Do MMMM')} - ${moment(item.end_date).format('Do MMMM, YYYY')}`}</Text>
-        </View>
-        <HorizontalSeparator />
-        <View className="flex flex-row gap-x-2 pb-4 pt-2">
-          <Image source={icons.description} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Name: </Text>
-          <Text className="font-pmedium text-black" numberOfLines={1}>
-            {item.name}
-          </Text>
-        </View>
-        <View className="flex flex-row gap-x-2 pb-4">
-          <Image source={icons.person} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Swadhyay Karta: </Text>
-          <Text className="font-pmedium text-black" numberOfLines={1}>
-            {item.speaker}
-          </Text>
-        </View>
-        <View className="flex flex-row gap-x-2">
-          <Image source={icons.charge} className="h-4 w-4" resizeMode="contain" />
-          <Text className="font-pregular text-gray-400">Charges:</Text>
-          <Text className="font-pmedium text-black">₹ {item.amount}</Text>
-        </View>
-        <TouchableOpacity
-          className={`mt-4 w-full items-center justify-center rounded-lg border border-secondary p-2 ${
-            isSelected ? 'bg-secondary' : ''
-          }`}
+      return (
+        <CatalogueCard
+          title={item.name}
+          startDate={item.start_date}
+          endDate={item.end_date}
+          isWaitlist={isShibirFull(item)}
+          waitlistCount={waitlistCountOf(item)}
+          selectable
+          selected={isSelected}
+          meta={[
+            { icon: 'person-outline', label: 'Swadhyay Karta', value: item.speaker },
+            ...(item.location
+              ? [{ icon: 'location-outline' as const, label: 'Location', value: item.location }]
+              : []),
+            { icon: 'card-outline', label: 'Charges', value: `₹${item.amount}` },
+          ]}
           onPress={() => {
             if (isSelected) {
-              setAdhyayanForm((prev: any) => ({
-                ...prev,
-                adhyayan: null,
-              }));
+              setAdhyayanForm((prev: any) => ({ ...prev, adhyayan: null }));
               setMumukshuData((prev: any) => {
                 const { adhyayan, ...rest } = prev;
                 return rest;
               });
             } else {
-              setAdhyayanForm((prev: any) => ({
-                ...prev,
-                adhyayan: item,
-              }));
+              setAdhyayanForm((prev: any) => ({ ...prev, adhyayan: item }));
             }
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          }}>
-          <Text
-            className={`text-md font-pmedium ${isSelected ? 'text-white' : 'text-secondary-100'}`}>
-            {isSelected ? 'Unregister' : 'Register'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
+          }}
+        />
+      );
+    },
+    [adhyayanForm.adhyayan?.id, setAdhyayanForm, setMumukshuData]
+  );
 
-  const renderFooter = () => (
-    <View className="w-full items-center justify-center">
-      {isLoading && <ActivityIndicator />}
-      {isError && <Text>Error fetching data: {error.message}</Text>}
-    </View>
+  const renderFooter = useCallback(
+    () => (
+      <View className="w-full items-center justify-center">
+        {isLoading && <ActivityIndicator />}
+        {isError && <Text>Error fetching data: {error.message}</Text>}
+      </View>
+    ),
+    [isLoading, isError, error]
   );
 
   return (
@@ -139,12 +125,9 @@ const MumukshuAdhyayanAddon: React.FC<MumukshuAdhyayanAddonProps> = ({
         });
       }}
       visibleContent={
-        <View className="flex flex-row items-center gap-x-4">
-          <Image source={icons.adhyayan} className="h-10 w-10" resizeMode="contain" />
-          <Text className="font-pmedium">Raj Adhyayan Booking</Text>
-        </View>
+        <AddonHeader icon={icons.adhyayan} title="Raj Adhyayan" subtitle="Join a shibir" />
       }
-      containerStyles={'mt-3'}>
+      containerStyles="mt-3">
       {(adhyayanList?.length > 0 || isError) && (
         <View className="w-full flex-col items-center justify-center">
           <CustomSelectBottomSheet
@@ -154,7 +137,7 @@ const MumukshuAdhyayanAddon: React.FC<MumukshuAdhyayanAddonProps> = ({
             options={mumukshu_dropdown}
             selectedValues={adhyayanForm.mumukshuIndices}
             onValuesChange={(val) => updateAdhyayanForm('mumukshuIndices', val)}
-            multiSelect={true}
+            multiSelect
             confirmButtonText="Select"
           />
         </View>
@@ -162,14 +145,14 @@ const MumukshuAdhyayanAddon: React.FC<MumukshuAdhyayanAddonProps> = ({
       <FlatList
         className="flex-grow-1 mt-2 w-full py-2"
         showsHorizontalScrollIndicator={false}
-        nestedScrollEnabled={true}
+        nestedScrollEnabled
         data={adhyayanList}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={
           <View className="mt-6 flex-1">
-            <CustomEmptyMessage message={'No Adhyayans available on selected dates!'} />
+            <CustomEmptyMessage message="No Adhyayans available on selected dates!" />
           </View>
         }
         scrollEnabled={false}

@@ -34,3 +34,8 @@ google-services.json
 GoogleService-Info.plist
 gcp-eas-key.json
 *.p8
+
+# claude generated files
+.claude/
+.superpowers/
+CLAUDE.local.md

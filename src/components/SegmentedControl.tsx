@@ -1,15 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   Animated,
-  Dimensions,
+  useWindowDimensions,
   StyleProp,
   ViewStyle,
 } from 'react-native';
-
-const { width } = Dimensions.get('window');
 
 // Define the prop types for the component
 interface SegmentedControlProps {
@@ -25,12 +23,16 @@ const SegmentedControl: React.FC<SegmentedControlProps> = ({
   containerStyle,
   selectedIndex: controlledSelectedIndex,
 }) => {
+  const { width } = useWindowDimensions();
   const [internalSelectedIndex, setInternalSelectedIndex] = useState<number>(0);
   const selectedIndex =
     controlledSelectedIndex !== undefined ? controlledSelectedIndex : internalSelectedIndex;
-  const translateValue = useRef(new Animated.Value(0)).current;
 
   const segmentWidth = (width - 32) / segments.length;
+
+  // Seeded at the correct offset so the pill is never drawn under segment 0
+  // and then snapped sideways after the first commit.
+  const [translateValue] = useState(() => new Animated.Value(selectedIndex * segmentWidth));
 
   const handlePress = (segment: string, index: number) => {
     // Only update internal state if not controlled
@@ -38,16 +40,14 @@ const SegmentedControl: React.FC<SegmentedControlProps> = ({
       setInternalSelectedIndex(index);
     }
     onSegmentChange(segment);
-
-    Animated.timing(translateValue, {
-      toValue: index * segmentWidth,
-      duration: 200,
-      useNativeDriver: false,
-    }).start();
   };
 
   useEffect(() => {
-    translateValue.setValue(selectedIndex * segmentWidth);
+    Animated.timing(translateValue, {
+      toValue: selectedIndex * segmentWidth,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
   }, [segmentWidth, selectedIndex, translateValue]);
 
   return (
@@ -64,7 +64,7 @@ const SegmentedControl: React.FC<SegmentedControlProps> = ({
 
       {segments.map((segment, index) => (
         <TouchableOpacity
-          key={index}
+          key={segment}
           className="items-center justify-center rounded-3xl py-2"
           style={{ width: segmentWidth }}
           onPress={() => handlePress(segment, index)}>

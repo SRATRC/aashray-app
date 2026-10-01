@@ -17,7 +17,7 @@ const UtsavGuidelines = () => {
   ];
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3">
         <Text className="font-psemibold text-lg text-gray-900">Utsav Guidelines</Text>
         <TouchableOpacity onPress={() => router.back()} className="p-2">

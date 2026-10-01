@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { BASE_URL, DEV_URL } from '../constants';
+import { resolveBaseUrl } from '../constants/backends';
 import { useDevStore } from '../stores';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
@@ -51,6 +51,16 @@ const scrubSensitiveData = (value) => {
   return value;
 };
 
+// Default request timeout. Bounded so a hung request cannot pin a spinner.
+export const DEFAULT_TIMEOUT_MS = 30000;
+// Booking and payment calls create money-bearing records and the backend may
+// wait on WhatsApp/Razorpay before answering, so they get a much longer window.
+export const LONG_TIMEOUT_MS = 120000;
+
+// axios reports a client-side timeout as ECONNABORTED (or ETIMEDOUT).
+export const isTimeoutError = (error) =>
+  error?.code === 'ECONNABORTED' || error?.code === 'ETIMEDOUT';
+
 const handleAPICall = async (
   method,
   endpoint,
@@ -58,22 +68,15 @@ const handleAPICall = async (
   body,
   successCallback,
   finallyCallback = () => {},
-  errorCallback = (error) => {},
-  allowToast = true
+  errorCallback = (_error) => {},
+  allowToast = true,
+  { timeout = DEFAULT_TIMEOUT_MS } = {}
 ) => {
   const requestId = generateRequestId();
 
   try {
-    const { useDevBackend, devPrNumber } = useDevStore.getState();
-    let currentBaseUrl = BASE_URL;
-
-    if (useDevBackend) {
-      if (devPrNumber) {
-        currentBaseUrl = `https://aashray-backend-pr-${devPrNumber}.onrender.com/api/v1`;
-      } else {
-        currentBaseUrl = DEV_URL;
-      }
-    }
+    const { backend, qaPrNumber, localPort } = useDevStore.getState();
+    const currentBaseUrl = resolveBaseUrl(backend, qaPrNumber, localPort);
 
     if (!currentBaseUrl) {
       console.error('Base URL is undefined. Check your .env file and constants.');
@@ -118,7 +121,9 @@ const handleAPICall = async (
       params,
       data,
       headers,
-      // timeout: 10000,
+      // Bounded: without it a hung request pins submit spinners forever.
+      // Callers with slow-but-legitimate requests pass a longer `timeout`.
+      timeout,
       validateStatus: () => true,
     });
 
@@ -132,7 +137,8 @@ const handleAPICall = async (
       throw err;
     }
   } catch (error) {
-    const correlationId = error.correlationId || error.response?.headers?.['x-request-id'] || requestId;
+    const correlationId =
+      error.correlationId || error.response?.headers?.['x-request-id'] || requestId;
     const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
     const status = error.response?.status ?? error.status;
     // validateStatus: () => true means axios never rejects on its own, so
@@ -142,6 +148,7 @@ const handleAPICall = async (
     const errorDetails = {
       message: errorMessage,
       status,
+      isTimeout: isTimeoutError(error),
       data: responseData,
       correlationId,
       originalError: error,

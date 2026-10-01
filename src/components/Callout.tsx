@@ -45,7 +45,7 @@ const VARIANT_STYLES: Record<
   },
 };
 
-const Callout = ({ message, overrideStyle, variant = 'default' }: CalloutProps) => {
+const Callout = ({ message, overrideStyle = '', variant = 'default' }: CalloutProps) => {
   const styles = VARIANT_STYLES[variant];
 
   return (

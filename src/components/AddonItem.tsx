@@ -1,7 +1,6 @@
-import { View, TouchableOpacity, Image, Platform } from 'react-native';
-import { useCallback, useState } from 'react';
-import { useFocusEffect } from 'expo-router';
-import { icons } from '@/src/constants';
+import { View, TouchableOpacity, Image } from 'react-native';
+import { useState } from 'react';
+import { icons, surfaces } from '@/src/constants';
 import * as Haptics from 'expo-haptics';
 
 interface AddonItemProps {
@@ -9,7 +8,6 @@ interface AddonItemProps {
   visibleContent: any;
   containerStyles: any;
   backgroundColor?: any;
-  shadowShown?: any;
   onCollapse: any;
   onToggle?: (isOpen: boolean) => void;
 }
@@ -19,18 +17,19 @@ const AddonItem: React.FC<AddonItemProps> = ({
   visibleContent,
   containerStyles,
   backgroundColor,
-  shadowShown,
   onCollapse,
   onToggle,
 }) => {
   const [selected, setSelected] = useState(false);
 
-  const [key, setKey] = useState(0);
-  useFocusEffect(
-    useCallback(() => {
-      setKey((prevKey) => prevKey + 1);
-    }, [])
-  );
+  // Focus deliberately does nothing here. The previous version bumped a `key` on
+  // every focus, remounting the whole children subtree (twice on the first
+  // focus) and throwing away everything the member had typed into the add-on.
+  // Collapsing on refocus instead is not a substitute: the parent screens gate
+  // the booking payload on the open flag, so telling them the add-on closed
+  // drops the add-on and its charge from the booking — silently, on the way
+  // back from the review screen. Leaving the add-on open and selected matches
+  // what members saw before, without the remount.
 
   const toggleSelection = () => {
     const newSelected = !selected;
@@ -41,15 +40,10 @@ const AddonItem: React.FC<AddonItemProps> = ({
   };
 
   return (
-    <View
-      key={key}
-      className={`mb-5 rounded-2xl p-3 ${
-        shadowShown == false
-          ? ''
-          : Platform.OS === 'ios'
-            ? 'shadow-lg shadow-gray-200'
-            : 'shadow-2xl shadow-gray-400'
-      } ${backgroundColor ? backgroundColor : 'bg-white'}`}>
+    // Same surface as a booking card: a hairline border, no drop shadow. The
+    // shadowed variant made the add-on rows look like a different design from
+    // the cards directly above them.
+    <View className={`mb-3 p-3 ${surfaces.CARD} ${backgroundColor ?? ''}`}>
       <View className="flex-row justify-between overflow-hidden">
         <View className="flex-1 flex-row items-center gap-x-4">{visibleContent}</View>
         <TouchableOpacity onPress={toggleSelection} className="items-center justify-center">

@@ -19,7 +19,7 @@ const DailySchedule = () => {
   ];
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3">
         <Text className="font-psemibold text-lg text-gray-900">Daily Schedule</Text>
         <TouchableOpacity onPress={() => router.back()} className="p-2">
@@ -31,7 +31,7 @@ const DailySchedule = () => {
           {schedule.map((item, index) => (
             <View
               key={index}
-              className="flex-row items-center rounded-lg border border-gray-100 bg-gray-50/50 p-4">
+              className="flex-row items-center rounded-lg border border-gray-200 bg-white p-4">
               <Text className="w-24 font-psemibold text-base text-secondary">{item.time}</Text>
               <Text className="flex-1 font-pregular text-base text-gray-800">{item.activity}</Text>
             </View>

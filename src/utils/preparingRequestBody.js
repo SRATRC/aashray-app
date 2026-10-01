@@ -130,7 +130,13 @@ export const prepareGuestRequestBody = (user, input) => {
             checkin_date: primaryData.startDay,
             checkout_date: primaryData.endDay,
             guestGroup: transformGuestGroup(primaryData.guestGroup),
+            ...(primaryData.extra_stay_reason && {
+              extra_stay_reason: primaryData.extra_stay_reason,
+            }),
           },
+          ...(primaryData.extra_stay_reason && {
+            extra_stay_reason: primaryData.extra_stay_reason,
+          }),
         };
       case 'food':
         return {
@@ -155,8 +161,15 @@ export const prepareGuestRequestBody = (user, input) => {
           details: {
             checkin_date: primaryData.startDay,
             checkout_date: primaryData.endDay,
-            guests: primaryData.guests,
+            // The backend validates cards, not guest objects.
+            guests: primaryData.guests.map((guest) => guest.cardno),
+            ...(primaryData.extra_stay_reason && {
+              extra_stay_reason: primaryData.extra_stay_reason,
+            }),
           },
+          ...(primaryData.extra_stay_reason && {
+            extra_stay_reason: primaryData.extra_stay_reason,
+          }),
         };
       case 'utsav':
         return {
@@ -219,6 +232,9 @@ export const prepareGuestRequestBody = (user, input) => {
       })
       .filter(Boolean);
 
+  // No extra_stay_reason here: it is stored on the room or flat entry, and
+  // BookingReviewScreen puts it on the payload this returns. Reading it off the
+  // top-level input never matched anything.
   return {
     cardno: user.cardno,
     primary_booking: primaryBookingDetails(input.primary),
@@ -241,7 +257,8 @@ export const prepareMumukshuRequestBody = (user, input) => {
   const transformMumukshuGroup = (mumukshuGroup) =>
     mumukshuGroup.map((group) => {
       const transformed = {};
-      if (group.cardno) return group.cardno;
+      const isTravelLeg = group.pickup || group.drop;
+      if (group.cardno && !isTravelLeg && !group.mumukshus) return group.cardno;
       if (group.roomType) transformed.roomType = group.roomType;
       if (group.floorType && group.floorType !== 'n') transformed.floorType = group.floorType;
       if (group.mumukshus) {
@@ -277,14 +294,13 @@ export const prepareMumukshuRequestBody = (user, input) => {
           if (mumukshuWithTotalPeople)
             transformed.total_people = mumukshuWithTotalPeople.total_people;
         }
+      } else if (group.cardno) {
+        transformed.mumukshus = [group.cardno];
       }
       if (group.pickup) transformed.pickup_point = group.pickup;
       if (group.drop) transformed.drop_point = group.drop;
       if (group.arrival_time) transformed.arrival_time = group.arrival_time;
-      if (group.adhyayan)
-        group.adhyayan == 'No'
-          ? (transformed.leaving_post_adhyayan = 0)
-          : (transformed.leaving_post_adhyayan = 1);
+      if (group.adhyayan) transformed.leaving_post_adhyayan = group.adhyayan == 'No' ? 0 : 1;
       if (group.luggage) {
         transformed.luggage = group.luggage.length > 0 ? group.luggage.join(', ') : '';
       }
@@ -309,7 +325,13 @@ export const prepareMumukshuRequestBody = (user, input) => {
             checkin_date: primaryData.startDay,
             checkout_date: primaryData.endDay,
             mumukshuGroup: transformMumukshuGroup(primaryData.mumukshuGroup),
+            ...(primaryData.extra_stay_reason && {
+              extra_stay_reason: primaryData.extra_stay_reason,
+            }),
           },
+          ...(primaryData.extra_stay_reason && {
+            extra_stay_reason: primaryData.extra_stay_reason,
+          }),
         };
       case 'food':
         return {
@@ -343,7 +365,13 @@ export const prepareMumukshuRequestBody = (user, input) => {
             checkin_date: primaryData.startDay,
             checkout_date: primaryData.endDay,
             mumukshus: transformMumukshuGroup(primaryData.mumukshuGroup),
+            ...(primaryData.extra_stay_reason && {
+              extra_stay_reason: primaryData.extra_stay_reason,
+            }),
           },
+          ...(primaryData.extra_stay_reason && {
+            extra_stay_reason: primaryData.extra_stay_reason,
+          }),
         };
       case 'utsav':
         return {
@@ -426,6 +454,8 @@ export const prepareMumukshuRequestBody = (user, input) => {
         }
       })
       .filter(Boolean);
+  // See prepareGuestRequestBody: the reason is added by the review screen, not
+  // read from the store input.
   return {
     cardno: user.cardno,
     primary_booking: primaryBookingDetails(bookingInput.primary),
