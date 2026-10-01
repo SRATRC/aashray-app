@@ -10,7 +10,7 @@
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\" && prettier -c \"**/*.{js,jsx,ts,tsx,json}\"",
     "format": "eslint \"**/*.{js,jsx,ts,tsx}\" --fix && prettier \"**/*.{js,jsx,ts,tsx,json}\" --write",
     "web": "expo start --web",
-    "lint:undef": "eslint --quiet --ext .js,.jsx src \"*.js\""
+    "lint:undef": "eslint --no-eslintrc --no-error-on-unmatched-pattern -c .eslintrc.undef.json --ext .js,.jsx src tests app.config.js babel.config.js metro.config.js prettier.config.js react-native.config.js tailwind.config.js"
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.16",
@@ -96,23 +96,15 @@
     "overrides": [
       {
         "files": [
-          "*.js",
-          "*.jsx"
+          "app.config.js",
+          "babel.config.js",
+          "metro.config.js",
+          "prettier.config.js",
+          "react-native.config.js",
+          "tailwind.config.js"
         ],
         "env": {
-          "browser": true,
-          "node": true,
-          "es2022": true
-        },
-        "globals": {
-          "__DEV__": "readonly",
-          "ErrorUtils": "readonly",
-          "HermesInternal": "readonly",
-          "expo": "readonly",
-          "nativeFabricUIManager": "readonly"
-        },
-        "rules": {
-          "no-undef": "error"
+          "node": true
         }
       }
     ]
