@@ -32,7 +32,7 @@ export default {
       fallbackToCacheTimeout: 0,
     },
     // appVersion, not sdkVersion: native code changes between builds (razorpay-pod,
-    // minSdkVersion, useFrameworks) while the SDK stays on 56, so an sdkVersion
+    // minSdkVersion, useFrameworks) while the SDK version stays the same, so an sdkVersion
     // runtime lets an update built against new native code land on an old binary.
     runtimeVersion: {
       policy: 'appVersion',
@@ -170,6 +170,9 @@ export default {
             useFrameworks: 'static',
             buildReactNativeFromSource: true,
             extraPods: [{ name: 'razorpay-pod', version: '1.5.3' }],
+            // Xcode 27 / iOS 27 SDK require the UIScene life cycle. Opt-in on SDK 57; default from
+            // SDK 58, where this becomes a no-op and should be removed.
+            enableSceneSupport: true,
           },
         },
       ],
