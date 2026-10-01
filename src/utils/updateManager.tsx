@@ -20,6 +20,7 @@ interface ApiResponse {
     // Server-side decision for this device; absent on older backends.
     updateType?: 'none' | 'optional' | 'forced' | 'unsupported';
     targetVersion?: string | null;
+    targetReleaseNotes?: string | null;
     androidUrl?: string; // optional override
     iosUrl?: string; // optional override
   };
@@ -56,12 +57,12 @@ const fetchUpdateInfo = async (): Promise<{
     }
     const d = res.data.data;
     // The newest version this device can install may be older than the latest.
-    const version = d.targetVersion || d.latestVersion;
+    const version = d.targetVersion || d.latestVersion || '';
     return {
       info: {
         latestVersion: version,
         mandatory: d.updateType ? d.updateType === 'forced' : !!d.mandatory,
-        releaseNotes: d.releaseNotes || '',
+        releaseNotes: (d.updateType ? d.targetReleaseNotes : d.releaseNotes) || '',
       },
       raw: d,
     };
@@ -114,15 +115,15 @@ export const UpdateManager: React.FC = () => {
         CustomAlert.alert(
           "Your phone can't get the latest update",
           "Your phone's software is too old for the newest version of the app. You can keep using this version. To get new features, update your phone's software if you can.",
-          [{ text: 'OK', onPress: snoozeUntilTomorrow }]
+          [{ text: 'OK', onPress: snoozeUntilTomorrow }],
+          { onDismiss: snoozeUntilTomorrow }
         );
         return;
       }
 
-      // Trust the server's decision when it sends one; older backends don't.
-      const show = updateType
-        ? updateType !== 'none'
-        : isNewerVersion(info.latestVersion, currentVersion);
+      // Trust the server's decision when it sends one (older backends don't),
+      // but never prompt for a version we already have.
+      const show = updateType !== 'none' && isNewerVersion(info.latestVersion, currentVersion);
       if (show) {
         setUpdateInfo(info);
         setRawData(raw);
