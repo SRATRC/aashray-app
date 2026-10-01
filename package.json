@@ -10,7 +10,7 @@
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\" && prettier -c \"**/*.{js,jsx,ts,tsx,json}\"",
     "format": "eslint \"**/*.{js,jsx,ts,tsx}\" --fix && prettier \"**/*.{js,jsx,ts,tsx,json}\" --write",
     "web": "expo start --web",
-    "lint:undef": "eslint --no-eslintrc --no-error-on-unmatched-pattern -c .eslintrc.undef.json --ext .js,.jsx src tests app.config.js babel.config.js metro.config.js prettier.config.js react-native.config.js tailwind.config.js"
+    "lint:undef": "eslint --no-eslintrc -c .eslintrc.undef.json --ext .js,.jsx src \"*.js\""
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.16",
