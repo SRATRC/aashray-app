@@ -4,6 +4,8 @@ import { isNewerVersion } from '@/src/utils/version';
 import { BASE_URL } from '@/src/constants';
 import { getSnoozeUntil, setSnoozeUntil } from '@/src/utils/updatePrefs';
 import UpdateModal, { UpdateInfo } from '@/src/components/UpdateModal';
+import CustomAlert from '@/src/components/CustomAlert';
+import '@/src/utils/deviceHeaders';
 import axios from 'axios';
 import Constants from 'expo-constants';
 import * as Application from 'expo-application';
@@ -15,6 +17,9 @@ interface ApiResponse {
     latestVersion?: string;
     mandatory?: boolean;
     releaseNotes?: string;
+    // Server-side decision for this device; absent on older backends.
+    updateType?: 'none' | 'optional' | 'forced' | 'unsupported';
+    targetVersion?: string | null;
     androidUrl?: string; // optional override
     iosUrl?: string; // optional override
   };
@@ -50,10 +55,12 @@ const fetchUpdateInfo = async (): Promise<{
       return { info: null };
     }
     const d = res.data.data;
+    // The newest version this device can install may be older than the latest.
+    const version = d.targetVersion || d.latestVersion;
     return {
       info: {
-        latestVersion: d.latestVersion || '',
-        mandatory: !!d.mandatory,
+        latestVersion: version,
+        mandatory: d.updateType ? d.updateType === 'forced' : !!d.mandatory,
         releaseNotes: d.releaseNotes || '',
       },
       raw: d,
@@ -71,6 +78,14 @@ const getCurrentAppVersion = (): string | null => {
   const configVersion = Constants.expoConfig?.version || Constants.expoConfig?.runtimeVersion;
   const envVersion = process.env.EXPO_PUBLIC_APP_VERSION;
   return configVersion || envVersion || null;
+};
+
+// Snooze non-blocking prompts until tomorrow 00:00 local time.
+const snoozeUntilTomorrow = () => {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+  setSnoozeUntil(tomorrow.getTime());
 };
 
 export const UpdateManager: React.FC = () => {
@@ -93,7 +108,22 @@ export const UpdateManager: React.FC = () => {
         if (snoozeUntil && Date.now() < snoozeUntil) return;
       }
 
-      if (isNewerVersion(info.latestVersion, currentVersion)) {
+      const updateType = raw?.updateType;
+      if (updateType === 'unsupported' && !isNewerVersion(info.latestVersion, currentVersion)) {
+        // Nothing newer installs on this OS: tell them, never block.
+        CustomAlert.alert(
+          "Your phone can't get the latest update",
+          "Your phone's software is too old for the newest version of the app. You can keep using this version. To get new features, update your phone's software if you can.",
+          [{ text: 'OK', onPress: snoozeUntilTomorrow }]
+        );
+        return;
+      }
+
+      // Trust the server's decision when it sends one; older backends don't.
+      const show = updateType
+        ? updateType !== 'none'
+        : isNewerVersion(info.latestVersion, currentVersion);
+      if (show) {
         setUpdateInfo(info);
         setRawData(raw);
         setVisible(true);
@@ -111,12 +141,8 @@ export const UpdateManager: React.FC = () => {
   };
 
   const handleDismiss = () => {
-    // Only for optional updates: snooze until tomorrow 00:00 local time
-    const now = new Date();
-    const tomorrow = new Date(now);
-    tomorrow.setDate(now.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-    setSnoozeUntil(tomorrow.getTime());
+    // Only for optional updates
+    snoozeUntilTomorrow();
     setVisible(false);
   };
 
