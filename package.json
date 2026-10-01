@@ -9,7 +9,8 @@
     "prebuild": "expo prebuild",
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\" && prettier -c \"**/*.{js,jsx,ts,tsx,json}\"",
     "format": "eslint \"**/*.{js,jsx,ts,tsx}\" --fix && prettier \"**/*.{js,jsx,ts,tsx,json}\" --write",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "lint:undef": "eslint --no-eslintrc -c .eslintrc.undef.json --ext .js,.jsx src \"*.js\""
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.16",
@@ -91,7 +92,22 @@
   },
   "eslintConfig": {
     "extends": "universe/native",
-    "root": true
+    "root": true,
+    "overrides": [
+      {
+        "files": [
+          "app.config.js",
+          "babel.config.js",
+          "metro.config.js",
+          "prettier.config.js",
+          "react-native.config.js",
+          "tailwind.config.js"
+        ],
+        "env": {
+          "node": true
+        }
+      }
+    ]
   },
   "private": true
 }
