@@ -10,7 +10,6 @@ const CommonLayout = () => {
         <Stack.Screen name="menu" options={{ headerShown: false }} />
         <Stack.Screen name="pendingPayments" options={{ headerShown: false }} />
         <Stack.Screen name="contactInfo" options={{ headerShown: false }} />
-        <Stack.Screen name="support" options={{ headerShown: false }} />
       </Stack>
     </>
   );
