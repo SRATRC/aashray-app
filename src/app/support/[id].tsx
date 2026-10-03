@@ -110,16 +110,8 @@ const TicketDetails = () => {
     ).length;
   }, [ticket]);
 
-  const {
-    attachments,
-    canAddMedia,
-    hasAttachments,
-    addMedia,
-    remove,
-    upload,
-    clear,
-    isUploading,
-  } = useTicketAttachments(user.cardno, existingVideoCount);
+  const { attachments, canAddMedia, hasAttachments, addMedia, remove, upload, clear, isUploading } =
+    useTicketAttachments(user.cardno, existingVideoCount);
 
   useRefetchOnFocus(refetch);
 
@@ -128,6 +120,9 @@ const TicketDetails = () => {
     cardno: user.cardno,
     queryClient,
     refetch,
+    // No stream for a ticket that failed to load, or one that is closed (final:
+    // nothing can change, so holding a connection open only costs battery).
+    enabled: !isError && ticket?.status !== status.STATUS_CLOSED,
   });
 
   const sendMessageMutation = useMutation({

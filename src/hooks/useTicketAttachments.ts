@@ -173,7 +173,9 @@ export function useTicketAttachments(cardno: string | undefined, existingVideoCo
 
     const notes: string[] = [];
     if (skippedLimit > 0) {
-      notes.push(`${skippedLimit} skipped — limit is ${MAX_IMAGES} photos and ${MAX_VIDEOS} videos.`);
+      notes.push(
+        `${skippedLimit} skipped — limit is ${MAX_IMAGES} photos and ${MAX_VIDEOS} videos.`
+      );
     }
     if (skippedSize > 0) {
       notes.push(

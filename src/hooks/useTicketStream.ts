@@ -1,17 +1,32 @@
 import { useEffect } from 'react';
+import { AppState } from 'react-native';
 import EventSource, { EventSourceListener } from 'react-native-sse';
 import type { QueryClient } from '@tanstack/react-query';
 import { resolveApiBaseUrl } from '@/src/utils/resolveBaseUrl';
 
 const SSE_WATCHDOG_TIMEOUT_MS = 40000;
 const SSE_WATCHDOG_CHECK_INTERVAL_MS = 10000;
+// Reconnect delay doubles per failed attempt (3s, 6s, 12s, 24s, then 30s),
+// with jitter so many clients don't all reconnect in the same instant after
+// a backend restart. Reset to the base on every successful open.
+const SSE_RETRY_BASE_MS = 3000;
+const SSE_RETRY_MAX_MS = 30000;
 
 interface UseTicketStreamOptions {
   ticketId: string | undefined;
   cardno: string | undefined;
   queryClient: QueryClient;
   refetch: () => void;
+  // false = don't hold a stream open (ticket failed to load, or is closed and
+  // can never change again).
+  enabled?: boolean;
 }
+
+// A 4xx means the stream will never succeed for this ticket/card (404 =
+// ticket gone or not this member's). Retrying it every few seconds forever
+// only loads the server. 408/429 are the retryable exceptions.
+const isPermanentFailure = (status: unknown) =>
+  typeof status === 'number' && status >= 400 && status < 500 && status !== 408 && status !== 429;
 
 /**
  * Connects to a ticket's live SSE stream and keeps the
@@ -24,27 +39,44 @@ interface UseTicketStreamOptions {
  * activity (not even the backend's ~25s {type:'ping'} heartbeat) arrives for
  * SSE_WATCHDOG_TIMEOUT_MS — a graceful close produces no 'error' event at
  * all in this library, so the watchdog is the only way to detect that.
+ *
+ * While the app is in the background the stream is closed (no radio wake-ups
+ * every 25s for a screen nobody sees); on return to the foreground it
+ * reconnects at once, and that reconnect's 'open' refetches to backfill.
  */
 export function useTicketStream({
   ticketId,
   cardno,
   queryClient,
   refetch,
+  enabled = true,
 }: UseTicketStreamOptions) {
   useEffect(() => {
-    if (!ticketId || !cardno) return;
+    if (!enabled || !ticketId || !cardno) return;
 
     let es: EventSource | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     let watchdogInterval: ReturnType<typeof setInterval> | null = null;
     let isCleanedUp = false;
+    let isStopped = false; // permanent 4xx: give up until remount
+    let isPaused = AppState.currentState === 'background';
     let hasConnected = false;
+    let retryAttempt = 0;
     let lastActivityAt = Date.now();
+
+    const closeStream = () => {
+      if (es) {
+        es.removeAllEventListeners();
+        es.close();
+        es = null;
+      }
+    };
 
     const listener: EventSourceListener = (event) => {
       if (event.type === 'open') {
         if (__DEV__) console.log('[SSE] Connection opened');
         lastActivityAt = Date.now();
+        retryAttempt = 0;
         // A second (or later) open means we reconnected after a drop — pull
         // the latest state to backfill anything missed while disconnected.
         if (hasConnected) refetch();
@@ -140,14 +172,21 @@ export function useTicketStream({
           }
         }
       } else if (event.type === 'error') {
+        const xhrStatus = (event as any).xhrStatus;
+        if (isPermanentFailure(xhrStatus)) {
+          if (__DEV__) console.warn(`[SSE] Stream refused (HTTP ${xhrStatus}), not retrying`);
+          isStopped = true;
+          closeStream();
+          return;
+        }
         if (__DEV__)
-          console.error('[SSE] Connection Error:', (event as any).message || 'Unknown error');
+          console.warn('[SSE] Connection error:', (event as any).message || 'Unknown error');
         scheduleReconnect();
       }
     };
 
     const connect = () => {
-      if (isCleanedUp) return;
+      if (isCleanedUp || isStopped || isPaused) return;
       lastActivityAt = Date.now();
 
       // Resolved fresh on every (re)connect attempt, not once outside this
@@ -167,36 +206,48 @@ export function useTicketStream({
     };
 
     const scheduleReconnect = () => {
-      if (isCleanedUp || reconnectTimer) return;
-      if (es) {
-        es.removeAllEventListeners();
-        es.close();
-        es = null;
-      }
+      if (isCleanedUp || isStopped || isPaused || reconnectTimer) return;
+      closeStream();
+      const ceiling = Math.min(SSE_RETRY_MAX_MS, SSE_RETRY_BASE_MS * 2 ** retryAttempt);
+      const delay = ceiling / 2 + Math.random() * (ceiling / 2);
+      retryAttempt += 1;
       reconnectTimer = setTimeout(() => {
         reconnectTimer = null;
         connect();
-      }, 3000);
+      }, delay);
     };
 
     connect();
 
     watchdogInterval = setInterval(() => {
+      if (isStopped || isPaused) return;
       if (Date.now() - lastActivityAt > SSE_WATCHDOG_TIMEOUT_MS) {
         if (__DEV__) console.warn('[SSE] Watchdog: no activity, forcing reconnect');
         scheduleReconnect();
       }
     }, SSE_WATCHDOG_CHECK_INTERVAL_MS);
 
+    const appStateSub = AppState.addEventListener('change', (next) => {
+      if (next === 'background') {
+        if (isPaused) return;
+        isPaused = true;
+        if (reconnectTimer) clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+        closeStream();
+      } else if (next === 'active' && isPaused) {
+        isPaused = false;
+        retryAttempt = 0;
+        connect();
+      }
+    });
+
     return () => {
       if (__DEV__) console.log('[SSE] Closing connection');
       isCleanedUp = true;
+      appStateSub.remove();
       if (reconnectTimer) clearTimeout(reconnectTimer);
       if (watchdogInterval) clearInterval(watchdogInterval);
-      if (es) {
-        es.removeAllEventListeners();
-        es.close();
-      }
+      closeStream();
     };
-  }, [ticketId, cardno, queryClient, refetch]);
+  }, [enabled, ticketId, cardno, queryClient, refetch]);
 }
