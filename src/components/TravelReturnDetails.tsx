@@ -322,6 +322,19 @@ const TravelReturnDetails = ({
               requiresArrivalTime={requiresArrivalTime}
             />
           )}
+
+          {variant === 'flat' && firstGroup?.pickup === 'Research Centre' ? (
+            // Asked outside the Edit panel so an unedited default return can still be answered.
+            <CustomSelectBottomSheet
+              className="mt-5"
+              label="Leaving post adhyayan?"
+              placeholder="Leaving post adhyayan?"
+              options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
+              selectedValue={firstGroup.adhyayan || dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value}
+              onValueChange={(val: any) => updateFlat({ adhyayan: val })}
+              saveKeyInsteadOfValue={false}
+            />
+          ) : null}
         </View>
       ) : null}
     </>

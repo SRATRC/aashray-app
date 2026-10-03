@@ -228,6 +228,14 @@ export const prepareMumukshuRequestBody = (user, input) => {
         group.adhyayan == 'No'
           ? (transformed.leaving_post_adhyayan = 0)
           : (transformed.leaving_post_adhyayan = 1);
+      // "Leaving post Adhyayan?" only applies to a leg that departs the Research Centre; a stale
+      // Yes on a leg that no longer does (route edited after answering) is sent as No.
+      if (
+        group.pickup &&
+        group.pickup !== 'Research Centre' &&
+        'leaving_post_adhyayan' in transformed
+      )
+        transformed.leaving_post_adhyayan = 0;
       if (group.luggage) {
         transformed.luggage = group.luggage.length > 0 ? group.luggage.join(', ') : '';
       }
