@@ -8,7 +8,12 @@ import { dropdowns, types } from '@/src/constants';
 import { FontAwesome } from '@expo/vector-icons';
 import { ShadowBox } from '@/src/components/ShadowBox';
 import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
-import { requiresArrivalTime } from '@/src/utils/travel';
+import {
+  requiresArrivalTime,
+  reverseOnwardGroups,
+  leavingPostAdhyayanFor,
+  isReturnIncomplete,
+} from '@/src/utils/travel';
 import { useAuthStore, useBookingStore } from '@/src/stores';
 import PageHeader from '@/src/components/PageHeader';
 import CustomButton from '@/src/components/CustomButton';
@@ -554,16 +559,7 @@ const MumukshuAddons = () => {
       const sourceGroups =
         travelForm.returnEdited && travelForm.returnGroups?.length
           ? travelForm.returnGroups
-          : travelForm.mumukshuGroup.map((g: any) => ({
-              pickup: g.drop || '',
-              drop: g.pickup || '',
-              type: g.type || '',
-              luggage: g.luggage || [],
-              arrival_time: '',
-              comments: g.special_request || '',
-              total_people: g.total_people ?? null,
-              travelerIndices: (g.mumukshuIndices || []).map(String),
-            }));
+          : reverseOnwardGroups(travelForm.mumukshuGroup, 'mumukshuIndices');
       payload.returnMumukshuGroup = sourceGroups.map((rg: any) => ({
         pickup: rg.pickup,
         drop: rg.drop,
@@ -572,6 +568,7 @@ const MumukshuAddons = () => {
         arrival_time: rg.arrival_time || '',
         special_request: rg.comments || '',
         total_people: rg.total_people ?? null,
+        adhyayan: leavingPostAdhyayanFor(rg),
         mumukshus: rg.travelerIndices.map((i: string) => mumukshus[Number(i)]).filter(Boolean),
       }));
     }
@@ -639,7 +636,16 @@ const MumukshuAddons = () => {
     const returnTimeMissing =
       !!travelForm.return_date &&
       returnGroups.some((g: any) => requiresArrivalTime(g.pickup, g.drop) && !g.arrival_time);
-    return !hasEmptyFields && !returnTimeMissing && travelForm.date;
+    // An edited return must be complete and cover every onward traveler.
+    const returnIncomplete =
+      !!travelForm.return_date &&
+      !!travelForm.returnEdited &&
+      isReturnIncomplete(
+        travelForm.returnGroups,
+        travelForm.mumukshuGroup.flatMap((g: any) => (g.mumukshuIndices || []).map(String)),
+        otherLocation?.value
+      );
+    return !hasEmptyFields && !returnTimeMissing && !returnIncomplete && travelForm.date;
   }, [travelForm]);
 
   // Form content check handlers (to see if user has started filling them)

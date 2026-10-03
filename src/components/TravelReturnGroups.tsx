@@ -16,6 +16,8 @@ export interface ReturnGroup {
   arrival_time: string;
   comments: string;
   total_people: number | null;
+  // Answer to "Leaving post adhyayan?"; only asked/sent when this leg departs Research Centre.
+  adhyayan?: string;
   travelerIndices: string[]; // indices into `travelers`, each traveler in exactly one group
 }
 
@@ -41,6 +43,7 @@ export const EMPTY_RETURN_GROUP: ReturnGroup = {
   arrival_time: '',
   comments: '',
   total_people: null,
+  adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
   travelerIndices: [],
 };
 
@@ -235,6 +238,18 @@ const TravelReturnGroups: React.FC<TravelReturnGroupsProps> = ({
             confirmButtonText="Select"
             maxSelectedDisplay={3}
           />
+
+          {group.pickup === 'Research Centre' && (
+            <CustomSelectBottomSheet
+              className="mt-7"
+              label="Leaving post adhyayan?"
+              placeholder="Leaving post adhyayan?"
+              options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
+              selectedValue={group.adhyayan || dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value}
+              onValueChange={(val: any) => updateGroup(index, { adhyayan: val })}
+              saveKeyInsteadOfValue={false}
+            />
+          )}
 
           <FormField
             text="Comments"

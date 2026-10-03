@@ -57,6 +57,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
       arrival_time: '',
       comments: travelForm.special_request || '',
       total_people: travelForm.total_people ?? null,
+      adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
       travelerIndices: ['0'],
     },
   ];

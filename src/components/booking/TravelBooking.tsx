@@ -21,7 +21,7 @@ import GuestForm from '../GuestForm';
 import TravelReturnDetails from '../TravelReturnDetails';
 import type { ReturnGroup } from '../TravelReturnGroups';
 import handleAPICall from '@/src/utils/HandleApiCall';
-import { requiresArrivalTime } from '@/src/utils/travel';
+import { requiresArrivalTime, leavingPostAdhyayanFor } from '@/src/utils/travel';
 import moment from 'moment';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
@@ -157,6 +157,7 @@ const TravelBooking = () => {
       arrival_time: '',
       comments: g.special_request || '',
       total_people: g.total_people ?? null,
+      adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
       travelerIndices: g.travelerIndices.filter((i) => travelers[Number(i)] !== undefined),
     }));
 
@@ -656,6 +657,7 @@ const TravelBooking = () => {
       if (isMumukshuPath) {
         return {
           ...base,
+          adhyayan: leavingPostAdhyayanFor(rg),
           mumukshus: groupTravelers.map((t) => ({ cardno: t.cardno })),
         };
       }

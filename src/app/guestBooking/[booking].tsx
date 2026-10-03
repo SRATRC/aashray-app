@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
 import { prepareGuestRequestBody } from '@/src/utils/preparingRequestBody';
-import { requiresArrivalTime } from '@/src/utils/travel';
+import { requiresArrivalTime, reverseOnwardGroups, isReturnIncomplete } from '@/src/utils/travel';
 import { FontAwesome } from '@expo/vector-icons';
 import { ShadowBox } from '@/src/components/ShadowBox';
 import CustomButton from '@/src/components/CustomButton';
@@ -554,16 +554,7 @@ const GuestAddons = () => {
       const sourceGroups =
         travelForm.returnEdited && travelForm.returnGroups?.length
           ? travelForm.returnGroups
-          : travelForm.guestGroup.map((g: any) => ({
-              pickup: g.drop || '',
-              drop: g.pickup || '',
-              type: g.type || '',
-              luggage: g.luggage || [],
-              arrival_time: '',
-              comments: g.special_request || '',
-              total_people: g.total_people ?? null,
-              travelerIndices: (g.guestIndices || []).map(String),
-            }));
+          : reverseOnwardGroups(travelForm.guestGroup, 'guestIndices');
       payload.returnGuestGroup = sourceGroups.map((rg: any) => ({
         pickup: rg.pickup,
         drop: rg.drop,
@@ -625,7 +616,16 @@ const GuestAddons = () => {
     const returnTimeMissing =
       !!travelForm.return_date &&
       returnGroups.some((g: any) => requiresArrivalTime(g.pickup, g.drop) && !g.arrival_time);
-    return !hasEmptyFields && !returnTimeMissing && travelForm.date;
+    // An edited return must be complete and cover every onward guest.
+    const returnIncomplete =
+      !!travelForm.return_date &&
+      !!travelForm.returnEdited &&
+      isReturnIncomplete(
+        travelForm.returnGroups,
+        travelForm.guestGroup.flatMap((g: any) => (g.guestIndices || []).map(String)),
+        otherLocation?.value
+      );
+    return !hasEmptyFields && !returnTimeMissing && !returnIncomplete && travelForm.date;
   }, [travelForm]);
 
   // Check if forms are not empty (have user input)

@@ -5,7 +5,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
 import { prepareMumukshuRequestBody } from '@/src/utils/preparingRequestBody';
-import { requiresArrivalTime } from '@/src/utils/travel';
+import {
+  requiresArrivalTime,
+  leavingPostAdhyayanFor,
+  isReturnIncomplete,
+} from '@/src/utils/travel';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { ShadowBox } from '@/src/components/ShadowBox';
@@ -96,6 +100,7 @@ const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string)
                   arrival_time: '',
                   comments: simpleForm.special_request,
                   total_people: simpleForm.total_people,
+                  adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
                   travelerIndices: ['0'],
                 },
               ];
@@ -107,6 +112,7 @@ const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string)
           arrival_time: rg.arrival_time || '',
           special_request: rg.comments || '',
           total_people: rg.total_people ?? null,
+          adhyayan: leavingPostAdhyayanFor(rg),
           mumukshus: rg.travelerIndices
             .map((i: string) => (i === '0' ? selfMumukshu : null))
             .filter(Boolean),
@@ -363,6 +369,11 @@ const BookingDetails = () => {
           ? forms.travel.returnGroups
           : [{ pickup: drop, drop: pickup, arrival_time: '' }];
       if (returnGroups.some((g: any) => requiresArrivalTime(g.pickup, g.drop) && !g.arrival_time))
+        return false;
+      if (
+        forms.travel.returnEdited &&
+        isReturnIncomplete(returnGroups, ['0'], otherLocation?.value)
+      )
         return false;
     }
 
