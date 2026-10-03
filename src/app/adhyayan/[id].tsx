@@ -27,6 +27,7 @@ import GuestForm from '@/src/components/GuestForm';
 import OtherMumukshuForm from '@/src/components/OtherMumukshuForm';
 import HorizontalSeparator from '@/src/components/HorizontalSeparator';
 import CustomAlert from '@/src/components/CustomAlert';
+import { isValidDob } from '@/src/utils/guestFields';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
@@ -181,12 +182,6 @@ const AdhyayanDetails = () => {
       ...prev,
       guests: prev.guests.filter((_, index) => index !== indexToRemove),
     }));
-  };
-
-  const isValidDob = (dob: string) => {
-    if (!dob) return false;
-    const m = moment(dob, 'YYYY-MM-DD', true);
-    return m.isValid() && !m.isAfter(moment(), 'day') && !m.isBefore('1900-01-01');
   };
 
   const isGuestFormValid = () => {

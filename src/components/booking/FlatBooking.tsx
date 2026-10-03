@@ -13,6 +13,7 @@ import GuestForm from '../GuestForm';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import moment from 'moment';
 import CustomAlert from '../CustomAlert';
+import { isValidDob } from '@/src/utils/guestFields';
 
 const CHIPS = ['Mumukshus', 'Guest'];
 const INITIAL_MUMUKSHU_FORM = {
@@ -126,12 +127,6 @@ const FlatBooking = () => {
       ...prev,
       guests: prev.guests.filter((_, index) => index !== indexToRemove),
     }));
-  };
-
-  const isValidDob = (dob: string) => {
-    if (!dob) return false;
-    const m = moment(dob, 'YYYY-MM-DD', true);
-    return m.isValid() && !m.isAfter(moment(), 'day') && !m.isBefore('1900-01-01');
   };
 
   const isGuestFormValid = () => {

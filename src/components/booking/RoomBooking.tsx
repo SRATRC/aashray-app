@@ -16,7 +16,7 @@ import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import CustomAlert from '../CustomAlert';
-import moment from 'moment';
+import { isValidDob } from '@/src/utils/guestFields';
 
 const SWITCH_OPTIONS = ['Select Dates', 'One Day Visit'];
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
@@ -155,12 +155,6 @@ const RoomBooking = () => {
       ...prev,
       guests: prev.guests.filter((_, index) => index !== indexToRemove),
     }));
-  };
-
-  const isValidDob = (dob: string) => {
-    if (!dob) return false;
-    const m = moment(dob, 'YYYY-MM-DD', true);
-    return m.isValid() && !m.isAfter(moment(), 'day') && !m.isBefore('1900-01-01');
   };
 
   const isSingleDayGuestFormValid = () => {

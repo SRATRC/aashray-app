@@ -22,6 +22,7 @@ import moment from 'moment';
 import * as Haptics from 'expo-haptics';
 import CustomAlert from '../CustomAlert';
 import Callout from '../Callout';
+import { isValidDob } from '@/src/utils/guestFields';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
@@ -69,16 +70,13 @@ const FoodBooking = () => {
     // <View className="mb-2 flex-row items-start gap-x-3 rounded-lg border border-amber-300 bg-amber-50 p-3">
     //   <FontAwesome name="info-circle" size={16} color="#b45309" style={{ alignSelf: 'center' }} />
     //   <Text className="flex-1 font-pregular text-sm text-amber-800">
-    //     For guests staying in room - Breakfast is complimentary
     //   </Text>
     // </View>
-    <></>
+    <Callout
+      variant="warning"
+      message="Bookings must be made before 11 AM of the previous day for upcoming meals."
+    />
   );
-
-  const isSelfFormValid = () => {
-    if (!foodForm.endDay) foodForm.endDay = foodForm.startDay;
-    return foodForm.startDay && foodForm.meals.length > 0 && foodForm.spicy !== null;
-  };
 
   const [selectedChip, setSelectedChip] = useState('Self');
   const handleChipClick = (chip: any) => {
@@ -123,12 +121,6 @@ const FoodBooking = () => {
       ...prev,
       guests: prev.guests.filter((_, index) => index !== indexToRemove),
     }));
-  };
-
-  const isValidDob = (dob: string) => {
-    if (!dob) return false;
-    const m = moment(dob, 'YYYY-MM-DD', true);
-    return m.isValid() && !m.isAfter(moment(), 'day') && !m.isBefore('1900-01-01');
   };
 
   const isGuestFormValid = () => {

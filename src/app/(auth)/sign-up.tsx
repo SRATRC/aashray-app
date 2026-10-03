@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
@@ -15,6 +14,8 @@ import { images } from '@/src/constants';
 import { useNotification } from '@/src/context/NotificationContext';
 import { useAuthStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import { fetchCentres, useCentres } from '@/src/hooks/useCentres';
+import { isValidDob } from '@/src/utils/guestFields';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -23,27 +24,7 @@ const GENDER_OPTIONS = [
   { key: 'F', value: 'Female' },
 ];
 
-const GUEST_TYPE_OPTIONS = [
-  { key: 'family', value: 'Family' },
-  { key: 'friend', value: 'Friend' },
-  { key: 'driver', value: 'Driver' },
-  { key: 'vip', value: 'VIP' },
-];
-
 // ── Main Screen ───────────────────────────────────────────────────────────────
-
-const fetchCentres = () => {
-  return new Promise<any[]>((resolve, reject) => {
-    handleAPICall(
-      'GET',
-      '/location/centres',
-      null,
-      null,
-      (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
-      () => reject(new Error('Failed to fetch centres'))
-    );
-  });
-};
 
 const SignUp = () => {
   const setUser = useAuthStore((state: any) => state.setUser);
@@ -53,10 +34,6 @@ const SignUp = () => {
     issuedto: '',
     mobno: '',
     gender: 'M',
-    res_status: 'MUMUKSHU',
-    department: '',
-    ref_mobno: '',
-    guest_type: 'family',
     password: '',
     confirmPassword: '',
     dob: '',
@@ -65,35 +42,9 @@ const SignUp = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPhoneChecking, setIsPhoneChecking] = useState(false);
-  const [isRefPhoneChecking, setIsRefPhoneChecking] = useState(false);
-  const [refName, setRefName] = useState('');
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
-  // Fetch Centres
-  const { data: centres, isLoading: isCentresLoading }: any = useQuery({
-    queryKey: ['centres'],
-    queryFn: fetchCentres,
-    staleTime: 1000 * 60 * 30,
-  });
-
-  const centresWithOptions = centres ? [...centres, { key: 'Other', value: 'Other' }] : [];
-
-  // Fetch departments for Seva Kutir picker
-  const { data: departmentData } = useQuery({
-    queryKey: ['departments'],
-    queryFn: () =>
-      new Promise<{ key: string; value: string }[]>((resolve, reject) => {
-        handleAPICall(
-          'GET',
-          '/location/departments',
-          null,
-          null,
-          (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
-          () => reject(new Error('Failed to fetch departments'))
-        );
-      }),
-    staleTime: Infinity,
-  });
+  const { centresWithOptions, isCentresLoading } = useCentres();
 
   const checkMobileRegistered = async (phone: string) => {
     setIsPhoneChecking(true);
@@ -110,32 +61,6 @@ const SignUp = () => {
         }
       },
       () => setIsPhoneChecking(false),
-      () => {},
-      false // disable global error toast
-    );
-  };
-
-  const checkRefMobileRegistered = async (phone: string) => {
-    setIsRefPhoneChecking(true);
-    setRefName('');
-    await handleAPICall(
-      'GET',
-      `/client/checkMobile/${phone}`,
-      null,
-      null,
-      (res: any) => {
-        if (!res.exists) {
-          setErrors((prev) => ({ ...prev, ref_mobno: 'Reference phone number is not registered' }));
-        } else {
-          if (res.res_status === 'MUMUKSHU') {
-            setErrors((prev) => ({ ...prev, ref_mobno: '' }));
-            setRefName(res.name);
-          } else {
-            setErrors((prev) => ({ ...prev, ref_mobno: `Registered to ${res.name} (${res.res_status}), but must be a Mumukshu` }));
-          }
-        }
-      },
-      () => setIsRefPhoneChecking(false),
       () => {},
       false // disable global error toast
     );
@@ -220,29 +145,11 @@ const SignUp = () => {
     if (!form.dob) {
       newErrors.dob = 'Date of birth is required';
     } else {
-      const dobMoment = moment(form.dob, 'YYYY-MM-DD', true);
-      if (!dobMoment.isValid()) {
-        newErrors.dob = 'Invalid date of birth format';
-      } else if (dobMoment.isAfter(moment(), 'day')) {
-        newErrors.dob = 'Date of birth cannot be in the future';
-      } else if (dobMoment.isBefore('1900-01-01')) {
-        newErrors.dob = 'Please select a valid date of birth';
-      }
+      if (!isValidDob(form.dob)) newErrors.dob = 'Please select a valid date of birth';
     }
 
     if (!form.center) {
       newErrors.center = 'Centre is required';
-    }
-
-    if (form.res_status === 'SEVA KUTIR' && !form.department)
-      newErrors.department = 'Please select a department';
-
-    if (form.res_status === 'GUEST') {
-      if (form.ref_mobno.length !== 10) {
-        newErrors.ref_mobno = 'Enter a valid 10-digit Mumukshu phone number';
-      } else if (errors.ref_mobno) {
-        newErrors.ref_mobno = errors.ref_mobno;
-      }
     }
 
     setErrors(newErrors);
@@ -254,7 +161,7 @@ const SignUp = () => {
   };
 
   const submit = async () => {
-    if (isPhoneChecking || isRefPhoneChecking) return;
+    if (isPhoneChecking) return;
     if (!validate()) return;
     setIsSubmitting(true);
 
@@ -262,18 +169,12 @@ const SignUp = () => {
       issuedto: form.issuedto.trim(),
       mobno: form.mobno,
       gender: form.gender,
-      res_status: form.res_status,
+      res_status: 'MUMUKSHU',
       password: form.password,
       token: expoPushToken,
       dob: form.dob,
       center: form.center,
     };
-
-    if (form.res_status === 'SEVA KUTIR') body.department = form.department;
-    if (form.res_status === 'GUEST') {
-      body.ref_mobno = form.ref_mobno;
-      body.guest_type = form.guest_type;
-    }
 
     await handleAPICall(
       'POST',
@@ -289,9 +190,7 @@ const SignUp = () => {
     form.issuedto.trim().length > 0 &&
     form.mobno.length === 10 &&
     form.password.length > 0 &&
-    form.password === form.confirmPassword &&
-    (form.res_status !== 'SEVA KUTIR' || !!form.department) &&
-    (form.res_status !== 'GUEST' || form.ref_mobno.length === 10);
+    form.password === form.confirmPassword;
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -379,14 +278,13 @@ const SignUp = () => {
                 if (errors.dob) setErrors((prev) => ({ ...prev, dob: '' }));
               }}
               className="h-16 w-full flex-row items-center rounded-2xl bg-gray-100 px-4">
-              <Text className={`font-pmedium text-base ${!form.dob ? 'text-gray-400' : 'text-black'}`}>
+              <Text
+                className={`font-pmedium text-base ${!form.dob ? 'text-gray-400' : 'text-black'}`}>
                 {form.dob ? moment(form.dob).format('Do MMMM YYYY') : 'Select Date of Birth'}
               </Text>
             </TouchableOpacity>
             {errors.dob ? (
-              <Text className="ml-2 mt-1 font-pmedium text-sm text-red-600">
-                {errors.dob}
-              </Text>
+              <Text className="ml-2 mt-1 font-pmedium text-sm text-red-600">{errors.dob}</Text>
             ) : null}
           </View>
 
@@ -427,81 +325,9 @@ const SignUp = () => {
               saveKeyInsteadOfValue={false}
             />
             {errors.center ? (
-              <Text className="ml-2 mt-1 font-pmedium text-sm text-red-600">
-                {errors.center}
-              </Text>
+              <Text className="ml-2 mt-1 font-pmedium text-sm text-red-600">{errors.center}</Text>
             ) : null}
           </View>
-
-
-          {/* SEVA KUTIR — Department */}
-          {form.res_status === 'SEVA KUTIR' && (
-            <View className="mb-3">
-              <CustomSelectBottomSheet
-                label="Department"
-                options={departmentData ?? []}
-                selectedValue={form.department}
-                onValueChange={(v: any) => {
-                  Keyboard.dismiss();
-                  setField('department', String(v));
-                }}
-                placeholder="Select your department"
-                saveKeyInsteadOfValue
-                searchable
-              />
-              {errors.department ? (
-                <Text className="ml-2 mt-1 font-pmedium text-sm text-red-600">
-                  {errors.department}
-                </Text>
-              ) : null}
-            </View>
-          )}
-
-          {/* GUEST — Ref Mumukshu Phone + Type */}
-          {form.res_status === 'GUEST' && (
-            <View className="mb-3">
-              <FormField
-                text="Reference Mumukshu Phone"
-                value={form.ref_mobno}
-                handleChangeText={(v: string) => {
-                  const cleaned = v.replace(/[^0-9]/g, '');
-                  setField('ref_mobno', cleaned);
-                  if (cleaned.length === 10) {
-                    checkRefMobileRegistered(cleaned);
-                  } else if (cleaned.length < 10) {
-                    if (errors.ref_mobno) setErrors((prev) => ({ ...prev, ref_mobno: '' }));
-                    if (refName) setRefName('');
-                  }
-                }}
-                placeholder="10-digit phone number"
-                keyboardType="number-pad"
-                maxLength={10}
-                otherStyles="mb-1"
-                variant="clean"
-                isLoading={isRefPhoneChecking}
-                error={!!errors.ref_mobno}
-                errorMessage={errors.ref_mobno}
-              />
-              {refName ? (
-                <Text className="ml-2 mb-3 font-psemibold text-sm text-green-700">
-                  Name: {refName}
-                </Text>
-              ) : null}
-              <View className="mb-3">
-                <CustomSelectBottomSheet
-                  label="Relationship Type"
-                  options={GUEST_TYPE_OPTIONS}
-                  selectedValue={form.guest_type}
-                  onValueChange={(v: any) => {
-                    Keyboard.dismiss();
-                    setField('guest_type', String(v));
-                  }}
-                  placeholder="Select Relationship"
-                  saveKeyInsteadOfValue
-                />
-              </View>
-            </View>
-          )}
 
           {/* Password */}
           <FormField

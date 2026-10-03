@@ -29,6 +29,7 @@ import HorizontalSeparator from '@/src/components/HorizontalSeparator';
 import FormField from '@/src/components/FormField';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
 import CustomAlert from '@/src/components/CustomAlert';
+import { isValidDob } from '@/src/utils/guestFields';
 
 // Types
 type Package = {
@@ -258,12 +259,6 @@ const UtsavPage = () => {
       ...prev,
       guests: prev.guests.filter((_, index) => index !== indexToRemove),
     }));
-  };
-
-  const isValidDob = (dob: string) => {
-    if (!dob) return false;
-    const m = moment(dob, 'YYYY-MM-DD', true);
-    return m.isValid() && !m.isAfter(moment(), 'day') && !m.isBefore('1900-01-01');
   };
 
   const isGuestFormValid = () => {

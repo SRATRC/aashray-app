@@ -1,27 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, Platform, Keyboard } from 'react-native';
 import { colors, icons, dropdowns } from '../constants';
-import { useQueries, useQuery } from '@tanstack/react-query';
+import { useQueries } from '@tanstack/react-query';
 import { useAuthStore } from '@/src/stores';
 import FormField from './FormField';
 import FormDisplayField from './FormDisplayField';
 import handleAPICall from '../utils/HandleApiCall';
 import CustomSelectBottomSheet from './CustomSelectBottomSheet';
+import { fetchCentres, useCentres } from '../hooks/useCentres';
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
-
-const fetchCentres = () => {
-  return new Promise<any[]>((resolve, reject) => {
-    handleAPICall(
-      'GET',
-      '/location/centres',
-      null,
-      null,
-      (res: any) => resolve(Array.isArray(res.data) ? res.data : []),
-      () => reject(new Error('Failed to fetch centres'))
-    );
-  });
-};
 
 interface GuestFormProps {
   guestForm: any;
@@ -43,13 +31,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
   const { user } = useAuthStore();
   const [activeDatePickerIndex, setActiveDatePickerIndex] = useState<number | null>(null);
 
-  const { data: centres, isLoading: isCentresLoading }: any = useQuery({
-    queryKey: ['centres'],
-    queryFn: fetchCentres,
-    staleTime: 1000 * 60 * 30,
-  });
-
-  const centresWithOptions = centres ? [...centres, { key: 'Other', value: 'Other' }] : [];
+  const { centresWithOptions, isCentresLoading } = useCentres();
 
   const verifyGuest = async (
     mobno: string
