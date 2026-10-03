@@ -43,8 +43,7 @@ const GroupBlock = ({
   total: number;
 }) => {
   const vehicle = group.total_people ? `${group.type} · ${group.total_people} people` : group.type;
-  const luggage =
-    group.luggage && group.luggage.length > 0 ? group.luggage.join(', ') : undefined;
+  const luggage = group.luggage && group.luggage.length > 0 ? group.luggage.join(', ') : undefined;
 
   return (
     <View className={index > 0 ? 'mt-3' : ''}>
@@ -56,7 +55,7 @@ const GroupBlock = ({
 
       <View className="flex-row items-center">
         <Text className="flex-1 font-psemibold text-[15px] leading-5 text-black" numberOfLines={2}>
-          {group.pickup}
+          {group.pickup || '—'}
         </Text>
         <Ionicons
           name="arrow-forward"
@@ -67,19 +66,18 @@ const GroupBlock = ({
         <Text
           className="flex-1 text-right font-psemibold text-[15px] leading-5 text-black"
           numberOfLines={2}>
-          {group.drop}
+          {group.drop || '—'}
         </Text>
       </View>
 
       <View className="mt-2 flex-row flex-wrap items-center gap-x-4 gap-y-1">
         <Meta
           icon={<Ionicons name="time-outline" size={13} color={colors.gray_400} />}
-          text={group.arrival_time ? moment(group.arrival_time, 'HH:mm').format('h:mm A') : undefined}
+          text={
+            group.arrival_time ? moment(group.arrival_time, 'HH:mm').format('h:mm A') : undefined
+          }
         />
-        <Meta
-          icon={<FontAwesome5 name="car" size={12} color={colors.gray_400} />}
-          text={vehicle}
-        />
+        <Meta icon={<FontAwesome5 name="car" size={12} color={colors.gray_400} />} text={vehicle} />
         <Meta
           icon={<FontAwesome5 name="suitcase" size={12} color={colors.gray_400} />}
           text={luggage}

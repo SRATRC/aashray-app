@@ -73,6 +73,7 @@ const INITIAL_MUMUKSHU_FORM = {
       pickup: '',
       drop: '',
       luggage: [],
+      adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
       type: dropdowns.BOOKING_TYPE_LIST[0].value,
       total_people: null,
       special_request: '',
@@ -104,12 +105,9 @@ const TravelBooking = () => {
 
   const [selectedChip, setSelectedChip] = useState('Self');
   const handleChipClick = (chip: any) => {
+    // Return edits are kept per chip (see returnByChip), so switching chips never leaks one
+    // chip's traveler indices into another and coming back keeps what was edited.
     setSelectedChip(chip);
-    // Return groups reference travelers by index into the active chip's roster; switching chips
-    // invalidates those indices, so drop any manual return edits and let the return re-mirror
-    // the new chip's onward.
-    setReturnGroups([]);
-    setReturnEdited(false);
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -123,9 +121,28 @@ const TravelBooking = () => {
   // date and the end day is the return date. A single date (no end day) is one-way; when an
   // end day is chosen the return leg defaults to the reverse of the onward route on that date,
   // and can be edited independently via TravelReturnDetails.
-  const [returnDate, setReturnDate] = useState<string>('');
-  const [returnGroups, setReturnGroups] = useState<ReturnGroup[]>([]);
-  const [returnEdited, setReturnEdited] = useState(false);
+  // The return date is one shared range; the return groups and the edited flag are per chip
+  // because they reference that chip's own traveler indices.
+  const [returnDate, setReturnDateRaw] = useState<string>('');
+  const setReturnDate = (d: string) => {
+    setReturnDateRaw(d);
+    if (!d) setReturnByChip({});
+  };
+  const [returnByChip, setReturnByChip] = useState<
+    Record<string, { groups: ReturnGroup[]; edited: boolean }>
+  >({});
+  const returnGroups: ReturnGroup[] = returnByChip[selectedChip]?.groups ?? [];
+  const returnEdited: boolean = returnByChip[selectedChip]?.edited ?? false;
+  const setReturnGroups = (groups: ReturnGroup[]) =>
+    setReturnByChip((prev) => ({
+      ...prev,
+      [selectedChip]: { groups, edited: prev[selectedChip]?.edited ?? false },
+    }));
+  const setReturnEdited = (edited: boolean) =>
+    setReturnByChip((prev) => ({
+      ...prev,
+      [selectedChip]: { groups: prev[selectedChip]?.groups ?? [], edited },
+    }));
 
   // Reverse each onward group into its return-leg equivalent: pickup/drop swap, same
   // vehicle type/luggage/people, arrival time and comments reset for the return trip, and
@@ -149,6 +166,7 @@ const TravelBooking = () => {
     drop: '',
     arrival_time: '',
     luggage: [],
+    adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
     type: dropdowns.BOOKING_TYPE_LIST[0].value,
     total_people: null,
     special_request: '',
@@ -218,6 +236,7 @@ const TravelBooking = () => {
             pickup: last.pickup || '',
             drop: last.drop || '',
             luggage: last.luggage || [],
+            adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
             type: last.type || dropdowns.BOOKING_TYPE_LIST[0].value,
             total_people: last.total_people ?? null,
             special_request: '',
@@ -424,8 +443,7 @@ const TravelBooking = () => {
       if (!hasIdentity)
         return "Complete each guest's name, gender, type and a 10 digit mobile number";
     } else if (leg.mobno !== undefined) {
-      if (leg.mobno?.length !== 10 || !leg.cardno)
-        return "Complete each traveler's details";
+      if (leg.mobno?.length !== 10 || !leg.cardno) return "Complete each traveler's details";
     }
     if (!leg.pickup || !leg.drop) return 'Select a pickup and drop location';
     const bothRC = leg.pickup === 'Research Centre' && leg.drop === 'Research Centre';
@@ -844,6 +862,18 @@ const TravelBooking = () => {
               maxSelectedDisplay={3}
             />
 
+            {travelForm.pickup == dropdowns.LOCATION_LIST[0].value && (
+              <CustomSelectBottomSheet
+                className="mt-7"
+                label="Leaving post adhyayan?"
+                placeholder="Leaving post adhyayan?"
+                options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
+                selectedValue={travelForm.adhyayan}
+                onValueChange={(val: any) => setTravelForm({ ...travelForm, adhyayan: val })}
+                saveKeyInsteadOfValue={false}
+              />
+            )}
+
             <FormField
               text="Comments"
               value={travelForm.special_request}
@@ -980,6 +1010,18 @@ const TravelBooking = () => {
                     maxSelectedDisplay={3}
                   />
 
+                  {mumukshuForm.mumukshus[index].pickup == dropdowns.LOCATION_LIST[0].value && (
+                    <CustomSelectBottomSheet
+                      className="mt-7"
+                      label="Leaving post adhyayan?"
+                      placeholder="Leaving post adhyayan?"
+                      options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
+                      selectedValue={mumukshuForm.mumukshus[index].adhyayan}
+                      onValueChange={(val: any) => handleMumukshuFormChange(index, 'adhyayan', val)}
+                      saveKeyInsteadOfValue={false}
+                    />
+                  )}
+
                   <FormField
                     text="Comments"
                     value={mumukshuForm.mumukshus[index].special_request}
@@ -1044,9 +1086,7 @@ const TravelBooking = () => {
                     placeholder="Select Pickup Location"
                     options={getLocationOptions(guestTravelForm.date)}
                     selectedValue={guestTravelForm.guests[index].pickup}
-                    onValueChange={(val: any) =>
-                      handleGuestTravelFormChange(index, 'pickup', val)
-                    }
+                    onValueChange={(val: any) => handleGuestTravelFormChange(index, 'pickup', val)}
                     saveKeyInsteadOfValue={false}
                   />
 
@@ -1187,6 +1227,7 @@ const TravelBooking = () => {
                     pickup: travelForm.pickup,
                     drop: travelForm.drop,
                     luggage: travelForm.luggage,
+                    adhyayan: travelForm.adhyayan,
                     type: travelForm.type,
                     total_people: travelForm.total_people,
                     special_request: travelForm.special_request,
@@ -1302,6 +1343,7 @@ function transformMumukshuData(inputData: any) {
         type: mumukshu.type,
         arrival_time: mumukshu.arrival_time,
         luggage: mumukshu.luggage,
+        adhyayan: mumukshu.adhyayan,
         special_request: mumukshu.special_request,
         total_people: mumukshu.total_people,
         mumukshus: [],

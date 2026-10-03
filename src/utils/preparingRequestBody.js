@@ -195,6 +195,11 @@ export const prepareMumukshuRequestBody = (user, input) => {
           if (mumukshuWithArrivalTime)
             transformed.arrival_time = mumukshuWithArrivalTime.arrival_time;
         }
+        if (!group.adhyayan) {
+          const mumukshuWithAdhyayan = group.mumukshus.find((m) => m.adhyayan);
+          if (mumukshuWithAdhyayan)
+            transformed.leaving_post_adhyayan = mumukshuWithAdhyayan.adhyayan == 'No' ? 0 : 1;
+        }
         if (!group.luggage) {
           const mumukshuWithLuggage = group.mumukshus.find((m) => m.luggage);
           if (mumukshuWithLuggage)
@@ -219,6 +224,10 @@ export const prepareMumukshuRequestBody = (user, input) => {
       if (group.pickup) transformed.pickup_point = group.pickup;
       if (group.drop) transformed.drop_point = group.drop;
       if (group.arrival_time) transformed.arrival_time = group.arrival_time;
+      if (group.adhyayan)
+        group.adhyayan == 'No'
+          ? (transformed.leaving_post_adhyayan = 0)
+          : (transformed.leaving_post_adhyayan = 1);
       if (group.luggage) {
         transformed.luggage = group.luggage.length > 0 ? group.luggage.join(', ') : '';
       }

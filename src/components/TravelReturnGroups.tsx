@@ -178,7 +178,8 @@ const TravelReturnGroups: React.FC<TravelReturnGroupsProps> = ({
                 // If selecting Research Centre as drop, pickup must be something else
                 const patch: Partial<ReturnGroup> = { drop: val };
                 if (group.pickup === 'Research Centre') patch.pickup = '';
-                if (!requiresArrivalTime(patch.pickup ?? group.pickup, val)) patch.arrival_time = '';
+                if (!requiresArrivalTime(patch.pickup ?? group.pickup, val))
+                  patch.arrival_time = '';
                 updateGroup(index, patch);
               } else {
                 // If selecting anything else as drop, pickup must be Research Centre

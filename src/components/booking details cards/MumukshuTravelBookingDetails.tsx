@@ -19,7 +19,11 @@ const MumukshuTravelBookingDetail: React.FC<{ containerStyles: any }> = ({ conta
 
   const legs: ItineraryLeg[] = isRoundTrip
     ? [
-        { label: 'Onward', date: mumukshuData.travel.date, groups: mumukshuData.travel.mumukshuGroup },
+        {
+          label: 'Onward',
+          date: mumukshuData.travel.date,
+          groups: mumukshuData.travel.mumukshuGroup,
+        },
         {
           label: 'Return',
           date: mumukshuData.travel.return_date,
