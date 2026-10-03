@@ -120,9 +120,11 @@ const TicketDetails = () => {
     cardno: user.cardno,
     queryClient,
     refetch,
-    // No stream for a ticket that failed to load, or one that is closed (final:
-    // nothing can change, so holding a connection open only costs battery).
-    enabled: !isError && ticket?.status !== status.STATUS_CLOSED,
+    // No stream for a closed ticket (final: nothing can change, so holding a
+    // connection open only costs battery). A ticket that failed to load is left
+    // to the stream's own 4xx handling, so a transient refetch error can still
+    // recover through the reconnect's refetch.
+    enabled: ticket?.status !== status.STATUS_CLOSED,
   });
 
   const sendMessageMutation = useMutation({
