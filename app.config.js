@@ -168,6 +168,9 @@ export default {
             useFrameworks: 'static',
             buildReactNativeFromSource: true,
             extraPods: [{ name: 'razorpay-pod', version: '1.5.3' }],
+            // Xcode 27 / iOS 27 SDK require the UIScene life cycle. Opt-in on SDK 57; default from
+            // SDK 58, where this becomes a no-op and should be removed.
+            enableSceneSupport: true,
           },
         },
       ],
