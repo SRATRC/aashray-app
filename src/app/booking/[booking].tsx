@@ -100,7 +100,8 @@ const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string)
                   arrival_time: '',
                   comments: simpleForm.special_request,
                   total_people: simpleForm.total_people,
-                  adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
+                  adhyayan:
+                    simpleForm.returnAdhyayan || dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
                   travelerIndices: ['0'],
                 },
               ];
@@ -204,6 +205,7 @@ const BookingDetails = () => {
       special_request: '',
       returnGroups: [],
       returnEdited: false,
+      returnAdhyayan: '',
     },
     adhyayan: [],
   }));

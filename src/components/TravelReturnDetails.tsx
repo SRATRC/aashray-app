@@ -20,6 +20,9 @@ interface TravelReturnDetailsProps {
   onwardDate: string;
   returnGroups: ReturnGroup[];
   onChangeReturnGroups: (groups: ReturnGroup[]) => void;
+  // Answer to "Leaving post adhyayan?" on the return. Stored apart from the groups so answering
+  // does not mark the return as edited (it keeps mirroring the onward leg).
+  onChangeLeavingAnswer?: (answer: string) => void;
   travelers: Traveler[];
   onPickReturnDate: (date: string) => void;
   onClearReturnDate: () => void;
@@ -42,6 +45,7 @@ const TravelReturnDetails = ({
   onwardDate,
   returnGroups,
   onChangeReturnGroups,
+  onChangeLeavingAnswer,
   travelers,
   onPickReturnDate,
   onClearReturnDate,
@@ -331,7 +335,9 @@ const TravelReturnDetails = ({
               placeholder="Leaving post adhyayan?"
               options={dropdowns.TRAVEL_ADHYAYAN_ASK_LIST}
               selectedValue={firstGroup.adhyayan || dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value}
-              onValueChange={(val: any) => updateFlat({ adhyayan: val })}
+              onValueChange={(val: any) =>
+                onChangeLeavingAnswer ? onChangeLeavingAnswer(val) : updateFlat({ adhyayan: val })
+              }
               saveKeyInsteadOfValue={false}
             />
           ) : null}

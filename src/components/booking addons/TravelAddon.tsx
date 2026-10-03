@@ -57,7 +57,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
       arrival_time: '',
       comments: travelForm.special_request || '',
       total_people: travelForm.total_people ?? null,
-      adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
+      adhyayan: travelForm.returnAdhyayan || dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
       travelerIndices: ['0'],
     },
   ];
@@ -98,6 +98,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
           special_request: '',
           returnGroups: [],
           returnEdited: false,
+          returnAdhyayan: '',
         });
         setMumukshuData((prev: any) => {
           const { travel, ...rest } = prev;
@@ -304,6 +305,7 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
             return_date: '',
             returnGroups: [],
             returnEdited: false,
+            returnAdhyayan: '',
           });
         }}
         onChangeReturnGroups={(g: ReturnGroup[]) => {
@@ -311,6 +313,18 @@ const TravelAddon: React.FC<TravelAddonProps> = ({
             ...travelForm,
             returnGroups: g,
             returnEdited: true,
+          });
+        }}
+        onChangeLeavingAnswer={(answer: string) => {
+          // Stored apart from the groups: answering must not mark the return as edited.
+          setTravelForm({
+            ...travelForm,
+            returnAdhyayan: answer,
+            returnGroups: travelForm.returnEdited
+              ? (travelForm.returnGroups || []).map((g: ReturnGroup, i: number) =>
+                  i === 0 ? { ...g, adhyayan: answer } : g
+                )
+              : travelForm.returnGroups,
           });
         }}
         locationOptions={getLocationOptions(travelForm.return_date || travelForm.date)}

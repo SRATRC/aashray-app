@@ -17,7 +17,13 @@ export const requiresArrivalTime = (pickup?: string, drop?: string) =>
 // Reverse onward travel groups into default return groups: swap pickup/drop, clear the arrival
 // time, carry comments (from special_request) and the same travelers/type/luggage/people.
 // indicesKey names the onward group's traveler-index field (mumukshuIndices / guestIndices).
-export const reverseOnwardGroups = (groups: any[], indicesKey: string) =>
+// answer = the "Leaving post adhyayan?" answer already given for the return (kept when the default
+// return is rebuilt from the onward leg).
+export const reverseOnwardGroups = (
+  groups: any[],
+  indicesKey: string,
+  answer: string = DEFAULT_LEAVING_POST_ADHYAYAN
+) =>
   (groups || []).map((g: any) => ({
     pickup: g.drop || '',
     drop: g.pickup || '',
@@ -26,7 +32,7 @@ export const reverseOnwardGroups = (groups: any[], indicesKey: string) =>
     arrival_time: '',
     comments: g.special_request || '',
     total_people: g.total_people ?? null,
-    adhyayan: DEFAULT_LEAVING_POST_ADHYAYAN,
+    adhyayan: answer || DEFAULT_LEAVING_POST_ADHYAYAN,
     travelerIndices: (g[indicesKey] || []).map(String),
   }));
 

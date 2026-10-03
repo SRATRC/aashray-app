@@ -129,26 +129,49 @@ const TravelBooking = () => {
     if (!d) setReturnByChip({});
   };
   const [returnByChip, setReturnByChip] = useState<
-    Record<string, { groups: ReturnGroup[]; edited: boolean }>
+    Record<string, { groups: ReturnGroup[]; edited: boolean; answer?: string }>
   >({});
   const returnGroups: ReturnGroup[] = returnByChip[selectedChip]?.groups ?? [];
   const returnEdited: boolean = returnByChip[selectedChip]?.edited ?? false;
+  // "Leaving post adhyayan?" answer for the return, kept apart from the groups so answering it
+  // does not count as editing the return (the default return keeps mirroring the onward leg).
+  const returnAnswer: string = returnByChip[selectedChip]?.answer ?? '';
   const setReturnGroups = (groups: ReturnGroup[]) =>
     setReturnByChip((prev) => ({
       ...prev,
-      [selectedChip]: { groups, edited: prev[selectedChip]?.edited ?? false },
+      [selectedChip]: {
+        ...prev[selectedChip],
+        groups,
+        edited: prev[selectedChip]?.edited ?? false,
+      },
     }));
   const setReturnEdited = (edited: boolean) =>
     setReturnByChip((prev) => ({
       ...prev,
-      [selectedChip]: { groups: prev[selectedChip]?.groups ?? [], edited },
+      [selectedChip]: { ...prev[selectedChip], groups: prev[selectedChip]?.groups ?? [], edited },
     }));
+  const setReturnAnswer = (answer: string) =>
+    setReturnByChip((prev) => {
+      const cur = prev[selectedChip];
+      return {
+        ...prev,
+        [selectedChip]: {
+          groups: (cur?.groups ?? []).map((g, i) => (i === 0 ? { ...g, adhyayan: answer } : g)),
+          edited: cur?.edited ?? false,
+          answer,
+        },
+      };
+    });
 
   // Reverse each onward group into its return-leg equivalent: pickup/drop swap, same
   // vehicle type/luggage/people, arrival time and comments reset for the return trip, and
   // the same travelers (by index) carried over. This is the default when the return leg
   // hasn't been edited yet.
-  const reverseGroups = (onwardGroups: OnwardGroup[], travelers: Traveler[]): ReturnGroup[] =>
+  const reverseGroups = (
+    onwardGroups: OnwardGroup[],
+    travelers: Traveler[],
+    answer: string = ''
+  ): ReturnGroup[] =>
     onwardGroups.map((g) => ({
       pickup: g.drop,
       drop: g.pickup,
@@ -157,7 +180,7 @@ const TravelBooking = () => {
       arrival_time: '',
       comments: g.special_request || '',
       total_people: g.total_people ?? null,
-      adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
+      adhyayan: answer || dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
       travelerIndices: g.travelerIndices.filter((i) => travelers[Number(i)] !== undefined),
     }));
 
@@ -609,9 +632,9 @@ const TravelBooking = () => {
   // via "Edit return details", it stops auto-syncing until the return date is cleared.
   useEffect(() => {
     if (returnDate && !returnEdited) {
-      setReturnGroups(reverseGroups(activeOnwardGroups, activeTravelers));
+      setReturnGroups(reverseGroups(activeOnwardGroups, activeTravelers, returnAnswer));
     }
-  }, [returnDate, returnEdited, selectedChip, activeOnwardGroups, activeTravelers]);
+  }, [returnDate, returnEdited, returnAnswer, selectedChip, activeOnwardGroups, activeTravelers]);
 
   const { isUtsavDate } = useUtsavDate();
 
@@ -1189,6 +1212,7 @@ const TravelBooking = () => {
             setReturnGroups(g);
             setReturnEdited(true);
           }}
+          onChangeLeavingAnswer={setReturnAnswer}
           onClearReturnDate={() => {
             setReturnDate('');
             setReturnEdited(false);
