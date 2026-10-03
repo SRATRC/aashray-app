@@ -84,6 +84,7 @@ const TicketDetails = () => {
   const {
     data: ticket,
     isLoading,
+    isFetching,
     refetch,
   } = useQuery<any>({
     queryKey: ['ticket', id, user.cardno],
@@ -367,9 +368,14 @@ const TicketDetails = () => {
           </Text>
           <TouchableOpacity
             onPress={() => refetch()}
+            disabled={isFetching}
             className="mt-6 rounded-lg bg-secondary px-6 py-3"
             activeOpacity={0.7}>
-            <Text className="font-semibold text-white">Try Again</Text>
+            {isFetching ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text className="font-semibold text-white">Try Again</Text>
+            )}
           </TouchableOpacity>
         </View>
       </SafeAreaView>
