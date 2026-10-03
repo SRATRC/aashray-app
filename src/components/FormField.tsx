@@ -25,6 +25,7 @@ interface FormFieldProps {
   isLoading?: boolean;
   useNeomorphic?: boolean;
   variant?: 'default' | 'clean';
+  onBlur?: any;
 }
 
 const FormField: React.FC<FormFieldProps> = ({
@@ -50,6 +51,7 @@ const FormField: React.FC<FormFieldProps> = ({
   isLoading = false,
   useNeomorphic = false,
   variant = 'default',
+  onBlur,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -79,6 +81,7 @@ const FormField: React.FC<FormFieldProps> = ({
             multiline={multiline}
             numberOfLines={numberOfLines}
             textAlignVertical={multiline ? 'top' : 'center'}
+            onBlur={onBlur}
           />
           {isPassword && (
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
@@ -150,6 +153,7 @@ const FormField: React.FC<FormFieldProps> = ({
           multiline={multiline}
           numberOfLines={numberOfLines}
           textAlignVertical={multiline ? 'top' : 'center'}
+          onBlur={onBlur}
         />
 
         {isLoading && <Text className="font-pmedium text-xs text-blue-600">Verifying...</Text>}

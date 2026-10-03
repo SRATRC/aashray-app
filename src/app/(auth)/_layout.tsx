@@ -7,6 +7,7 @@ const AuthLayout = () => {
       {/* Auth stack with fade animation */}
       <Stack screenOptions={{ animation: 'fade' }}>
         <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+        <Stack.Screen name="sign-up" options={{ headerShown: false }} />
         {/* <Stack.Screen name="guestReferral" options={{ headerShown: false }} />
         <Stack.Screen
           name="guestRegistration"
