@@ -7,6 +7,7 @@ import { status } from '@/src/constants';
 import { FontAwesome5 } from '@expo/vector-icons';
 import PageHeader from '@/src/components/PageHeader';
 import handleAPICall from '@/src/utils/HandleApiCall';
+import { wifiCache } from '@/src/utils/wifiCache';
 import CustomErrorMessage from '@/src/components/CustomErrorMessage';
 import PermanentWifiSection from '@/src/components/PermanentWifiSection';
 import TemporaryWifiSection from '@/src/components/TemporaryWifiSection';
@@ -84,10 +85,13 @@ const Wifi = () => {
         },
         null,
         (res: any) => {
-          resolve(Array.isArray(res.data) ? res.data : []);
+          const data = Array.isArray(res.data) ? res.data : [];
+          wifiCache.set(`wifi:${user.cardno}`, data);
+          resolve(data);
         },
         () => { },
-        () => reject(new Error('Failed to fetch wifi passwords'))
+        () => reject(new Error('Failed to fetch wifi passwords')),
+        false
       );
     });
   };
@@ -103,10 +107,13 @@ const Wifi = () => {
         },
         null,
         (res: any) => {
-          resolve(Array.isArray(res.data) ? res.data : []);
+          const data = Array.isArray(res.data) ? res.data : [];
+          wifiCache.set(`permanent:${user.cardno}`, data);
+          resolve(data);
         },
         () => { },
-        () => reject(new Error('Failed to fetch permanent wifi code'))
+        () => reject(new Error('Failed to fetch permanent wifi code')),
+        false
       );
     });
   };
@@ -122,6 +129,8 @@ const Wifi = () => {
     queryFn: fetchWifiPasswords,
     staleTime: 1000 * 60 * 30,
     enabled: !!user.cardno,
+    initialData: () => wifiCache.get(`wifi:${user.cardno}`) ?? undefined,
+    refetchOnMount: 'always',
   });
 
   const {
@@ -134,6 +143,8 @@ const Wifi = () => {
     queryFn: fetchPermanentWifiCode,
     staleTime: 1000 * 60 * 30,
     enabled: !!user.cardno,
+    initialData: () => wifiCache.get(`permanent:${user.cardno}`) ?? undefined,
+    refetchOnMount: 'always',
   });
 
   // Generate temporary WiFi code
@@ -289,18 +300,16 @@ const Wifi = () => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         <PageHeader title={'WiFi Passwords'} />
 
-        {isError && isPermanentError && (
+        {isError && isPermanentError && (!wifiList || wifiList.length === 0) && (!permanentWifiData || permanentWifiData.length === 0) ? (
           <View className="flex-1 items-center justify-center px-4">
-            <CustomErrorMessage errorTitle="An Error Occurred" errorMessage={error?.message} />
+            <CustomErrorMessage errorTitle="An Error Occurred" errorMessage={error?.message || "Failed to load WiFi details."} />
           </View>
-        )}
-
-        {!isError && !isPermanentError && (
+        ) : (
           <>
             <PermanentWifiSection
               data={permanentWifiData}
               isLoading={isPermanentLoading}
-              isError={isPermanentError}
+              isError={isPermanentError && (!permanentWifiData || permanentWifiData.length === 0)}
               isSubmitting={isPermanentSubmitting}
               onRequestCode={handleRequestPermanentCode}
               onInfoPress={handleInfoPress}
@@ -314,7 +323,7 @@ const Wifi = () => {
                 codes={wifiList}
                 isLoading={isLoading}
                 isGenerating={isSubmitting}
-                isError={isError}
+                isError={isError && (!wifiList || wifiList.length === 0)}
                 maxCodes={1}
                 onGenerateCode={handleGenerateCode}
               />
