@@ -4,7 +4,7 @@ import { isNewerVersion } from '@/src/utils/version';
 import { BASE_URL } from '@/src/constants';
 import { getSnoozeUntil, setSnoozeUntil } from '@/src/utils/updatePrefs';
 import UpdateModal, { UpdateInfo } from '@/src/components/UpdateModal';
-import CustomAlert from '@/src/components/CustomAlert';
+import { useUpdateStore } from '@/src/stores';
 import '@/src/utils/deviceHeaders';
 import axios from 'axios';
 import Constants from 'expo-constants';
@@ -21,6 +21,7 @@ interface ApiResponse {
     updateType?: 'none' | 'optional' | 'forced' | 'unsupported';
     targetVersion?: string | null;
     targetReleaseNotes?: string | null;
+    minOsVersion?: string | null; // lowest OS for the latest release
     androidUrl?: string; // optional override
     iosUrl?: string; // optional override
   };
@@ -103,22 +104,24 @@ export const UpdateManager: React.FC = () => {
       const currentVersion = getCurrentAppVersion();
       if (!currentVersion) return; // can't compare reliably
 
+      const updateType = raw?.updateType;
+      if (updateType === 'unsupported') {
+        // This OS can't install the required release. Never interrupt: the Profile
+        // banner explains it and offers any newer build this phone can still install.
+        // Checked before snooze so a snoozed optional prompt can't hide the banner.
+        const target = raw?.targetVersion;
+        useUpdateStore.getState().setUnsupported({
+          minOsVersion: raw?.minOsVersion ?? null,
+          updateVersion: target && isNewerVersion(target, currentVersion) ? target : null,
+          storeUrl: getStoreUrl(raw),
+        });
+        return;
+      }
+
       // Respect snooze for optional updates
       if (!info.mandatory) {
         const snoozeUntil = getSnoozeUntil();
         if (snoozeUntil && Date.now() < snoozeUntil) return;
-      }
-
-      const updateType = raw?.updateType;
-      if (updateType === 'unsupported' && !isNewerVersion(info.latestVersion, currentVersion)) {
-        // Nothing newer installs on this OS: tell them, never block.
-        CustomAlert.alert(
-          "Your phone can't get the latest update",
-          "Your phone's software is too old for the newest version of the app. You can keep using this version. To get new features, update your phone's software if you can.",
-          [{ text: 'OK', onPress: snoozeUntilTomorrow }],
-          { onDismiss: snoozeUntilTomorrow }
-        );
-        return;
       }
 
       // Trust the server's decision when it sends one (older backends don't),
