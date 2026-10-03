@@ -182,18 +182,22 @@ const TravelBookingCancellation = () => {
     <ExpandableItem
       visibleContent={
         <View className="flex flex-row items-center gap-x-4">
-          <Image source={icons.travel} className="h-10 w-10 items-center" resizeMode="contain" />
+          <Image source={icons.travel} className="h-10 w-10" resizeMode="contain" />
           <View className="flex-col gap-y-2">
             <BookingStatusDisplay
               bookingStatus={item.status}
               transactionStatus={item.transaction_status}
             />
             <Text className="font-pmedium">{moment(item.date).format('Do MMMM, YYYY')}</Text>
-            <Text className="font-pmedium text-secondary">
-              {item.pickup_point == 'Research Centre'
-                ? 'Research Centre to Mumbai'
-                : 'Mumbai to Research Centre'}
-            </Text>
+            <View className="flex-row flex-wrap items-center gap-x-1.5">
+              <Text className="font-pmedium text-secondary" numberOfLines={1}>
+                {item.pickup_point}
+              </Text>
+              <Ionicons name="arrow-forward" size={14} color={colors.gray_400} />
+              <Text className="flex-shrink font-pmedium text-secondary" numberOfLines={1}>
+                {item.drop_point}
+              </Text>
+            </View>
             {item.bookedBy && user.cardno == item.bookedBy && (
               <Text className="font-pmedium">
                 Booked For: <Text className="text-secondary">{item.user_name}</Text>
@@ -402,40 +406,49 @@ const TravelBookingCancellation = () => {
         btnOnPress={() => {
           setShowBusModal(false);
           setBusDetailsBooking(null);
-        }}
-      >
+        }}>
         {busDetailsBooking && (
           <View className="flex-col gap-y-4 py-2">
-            <View className="rounded-xl border border-dashed border-[#FF8E01]/40 bg-[#FFEFDB] p-4 flex-col gap-y-3">
-              <View className="flex-row items-center gap-x-2 pb-2 border-b border-dashed border-[#FF9001]/30">
+            <View className="flex-col gap-y-3 rounded-xl border border-dashed border-[#FF8E01]/40 bg-[#FFEFDB] p-4">
+              <View className="flex-row items-center gap-x-2 border-b border-dashed border-[#FF9001]/30 pb-2">
                 <MaterialCommunityIcons name="bus-side" size={24} color={colors.secondary_200} />
-                <Text className="font-psemibold text-base text-[#FF9001]">{busDetailsBooking.bus_name}</Text>
+                <Text className="font-psemibold text-base text-[#FF9001]">
+                  {busDetailsBooking.bus_name}
+                </Text>
               </View>
-              
+
               <View className="flex-col gap-y-2 pt-1">
                 {busDetailsBooking.departure_time && (
-                  <View className="flex-row justify-between items-center">
+                  <View className="flex-row items-center justify-between">
                     <Text className="font-pregular text-sm text-gray-500">Departure Time:</Text>
-                    <Text className="font-psemibold text-sm text-black">{busDetailsBooking.departure_time}</Text>
+                    <Text className="font-psemibold text-sm text-black">
+                      {busDetailsBooking.departure_time}
+                    </Text>
                   </View>
                 )}
-                
+
                 {busDetailsBooking.coordinator_name && (
-                  <View className="flex-row justify-between items-center">
+                  <View className="flex-row items-center justify-between">
                     <Text className="font-pregular text-sm text-gray-500">Co-ordinator:</Text>
-                    <Text className="font-psemibold text-sm text-black">{busDetailsBooking.coordinator_name}</Text>
+                    <Text className="font-psemibold text-sm text-black">
+                      {busDetailsBooking.coordinator_name}
+                    </Text>
                   </View>
                 )}
 
                 {busDetailsBooking.coordinator_contact && (
-                  <View className="flex-row justify-between items-center mt-2 border-t border-gray-200/50 pt-2">
+                  <View className="mt-2 flex-row items-center justify-between border-t border-gray-200/50 pt-2">
                     <Text className="font-pregular text-sm text-gray-500">Contact No:</Text>
                     <TouchableOpacity
-                      onPress={() => Linking.openURL(`tel:${busDetailsBooking.coordinator_contact}`)}
-                      className="flex-row items-center bg-secondary px-3 py-1.5 rounded-lg gap-x-1"
+                      onPress={() =>
+                        Linking.openURL(`tel:${busDetailsBooking.coordinator_contact}`)
+                      }
+                      className="flex-row items-center gap-x-1 rounded-lg bg-secondary px-3 py-1.5"
                       activeOpacity={0.7}>
                       <MaterialCommunityIcons name="phone" size={14} color="#FFFFFF" />
-                      <Text className="font-pmedium text-xs text-white">{busDetailsBooking.coordinator_contact}</Text>
+                      <Text className="font-pmedium text-xs text-white">
+                        {busDetailsBooking.coordinator_contact}
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -443,9 +456,11 @@ const TravelBookingCancellation = () => {
             </View>
 
             {busDetailsBooking.admin_comments && (
-              <View className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex-col gap-y-1">
+              <View className="flex-col gap-y-1 rounded-lg border border-gray-100 bg-gray-50 p-3">
                 <Text className="font-pregular text-xs text-gray-400">Admin Comments:</Text>
-                <Text className="font-pmedium text-xs text-black">{busDetailsBooking.admin_comments}</Text>
+                <Text className="font-pmedium text-xs text-black">
+                  {busDetailsBooking.admin_comments}
+                </Text>
               </View>
             )}
           </View>

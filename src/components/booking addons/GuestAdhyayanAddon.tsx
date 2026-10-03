@@ -29,6 +29,17 @@ const GuestAdhyayanAddon: React.FC<GuestAdhyayanAddonProps> = ({
   const guestData = useBookingStore((store) => store.guestData);
   const setGuestData = useBookingStore((store) => store.setGuestData);
 
+  // Room/flat dates first. A travel-only booking has none, so use the travel dates.
+  const startDate =
+    guestData.room?.startDay || guestData.flat?.startDay || guestData.travel?.date || '';
+  const endDate =
+    guestData.room?.endDay ||
+    guestData.flat?.endDay ||
+    guestData.travel?.return_date ||
+    guestData.travel?.date ||
+    '';
+  const hasDates = !!startDate && moment(startDate).isValid();
+
   const fetchAdhyayans = async () => {
     return new Promise((resolve, reject) => {
       handleAPICall(
@@ -36,14 +47,14 @@ const GuestAdhyayanAddon: React.FC<GuestAdhyayanAddonProps> = ({
         '/adhyayan/getrange',
         {
           cardno: user.cardno,
-          start_date: guestData.room?.startDay || guestData.flat?.startDay,
-          end_date: guestData.room?.endDay || guestData.flat?.endDay,
+          start_date: startDate,
+          end_date: endDate,
         },
         null,
         (res: any) => {
           resolve(Array.isArray(res.data) ? res.data : []);
         },
-        () => reject(new Error('Failed to fetch rooms'))
+        () => reject(new Error('Failed to fetch Adhyayans'))
       );
     });
   };
@@ -51,11 +62,11 @@ const GuestAdhyayanAddon: React.FC<GuestAdhyayanAddonProps> = ({
   const {
     isLoading,
     isError,
-    error,
     data: adhyayanList,
   }: any = useQuery({
-    queryKey: ['adhyayans', guestData.room?.startDay && guestData.room?.endDay],
+    queryKey: ['adhyayans', 'guest', startDate, endDate],
     queryFn: fetchAdhyayans,
+    enabled: hasDates,
     staleTime: 1000 * 60 * 30,
   });
 
@@ -123,7 +134,7 @@ const GuestAdhyayanAddon: React.FC<GuestAdhyayanAddonProps> = ({
   const renderFooter = () => (
     <View className="w-full items-center justify-center">
       {isLoading && <ActivityIndicator />}
-      {isError && <Text>Error fetching data: {error.message}</Text>}
+      {isError && <Text>Could not load Adhyayans. Please try again later.</Text>}
     </View>
   );
 
