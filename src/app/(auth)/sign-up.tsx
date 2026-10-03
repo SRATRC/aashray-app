@@ -10,19 +10,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '@/src/components/CustomButton';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
 import FormField from '@/src/components/FormField';
-import { images } from '@/src/constants';
+import { dropdowns, images } from '@/src/constants';
 import { useNotification } from '@/src/context/NotificationContext';
 import { useAuthStore } from '@/src/stores';
 import handleAPICall from '@/src/utils/HandleApiCall';
-import { fetchCentres, useCentres } from '@/src/hooks/useCentres';
+import { useCentres } from '@/src/hooks/useCentres';
 import { isValidDob } from '@/src/utils/guestFields';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-
-const GENDER_OPTIONS = [
-  { key: 'M', value: 'Male' },
-  { key: 'F', value: 'Female' },
-];
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
@@ -44,7 +39,7 @@ const SignUp = () => {
   const [isPhoneChecking, setIsPhoneChecking] = useState(false);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
-  const { centresWithOptions, isCentresLoading } = useCentres();
+  const { centresWithOptions, isCentresLoading, refetchCentres } = useCentres();
 
   const checkMobileRegistered = async (phone: string) => {
     setIsPhoneChecking(true);
@@ -256,7 +251,7 @@ const SignUp = () => {
           <View className="mb-3">
             <CustomSelectBottomSheet
               label="Gender"
-              options={GENDER_OPTIONS}
+              options={dropdowns.GENDER_LIST}
               selectedValue={form.gender}
               onValueChange={(v: any) => {
                 Keyboard.dismiss();
@@ -321,7 +316,7 @@ const SignUp = () => {
               searchPlaceholder="Search Centres..."
               noResultsText="No Centres Found"
               isLoading={isCentresLoading}
-              onRetry={fetchCentres}
+              onRetry={() => refetchCentres()}
               saveKeyInsteadOfValue={false}
             />
             {errors.center ? (

@@ -16,11 +16,11 @@ export const fetchCentres = () =>
 
 /** Centre list for the pickers, with the trailing "Other" option. */
 export const useCentres = () => {
-  const { data, isLoading }: any = useQuery({
+  const { data, isLoading, refetch }: any = useQuery({
     queryKey: ['centres'],
     queryFn: fetchCentres,
     staleTime: 1000 * 60 * 30,
   });
   const centresWithOptions = data ? [...data, { key: 'Other', value: 'Other' }] : [];
-  return { centresWithOptions, isCentresLoading: isLoading };
+  return { centresWithOptions, isCentresLoading: isLoading, refetchCentres: refetch };
 };

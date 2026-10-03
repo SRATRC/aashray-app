@@ -236,6 +236,8 @@ const UtsavPage = () => {
           gender: '',
           mobno: '',
           type: '',
+          dob: '',
+          center: '',
           package: null,
           package_name: '',
           arrival: null,

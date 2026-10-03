@@ -7,7 +7,7 @@ import FormField from './FormField';
 import FormDisplayField from './FormDisplayField';
 import handleAPICall from '../utils/HandleApiCall';
 import CustomSelectBottomSheet from './CustomSelectBottomSheet';
-import { fetchCentres, useCentres } from '../hooks/useCentres';
+import { useCentres } from '../hooks/useCentres';
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 
@@ -31,7 +31,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
   const { user } = useAuthStore();
   const [activeDatePickerIndex, setActiveDatePickerIndex] = useState<number | null>(null);
 
-  const { centresWithOptions, isCentresLoading } = useCentres();
+  const { centresWithOptions, isCentresLoading, refetchCentres } = useCentres();
 
   const verifyGuest = async (
     mobno: string
@@ -222,7 +222,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
                   searchPlaceholder="Search Centres..."
                   noResultsText="No Centres Found"
                   isLoading={isCentresLoading}
-                  onRetry={fetchCentres}
+                  onRetry={() => refetchCentres()}
                   saveKeyInsteadOfValue={false}
                 />
 
