@@ -84,7 +84,6 @@ const TicketDetails = () => {
   const {
     data: ticket,
     isLoading,
-    isError,
     refetch,
   } = useQuery<any>({
     queryKey: ['ticket', id, user.cardno],
@@ -354,7 +353,10 @@ const TicketDetails = () => {
     );
   }
 
-  if (isError || !ticket) {
+  // Only when there is nothing to show: a failed background reload keeps the
+  // thread already on screen. Try Again covers a first load that failed
+  // (for example opened offline), which the stream does not reload.
+  if (!ticket) {
     return (
       <SafeAreaView className="h-full w-full bg-white">
         <PageHeader title="" />
@@ -363,6 +365,12 @@ const TicketDetails = () => {
           <Text className="mt-4 text-center font-pmedium text-base text-gray-600">
             Unable to load ticket
           </Text>
+          <TouchableOpacity
+            onPress={() => refetch()}
+            className="mt-6 rounded-lg bg-secondary px-6 py-3"
+            activeOpacity={0.7}>
+            <Text className="font-semibold text-white">Try Again</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
