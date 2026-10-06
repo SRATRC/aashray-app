@@ -1,9 +1,10 @@
 import { useNavigation } from 'expo-router';
 import { useEffect, useState } from 'react';
 
-// Longest we wait for the push animation. The stack's transitionEnd event does
-// not fire for a screen that was not animated in (first route, no animation),
-// so this keeps the pop-up from being held back for good.
+// Safety net only. transitionEnd fires on the screens this is used on (about
+// 0.6 s on the iPhone SE, also for the first screen of a nested stack). It may
+// not fire for a screen that was not animated in, so this caps the wait and the
+// pop-up is never held back for good.
 const FALLBACK_MS = 1200;
 
 /**
