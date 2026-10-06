@@ -18,12 +18,14 @@ import PageHeader from '@/src/components/PageHeader';
 import CustomButton from '@/src/components/CustomButton';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '@/src/components/CustomModal';
+import useScreenSettled from '@/src/hooks/useScreenSettled';
 import ChargeBreakdownBottomSheet from '@/src/components/ChargeBreakdownBottomSheet';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import * as Haptics from 'expo-haptics';
 
 const guestBookingReview = () => {
+  const screenSettled = useScreenSettled();
   const router = useRouter();
 
   const user = useAuthStore((state) => state.user);
@@ -537,7 +539,7 @@ const guestBookingReview = () => {
         )}
       </ShadowBox>
 
-      {validationDataError && (
+      {validationDataError && screenSettled && (
         <CustomModal
           visible={true}
           onClose={handleCloseValidationModal}
