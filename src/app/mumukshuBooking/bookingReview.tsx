@@ -19,6 +19,7 @@ import MumukshuFoodBookingDetails from '@/src/components/booking details cards/M
 import MumukshuEventBookingDetails from '@/src/components/booking details cards/MumukshuEventBookingDetails';
 import MumukshuFlatBookingDetails from '@/src/components/booking details cards/MumukshuFlatBookingDetails';
 import CustomModal from '@/src/components/CustomModal';
+import useScreenSettled from '@/src/hooks/useScreenSettled';
 import ChargeBreakdownBottomSheet from '@/src/components/ChargeBreakdownBottomSheet';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
@@ -85,6 +86,7 @@ interface ValidationData {
 }
 
 const mumukshuBookingReview = () => {
+  const screenSettled = useScreenSettled();
   const router = useRouter();
 
   const user = useAuthStore((state) => state.user);
@@ -626,7 +628,7 @@ const mumukshuBookingReview = () => {
         )}
       </ShadowBox>
 
-      {validationDataError && (
+      {validationDataError && screenSettled && (
         <CustomModal
           visible={true}
           onClose={handleCloseValidationModal}
