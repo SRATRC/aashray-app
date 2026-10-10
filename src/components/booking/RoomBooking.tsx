@@ -16,6 +16,7 @@ import GuestForm from '../GuestForm';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import CustomAlert from '../CustomAlert';
+import { isValidDob } from '@/src/utils/guestFields';
 
 const SWITCH_OPTIONS = ['Select Dates', 'One Day Visit'];
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
@@ -27,6 +28,8 @@ const INITIAL_SIGNLE_DAY_GUEST_FORM = {
       gender: '',
       mobno: '',
       type: '',
+      dob: '',
+      center: '',
     },
   ],
 };
@@ -56,6 +59,8 @@ const INITIAL_GUEST_FORM = {
       gender: '',
       mobno: '',
       type: '',
+      dob: '',
+      center: '',
       roomType: dropdowns.ROOM_TYPE_LIST[0].key,
       floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
     },
@@ -131,6 +136,8 @@ const RoomBooking = () => {
           gender: '',
           mobno: '',
           type: '',
+          dob: '',
+          center: '',
         },
       ],
     }));
@@ -157,7 +164,13 @@ const RoomBooking = () => {
         if (guest.cardno) return guest.mobno && guest.mobno?.length == 10;
         else
           return (
-            guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length == 10
+            guest.name &&
+            guest.gender &&
+            guest.type &&
+            isValidDob(guest.dob) &&
+            guest.center &&
+            guest.mobno &&
+            guest.mobno?.length == 10
           );
       })
     );
@@ -233,6 +246,8 @@ const RoomBooking = () => {
           gender: '',
           mobno: '',
           type: '',
+          dob: '',
+          center: '',
           roomType: dropdowns.ROOM_TYPE_LIST[0].key,
           floorType: dropdowns.FLOOR_TYPE_LIST[0].key,
         },
@@ -266,6 +281,8 @@ const RoomBooking = () => {
             guest.name &&
             guest.gender &&
             guest.type &&
+            isValidDob(guest.dob) &&
+            guest.center &&
             guest.roomType &&
             guest.floorType &&
             guest.mobno &&
@@ -707,6 +724,8 @@ const RoomBooking = () => {
                       name: guest.name,
                       gender: guest.gender,
                       type: guest.type,
+                      dob: guest.dob,
+                      center: guest.center,
                       mobno: guest.mobno ? guest.mobno : null,
                     }));
 
