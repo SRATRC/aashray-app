@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
 import { prepareGuestRequestBody } from '@/src/utils/preparingRequestBody';
+import { requiresArrivalTime, reverseOnwardGroups, isReturnIncomplete } from '@/src/utils/travel';
 import { FontAwesome } from '@expo/vector-icons';
 import { ShadowBox } from '@/src/components/ShadowBox';
 import CustomButton from '@/src/components/CustomButton';
@@ -14,9 +15,11 @@ import PageHeader from '@/src/components/PageHeader';
 import GuestRoomBookingDetails from '@/src/components/booking details cards/GuestRoomBookingDetails';
 import GuestAdhyayanBookingDetails from '@/src/components/booking details cards/GuestAdhyayanBookingDetails';
 import GuestFlatBookingDetails from '@/src/components/booking details cards/GuestFlatBookingDetails';
+import GuestTravelBookingDetails from '@/src/components/booking details cards/GuestTravelBookingDetails';
 import GuestRoomAddon from '@/src/components/booking addons/GuestRoomAddon';
 import GuestFoodAddon from '@/src/components/booking addons/GuestFoodAddon';
 import GuestAdhyayanAddon from '@/src/components/booking addons/GuestAdhyayanAddon';
+import GuestTravelAddon from '@/src/components/booking addons/GuestTravelAddon';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '@/src/components/CustomModal';
 import useScreenSettled from '@/src/hooks/useScreenSettled';
@@ -58,6 +61,26 @@ const createInitialAdhyayanForm = (existingData: any = null) => ({
   guestIndices: existingData?.guestIndices || [],
 });
 
+const createInitialTravelForm = (existingData: any = null) => ({
+  date: existingData?.date || '',
+  return_date: existingData?.return_date || '',
+  returnGroups: existingData?.returnGroups || [],
+  returnEdited: existingData?.returnEdited || false,
+  guestGroup: existingData?.guestGroup || [
+    {
+      pickup: '',
+      drop: '',
+      arrival_time: '',
+      luggage: [],
+      type: dropdowns.BOOKING_TYPE_LIST[0].value,
+      total_people: null,
+      special_request: '',
+      guests: [],
+      guestIndices: [],
+    },
+  ],
+});
+
 const GuestAddons = () => {
   const screenSettled = useScreenSettled();
   const { booking } = useLocalSearchParams();
@@ -73,6 +96,7 @@ const GuestAddons = () => {
   const [addonOpen, setAddonOpen] = useState({
     room: false,
     food: false,
+    travel: false,
   });
 
   // Get all guests from existing data
@@ -100,6 +124,7 @@ const GuestAddons = () => {
       guestData.room?.startDay ||
       guestData.food?.startDay ||
       guestData.adhyayan?.adhyayan?.start_date ||
+      guestData.travel?.date ||
       guestData.utsav?.utsav?.utsav_start ||
       '';
 
@@ -107,6 +132,7 @@ const GuestAddons = () => {
       guestData.room?.endDay ||
       guestData.food?.endDay ||
       guestData.adhyayan?.adhyayan?.end_date ||
+      guestData.travel?.return_date ||
       guestData.utsav?.utsav?.utsav_end ||
       '';
 
@@ -132,7 +158,17 @@ const GuestAddons = () => {
     // Create adhyayan form
     const adhyayanFormInitial = createInitialAdhyayanForm(guestData.adhyayan);
 
-    return { roomFormInitial, foodFormInitial, adhyayanFormInitial };
+    // Create travel form with dates from any existing booking.
+    // Only the onward date is cross-referenced. return_date must NOT be inherited from a
+    // companion booking's end date — a round trip is an explicit user opt-in, otherwise a
+    // one-way travel addon silently becomes a round trip.
+    const travelFormInitial = {
+      ...createInitialTravelForm(guestData.travel),
+      date: guestData.travel?.date || getInitialDates.startDate,
+      return_date: guestData.travel?.return_date || '',
+    };
+
+    return { roomFormInitial, foodFormInitial, adhyayanFormInitial, travelFormInitial };
   }, [guestData, getInitialDates]);
 
   // Initialize forms with existing data if available
@@ -141,6 +177,7 @@ const GuestAddons = () => {
   const [roomForm, setRoomForm] = useState(initialForms.roomFormInitial);
   const [foodForm, setFoodForm] = useState(initialForms.foodFormInitial);
   const [adhyayanForm, setAdhyayanForm] = useState(initialForms.adhyayanFormInitial);
+  const [travelForm, setTravelForm] = useState(initialForms.travelFormInitial);
 
   // Update forms when guestData changes (for prefilling)
   useEffect(() => {
@@ -149,6 +186,7 @@ const GuestAddons = () => {
       guestData.room?.startDay ||
       guestData.food?.startDay ||
       guestData.adhyayan?.adhyayan?.start_date ||
+      guestData.travel?.date ||
       guestData.utsav?.utsav?.start_date ||
       '';
 
@@ -156,6 +194,7 @@ const GuestAddons = () => {
       guestData.room?.endDay ||
       guestData.food?.endDay ||
       guestData.adhyayan?.adhyayan?.end_date ||
+      guestData.travel?.return_date ||
       guestData.utsav?.utsav?.end_date ||
       '';
 
@@ -195,6 +234,24 @@ const GuestAddons = () => {
     if (guestData.adhyayan) {
       setAdhyayanForm(createInitialAdhyayanForm(guestData.adhyayan));
     }
+
+    // Update travel form with cross-referenced date
+    if (guestData.travel) {
+      setTravelForm((prev) => ({
+        ...createInitialTravelForm(guestData.travel),
+        date: guestData.travel.date || startDate,
+      }));
+    } else if (startDate) {
+      // If travel data doesn't exist but we have date from other bookings.
+      // Only cross-reference the onward date. return_date must NOT be inherited from a
+      // companion booking's end date — a round trip is an explicit user opt-in, otherwise
+      // a one-way travel addon silently becomes a round trip.
+      setTravelForm((prev) => ({
+        ...prev,
+        date: prev.date || startDate,
+        return_date: prev.return_date || '',
+      }));
+    }
   }, [guestData]);
 
   const toggleAddon = useCallback((addonType: any, isOpen: any) => {
@@ -208,6 +265,7 @@ const GuestAddons = () => {
     foodStart: false,
     foodEnd: false,
     travel: false,
+    travel_time: false,
   });
 
   const toggleDatePicker = useCallback((pickerType: string, isVisible: boolean) => {
@@ -274,6 +332,9 @@ const GuestAddons = () => {
           }
           if (booking !== types.FLAT_DETAILS_TYPE) {
             delete cleanedData.flat;
+          }
+          if (booking !== types.TRAVEL_DETAILS_TYPE) {
+            delete cleanedData.travel;
           }
 
           // Always remove food addon as it's never a main booking type
@@ -414,6 +475,102 @@ const GuestAddons = () => {
     [guests]
   );
 
+  // Travel form handling functions
+  const resetTravelForm = useCallback(() => {
+    setTravelForm(createInitialTravelForm());
+    setGuestData((prev: any) => {
+      const { travel, ...rest } = prev;
+      return rest;
+    });
+  }, [setGuestData]);
+
+  const addTravelForm = useCallback(() => {
+    setTravelForm((prevTravelForm) => {
+      // Prefill the new group's route/vehicle/luggage from the last group so repeat trips do
+      // not require re-selecting the same dropdowns; guests and comments start empty.
+      const last = prevTravelForm.guestGroup[prevTravelForm.guestGroup.length - 1] || {};
+      return {
+        ...prevTravelForm,
+        guestGroup: [
+          ...prevTravelForm.guestGroup,
+          {
+            pickup: last.pickup || '',
+            drop: last.drop || '',
+            arrival_time: '',
+            luggage: last.luggage || [],
+            type: last.type || dropdowns.BOOKING_TYPE_LIST[0].value,
+            total_people: last.total_people ?? null,
+            special_request: '',
+            guests: [],
+            guestIndices: [],
+          },
+        ],
+      };
+    });
+  }, []);
+
+  const removeTravelForm = useCallback((indexToRemove: any) => {
+    return () => {
+      setTravelForm((prevTravelForm) => {
+        const updatedGuestGroup = [...prevTravelForm.guestGroup];
+        updatedGuestGroup.splice(indexToRemove, 1);
+        return {
+          ...prevTravelForm,
+          guestGroup: updatedGuestGroup,
+        };
+      });
+    };
+  }, []);
+
+  const updateTravelForm = useCallback(
+    (groupIndex: any, key: any, value: any) => {
+      setTravelForm((prevTravelForm) => {
+        const updatedGuestGroup = [...prevTravelForm.guestGroup];
+
+        if (key === 'guests') {
+          updatedGuestGroup[groupIndex].guestIndices = value;
+          updatedGuestGroup[groupIndex].guests = guests.filter((_: any, i: any) =>
+            value.includes(i)
+          );
+        } else {
+          updatedGuestGroup[groupIndex][key] = value;
+        }
+
+        return {
+          ...prevTravelForm,
+          guestGroup: updatedGuestGroup,
+        };
+      });
+    },
+    [guests]
+  );
+
+  // Turn the travel form into the request payload. A return date adds returnGuestGroup: a full
+  // set of groups shaped like the onward guestGroup (each with a guests array of traveler
+  // objects), which preparingRequestBody maps to cardnos the same way. The default (unedited)
+  // return is the reversed onward for the same travelers, so an untouched round trip books
+  // exactly as before; edited return groups come from the return editor.
+  const buildTravelPayload = useCallback(() => {
+    const payload: any = { ...travelForm };
+    if (travelForm.return_date) {
+      const sourceGroups =
+        travelForm.returnEdited && travelForm.returnGroups?.length
+          ? travelForm.returnGroups
+          : reverseOnwardGroups(travelForm.guestGroup, 'guestIndices');
+      payload.returnGuestGroup = sourceGroups.map((rg: any) => ({
+        pickup: rg.pickup,
+        drop: rg.drop,
+        type: rg.type,
+        luggage: rg.luggage || [],
+        arrival_time: rg.arrival_time || '',
+        special_request: rg.comments || '',
+        total_people: rg.total_people ?? null,
+        guests: rg.travelerIndices.map((i: string) => guests[Number(i)]).filter(Boolean),
+      }));
+    }
+    return payload;
+  }, [travelForm, guests]);
+
   // Form validation functions
   const validateRoomForm = useCallback(() => {
     const hasEmptyFields = roomForm.guestGroup.some(
@@ -433,6 +590,46 @@ const GuestAddons = () => {
     return Object.keys(adhyayanForm.adhyayan).length !== 0 && adhyayanForm.guests.length !== 0;
   }, [adhyayanForm]);
 
+  const validateTravelForm = useCallback(() => {
+    const otherLocation = dropdowns.LOCATION_LIST.find((loc) => loc.key === 'other');
+    const hasEmptyFields = travelForm.guestGroup.some(
+      (group: any) =>
+        !group.pickup ||
+        !group.drop ||
+        group.guests.length === 0 ||
+        group.luggage.length === 0 ||
+        (group.pickup === otherLocation?.value && group.special_request.trim() === '') ||
+        (group.drop === otherLocation?.value && group.special_request.trim() === '') ||
+        (group.pickup == 'Research Centre' && group.drop == 'Research Centre') ||
+        (group.pickup != 'Research Centre' && group.drop != 'Research Centre') ||
+        (group.type == dropdowns.BOOKING_TYPE_LIST[1].value && !group.total_people) ||
+        (requiresArrivalTime(group.pickup, group.drop) && !group.arrival_time)
+    );
+    // Return leg follows the same flight/train time rule: validate edited return groups, else
+    // the reversed-onward default (which starts without a time, so it must be entered on Edit).
+    const returnGroups =
+      travelForm.returnEdited && travelForm.returnGroups?.length
+        ? travelForm.returnGroups
+        : travelForm.guestGroup.map((g: any) => ({
+            pickup: g.drop,
+            drop: g.pickup,
+            arrival_time: '',
+          }));
+    const returnTimeMissing =
+      !!travelForm.return_date &&
+      returnGroups.some((g: any) => requiresArrivalTime(g.pickup, g.drop) && !g.arrival_time);
+    // An edited return must be complete and cover every onward guest.
+    const returnIncomplete =
+      !!travelForm.return_date &&
+      !!travelForm.returnEdited &&
+      isReturnIncomplete(
+        travelForm.returnGroups,
+        travelForm.guestGroup.flatMap((g: any) => (g.guestIndices || []).map(String)),
+        otherLocation?.value
+      );
+    return !hasEmptyFields && !returnTimeMissing && !returnIncomplete && travelForm.date;
+  }, [travelForm]);
+
   // Check if forms are not empty (have user input)
   const isRoomFormEmpty = useCallback(() => {
     return roomForm.guestGroup.some(
@@ -449,6 +646,16 @@ const GuestAddons = () => {
   const isAdhyayanFormEmpty = useCallback(() => {
     return Object.keys(adhyayanForm.adhyayan).length > 0 || adhyayanForm.guests.length > 0;
   }, [adhyayanForm]);
+
+  const isTravelFormEmpty = useCallback(() => {
+    return travelForm.guestGroup.some(
+      (group: any) =>
+        group.pickup !== '' ||
+        group.drop !== '' ||
+        group.luggage.length == 0 ||
+        group.guests.length > 0
+    );
+  }, [travelForm]);
 
   // Form submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -488,6 +695,16 @@ const GuestAddons = () => {
       setGuestData((prev: any) => ({ ...prev, adhyayan: adhyayanForm }));
     }
 
+    // Validate and set Travel Form data
+    if (booking !== types.TRAVEL_DETAILS_TYPE && addonOpen.travel) {
+      if (!validateTravelForm()) {
+        CustomAlert.alert('Please fill all travel fields');
+        hasValidationError = true;
+        return;
+      }
+      setGuestData((prev: any) => ({ ...prev, travel: buildTravelPayload() }));
+    }
+
     // If no validation errors, navigate to confirmation page
     if (!hasValidationError) {
       router.push('/guestBooking/bookingReview');
@@ -496,15 +713,20 @@ const GuestAddons = () => {
     setIsSubmitting(false);
   }, [
     booking,
+    addonOpen,
     isRoomFormEmpty,
     isFoodFormEmpty,
     isAdhyayanFormEmpty,
+    isTravelFormEmpty,
     validateRoomForm,
     validateFoodForm,
     validateAdhyayanForm,
+    validateTravelForm,
     roomForm,
     foodForm,
     adhyayanForm,
+    travelForm,
+    buildTravelPayload,
     setGuestData,
     router,
   ]);
@@ -529,6 +751,9 @@ const GuestAddons = () => {
         {booking === types.ROOM_DETAILS_TYPE && <GuestRoomBookingDetails containerStyles="mt-2" />}
         {booking === types.ADHYAYAN_DETAILS_TYPE && (
           <GuestAdhyayanBookingDetails containerStyles="mt-2" />
+        )}
+        {booking === types.TRAVEL_DETAILS_TYPE && (
+          <GuestTravelBookingDetails containerStyles="mt-2" />
         )}
 
         {booking === types.EVENT_DETAILS_TYPE ? (
@@ -582,6 +807,22 @@ const GuestAddons = () => {
               updateAdhyayanForm={updateAdhyayanForm}
               INITIAL_ADHYAYAN_FORM={createInitialAdhyayanForm()}
               guest_dropdown={guest_dropdown}
+            />
+          )}
+
+          {/* GUEST TRAVEL BOOKING COMPONENT */}
+          {booking !== types.TRAVEL_DETAILS_TYPE && (
+            <GuestTravelAddon
+              travelForm={travelForm}
+              setTravelForm={setTravelForm}
+              addTravelForm={addTravelForm}
+              updateTravelForm={updateTravelForm}
+              resetTravelForm={resetTravelForm}
+              removeTravelForm={removeTravelForm}
+              guest_dropdown={guest_dropdown}
+              isDatePickerVisible={isDatePickerVisible}
+              setDatePickerVisibility={toggleDatePicker}
+              onToggle={(isOpen) => toggleAddon('travel', isOpen)}
             />
           )}
         </View>
