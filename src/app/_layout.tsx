@@ -116,18 +116,28 @@ const AppNavigator = () => {
     onUnauthenticatedDeepLink: handleUnauthenticatedDeepLink,
   });
 
+  // Since SDK 58 a guarded screen redirects instead of disappearing, and the default target can be
+  // +not-found (or loop on it). Send every denied route to the screen this user's state belongs on.
+  const allowedHome = !authState.userExists
+    ? '/sign-in'
+    : authState.needsPfp
+      ? '/imageCapture'
+      : authState.needsProfileCompletion
+        ? '/completeProfile'
+        : '/';
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Protected guard={!authState.userExists}>
+      <Stack.Protected guard={!authState.userExists} redirectTo={allowedHome}>
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
-      <Stack.Protected guard={authState.needsPfp}>
+      <Stack.Protected guard={authState.needsPfp} redirectTo={allowedHome}>
         <Stack.Screen name="(onboarding)/imageCapture" />
       </Stack.Protected>
-      <Stack.Protected guard={authState.needsProfileCompletion}>
+      <Stack.Protected guard={authState.needsProfileCompletion} redirectTo={allowedHome}>
         <Stack.Screen name="(onboarding)/completeProfile" />
       </Stack.Protected>
-      <Stack.Protected guard={authState.isFullyOnboarded}>
+      <Stack.Protected guard={authState.isFullyOnboarded} redirectTo={allowedHome}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(home)" />
         <Stack.Screen name="(payment)" />
