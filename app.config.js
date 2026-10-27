@@ -40,7 +40,6 @@ export default {
       package: 'org.vitraagvigyaan.aashray',
       bundleIdentifier: 'org.vitraagvigyaan.aashray',
       associatedDomains: ['applinks:aashray.vitraagvigyaan.org'],
-      googleServicesFile: process.env.GOOGLE_SERVICES_PLIST,
       infoPlist: {
         LSApplicationQueriesSchemes: ['tez', 'phonepe', 'paytmmp'],
         NSCameraUsageDescription:
@@ -143,7 +142,6 @@ export default {
           origin: 'https://aashray.vitraagvigyaan.org',
         },
       ],
-      '@react-native-firebase/app',
       [
         'expo-build-properties',
         {
@@ -168,9 +166,6 @@ export default {
             useFrameworks: 'static',
             buildReactNativeFromSource: true,
             extraPods: [{ name: 'razorpay-pod', version: '1.5.3' }],
-            // Xcode 27 / iOS 27 SDK require the UIScene life cycle. Opt-in on SDK 57; default from
-            // SDK 58, where this becomes a no-op and should be removed.
-            enableSceneSupport: true,
           },
         },
       ],
