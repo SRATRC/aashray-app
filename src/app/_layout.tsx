@@ -90,7 +90,7 @@ const useAuthState = () => {
     !!user.center;
 
   const needsProfileCompletion = userExists && !!user.pfp && !isProfileComplete;
-  const isFullyOnboarded = userExists && isProfileComplete;
+  const isFullyOnboarded = userExists && !!user.pfp && isProfileComplete;
 
   return {
     userExists,

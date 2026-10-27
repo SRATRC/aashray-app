@@ -40,7 +40,6 @@ export default {
       package: 'org.vitraagvigyaan.aashray',
       bundleIdentifier: 'org.vitraagvigyaan.aashray',
       associatedDomains: ['applinks:aashray.vitraagvigyaan.org'],
-      googleServicesFile: process.env.GOOGLE_SERVICES_PLIST,
       infoPlist: {
         LSApplicationQueriesSchemes: ['tez', 'phonepe', 'paytmmp'],
         NSCameraUsageDescription:

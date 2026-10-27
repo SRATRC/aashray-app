@@ -23,7 +23,7 @@ No test framework is configured.
 
 **Aashray** is a spiritual retreat booking app for Vitraag Vigyan organization. It handles room/travel/food bookings, spiritual events (adhyayan, utsav), WiFi access codes, and payments.
 
-**Stack**: React Native 0.79 + Expo 54 + Expo Router 6 (file-based routing), TypeScript/JS mixed codebase, NativeWind (Tailwind CSS).
+**Stack**: React Native 0.88 + Expo 58 + Expo Router 58 (file-based routing), TypeScript/JS mixed codebase, NativeWind (Tailwind CSS).
 
 ### Navigation Structure (`src/app/`)
 
@@ -37,7 +37,7 @@ Expo Router file-based routing with these route groups:
 - `booking/`, `guestBooking/`, `mumukshuBooking/` — booking management by user type
 - `adhyayan/`, `utsav/` — event details/feedback
 
-Auth guards use `Stack.Protected` for conditional navigation. Onboarding checks: no user → needs PFP → needs profile → fully onboarded.
+Auth guards use `Stack.Protected` for conditional navigation. Onboarding checks: no user → needs PFP → needs profile → fully onboarded (has PFP + complete profile). Every guard has `redirectTo` set to the screen for the current state (SDK 58 renders denied screens as redirects).
 
 ### State Management
 
@@ -58,7 +58,7 @@ Auth guards use `Stack.Protected` for conditional navigation. Onboarding checks:
 ### Key Integrations
 
 - **Razorpay** — payment processing
-- **Firebase/FCM** — push notifications with auto-navigation from notification payloads
+- **Expo push** (`expo-notifications`; FCM is only the Android transport) — push notifications with auto-navigation from notification payloads
 - **Sentry** — error tracking
 
 ### Component Patterns
