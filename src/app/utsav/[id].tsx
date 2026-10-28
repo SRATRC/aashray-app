@@ -29,6 +29,7 @@ import HorizontalSeparator from '@/src/components/HorizontalSeparator';
 import FormField from '@/src/components/FormField';
 import CustomSelectBottomSheet from '@/src/components/CustomSelectBottomSheet';
 import CustomAlert from '@/src/components/CustomAlert';
+import { isValidDob } from '@/src/utils/guestFields';
 
 // Types
 type Package = {
@@ -84,6 +85,8 @@ const INITIAL_GUEST_FORM = {
       gender: '',
       mobno: '',
       type: '',
+      dob: '',
+      center: '',
       package: null,
       package_name: '',
       arrival: null,
@@ -233,6 +236,8 @@ const UtsavPage = () => {
           gender: '',
           mobno: '',
           type: '',
+          dob: '',
+          center: '',
           package: null,
           package_name: '',
           arrival: null,
@@ -273,6 +278,8 @@ const UtsavPage = () => {
           guest.name &&
           guest.gender &&
           guest.type &&
+          isValidDob(guest.dob) &&
+          guest.center &&
           guest.mobno &&
           guest.mobno?.length == 10 &&
           guest.package &&

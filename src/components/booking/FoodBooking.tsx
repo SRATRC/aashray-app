@@ -22,6 +22,7 @@ import moment from 'moment';
 import * as Haptics from 'expo-haptics';
 import CustomAlert from '../CustomAlert';
 import Callout from '../Callout';
+import { isValidDob } from '@/src/utils/guestFields';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
@@ -51,6 +52,8 @@ const FoodBooking = () => {
         gender: '',
         mobno: '',
         type: '',
+        dob: '',
+        center: '',
         meals: ['breakfast', 'lunch', 'dinner'],
         spicy: 1,
         hightea: 'NONE',
@@ -67,10 +70,8 @@ const FoodBooking = () => {
     // <View className="mb-2 flex-row items-start gap-x-3 rounded-lg border border-amber-300 bg-amber-50 p-3">
     //   <FontAwesome name="info-circle" size={16} color="#b45309" style={{ alignSelf: 'center' }} />
     //   <Text className="flex-1 font-pregular text-sm text-amber-800">
-
     //   </Text>
     // </View>
-
     <Callout
       variant="warning"
       message="Bookings must be made before 11 AM of the previous day for upcoming meals."
@@ -92,6 +93,8 @@ const FoodBooking = () => {
           gender: '',
           mobno: '',
           type: '',
+          dob: '',
+          center: '',
           meals: ['breakfast', 'lunch', 'dinner'],
           spicy: 1,
           hightea: 'NONE',
@@ -130,7 +133,13 @@ const FoodBooking = () => {
 
         const identityValidation = guest.cardno
           ? guest.mobno && guest.mobno?.length == 10
-          : guest.mobno && guest.mobno?.length == 10 && guest.name && guest.gender && guest.type;
+          : guest.mobno &&
+            guest.mobno?.length == 10 &&
+            guest.name &&
+            guest.gender &&
+            guest.type &&
+            isValidDob(guest.dob) &&
+            guest.center;
 
         return baseValidation && identityValidation;
       })
@@ -399,6 +408,8 @@ const FoodBooking = () => {
                   name: guest.name,
                   gender: guest.gender,
                   type: guest.type,
+                  dob: guest.dob,
+                  center: guest.center,
                   mobno: guest.mobno ? guest.mobno : null,
                 }));
 

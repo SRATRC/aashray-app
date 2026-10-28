@@ -13,6 +13,7 @@ import GuestForm from '../GuestForm';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import moment from 'moment';
 import CustomAlert from '../CustomAlert';
+import { isValidDob } from '@/src/utils/guestFields';
 
 const CHIPS = ['Mumukshus', 'Guest'];
 const INITIAL_MUMUKSHU_FORM = {
@@ -35,6 +36,8 @@ const INITIAL_GUEST_FORM = {
       gender: '',
       mobno: '',
       type: '',
+      dob: '',
+      center: '',
     },
   ],
 };
@@ -105,6 +108,8 @@ const FlatBooking = () => {
           gender: '',
           mobno: '',
           type: '',
+          dob: '',
+          center: '',
         },
       ],
     }));
@@ -132,7 +137,15 @@ const FlatBooking = () => {
     return guestForm.guests.every((guest: any) => {
       if (guest.cardno) return guest.mobno && guest.mobno?.length == 10;
       else
-        return guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length == 10;
+        return (
+          guest.name &&
+          guest.gender &&
+          guest.type &&
+          isValidDob(guest.dob) &&
+          guest.center &&
+          guest.mobno &&
+          guest.mobno?.length == 10
+        );
     });
   };
 

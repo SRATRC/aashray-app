@@ -24,6 +24,7 @@ import handleAPICall from '@/src/utils/HandleApiCall';
 import moment from 'moment';
 import CustomChipGroup from '../CustomChipGroup';
 import GuestForm from '../GuestForm';
+import { isValidDob } from '@/src/utils/guestFields';
 import FormField from '../FormField';
 import OtherMumukshuForm from '../OtherMumukshuForm';
 import CustomEmptyMessage from '../CustomEmptyMessage';
@@ -60,6 +61,8 @@ const INITIAL_GUEST_FORM = {
       gender: '',
       mobno: '',
       type: '',
+      dob: '',
+      center: '',
       package: null,
       package_name: '',
       arrival: null,
@@ -160,6 +163,8 @@ const EventBooking = () => {
           gender: '',
           mobno: '',
           type: '',
+          dob: '',
+          center: '',
           package: null,
           package_name: '',
           arrival: null,
@@ -200,6 +205,8 @@ const EventBooking = () => {
           guest.name &&
           guest.gender &&
           guest.type &&
+          isValidDob(guest.dob) &&
+          guest.center &&
           guest.mobno &&
           guest.mobno?.length == 10 &&
           guest.package &&

@@ -27,6 +27,7 @@ import GuestForm from '@/src/components/GuestForm';
 import OtherMumukshuForm from '@/src/components/OtherMumukshuForm';
 import HorizontalSeparator from '@/src/components/HorizontalSeparator';
 import CustomAlert from '@/src/components/CustomAlert';
+import { isValidDob } from '@/src/utils/guestFields';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
 
@@ -38,6 +39,8 @@ const INITIAL_GUEST_FORM = {
       gender: '',
       mobno: '',
       type: '',
+      dob: '',
+      center: '',
     },
   ],
 };
@@ -160,6 +163,8 @@ const AdhyayanDetails = () => {
           gender: '',
           mobno: '',
           type: '',
+          dob: '',
+          center: '',
         },
       ],
     }));
@@ -183,7 +188,15 @@ const AdhyayanDetails = () => {
     return guestForm.guests.every((guest: any) => {
       if (guest.cardno) return guest.mobno && guest.mobno?.length == 10;
       else
-        return guest.name && guest.gender && guest.type && guest.mobno && guest.mobno?.length == 10;
+        return (
+          guest.name &&
+          guest.gender &&
+          guest.type &&
+          isValidDob(guest.dob) &&
+          guest.center &&
+          guest.mobno &&
+          guest.mobno?.length == 10
+        );
     });
   };
 

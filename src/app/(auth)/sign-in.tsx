@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Image, Modal, Pressable, Text, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
 import CustomAlert from '@/src/components/CustomAlert';
 import CustomButton from '@/src/components/CustomButton';
@@ -143,6 +144,15 @@ const SignIn = () => {
             isLoading={isSubmitting}
             isDisabled={!isReady}
           />
+
+          <Pressable
+            onPress={() => router.push('/(auth)/sign-up')}
+            className="mb-2 mt-6 items-center py-1"
+            hitSlop={8}>
+            <Text className="font-pregular text-sm text-gray-400">
+              Don't have an account? <Text className="font-pmedium text-black">Sign Up</Text>
+            </Text>
+          </Pressable>
         </View>
       </KeyboardAwareScrollView>
 
