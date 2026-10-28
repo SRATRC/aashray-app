@@ -28,10 +28,12 @@ import MumukshuAdhyayanAddon from '@/src/components/booking addons/MumukshuAdhya
 import MumukshuTravelAddon from '@/src/components/booking addons/MumukshuTravelAddon';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '@/src/components/CustomModal';
+import useScreenSettled from '@/src/hooks/useScreenSettled';
 import CustomAlert from '@/src/components/CustomAlert';
 import Callout from '@/src/components/Callout';
 
 const MumukshuAddons = () => {
+  const screenSettled = useScreenSettled();
   const router = useRouter();
   const { booking } = useLocalSearchParams();
 
@@ -857,7 +859,7 @@ const MumukshuAddons = () => {
         />
       </ShadowBox>
 
-      {validationDataError && (
+      {validationDataError && screenSettled && (
         <CustomModal
           visible={true}
           onClose={handleCloseValidationModal}

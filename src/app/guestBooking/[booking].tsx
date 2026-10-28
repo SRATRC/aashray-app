@@ -22,6 +22,7 @@ import GuestAdhyayanAddon from '@/src/components/booking addons/GuestAdhyayanAdd
 import GuestTravelAddon from '@/src/components/booking addons/GuestTravelAddon';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '@/src/components/CustomModal';
+import useScreenSettled from '@/src/hooks/useScreenSettled';
 import GuestEventBookingDetails from '@/src/components/booking details cards/GuestEventBookingDetails';
 import CustomAlert from '@/src/components/CustomAlert';
 import Callout from '@/src/components/Callout';
@@ -81,6 +82,7 @@ const createInitialTravelForm = (existingData: any = null) => ({
 });
 
 const GuestAddons = () => {
+  const screenSettled = useScreenSettled();
   const { booking } = useLocalSearchParams();
 
   const user = useAuthStore((state) => state.user);
@@ -835,7 +837,7 @@ const GuestAddons = () => {
         />
       </ShadowBox>
 
-      {validationDataError && (
+      {validationDataError && screenSettled && (
         <CustomModal
           visible={true}
           onClose={handleCloseValidationModal}

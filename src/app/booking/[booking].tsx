@@ -25,6 +25,7 @@ import AdhyayanAddon from '@/src/components/booking addons/AdhyayanAddon';
 import TravelAddon from '@/src/components/booking addons/TravelAddon';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import CustomModal from '@/src/components/CustomModal';
+import useScreenSettled from '@/src/hooks/useScreenSettled';
 import CustomAlert from '@/src/components/CustomAlert';
 import Callout from '@/src/components/Callout';
 
@@ -135,6 +136,7 @@ const transformToMumukshuFormat = (user: any, simpleForm: any, formType: string)
 };
 
 const BookingDetails = () => {
+  const screenSettled = useScreenSettled();
   const { booking } = useLocalSearchParams();
   const user = useAuthStore((state) => state.user);
   const mumukshuData = useBookingStore((state) => state.mumukshuData);
@@ -576,7 +578,7 @@ const BookingDetails = () => {
         />
       </ShadowBox>
 
-      {validationDataError && (
+      {validationDataError && screenSettled && (
         <CustomModal
           visible={true}
           onClose={handleCloseValidationModal}

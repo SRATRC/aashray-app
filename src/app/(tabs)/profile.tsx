@@ -34,6 +34,7 @@ import Toast from 'react-native-toast-message';
 import handleAPICall from '@/src/utils/HandleApiCall';
 import FormField from '@/src/components/FormField';
 import CustomModal from '@/src/components/CustomModal';
+import UnsupportedDeviceBanner from '@/src/components/UnsupportedDeviceBanner';
 import * as Haptics from 'expo-haptics';
 import * as Updates from 'expo-updates';
 
@@ -459,6 +460,7 @@ const Profile: React.FC = () => {
         </Text>
 
         <View className="mt-6 w-full px-4">
+          <UnsupportedDeviceBanner />
           <ShadowBox
             className="rounded-2xl border border-gray-200/60 bg-white px-5 pb-5 pt-4"
             intensity="sm">

@@ -17,6 +17,7 @@ import handleAPICall from '@/src/utils/HandleApiCall';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import CustomModal from '@/src/components/CustomModal';
+import useScreenSettled from '@/src/hooks/useScreenSettled';
 import EventBookingDetails from '@/src/components/booking details cards/EventBookingDetails';
 import * as Haptics from 'expo-haptics';
 import { ShadowBox } from '@/src/components/ShadowBox';
@@ -31,6 +32,7 @@ interface ValidationData {
 }
 
 const bookingReview = () => {
+  const screenSettled = useScreenSettled();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const mumukshuData = useBookingStore((state) => state.mumukshuData);
@@ -431,7 +433,7 @@ const bookingReview = () => {
         )}
       </ShadowBox>
 
-      {validationDataError && (
+      {validationDataError && screenSettled && (
         <CustomModal
           visible={true}
           onClose={handleCloseValidationModal}
