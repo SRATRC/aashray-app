@@ -1,7 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { colors } from '../constants';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
+
+// Builds the period markings for a start (and optional end) date.
+const buildPeriodMarks = (startDay?: string, endDay?: string) => {
+  if (!startDay) return {};
+  if (startDay && endDay) {
+    const marks: any = {};
+    for (const d = moment(startDay); d.isSameOrBefore(endDay); d.add(1, 'days')) {
+      const key = d.format('YYYY-MM-DD');
+      marks[key] = { color: colors.orange, textColor: 'white' };
+      if (key === startDay) marks[key].startingDay = true;
+      if (key === endDay) marks[key].endingDay = true;
+    }
+    return marks;
+  }
+  return {
+    [startDay]: { color: colors.orange, textColor: 'white', startingDay: true, endingDay: true },
+  };
+};
 
 const MIN_DATE = moment(new Date()).add(1, 'days').format('YYYY-MM-DD');
 
@@ -26,36 +44,24 @@ const CustomCalender: React.FC<CustomCalenderProps> = ({
   setSelectedDay,
   minDate,
 }) => {
-  const [markedDates, setMarkedDates] = useState({});
+  const [markedDates, setMarkedDates] = useState(() => buildPeriodMarks(startDay, endDay));
   const [disableLeftArrow, setDisableLeftArrow] = useState(false);
+
+  // Keep the period highlight in sync with the start/end props so external changes (e.g. the
+  // caller clearing the return date, or restarting the range) are reflected instead of leaving
+  // a stale highlight.
+  useEffect(() => {
+    if (type === 'period') setMarkedDates(buildPeriodMarks(startDay, endDay));
+  }, [type, startDay, endDay]);
 
   const handlePeriodPress = (day: any) => {
     if (startDay && !endDay) {
-      const date: any = {};
-      for (const d = moment(startDay); d.isSameOrBefore(day.dateString); d.add(1, 'days')) {
-        date[d.format('YYYY-MM-DD')] = {
-          color: colors.orange,
-          textColor: 'white',
-        };
-
-        if (d.format('YYYY-MM-DD') === startDay) date[d.format('YYYY-MM-DD')].startingDay = true;
-        if (d.format('YYYY-MM-DD') === day.dateString)
-          date[d.format('YYYY-MM-DD')].endingDay = true;
-      }
-
-      setMarkedDates(date);
+      setMarkedDates(buildPeriodMarks(startDay, day.dateString));
       setEndDay(day.dateString);
     } else {
       setStartDay(day.dateString);
       setEndDay(null);
-      setMarkedDates({
-        [day.dateString]: {
-          color: colors.orange,
-          textColor: 'white',
-          startingDay: true,
-          endingDay: true,
-        },
-      });
+      setMarkedDates(buildPeriodMarks(day.dateString));
     }
   };
 

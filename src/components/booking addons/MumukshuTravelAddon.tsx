@@ -9,6 +9,9 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import FormDisplayField from '../FormDisplayField';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
+import TravelReturnDetails from '../TravelReturnDetails';
+import type { ReturnGroup } from '../TravelReturnGroups';
+import { requiresArrivalTime, reverseOnwardGroups } from '@/src/utils/travel';
 import moment from 'moment';
 
 interface MumukshuTravelAddonProps {
@@ -38,10 +41,6 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
 }) => {
   const { user } = useAuthStore();
   const [activeMumukshuIndex, setActiveMumukshuIndex] = useState(null);
-
-  const [tempTravelDate, setTempTravelDate] = useState(
-    travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()
-  );
 
   const { isUtsavDate } = useUtsavDate();
 
@@ -78,6 +77,20 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
     return mumukshu_dropdown.some((mumukshu: any) => !selectedIndices.includes(mumukshu.value));
   };
 
+  // The return travelers are the same people as the onward roster (no new travelers on the
+  // return). mumukshuIndices reference this list; cardno is resolved at request time in the screen.
+  const travelers = mumukshu_dropdown.map((m: any) => ({
+    index: String(m.key),
+    issuedto: m.value,
+  }));
+
+  // Until the return is edited, mirror the onward live so it always reflects the latest onward
+  // details (autofill); once edited, keep the user's own return groups.
+  const effectiveReturnGroups: ReturnGroup[] =
+    travelForm.returnEdited && travelForm.returnGroups?.length
+      ? travelForm.returnGroups
+      : reverseOnwardGroups(travelForm.mumukshuGroup, 'mumukshuIndices');
+
   return (
     <AddonItem
       onCollapse={() => {
@@ -92,34 +105,26 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
       }
       containerStyles={'mt-3'}>
       <FormDisplayField
-        text="Date"
+        text="Travel Date"
         value={travelForm.date ? moment(travelForm.date).format('Do MMMM YYYY') : ''}
-        placeholder="Date"
+        placeholder="Travel Date"
         otherStyles="mt-7"
         backgroundColor="bg-gray-100"
         onPress={() => setDatePickerVisibility('travel', true)}
       />
-
       <DateTimePickerModal
         isVisible={isDatePickerVisible.travel}
         mode="date"
-        date={tempTravelDate}
+        date={travelForm.date ? moment(travelForm.date).toDate() : moment().add(1, 'days').toDate()}
+        minimumDate={moment().toDate()}
         onConfirm={(date: Date) => {
-          // Ensure the selected date isn't before tomorrow
-          const selectedMoment = moment(date);
+          const selected = moment(date);
           const today = moment().format('YYYY-MM-DD');
-          const validDate = selectedMoment.isBefore(today)
-            ? today
-            : selectedMoment.format('YYYY-MM-DD');
-
-          setTravelForm({
-            ...travelForm,
-            date: validDate,
-          });
+          const validDate = selected.isBefore(today) ? today : selected.format('YYYY-MM-DD');
+          setTravelForm({ ...travelForm, date: validDate });
           setDatePickerVisibility('travel', false);
         }}
         onCancel={() => setDatePickerVisibility('travel', false)}
-        minimumDate={moment().toDate()}
       />
 
       {travelForm.mumukshuGroup.map((assignment: any, index: any) => (
@@ -219,20 +224,10 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
             saveKeyInsteadOfValue={false}
           />
 
-          {(travelForm.mumukshuGroup[index].pickup &&
-            dropdowns.LOCATION_LIST.find(
-              (loc) =>
-                loc.value === travelForm.mumukshuGroup[index].pickup &&
-                (loc.key.toLowerCase().includes('railway') ||
-                  loc.key.toLowerCase().includes('airport'))
-            )) ||
-          (travelForm.mumukshuGroup[index].drop &&
-            dropdowns.LOCATION_LIST.find(
-              (loc) =>
-                loc.value === travelForm.mumukshuGroup[index].drop &&
-                (loc.key.toLowerCase().includes('railway') ||
-                  loc.key.toLowerCase().includes('airport'))
-            )) ? (
+          {requiresArrivalTime(
+            travelForm.mumukshuGroup[index].pickup,
+            travelForm.mumukshuGroup[index].drop
+          ) ? (
             <>
               <FormDisplayField
                 text="Flight/Train Time"
@@ -322,6 +317,35 @@ const MumukshuTravelAddon: React.FC<MumukshuTravelAddonProps> = ({
         />
         <Text className="text-base text-black underline">Add More Mumukshus</Text>
       </TouchableOpacity>
+
+      <HorizontalSeparator otherStyles={'w-full mt-5'} />
+
+      <TravelReturnDetails
+        showDatePicker
+        variant="grouped"
+        returnDate={travelForm.return_date}
+        onwardDate={travelForm.date}
+        travelers={travelers}
+        returnGroups={effectiveReturnGroups}
+        onPickReturnDate={(date: string) => setTravelForm({ ...travelForm, return_date: date })}
+        onClearReturnDate={() => {
+          setTravelForm({
+            ...travelForm,
+            return_date: '',
+            returnGroups: [],
+            returnEdited: false,
+          });
+        }}
+        onChangeReturnGroups={(g: ReturnGroup[]) => {
+          setTravelForm({
+            ...travelForm,
+            returnGroups: g,
+            returnEdited: true,
+          });
+        }}
+        locationOptions={getLocationOptions(travelForm.return_date || travelForm.date)}
+        requiresArrivalTime={requiresArrivalTime}
+      />
     </AddonItem>
   );
 };

@@ -32,7 +32,12 @@ const GuestAdhyayanAddon: React.FC<GuestAdhyayanAddonProps> = ({
   // Room/flat dates first. A travel-only booking has none, so use the travel dates.
   const startDate =
     guestData.room?.startDay || guestData.flat?.startDay || guestData.travel?.date || '';
-  const endDate = guestData.room?.endDay || guestData.flat?.endDay || guestData.travel?.date || '';
+  const endDate =
+    guestData.room?.endDay ||
+    guestData.flat?.endDay ||
+    guestData.travel?.return_date ||
+    guestData.travel?.date ||
+    '';
   const hasDates = !!startDate && moment(startDate).isValid();
 
   const fetchAdhyayans = async () => {
