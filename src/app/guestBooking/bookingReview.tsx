@@ -12,6 +12,7 @@ import { ShadowBox } from '@/src/components/ShadowBox';
 import GuestRoomBookingDetails from '@/src/components/booking details cards/GuestRoomBookingDetails';
 import GuestAdhyayanBookingDetails from '@/src/components/booking details cards/GuestAdhyayanBookingDetails';
 import GuestFoodBookingDetails from '@/src/components/booking details cards/GuestFoodBookingDetails';
+import GuestTravelBookingDetails from '@/src/components/booking details cards/GuestTravelBookingDetails';
 import GuestEventBookingDetails from '@/src/components/booking details cards/GuestEventBookingDetails';
 import GuestFlatBookingDetails from '@/src/components/booking details cards/GuestFlatBookingDetails';
 import PageHeader from '@/src/components/PageHeader';
@@ -167,6 +168,7 @@ const guestBookingReview = () => {
         {guestData.utsav && <GuestEventBookingDetails containerStyles={'mt-2'} />}
         {guestData.flat && <GuestFlatBookingDetails containerStyles={'mt-2'} />}
         {guestData.adhyayan && <GuestAdhyayanBookingDetails containerStyles={'mt-2'} />}
+        {guestData.travel && <GuestTravelBookingDetails containerStyles={'mt-2'} />}
         {guestData.food && <GuestFoodBookingDetails containerStyles={'mt-2'} />}
 
         {validationData && validationData.totalCharge > 0 && (
