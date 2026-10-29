@@ -1,14 +1,15 @@
-import { View, Text, Image } from 'react-native';
-import { colors, icons } from '@/src/constants';
+import { View, Text } from 'react-native';
+import { colors } from '@/src/constants';
 import { useBookingStore } from '@/src/stores';
 import { Ionicons } from '@expo/vector-icons';
 import HorizontalSeparator from '../HorizontalSeparator';
 import PrimaryAddonBookingCard from '../PrimaryAddonBookingCard';
 import CustomTag from '../CustomTag';
-import moment from 'moment';
+import TravelItinerary, { ItineraryLeg } from './TravelItinerary';
 
 const GuestTravelBookingDetails: React.FC<{ containerStyles: any }> = ({ containerStyles }) => {
   const guestData = useBookingStore((store) => store.guestData);
+  const isRoundTrip = Boolean(guestData.travel?.return_date);
 
   const count =
     guestData?.travel?.guestGroup?.reduce(
@@ -16,30 +17,35 @@ const GuestTravelBookingDetails: React.FC<{ containerStyles: any }> = ({ contain
       0
     ) || 0;
 
+  const legs: ItineraryLeg[] = isRoundTrip
+    ? [
+        { label: 'Onward', date: guestData.travel?.date, groups: guestData.travel?.guestGroup },
+        {
+          label: 'Return',
+          date: guestData.travel?.return_date,
+          groups: guestData.travel?.returnGuestGroup,
+        },
+      ]
+    : [{ date: guestData.travel?.date, groups: guestData.travel?.guestGroup }];
+
   return (
     <PrimaryAddonBookingCard containerStyles={containerStyles} title={'Raj Pravas Booking'}>
-      <View className="flex flex-row items-center gap-x-4 p-4">
-        <Image source={icons.travel} className="h-10 w-10" resizeMode="contain" />
-        <View className="w-full flex-1 justify-center gap-y-1">
-          {guestData.validationData?.travelDetails && (
-            <CustomTag
-              text={guestData.validationData.travelDetails.status}
-              textStyles={'text-red-200'}
-              containerStyles={'bg-red-100'}
-            />
-          )}
-          <Text className="text-md font-pmedium">
-            {moment(guestData.travel?.date).format('Do MMMM, YYYY')}
-          </Text>
-        </View>
+      <View className="p-4">
+        {guestData.validationData?.travelDetails && (
+          <CustomTag
+            text={guestData.validationData.travelDetails.status}
+            textStyles={'text-red-200'}
+            containerStyles={'bg-red-100 mb-3'}
+          />
+        )}
+        <TravelItinerary legs={legs} />
       </View>
 
-      <HorizontalSeparator otherStyles={'mb-4'} />
-
-      <View className="flex flex-row items-center gap-x-2 px-6 pb-4">
-        <Ionicons name="people" size={16} color={colors.gray_400} />
-        <Text className="font-pregular text-gray-400">Booked For:</Text>
-        <Text className="font-pmedium text-black">
+      <HorizontalSeparator />
+      <View className="flex-row items-center gap-x-2 px-4 py-3">
+        <Ionicons name="people" size={15} color={colors.gray_400} />
+        <Text className="font-pregular text-sm text-gray-500">Booked for</Text>
+        <Text className="font-pmedium text-sm text-black">
           {count} {count === 1 ? 'guest' : 'guests'}
         </Text>
       </View>

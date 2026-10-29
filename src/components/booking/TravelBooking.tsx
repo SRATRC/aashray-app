@@ -1,5 +1,6 @@
 import { View, Text } from 'react-native';
-import React, { useState, useCallback, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useRouter } from 'expo-router';
 import { types, dropdowns, status } from '@/src/constants';
@@ -9,6 +10,7 @@ import { useTabBarPadding } from '@/src/hooks/useTabBarPadding';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomButton from '../CustomButton';
 import CustomCalender from '../CustomCalender';
+import Callout from '../Callout';
 import FormField from '../FormField';
 import CustomModal from '../CustomModal';
 import CustomChipGroup from '../CustomChipGroup';
@@ -16,11 +18,32 @@ import OtherMumukshuForm from '../OtherMumukshuForm';
 import FormDisplayField from '../FormDisplayField';
 import CustomSelectBottomSheet from '../CustomSelectBottomSheet';
 import GuestForm from '../GuestForm';
+import TravelReturnDetails from '../TravelReturnDetails';
+import type { ReturnGroup } from '../TravelReturnGroups';
 import handleAPICall from '@/src/utils/HandleApiCall';
-import { requiresArrivalTime } from '@/src/utils/travel';
+import { requiresArrivalTime, leavingPostAdhyayanFor } from '@/src/utils/travel';
 import moment from 'moment';
 
 let CHIPS = ['Self', 'Guest', 'Mumukshus'];
+
+interface Traveler {
+  index: string;
+  issuedto: string;
+  cardno?: string;
+}
+
+// The onward equivalent of a ReturnGroup: a route + who's on it, before it's reversed for
+// the return leg. `travelerIndices` refers to positions in the active `travelers` array.
+interface OnwardGroup {
+  pickup: string;
+  drop: string;
+  type: string;
+  luggage: string[];
+  arrival_time: string;
+  special_request: string;
+  total_people: number | null;
+  travelerIndices: string[];
+}
 
 const INITIAL_GUEST_TRAVEL_FORM = {
   date: '',
@@ -82,6 +105,8 @@ const TravelBooking = () => {
 
   const [selectedChip, setSelectedChip] = useState('Self');
   const handleChipClick = (chip: any) => {
+    // Return edits are kept per chip (see returnByChip), so switching chips never leaks one
+    // chip's traveler indices into another and coming back keeps what was edited.
     setSelectedChip(chip);
   };
 
@@ -91,6 +116,73 @@ const TravelBooking = () => {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [activeMumukshuIndex, setActiveMumukshuIndex] = useState(null);
   const [activeGuestTravelIndex, setActiveGuestTravelIndex] = useState<number | null>(null);
+
+  // Round trip = a date RANGE (like room booking): the calendar's start day is the onward
+  // date and the end day is the return date. A single date (no end day) is one-way; when an
+  // end day is chosen the return leg defaults to the reverse of the onward route on that date,
+  // and can be edited independently via TravelReturnDetails.
+  // The return date is one shared range; the return groups and the edited flag are per chip
+  // because they reference that chip's own traveler indices.
+  const [returnDate, setReturnDateRaw] = useState<string>('');
+  const setReturnDate = (d: string) => {
+    setReturnDateRaw(d);
+    if (!d) setReturnByChip({});
+  };
+  const [returnByChip, setReturnByChip] = useState<
+    Record<string, { groups: ReturnGroup[]; edited: boolean; answer?: string }>
+  >({});
+  const returnGroups: ReturnGroup[] = returnByChip[selectedChip]?.groups ?? [];
+  const returnEdited: boolean = returnByChip[selectedChip]?.edited ?? false;
+  // "Leaving post adhyayan?" answer for the return, kept apart from the groups so answering it
+  // does not count as editing the return (the default return keeps mirroring the onward leg).
+  const returnAnswer: string = returnByChip[selectedChip]?.answer ?? '';
+  const setReturnGroups = (groups: ReturnGroup[]) =>
+    setReturnByChip((prev) => ({
+      ...prev,
+      [selectedChip]: {
+        ...prev[selectedChip],
+        groups,
+        edited: prev[selectedChip]?.edited ?? false,
+      },
+    }));
+  const setReturnEdited = (edited: boolean) =>
+    setReturnByChip((prev) => ({
+      ...prev,
+      [selectedChip]: { ...prev[selectedChip], groups: prev[selectedChip]?.groups ?? [], edited },
+    }));
+  const setReturnAnswer = (answer: string) =>
+    setReturnByChip((prev) => {
+      const cur = prev[selectedChip];
+      return {
+        ...prev,
+        [selectedChip]: {
+          groups: (cur?.groups ?? []).map((g, i) => (i === 0 ? { ...g, adhyayan: answer } : g)),
+          edited: cur?.edited ?? false,
+          answer,
+        },
+      };
+    });
+
+  // Reverse each onward group into its return-leg equivalent: pickup/drop swap, same
+  // vehicle type/luggage/people, arrival time and comments reset for the return trip, and
+  // the same travelers (by index) carried over. This is the default when the return leg
+  // hasn't been edited yet.
+  const reverseGroups = (
+    onwardGroups: OnwardGroup[],
+    travelers: Traveler[],
+    answer: string = ''
+  ): ReturnGroup[] =>
+    onwardGroups.map((g) => ({
+      pickup: g.drop,
+      drop: g.pickup,
+      type: g.type,
+      luggage: g.luggage || [],
+      arrival_time: '',
+      comments: g.special_request || '',
+      total_people: g.total_people ?? null,
+      adhyayan: answer || dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
+      travelerIndices: g.travelerIndices.filter((i) => travelers[Number(i)] !== undefined),
+    }));
 
   const [travelForm, setTravelForm] = useState({
     date: '',
@@ -103,6 +195,24 @@ const TravelBooking = () => {
     total_people: null,
     special_request: '',
   });
+
+  // One-way (no return date) is always valid; a chosen return date must be on/after onward.
+  // Any return group whose route touches an airport/railway must also carry a flight/train
+  // time before the round trip can be booked, same rule as the onward leg.
+  const isReturnLegValid = () => {
+    if (!returnDate) return true;
+    if (moment(returnDate).isBefore(moment(travelForm.date), 'day')) return false;
+    if (!returnGroups.every((g) => !requiresArrivalTime(g.pickup, g.drop) || !!g.arrival_time))
+      return false;
+    // When the return has been split into groups, every traveler must be assigned to exactly one
+    // group and no group may be empty, else a traveler would be silently dropped from the return.
+    if (returnGroups.length > 0) {
+      if (returnGroups.some((g) => g.travelerIndices.length === 0)) return false;
+      const assigned = new Set(returnGroups.flatMap((g) => g.travelerIndices));
+      if (activeTravelers.some((t) => !assigned.has(t.index))) return false;
+    }
+    return true;
+  };
 
   const isSelfFormValid = () => {
     const requiresTime = requiresArrivalTime(travelForm.pickup, travelForm.drop);
@@ -128,31 +238,40 @@ const TravelBooking = () => {
           travelForm.drop == dropdowns.LOCATION_LIST[0].value) ||
         (travelForm.pickup != dropdowns.LOCATION_LIST[0].value &&
           travelForm.drop != dropdowns.LOCATION_LIST[0].value)
-      )
+      ) &&
+      isReturnLegValid()
     );
   };
 
   const [mumukshuForm, setMumukshuForm] = useState(INITIAL_MUMUKSHU_FORM);
 
   const addMumukshuForm = () => {
-    setMumukshuForm((prev) => ({
-      ...prev,
-      mumukshus: [
-        ...prev.mumukshus,
-        {
-          cardno: '',
-          mobno: '',
-          pickup: '',
-          drop: '',
-          luggage: [],
-          adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
-          type: dropdowns.BOOKING_TYPE_LIST[0].value,
-          total_people: null,
-          special_request: '',
-          arrival_time: '',
-        },
-      ],
-    }));
+    setMumukshuForm((prev) => {
+      // Prefill route/vehicle/luggage from the last traveler so repeat trips do not require
+      // re-selecting the same dropdowns; identity and comments start empty.
+      const last = prev.mumukshus[prev.mumukshus.length - 1] || ({} as any);
+      return {
+        ...prev,
+        mumukshus: [
+          ...prev.mumukshus,
+          {
+            cardno: '',
+            mobno: '',
+            pickup: last.pickup || '',
+            drop: last.drop || '',
+            luggage: last.luggage || [],
+            adhyayan: dropdowns.TRAVEL_ADHYAYAN_ASK_LIST[1].value,
+            type: last.type || dropdowns.BOOKING_TYPE_LIST[0].value,
+            total_people: last.total_people ?? null,
+            special_request: '',
+            arrival_time: '',
+          },
+        ],
+      };
+    });
+    // Re-mirror the return so the newly added traveler is included in it.
+    setReturnGroups([]);
+    setReturnEdited(false);
   };
 
   const removeMumukshuForm = (indexToRemove: any) => {
@@ -160,6 +279,10 @@ const TravelBooking = () => {
       ...prev,
       mumukshus: prev.mumukshus.filter((_, index) => index !== indexToRemove),
     }));
+    // Traveler positions shift, invalidating any manually edited return travelerIndices; reset
+    // so the return re-mirrors the new onward roster.
+    setReturnGroups([]);
+    setReturnEdited(false);
   };
 
   const handleMumukshuFormChange = (index: any, key: any, value: any) => {
@@ -189,6 +312,41 @@ const TravelBooking = () => {
     }));
   };
 
+  const isMumukshuFormValid = () => {
+    return (
+      mumukshuForm.date &&
+      mumukshuForm.mumukshus.every((mumukshu) => {
+        const requiresTime = requiresArrivalTime(mumukshu.pickup, mumukshu.drop);
+
+        if (mumukshu.type == dropdowns.BOOKING_TYPE_LIST[1].value && !mumukshu.total_people) {
+          return false;
+        }
+
+        const requiresSpecialRequest =
+          mumukshu.pickup === otherLocation?.value || mumukshu.drop === otherLocation?.value;
+
+        return (
+          mumukshu.mobno?.length === 10 &&
+          mumukshu.cardno &&
+          mumukshu.pickup &&
+          mumukshu.drop &&
+          mumukshu.luggage.length > 0 &&
+          mumukshu.type &&
+          (!requiresTime || (requiresTime && mumukshu.arrival_time)) &&
+          (!requiresSpecialRequest ||
+            (requiresSpecialRequest && mumukshu.special_request.trim() !== '')) &&
+          !(
+            (mumukshu.pickup === dropdowns.LOCATION_LIST[0].value &&
+              mumukshu.drop === dropdowns.LOCATION_LIST[0].value) ||
+            (mumukshu.pickup !== dropdowns.LOCATION_LIST[0].value &&
+              mumukshu.drop !== dropdowns.LOCATION_LIST[0].value)
+          )
+        );
+      }) &&
+      isReturnLegValid()
+    );
+  };
+
   const [guestTravelForm, setGuestTravelForm] = useState(INITIAL_GUEST_TRAVEL_FORM);
 
   const addGuestTravelForm = () => {
@@ -216,6 +374,9 @@ const TravelBooking = () => {
         ],
       };
     });
+    // Re-mirror the return so the newly added guest is included in it.
+    setReturnGroups([]);
+    setReturnEdited(false);
   };
 
   const removeGuestTravelForm = (indexToRemove: any) => {
@@ -223,6 +384,10 @@ const TravelBooking = () => {
       ...prev,
       guests: prev.guests.filter((_, index) => index !== indexToRemove),
     }));
+    // Traveler positions shift, invalidating any manually edited return travelerIndices; reset
+    // so the return re-mirrors the new onward roster.
+    setReturnGroups([]);
+    setReturnEdited(false);
   };
 
   const handleGuestTravelFormChange = (index: any, field: any, value: any) => {
@@ -287,43 +452,189 @@ const TravelBooking = () => {
               guest.drop !== dropdowns.LOCATION_LIST[0].value)
           )
         );
-      })
+      }) &&
+      isReturnLegValid()
     );
   };
 
-  const isMumukshuFormValid = () => {
-    return (
-      mumukshuForm.date &&
-      mumukshuForm.mumukshus.every((mumukshu) => {
-        const requiresTime = requiresArrivalTime(mumukshu.pickup, mumukshu.drop);
+  // The first human-readable reason the active form can't be submitted, or null when it is
+  // ready. Shown inline by the Book Now button so a disabled button always explains itself.
+  const legBlockingReason = (leg: any, isGuest = false): string | null => {
+    if (isGuest) {
+      const hasIdentity = leg.cardno
+        ? leg.mobno?.length === 10
+        : leg.name && leg.gender && leg.type && leg.mobno?.length === 10;
+      if (!hasIdentity)
+        return "Complete each guest's name, gender, type and a 10 digit mobile number";
+    } else if (leg.mobno !== undefined) {
+      if (leg.mobno?.length !== 10 || !leg.cardno) return "Complete each traveler's details";
+    }
+    if (!leg.pickup || !leg.drop) return 'Select a pickup and drop location';
+    const bothRC = leg.pickup === 'Research Centre' && leg.drop === 'Research Centre';
+    const neitherRC = leg.pickup !== 'Research Centre' && leg.drop !== 'Research Centre';
+    if (bothRC || neitherRC) return 'One of pickup or drop must be the Research Centre';
+    if (
+      (leg.pickup === otherLocation?.value || leg.drop === otherLocation?.value) &&
+      !(leg.special_request || '').trim()
+    )
+      return "Add a comment describing the 'Other' location";
+    if (!leg.luggage || leg.luggage.length === 0) return 'Select luggage';
+    const type = isGuest ? leg.travelType : leg.type;
+    if (!type) return 'Select a booking type';
+    if (type === dropdowns.BOOKING_TYPE_LIST[1].value && !leg.total_people)
+      return 'Enter the total number of people for the full car';
+    if (requiresArrivalTime(leg.pickup, leg.drop) && !leg.arrival_time)
+      return 'Add the onward flight/train time';
+    return null;
+  };
 
-        if (mumukshu.type == dropdowns.BOOKING_TYPE_LIST[1].value && !mumukshu.total_people) {
-          return false;
+  const returnBlockingReason = (): string | null => {
+    if (!returnDate) return null;
+    if (moment(returnDate).isBefore(moment(travelForm.date), 'day'))
+      return 'The return date must be on or after the onward date';
+    if (returnGroups.some((g) => requiresArrivalTime(g.pickup, g.drop) && !g.arrival_time))
+      return 'Add the return flight/train time. Tap Edit on the return card.';
+    if (returnGroups.length > 0) {
+      if (returnGroups.some((g) => g.travelerIndices.length === 0))
+        return 'Every return group needs at least one traveler. Tap Edit on the return card.';
+      const assigned = new Set(returnGroups.flatMap((g) => g.travelerIndices));
+      if (activeTravelers.some((t) => !assigned.has(t.index)))
+        return 'Assign every traveler to a return group. Tap Edit on the return card.';
+    }
+    return null;
+  };
+
+  const getBlockingReason = (): string | null => {
+    if (selectedChip === 'Self') {
+      if (!travelForm.date) return 'Select a travel date';
+      return legBlockingReason(travelForm) || returnBlockingReason();
+    }
+    if (selectedChip === 'Mumukshus') {
+      if (!mumukshuForm.date) return 'Select a travel date';
+      if (mumukshuForm.mumukshus.length === 0) return 'Add at least one traveler';
+      for (const m of mumukshuForm.mumukshus) {
+        const r = legBlockingReason(m);
+        if (r) return r;
+      }
+      return returnBlockingReason();
+    }
+    if (!guestTravelForm.date) return 'Select a travel date';
+    if (guestTravelForm.guests.length === 0) return 'Add at least one guest';
+    for (const g of guestTravelForm.guests) {
+      const r = legBlockingReason(g, true);
+      if (r) return r;
+    }
+    return returnBlockingReason();
+  };
+
+  // The active onward travelers, selected by which chip (Self/Mumukshus/Guest) is active.
+  // Index positions here are what ReturnGroup.travelerIndices and OnwardGroup.travelerIndices
+  // refer to.
+  const activeTravelers = useMemo<Traveler[]>(() => {
+    if (selectedChip === 'Mumukshus') {
+      return mumukshuForm.mumukshus.map((m: any, i: number) => ({
+        index: String(i),
+        issuedto: m.issuedto || '',
+        cardno: m.cardno,
+      }));
+    }
+    if (selectedChip === 'Guest') {
+      return guestTravelForm.guests.map((g: any, i: number) => ({
+        index: String(i),
+        issuedto: g.issuedto || g.name || '',
+        cardno: g.cardno,
+      }));
+    }
+    return [{ index: '0', issuedto: user.name, cardno: user.cardno }];
+  }, [selectedChip, mumukshuForm.mumukshus, guestTravelForm.guests, user.name, user.cardno]);
+
+  // The active onward groups, selected by which chip is active. Mumukshus/Guest are grouped
+  // by pickup-drop-type-total_people the same way transformMumukshuData/transformGuestTravelData
+  // group them for the request body, so the return-leg grouping mirrors the onward grouping.
+  const activeOnwardGroups = useMemo<OnwardGroup[]>(() => {
+    if (selectedChip === 'Mumukshus') {
+      const groups: Record<string, OnwardGroup> = {};
+      const order: string[] = [];
+      mumukshuForm.mumukshus.forEach((m: any, i: number) => {
+        const key = `${m.pickup}-${m.drop}-${m.type}-${m.total_people || 'none'}`;
+        if (!groups[key]) {
+          groups[key] = {
+            pickup: m.pickup,
+            drop: m.drop,
+            type: m.type,
+            luggage: m.luggage || [],
+            arrival_time: m.arrival_time || '',
+            special_request: m.special_request || '',
+            total_people: m.total_people ?? null,
+            travelerIndices: [],
+          };
+          order.push(key);
         }
+        groups[key].travelerIndices.push(String(i));
+      });
+      return order.map((k) => groups[k]);
+    }
+    if (selectedChip === 'Guest') {
+      const groups: Record<string, OnwardGroup> = {};
+      const order: string[] = [];
+      guestTravelForm.guests.forEach((g: any, i: number) => {
+        const key = `${g.pickup}-${g.drop}-${g.travelType}-${g.total_people || 'none'}`;
+        if (!groups[key]) {
+          groups[key] = {
+            pickup: g.pickup,
+            drop: g.drop,
+            type: g.travelType,
+            luggage: g.luggage || [],
+            arrival_time: g.arrival_time || '',
+            special_request: g.special_request || '',
+            total_people: g.total_people ?? null,
+            travelerIndices: [],
+          };
+          order.push(key);
+        }
+        groups[key].travelerIndices.push(String(i));
+      });
+      return order.map((k) => groups[k]);
+    }
+    return [
+      {
+        pickup: travelForm.pickup,
+        drop: travelForm.drop,
+        type: travelForm.type,
+        luggage: travelForm.luggage,
+        arrival_time: travelForm.arrival_time,
+        special_request: travelForm.special_request,
+        total_people: travelForm.total_people,
+        travelerIndices: ['0'],
+      },
+    ];
+  }, [
+    selectedChip,
+    mumukshuForm.mumukshus,
+    guestTravelForm.guests,
+    travelForm.pickup,
+    travelForm.drop,
+    travelForm.type,
+    travelForm.luggage,
+    travelForm.arrival_time,
+    travelForm.special_request,
+    travelForm.total_people,
+  ]);
 
-        const requiresSpecialRequest =
-          mumukshu.pickup === otherLocation?.value || mumukshu.drop === otherLocation?.value;
+  const activeOnwardDate =
+    selectedChip === 'Mumukshus'
+      ? mumukshuForm.date
+      : selectedChip === 'Guest'
+        ? guestTravelForm.date
+        : travelForm.date;
 
-        return (
-          mumukshu.mobno?.length === 10 &&
-          mumukshu.cardno &&
-          mumukshu.pickup &&
-          mumukshu.drop &&
-          mumukshu.luggage.length > 0 &&
-          mumukshu.type &&
-          (!requiresTime || (requiresTime && mumukshu.arrival_time)) &&
-          (!requiresSpecialRequest ||
-            (requiresSpecialRequest && mumukshu.special_request.trim() !== '')) &&
-          !(
-            (mumukshu.pickup === dropdowns.LOCATION_LIST[0].value &&
-              mumukshu.drop === dropdowns.LOCATION_LIST[0].value) ||
-            (mumukshu.pickup !== dropdowns.LOCATION_LIST[0].value &&
-              mumukshu.drop !== dropdowns.LOCATION_LIST[0].value)
-          )
-        );
-      })
-    );
-  };
+  // An untouched return leg always mirrors the current onward groups. Once the user edits it
+  // via "Edit return details", it stops auto-syncing until the return date is cleared.
+  useEffect(() => {
+    if (returnDate && !returnEdited) {
+      setReturnGroups(reverseGroups(activeOnwardGroups, activeTravelers, returnAnswer));
+    }
+  }, [returnDate, returnEdited, returnAnswer, selectedChip, activeOnwardGroups, activeTravelers]);
 
   const { isUtsavDate } = useUtsavDate();
 
@@ -337,6 +648,57 @@ const TravelBooking = () => {
     [isUtsavDate]
   );
 
+  // A round trip books a second leg using the (editable) return groups, each with its own
+  // route/type/luggage/time and travelers. An untouched return leg equals the reverse of the
+  // onward groups, so the default behavior is unchanged. Return groups carry travelers via the
+  // same key the onward groups use (mumukshus/guests) so preparingRequestBody's existing
+  // transformMumukshuGroup/transformGuestGroup map them to cardnos identically.
+  // resolvedTravelers lets a caller pass a traveler list whose cardnos are already resolved
+  // (e.g. new guests get their cardno only after the /guest POST); defaults to activeTravelers.
+  const attachReturnLeg = (temp: any, resolvedTravelers: Traveler[] = activeTravelers) => {
+    if (!returnDate) return temp;
+
+    const isMumukshuPath = Boolean(temp.mumukshuGroup);
+    const isGuestPath = Boolean(temp.guestGroup);
+    if (!isMumukshuPath && !isGuestPath) return temp;
+
+    const returnGroupPayload = returnGroups.map((rg) => {
+      const groupTravelers = rg.travelerIndices
+        .map((i) => resolvedTravelers[Number(i)])
+        .filter(Boolean);
+
+      const base = {
+        pickup: rg.pickup,
+        drop: rg.drop,
+        type: rg.type,
+        luggage: rg.luggage || [],
+        arrival_time: rg.arrival_time || '',
+        special_request: rg.comments || '',
+        total_people: rg.total_people,
+      };
+
+      if (isMumukshuPath) {
+        return {
+          ...base,
+          adhyayan: leavingPostAdhyayanFor(rg),
+          mumukshus: groupTravelers.map((t) => ({ cardno: t.cardno })),
+        };
+      }
+      return {
+        ...base,
+        guests: groupTravelers.map((t) => ({ issuedto: t.issuedto, cardno: t.cardno })),
+      };
+    });
+
+    const result = { ...temp, return_date: returnDate };
+    if (isMumukshuPath) {
+      result.returnMumukshuGroup = returnGroupPayload;
+    } else {
+      result.returnGuestGroup = returnGroupPayload;
+    }
+    return result;
+  };
+
   return (
     <View className="mt-3 w-full flex-1">
       <KeyboardAwareScrollView
@@ -349,12 +711,38 @@ const TravelBooking = () => {
         showsVerticalScrollIndicator={false}
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled">
+        <Callout
+          variant="warning"
+          message="For a round trip, add a return date. The return copies your onward trip reversed; tap Edit on the return card to change it."
+        />
         <CustomCalender
-          selectedDay={travelForm.date}
-          setSelectedDay={(day: any) => {
+          type={'period'}
+          startDay={travelForm.date}
+          setStartDay={(day: any) => {
             setTravelForm((prev) => ({ ...prev, date: day }));
             setMumukshuForm((prev) => ({ ...prev, date: day }));
             setGuestTravelForm((prev) => ({ ...prev, date: day }));
+            setReturnDate('');
+            setReturnEdited(false);
+          }}
+          endDay={returnDate}
+          setEndDay={(day: any) => {
+            if (!day) {
+              setReturnDate('');
+              setReturnEdited(false);
+              return;
+            }
+            // A tap before the onward date restarts the range at that day (no invalid
+            // return-before-onward state), mirroring setStartDay.
+            if (moment(day).isBefore(moment(travelForm.date), 'day')) {
+              setTravelForm((prev) => ({ ...prev, date: day }));
+              setMumukshuForm((prev) => ({ ...prev, date: day }));
+              setGuestTravelForm((prev) => ({ ...prev, date: day }));
+              setReturnDate('');
+              setReturnEdited(false);
+              return;
+            }
+            setReturnDate(day);
           }}
           minDate={moment(new Date()).format('YYYY-MM-DD')}
         />
@@ -371,7 +759,7 @@ const TravelBooking = () => {
           />
         </View>
 
-        {selectedChip == CHIPS[0] && (
+        {selectedChip == 'Self' && (
           <View>
             <CustomSelectBottomSheet
               className="mt-7"
@@ -678,6 +1066,7 @@ const TravelBooking = () => {
             </OtherMumukshuForm>
           </View>
         )}
+
         {selectedChip == 'Guest' && (
           <View>
             <GuestForm
@@ -812,11 +1201,42 @@ const TravelBooking = () => {
           </View>
         )}
 
+        <TravelReturnDetails
+          showDatePicker={false}
+          variant={selectedChip === 'Self' ? 'flat' : 'grouped'}
+          returnDate={returnDate}
+          onwardDate={activeOnwardDate}
+          travelers={activeTravelers}
+          returnGroups={returnGroups}
+          onChangeReturnGroups={(g) => {
+            setReturnGroups(g);
+            setReturnEdited(true);
+          }}
+          onChangeLeavingAnswer={setReturnAnswer}
+          onClearReturnDate={() => {
+            setReturnDate('');
+            setReturnEdited(false);
+          }}
+          onPickReturnDate={() => {}}
+          locationOptions={getLocationOptions(returnDate || activeOnwardDate)}
+          requiresArrivalTime={requiresArrivalTime}
+        />
+
+        {(() => {
+          const reason = getBlockingReason();
+          return reason ? (
+            <View className="mt-7 flex-row items-start gap-x-2 rounded-lg bg-orange-50 px-3 py-2.5">
+              <Ionicons name="alert-circle" size={16} color="#EA580C" style={{ marginTop: 1 }} />
+              <Text className="flex-1 font-pregular text-sm text-orange-700">{reason}</Text>
+            </View>
+          ) : null;
+        })()}
+
         <CustomButton
           text="Book Now"
           handlePress={async () => {
             setIsSubmitting(true);
-            if (selectedChip == CHIPS[0]) {
+            if (selectedChip == 'Self') {
               if (!isSelfFormValid()) {
                 setModalVisible(true);
                 setModalMessage('Please fill all fields');
@@ -842,7 +1262,7 @@ const TravelBooking = () => {
                 ],
               });
 
-              await updateMumukshuBooking('travel', temp);
+              await updateMumukshuBooking('travel', attachReturnLeg(temp));
               router.push(`/booking/${types.TRAVEL_DETAILS_TYPE}`);
             }
             if (selectedChip == 'Mumukshus') {
@@ -858,7 +1278,7 @@ const TravelBooking = () => {
               }));
               setMumukshuInfo(mumukshuInfoArray);
               const temp = transformMumukshuData(mumukshuForm);
-              await updateMumukshuBooking('travel', temp);
+              await updateMumukshuBooking('travel', attachReturnLeg(temp));
               router.push(`/mumukshuBooking/${types.TRAVEL_DETAILS_TYPE}`);
             }
             if (selectedChip == 'Guest') {
@@ -898,7 +1318,14 @@ const TravelBooking = () => {
                     guests: updatedGuests,
                   });
 
-                  updateGuestBooking('travel', temp);
+                  // Resolve the return leg from the cardno-merged guests (activeTravelers is
+                  // still the pre-POST state, so new guests would otherwise lose their cardno).
+                  const resolvedGuestTravelers = updatedGuests.map((g: any, i: number) => ({
+                    index: String(i),
+                    issuedto: g.issuedto || g.name || '',
+                    cardno: g.cardno,
+                  }));
+                  updateGuestBooking('travel', attachReturnLeg(temp, resolvedGuestTravelers));
                   setIsSubmitting(false);
                   // Clear the guests but keep the date: the calendar still shows it selected.
                   setGuestTravelForm({ ...INITIAL_GUEST_TRAVEL_FORM, date: guestTravelForm.date });

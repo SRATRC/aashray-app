@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { dropdowns, types } from '@/src/constants';
 import { useQuery } from '@tanstack/react-query';
 import { prepareGuestRequestBody } from '@/src/utils/preparingRequestBody';
-import { requiresArrivalTime } from '@/src/utils/travel';
+import { requiresArrivalTime, reverseOnwardGroups, isReturnIncomplete } from '@/src/utils/travel';
 import { FontAwesome } from '@expo/vector-icons';
 import { ShadowBox } from '@/src/components/ShadowBox';
 import CustomButton from '@/src/components/CustomButton';
@@ -63,6 +63,9 @@ const createInitialAdhyayanForm = (existingData: any = null) => ({
 
 const createInitialTravelForm = (existingData: any = null) => ({
   date: existingData?.date || '',
+  return_date: existingData?.return_date || '',
+  returnGroups: existingData?.returnGroups || [],
+  returnEdited: existingData?.returnEdited || false,
   guestGroup: existingData?.guestGroup || [
     {
       pickup: '',
@@ -129,6 +132,7 @@ const GuestAddons = () => {
       guestData.room?.endDay ||
       guestData.food?.endDay ||
       guestData.adhyayan?.adhyayan?.end_date ||
+      guestData.travel?.return_date ||
       guestData.utsav?.utsav?.utsav_end ||
       '';
 
@@ -154,10 +158,14 @@ const GuestAddons = () => {
     // Create adhyayan form
     const adhyayanFormInitial = createInitialAdhyayanForm(guestData.adhyayan);
 
-    // Create travel form with the date from any existing booking
+    // Create travel form with dates from any existing booking.
+    // Only the onward date is cross-referenced. return_date must NOT be inherited from a
+    // companion booking's end date — a round trip is an explicit user opt-in, otherwise a
+    // one-way travel addon silently becomes a round trip.
     const travelFormInitial = {
       ...createInitialTravelForm(guestData.travel),
       date: guestData.travel?.date || getInitialDates.startDate,
+      return_date: guestData.travel?.return_date || '',
     };
 
     return { roomFormInitial, foodFormInitial, adhyayanFormInitial, travelFormInitial };
@@ -186,6 +194,7 @@ const GuestAddons = () => {
       guestData.room?.endDay ||
       guestData.food?.endDay ||
       guestData.adhyayan?.adhyayan?.end_date ||
+      guestData.travel?.return_date ||
       guestData.utsav?.utsav?.end_date ||
       '';
 
@@ -228,12 +237,20 @@ const GuestAddons = () => {
 
     // Update travel form with cross-referenced date
     if (guestData.travel) {
-      setTravelForm(() => ({
+      setTravelForm((prev) => ({
         ...createInitialTravelForm(guestData.travel),
         date: guestData.travel.date || startDate,
       }));
     } else if (startDate) {
-      setTravelForm((prev) => ({ ...prev, date: prev.date || startDate }));
+      // If travel data doesn't exist but we have date from other bookings.
+      // Only cross-reference the onward date. return_date must NOT be inherited from a
+      // companion booking's end date — a round trip is an explicit user opt-in, otherwise
+      // a one-way travel addon silently becomes a round trip.
+      setTravelForm((prev) => ({
+        ...prev,
+        date: prev.date || startDate,
+        return_date: prev.return_date || '',
+      }));
     }
   }, [guestData]);
 
@@ -248,6 +265,7 @@ const GuestAddons = () => {
     foodStart: false,
     foodEnd: false,
     travel: false,
+    travel_time: false,
   });
 
   const toggleDatePicker = useCallback((pickerType: string, isVisible: boolean) => {
@@ -527,6 +545,32 @@ const GuestAddons = () => {
     [guests]
   );
 
+  // Turn the travel form into the request payload. A return date adds returnGuestGroup: a full
+  // set of groups shaped like the onward guestGroup (each with a guests array of traveler
+  // objects), which preparingRequestBody maps to cardnos the same way. The default (unedited)
+  // return is the reversed onward for the same travelers, so an untouched round trip books
+  // exactly as before; edited return groups come from the return editor.
+  const buildTravelPayload = useCallback(() => {
+    const payload: any = { ...travelForm };
+    if (travelForm.return_date) {
+      const sourceGroups =
+        travelForm.returnEdited && travelForm.returnGroups?.length
+          ? travelForm.returnGroups
+          : reverseOnwardGroups(travelForm.guestGroup, 'guestIndices');
+      payload.returnGuestGroup = sourceGroups.map((rg: any) => ({
+        pickup: rg.pickup,
+        drop: rg.drop,
+        type: rg.type,
+        luggage: rg.luggage || [],
+        arrival_time: rg.arrival_time || '',
+        special_request: rg.comments || '',
+        total_people: rg.total_people ?? null,
+        guests: rg.travelerIndices.map((i: string) => guests[Number(i)]).filter(Boolean),
+      }));
+    }
+    return payload;
+  }, [travelForm, guests]);
+
   // Form validation functions
   const validateRoomForm = useCallback(() => {
     const hasEmptyFields = roomForm.guestGroup.some(
@@ -561,7 +605,29 @@ const GuestAddons = () => {
         (group.type == dropdowns.BOOKING_TYPE_LIST[1].value && !group.total_people) ||
         (requiresArrivalTime(group.pickup, group.drop) && !group.arrival_time)
     );
-    return !hasEmptyFields && travelForm.date;
+    // Return leg follows the same flight/train time rule: validate edited return groups, else
+    // the reversed-onward default (which starts without a time, so it must be entered on Edit).
+    const returnGroups =
+      travelForm.returnEdited && travelForm.returnGroups?.length
+        ? travelForm.returnGroups
+        : travelForm.guestGroup.map((g: any) => ({
+            pickup: g.drop,
+            drop: g.pickup,
+            arrival_time: '',
+          }));
+    const returnTimeMissing =
+      !!travelForm.return_date &&
+      returnGroups.some((g: any) => requiresArrivalTime(g.pickup, g.drop) && !g.arrival_time);
+    // An edited return must be complete and cover every onward guest.
+    const returnIncomplete =
+      !!travelForm.return_date &&
+      !!travelForm.returnEdited &&
+      isReturnIncomplete(
+        travelForm.returnGroups,
+        travelForm.guestGroup.flatMap((g: any) => (g.guestIndices || []).map(String)),
+        otherLocation?.value
+      );
+    return !hasEmptyFields && !returnTimeMissing && !returnIncomplete && travelForm.date;
   }, [travelForm]);
 
   // Check if forms are not empty (have user input)
@@ -636,7 +702,7 @@ const GuestAddons = () => {
         hasValidationError = true;
         return;
       }
-      setGuestData((prev: any) => ({ ...prev, travel: travelForm }));
+      setGuestData((prev: any) => ({ ...prev, travel: buildTravelPayload() }));
     }
 
     // If no validation errors, navigate to confirmation page
@@ -660,6 +726,7 @@ const GuestAddons = () => {
     foodForm,
     adhyayanForm,
     travelForm,
+    buildTravelPayload,
     setGuestData,
     router,
   ]);

@@ -8,7 +8,9 @@ import HorizontalSeparator from '../HorizontalSeparator';
 import FormDisplayField from '../FormDisplayField';
 import FormField from '../FormField';
 import AddonItem from '../AddonItem';
-import { requiresArrivalTime } from '@/src/utils/travel';
+import TravelReturnDetails from '../TravelReturnDetails';
+import type { ReturnGroup } from '../TravelReturnGroups';
+import { requiresArrivalTime, reverseOnwardGroups } from '@/src/utils/travel';
 import moment from 'moment';
 
 interface GuestTravelAddonProps {
@@ -72,6 +74,20 @@ const GuestTravelAddon: React.FC<GuestTravelAddonProps> = ({
     // Check if there are any unselected guests
     return guest_dropdown.some((guest: any) => !selectedIndices.includes(guest.value));
   };
+
+  // The return travelers are the same people as the onward roster (no new travelers on the
+  // return). guestIndices reference this list; cardno is resolved at request time in the screen.
+  const travelers = guest_dropdown.map((g: any) => ({
+    index: String(g.key),
+    issuedto: g.value,
+  }));
+
+  // Until the return is edited, mirror the onward live so it always reflects the latest onward
+  // details (autofill); once edited, keep the user's own return groups.
+  const effectiveReturnGroups: ReturnGroup[] =
+    travelForm.returnEdited && travelForm.returnGroups?.length
+      ? travelForm.returnGroups
+      : reverseOnwardGroups(travelForm.guestGroup, 'guestIndices');
 
   return (
     <AddonItem
@@ -287,6 +303,35 @@ const GuestTravelAddon: React.FC<GuestTravelAddonProps> = ({
         />
         <Text className="text-base text-black underline">Add More Guests</Text>
       </TouchableOpacity>
+
+      <HorizontalSeparator otherStyles={'w-full mt-5'} />
+
+      <TravelReturnDetails
+        showDatePicker
+        variant="grouped"
+        returnDate={travelForm.return_date}
+        onwardDate={travelForm.date}
+        travelers={travelers}
+        returnGroups={effectiveReturnGroups}
+        onPickReturnDate={(date: string) => setTravelForm({ ...travelForm, return_date: date })}
+        onClearReturnDate={() => {
+          setTravelForm({
+            ...travelForm,
+            return_date: '',
+            returnGroups: [],
+            returnEdited: false,
+          });
+        }}
+        onChangeReturnGroups={(g: ReturnGroup[]) => {
+          setTravelForm({
+            ...travelForm,
+            returnGroups: g,
+            returnEdited: true,
+          });
+        }}
+        locationOptions={getLocationOptions(travelForm.return_date || travelForm.date)}
+        requiresArrivalTime={requiresArrivalTime}
+      />
     </AddonItem>
   );
 };
