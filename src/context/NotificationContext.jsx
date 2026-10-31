@@ -33,6 +33,7 @@ export const NotificationProvider = ({ children }) => {
         (token) => {
           expoPushTokenRef.current = token;
           setExpoPushToken(token);
+          setError(null);
         },
         (error) => setError(error)
       );
