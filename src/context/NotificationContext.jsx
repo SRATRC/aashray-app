@@ -21,23 +21,31 @@ export const NotificationProvider = ({ children }) => {
 
   const notificationListener = useRef();
   const responseListener = useRef();
+  const expoPushTokenRef = useRef(null);
+  const askedThisLaunchRef = useRef(false);
 
   const router = useRouter();
 
   useEffect(() => {
-    if (AppState.currentState === 'active') {
-      registerForPushNotificationsAsync().then(
-        (token) => setExpoPushToken(token),
+    const register = (ask) => {
+      if (ask) askedThisLaunchRef.current = true;
+      registerForPushNotificationsAsync({ ask }).then(
+        (token) => {
+          expoPushTokenRef.current = token;
+          setExpoPushToken(token);
+          setError(null);
+        },
         (error) => setError(error)
       );
+    };
+
+    if (AppState.currentState === 'active') {
+      register(true);
     }
 
     const appStateSubscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState === 'active' && !expoPushToken) {
-        registerForPushNotificationsAsync().then(
-          (token) => setExpoPushToken(token),
-          (error) => setError(error)
-        );
+      if (nextState === 'active' && !expoPushTokenRef.current) {
+        register(!askedThisLaunchRef.current);
       }
     });
 
@@ -46,16 +54,12 @@ export const NotificationProvider = ({ children }) => {
     });
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
-      // Extract data from notification
       const data = response.notification.request.content.data;
 
-      // Navigate using the router if the screen is specified
       if (data?.screen) {
         try {
-          // Remove leading slash if present and ensure proper URL format
           const screen = data.screen.replace(/^\/+/, '');
 
-          // Handle any additional params if needed
           if (data.params) {
             router.push({
               pathname: screen,
@@ -66,7 +70,6 @@ export const NotificationProvider = ({ children }) => {
           }
         } catch (error) {
           console.error('Navigation error:', error);
-          // Fallback navigation if needed
           try {
             router.push('/');
           } catch (fallbackError) {
