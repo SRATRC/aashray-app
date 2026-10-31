@@ -3,7 +3,8 @@ import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
-export async function registerForPushNotificationsAsync() {
+// ask: false only reads the current permission and never shows the system prompt.
+export async function registerForPushNotificationsAsync({ ask = true } = {}) {
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'default',
@@ -17,7 +18,7 @@ export async function registerForPushNotificationsAsync() {
     const { status: existingStatus } =
       await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
-    if (existingStatus !== 'granted') {
+    if (existingStatus !== 'granted' && ask) {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
     }

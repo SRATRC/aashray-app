@@ -21,23 +21,34 @@ export const NotificationProvider = ({ children }) => {
 
   const notificationListener = useRef();
   const responseListener = useRef();
+  const expoPushTokenRef = useRef(null);
+  const askedThisLaunchRef = useRef(false);
 
   const router = useRouter();
 
   useEffect(() => {
-    if (AppState.currentState === 'active') {
-      registerForPushNotificationsAsync().then(
-        (token) => setExpoPushToken(token),
+    const register = (ask) => {
+      if (ask) askedThisLaunchRef.current = true;
+      registerForPushNotificationsAsync({ ask }).then(
+        (token) => {
+          expoPushTokenRef.current = token;
+          setExpoPushToken(token);
+        },
         (error) => setError(error)
       );
+    };
+
+    if (AppState.currentState === 'active') {
+      register(true);
     }
 
+    // Ask at most once per launch. On Android, asking opens and closes the system
+    // permission screen, which itself fires 'active' again — re-asking here looped
+    // ~5x a second when notifications were blocked and kept knocking the keyboard down.
+    // Later returns only pick up a permission the member turned on in Settings.
     const appStateSubscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState === 'active' && !expoPushToken) {
-        registerForPushNotificationsAsync().then(
-          (token) => setExpoPushToken(token),
-          (error) => setError(error)
-        );
+      if (nextState === 'active' && !expoPushTokenRef.current) {
+        register(!askedThisLaunchRef.current);
       }
     });
 
