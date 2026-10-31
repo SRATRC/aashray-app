@@ -42,10 +42,6 @@ export const NotificationProvider = ({ children }) => {
       register(true);
     }
 
-    // Ask at most once per launch. On Android, asking opens and closes the system
-    // permission screen, which itself fires 'active' again — re-asking here looped
-    // ~5x a second when notifications were blocked and kept knocking the keyboard down.
-    // Later returns only pick up a permission the member turned on in Settings.
     const appStateSubscription = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'active' && !expoPushTokenRef.current) {
         register(!askedThisLaunchRef.current);
@@ -57,16 +53,12 @@ export const NotificationProvider = ({ children }) => {
     });
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
-      // Extract data from notification
       const data = response.notification.request.content.data;
 
-      // Navigate using the router if the screen is specified
       if (data?.screen) {
         try {
-          // Remove leading slash if present and ensure proper URL format
           const screen = data.screen.replace(/^\/+/, '');
 
-          // Handle any additional params if needed
           if (data.params) {
             router.push({
               pathname: screen,
@@ -77,7 +69,6 @@ export const NotificationProvider = ({ children }) => {
           }
         } catch (error) {
           console.error('Navigation error:', error);
-          // Fallback navigation if needed
           try {
             router.push('/');
           } catch (fallbackError) {
